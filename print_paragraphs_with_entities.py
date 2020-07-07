@@ -1,9 +1,11 @@
+from typing import Iterator
+
 import sys
 
 from src.wikipedia_corpus import WikipediaCorpus
 from src.entity_database import EntityDatabase
 from src.entity_database_reader import EntityDatabaseReader
-from src.paragraph import Paragraph
+from src.paragraph import Paragraph, paragraph_from_json
 from src import settings
 
 
@@ -25,27 +27,34 @@ def entity_text(paragraph: Paragraph, entities: EntityDatabase):
     return text
 
 
+def corpus_paragraphs(in_file: str) -> Iterator[Paragraph]:
+    corpus = WikipediaCorpus(settings.DATA_DIRECTORY + in_file)
+    for article in corpus.get_articles():
+        for paragraph in article.paragraphs:
+            yield paragraph
+
+
+def file_paragraphs(in_file: str) -> Iterator[Paragraph]:
+    for line in open(settings.DATA_DIRECTORY + in_file):
+        paragraph = paragraph_from_json(line)
+        yield paragraph
+
+
 def print_help():
     print("Usage:\n"
-          "    python3 print_paragraphs_with_entities.py <corpus_file>\n"
-          "\n"
-          "Examples:\n"
-          "    python3 print_paragraphs_with_entities.py"
-          " ~/wikipedia/wikipedia_2020-06-08/1000_articles_with_links_mapped+NERed+names.txt\n"
-          "    python3 print_paragraphs_with_entities.py"
-          " /local/data/hertelm/wikipedia_2020-06-08/articles_with_links_mapped+NERed+names.txt")
+          "    python3 print_paragraphs_with_entities.py <in_file> [-p]")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print_help()
         exit(1)
 
-    corpus_file = sys.argv[1]
+    in_file = sys.argv[1]
+    is_paragraph_file = "-p" in sys.argv
+    paragraphs = file_paragraphs(in_file) if is_paragraph_file else corpus_paragraphs(in_file)
 
-    corpus = WikipediaCorpus(settings.DATA_DIRECTORY + corpus_file)
-    entity_db = EntityDatabaseReader.read_entity_database()
+    entity_db = EntityDatabaseReader.read_entity_database(verbose=False)
 
-    for article in corpus.get_articles():
-        for paragraph in article.paragraphs:
-            print(entity_text(paragraph, entity_db))
+    for paragraph in paragraphs:
+        print(entity_text(paragraph, entity_db))

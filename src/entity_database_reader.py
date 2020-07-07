@@ -25,19 +25,23 @@ def parse_name(encoded_name: str) -> str:
 
 class EntityDatabaseReader:
     @staticmethod
-    def read_entity_database(minimum_score: int = 0) -> EntityDatabase:
+    def read_entity_database(minimum_score: int = 0,
+                             verbose: bool = True) -> EntityDatabase:
         entity_db = EntityDatabase()
-        print("reading entities...")
+        if verbose:
+            print("reading entities...")
         for entity in EntityDatabaseReader._read_entity_file(settings.ENTITY_FILE):
             entity_id = entity.entity_id
             if entity.score >= minimum_score and \
                     (not entity_db.contains(entity_id) or entity.score > entity_db.get_score(entity_id)):
                 entity_db.add_entity(entity)
-        print(entity_db.size_entities(), "entities")
-        print(entity_db.size_aliases(), "aliases")
-        print("reading person names...")
+        if verbose:
+            print(entity_db.size_entities(), "entities")
+            print(entity_db.size_aliases(), "aliases")
+            print("reading person names...")
         EntityDatabaseReader._add_names(entity_db, settings.PERSON_NAMES_FILE)
-        print(entity_db.size_aliases(), "aliases")
+        if verbose:
+            print(entity_db.size_aliases(), "aliases")
         return entity_db
 
     @staticmethod
