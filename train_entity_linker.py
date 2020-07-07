@@ -32,18 +32,18 @@ if __name__ == "__main__":
 
     N_BATCHES = int(sys.argv[1])
 
-    # load the knowledge base:
-    vocab = Vocab().from_disk(settings.VOCAB_DIRECTORY)
-    kb = KnowledgeBase(vocab=vocab, entity_vector_length=vocab.vectors.shape[1])
+    # make pipeline:
+    nlp = spacy.load(settings.LARGE_MODEL_NAME)
+    nlp.vocab.from_disk(settings.VOCAB_DIRECTORY)
+    nlp.vocab.vectors.name = "spacy_pretrained_vectors"
+
+    # add entity linker with knowledge base:
+    entity_linker = nlp.create_pipe("entity_linker",
+                                    {"incl_prior": False})
+    kb = KnowledgeBase(vocab=nlp.vocab)
     kb.load_bulk(settings.KB_FILE)
     print(kb.get_size_entities(), "entities")
     print(kb.get_size_aliases(), "aliases")
-
-    # make pipeline:
-    nlp = spacy.load(settings.LARGE_MODEL_NAME)
-    nlp: spacy.language.Language
-    entity_linker = nlp.create_pipe("entity_linker",
-                                    {"incl_prior": False})
     entity_linker.set_kb(kb)
     nlp.add_pipe(entity_linker, last=True)
 
@@ -79,7 +79,8 @@ if __name__ == "__main__":
             loss_sum += loss
             loss_mean = loss_sum / n_batches
             if n_batches % PRINT_EVERY == 0:
-                print("\r%i batches\t%i examples\tloss: %f\tmean: %f" % (n_batches, n_examples, loss, loss_mean), end='')
+                print("\r%i batches\t%i examples\tloss: %f\tmean: %f" %
+                      (n_batches, n_examples, loss, loss_mean), end='')
             if n_batches == N_BATCHES:
                 break
             elif n_batches % SAVE_EVERY == 0:

@@ -43,9 +43,9 @@ class KnowledgeBaseCreator:
                             aliases[alias][entity_id] += count
 
         print("adding aliases...")
-        for alias in aliases:
+        for alias in sorted(aliases):
             alias_entity_ids = [entity_id for entity_id in aliases[alias] if kb.contains_entity(entity_id)]
-            if len(alias_entity_ids) > 0:
+            if len(alias_entity_ids) > 0 and len(alias) > 0:
                 frequencies = [aliases[alias][entity_id] for entity_id in alias_entity_ids]
                 sum_frequencies = sum(frequencies)
                 probabilities = [frequency / sum_frequencies for frequency in frequencies]
