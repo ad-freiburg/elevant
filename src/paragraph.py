@@ -30,6 +30,11 @@ class Paragraph:
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
+    def remove_entity_mentions(self):
+        if self.entity_mentions is not None:
+            self.entity_mentions = None
+            self.entity_coverage = np.full(len(self.text), False)
+
     def add_entity_mentions(self, entity_mentions: List[EntityMention]):
         if self.entity_mentions is None:
             self.entity_mentions = []

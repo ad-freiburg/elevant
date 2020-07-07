@@ -17,6 +17,7 @@ def print_help():
 
 def link_entities(paragraph: Paragraph):
     doc = model(paragraph.text)
+    paragraph.remove_entity_mentions()
     link_linker.link_entities(paragraph)
     trained_entity_linker.link_entities(paragraph, doc=doc)
     alias_entity_linker.link_entities(paragraph, doc=doc)
