@@ -1,5 +1,6 @@
 import spacy
 from spacy.kb import KnowledgeBase
+import pickle
 
 from src.entity_database import EntityDatabase
 from src.word_vectors import VectorLoader
@@ -8,7 +9,8 @@ from src import settings
 
 class KnowledgeBaseCreator:
     @staticmethod
-    def create_kb(entity_db: EntityDatabase) -> KnowledgeBase:
+    def create_kb(entity_db: EntityDatabase,
+                  include_link_aliases: bool) -> KnowledgeBase:
         model = spacy.load(settings.LARGE_MODEL_NAME)
         kb = KnowledgeBase(vocab=model.vocab, entity_vector_length=model.vocab.vectors.shape[1])
 
@@ -21,14 +23,32 @@ class KnowledgeBaseCreator:
         # print()
         print(len(kb), "entities")
 
-        print("adding aliases...")
+        print("reading aliases from database...")
+        aliases = {}  # alias -> {entity_id -> count}
         for alias in entity_db.all_aliases():
-            alias_entity_ids = entity_db.get_candidates(alias)
-            alias_entity_ids = [entity_id for entity_id in alias_entity_ids if kb.contains_entity(entity_id)]
+            aliases[alias] = {entity_id: 1 for entity_id in entity_db.get_candidates(alias)}
+
+        if include_link_aliases:
+            print("reading aliases from link frequencies...")
+            with open(settings.LINK_COUNTS_FILE, "rb") as f:
+                link_aliases = pickle.load(f)
+                for alias in link_aliases:
+                    if alias not in aliases:
+                        aliases[alias] = dict()
+                    for entity_id in link_aliases[alias]:
+                        count = link_aliases[alias][entity_id]
+                        if entity_id not in aliases[alias]:
+                            aliases[alias][entity_id] = count
+                        else:
+                            aliases[alias][entity_id] += count
+
+        print("adding aliases...")
+        for alias in aliases:
+            alias_entity_ids = [entity_id for entity_id in aliases[alias] if kb.contains_entity(entity_id)]
             if len(alias_entity_ids) > 0:
-                scores = [entity_db.get_score(entity_id) for entity_id in alias_entity_ids]
-                sum_scores = sum(scores)
-                probabilities = [score / sum_scores for score in scores]
+                frequencies = [aliases[alias][entity_id] for entity_id in alias_entity_ids]
+                sum_frequencies = sum(frequencies)
+                probabilities = [frequency / sum_frequencies for frequency in frequencies]
                 kb.add_alias(alias=alias, entities=alias_entity_ids, probabilities=probabilities)
         print(kb.get_size_aliases(), "aliases")
 

@@ -13,12 +13,13 @@ def print_help():
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print_help()
+        exit(1)
 
     minimum_score = int(sys.argv[1])
 
     entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
 
-    kb = KnowledgeBaseCreator.create_kb(entity_db=entity_db)
+    kb = KnowledgeBaseCreator.create_kb(entity_db=entity_db, include_link_aliases=True)
 
     print(kb.get_size_entities(), "knowledge base entities")
     print(kb.get_size_aliases(), "knowledge base aliases")
