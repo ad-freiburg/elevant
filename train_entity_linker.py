@@ -35,11 +35,10 @@ if __name__ == "__main__":
     # make pipeline:
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
     nlp.vocab.from_disk(settings.VOCAB_DIRECTORY)
-    nlp.vocab.vectors.name = "spacy_pretrained_vectors"
 
     # add entity linker with knowledge base:
     entity_linker = nlp.create_pipe("entity_linker",
-                                    {"incl_prior": False})
+                                    {"incl_prior": True})
     kb = KnowledgeBase(vocab=nlp.vocab)
     kb.load_bulk(settings.KB_FILE)
     print(kb.get_size_entities(), "entities")
@@ -88,3 +87,4 @@ if __name__ == "__main__":
                 save_model(nlp)
         print()
     save_model(nlp)
+    print(nlp.pipe_names)
