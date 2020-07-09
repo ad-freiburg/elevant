@@ -53,7 +53,7 @@ if __name__ == "__main__":
                 print("\r%i paragraphs" % (p_i + 1), end='')
         elif is_raw_file:
             for p_i, line in enumerate(open(settings.DATA_DIRECTORY + in_file)):
-                paragraph = Paragraph(line[:-1])
+                paragraph = Paragraph(line[:-1], wikipedia_links=[])
                 link_entities(paragraph)
                 f.write(paragraph.to_json() + '\n')
                 print("\r%i paragraphs" % (p_i + 1), end='')
