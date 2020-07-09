@@ -12,7 +12,7 @@ from src import settings
 
 def print_help():
     print("Usage:\n"
-          "    python3 link_wiki_entities.py <in_file> <out_file> [-p] [-a]")
+          "    python3 link_wiki_entities.py <in_file> <out_file> [-p] [-a] [-raw]")
 
 
 def link_entities(paragraph: Paragraph):
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     in_file = sys.argv[1]
     out_file = sys.argv[2]
     is_paragraph_file = "-p" in sys.argv
+    is_raw_file = "-raw" in sys.argv
     link_aliases = "-a" in sys.argv
 
     model = spacy.load(settings.LARGE_MODEL_NAME)
@@ -47,6 +48,12 @@ if __name__ == "__main__":
         if is_paragraph_file:
             for p_i, line in enumerate(open(settings.DATA_DIRECTORY + in_file)):
                 paragraph = paragraph_from_json(line)
+                link_entities(paragraph)
+                f.write(paragraph.to_json() + '\n')
+                print("\r%i paragraphs" % (p_i + 1), end='')
+        elif is_raw_file:
+            for p_i, line in enumerate(open(settings.DATA_DIRECTORY + in_file)):
+                paragraph = Paragraph(line[:-1])
                 link_entities(paragraph)
                 f.write(paragraph.to_json() + '\n')
                 print("\r%i paragraphs" % (p_i + 1), end='')
