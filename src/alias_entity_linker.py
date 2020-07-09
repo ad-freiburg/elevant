@@ -7,6 +7,7 @@ from spacy.tokens import Doc
 from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_prediction import EntityPrediction
 from src import settings
+from src.settings import NER_IGNORE_TAGS
 
 
 class AliasEntityLinker(AbstractEntityLinker):
@@ -33,6 +34,8 @@ class AliasEntityLinker(AbstractEntityLinker):
             doc = self.model(text)
         predictions = {}
         for ent in doc.ents:
+            if ent.label_ in NER_IGNORE_TAGS:
+                continue
             span = (ent.start_char, ent.end_char)
             snippet = text[span[0]:span[1]]
             if snippet in self.aliases:

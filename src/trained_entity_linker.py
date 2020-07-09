@@ -6,6 +6,7 @@ from spacy.language import Language
 from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_linker_loader import EntityLinkerLoader
 from src.entity_prediction import EntityPrediction
+from src.settings import NER_IGNORE_TAGS
 
 
 class TrainedEntityLinker(AbstractEntityLinker):
@@ -27,6 +28,8 @@ class TrainedEntityLinker(AbstractEntityLinker):
             doc = self.model(text)
         predictions = {}
         for ent in doc.ents:
+            if ent.label_ in NER_IGNORE_TAGS:
+                continue
             span = (ent.start_char, ent.end_char)
             entity_id = ent.kb_id_ if ent.kb_id_ != "NIL" else None
             candidates = self.get_candidates(text[span[0]:span[1]])
