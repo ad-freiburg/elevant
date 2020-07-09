@@ -12,7 +12,7 @@ from src import settings
 
 def print_help():
     print("Usage:\n"
-          "    python3 link_wiki_entities.py <in_file> <out_file> [-p]")
+          "    python3 link_wiki_entities.py <in_file> <out_file> [-p] [-a]")
 
 
 def link_entities(paragraph: Paragraph):
@@ -20,7 +20,8 @@ def link_entities(paragraph: Paragraph):
     paragraph.remove_entity_mentions()
     link_linker.link_entities(paragraph)
     trained_entity_linker.link_entities(paragraph, doc=doc)
-    alias_entity_linker.link_entities(paragraph, doc=doc)
+    if link_aliases:
+        alias_entity_linker.link_entities(paragraph, doc=doc)
     coreference_linker.link_entities(paragraph, doc=doc)
 
 
@@ -32,12 +33,14 @@ if __name__ == "__main__":
     in_file = sys.argv[1]
     out_file = sys.argv[2]
     is_paragraph_file = "-p" in sys.argv
+    link_aliases = "-a" in sys.argv
 
     model = spacy.load(settings.LARGE_MODEL_NAME)
 
     link_linker = LinkEntityLinker()
     trained_entity_linker = TrainedEntityLinker(model=model)
-    alias_entity_linker = AliasEntityLinker(load_model=False)
+    if link_aliases:
+        alias_entity_linker = AliasEntityLinker(load_model=False)
     coreference_linker = CoreferenceEntityLinker(model=model)
 
     with open(settings.DATA_DIRECTORY + out_file, "w") as f:

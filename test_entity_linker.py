@@ -106,7 +106,7 @@ if __name__ == "__main__":
             elif not detected:
                 case = CaseType.UNDETECTED
             else:
-                is_correct = true_entity_id == predicted_entity_id
+                is_correct = (true_entity_id == predicted_entity_id)
                 if n_candidates == 0:
                     case = CaseType.NO_CANDIDATE
                 elif n_candidates == 1:
