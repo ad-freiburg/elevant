@@ -4,6 +4,7 @@ import re
 
 from src.wikipedia_article import WikipediaArticle
 from src.markup_special_characters import SPECIAL_CHARACTERS
+from src.paragraph import Paragraph
 
 
 def split_markup(text: str) -> List[str]:
@@ -154,19 +155,24 @@ def preprocess_text(text: str) -> str:
 
 
 class MarkupProcessor:
-    @staticmethod
-    def link_entities(article: WikipediaArticle):
+    def __init__(self):
+        self.n_paragraphs_extracted = 0
+        self.n_paragraphs_filtered = 0
+
+    def filter_markup_and_link_entities(self, article: WikipediaArticle):
         """
         Splits a Wikipedia article into paragraphs and adds Wikipedia-internal links to it.
-        Currently, most markup is simply ignored.
+        Currently, most paragaphs containing markup are simply ignored.
 
         :param article: wikipedia article
         """
         paragraphs = split_paragraphs(article.text)
         paragraphs = [preprocess_text(paragraph) for paragraph in paragraphs]
+        n_paragraphs_all = len(paragraphs)
         paragraphs = filter_texts(paragraphs)
+        self.n_paragraphs_extracted += len(paragraphs)
+        self.n_paragraphs_filtered += n_paragraphs_all - len(paragraphs)
         article.paragraphs = []
-        article.wikipedia_links = []
         for paragraph in paragraphs:
             splits = split_markup(paragraph)
             text = ""
@@ -181,5 +187,7 @@ class MarkupProcessor:
                     text += entity_text
                 else:
                     text += split
-            article.paragraphs.append(text)
-            article.wikipedia_links.append(paragraph_links)
+            article.paragraphs.append(
+                Paragraph(text=paragraph,
+                          wikipedia_links=paragraph_links)
+            )

@@ -1,7 +1,5 @@
 import sys
 
-import json
-
 from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.markup_processor import MarkupProcessor
 
@@ -25,15 +23,14 @@ if __name__ == "__main__":
         exit(1)
     dump_file = sys.argv[1]
     out_file = sys.argv[2]
+    markup_processor = MarkupProcessor()
     with open(out_file, "w") as f:
         for i, page in enumerate(WikipediaDumpReader.page_iterator(dump_file)):
             article = WikipediaDumpReader.parse_article(page)
-            MarkupProcessor.link_entities(article)
-            # TODO: this has changed:
-            article_dump = json.dumps({"id": article.id,
-                                       "title": article.title,
-                                       "paragraphs": article.paragraphs,
-                                       "links": article.wikipedia_links})
+            markup_processor.filter_markup_and_link_entities(article)
+            article_dump = article.to_json()
             f.write(article_dump + '\n')
-            print("\r%i articles" % (i + 1), end='')
+            print("\r%i paragraphs extracted from %i articles (%i paragraphs removed)" %
+                  (markup_processor.n_paragraphs_extracted, (i + 1), markup_processor.n_paragraphs_filtered),
+                  end='')
         print()
