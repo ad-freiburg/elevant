@@ -23,18 +23,10 @@
 3. (optional) Print the link frequencies:
     + python3 print_link_frequencies.py
 
-### 3. Create and train the EntityLinker
+### 3. Create and train the Entity Linker
 
 (under construction -> has to be adapted to the WikiExtractor article format)
 
-1. alias counts ...
-3. Extract articles and paragraphs from the dump:
-    + python3 parse_wikipedia_dump.py
-4. Link entities from article references:
-    + python3 link_page_references.py
-5. Shuffle the paragraphs and split them into training, development and test:
-    + python3 shuffle_paragraphs.py
-    + python3 split_paragraphs.py
 6. Generate word vectors:
     + python3 create_word_vectors.py 0
 7. Create the knowledge base:

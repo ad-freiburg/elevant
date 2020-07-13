@@ -3,6 +3,7 @@ from typing import List
 from src.entity_database import EntityDatabase
 from src.wikidata_entity import WikidataEntity
 from src import settings
+from src.link_entity_linker import get_mapping
 
 
 def parse_entity_id(url: str) -> str:
@@ -28,6 +29,8 @@ class EntityDatabaseReader:
     def read_entity_database(minimum_score: int = 0,
                              verbose: bool = True) -> EntityDatabase:
         entity_db = EntityDatabase()
+
+        # entities:
         if verbose:
             print("reading entities...")
         for entity in EntityDatabaseReader._read_entity_file(settings.ENTITY_FILE):
@@ -35,6 +38,8 @@ class EntityDatabaseReader:
             if entity.score >= minimum_score and \
                     (not entity_db.contains(entity_id) or entity.score > entity_db.get_score(entity_id)):
                 entity_db.add_entity(entity)
+
+        # aliases:
         if verbose:
             print(entity_db.size_entities(), "entities")
             print(entity_db.size_aliases(), "aliases")
@@ -42,6 +47,14 @@ class EntityDatabaseReader:
         EntityDatabaseReader._add_names(entity_db, settings.PERSON_NAMES_FILE)
         if verbose:
             print(entity_db.size_aliases(), "aliases")
+
+        # wikipedia to wikidata translation:
+        if verbose:
+            print("reading wikipedia to wikidata mappings...")
+        EntityDatabaseReader._read_mappings(entity_db, settings.WIKI_MAPPING_FILE)
+        if verbose:
+            print("%i mappings" % len(entity_db.wikipedia2wikidata))
+
         return entity_db
 
     @staticmethod
@@ -67,3 +80,11 @@ class EntityDatabaseReader:
                 entity_names = [parse_name(encoded) for encoded in encoded_names.split("@en,")]
                 for name in entity_names:
                     entity_db.add_alias(name, entity_id)
+
+    @staticmethod
+    def _read_mappings(entity_db: EntityDatabase, mappings_file: str):
+        mapping = get_mapping(mappings_file)
+        for entity_name in mapping:
+            entity_id = mapping[entity_name]
+            if entity_db.contains(entity_id):
+                entity_db.add_mapping(wikipedia_url=entity_name, wikidata_id=entity_id)

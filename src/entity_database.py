@@ -7,6 +7,8 @@ class EntityDatabase:
     def __init__(self):
         self.entities = {}
         self.aliases = {}
+        self.wikipedia2wikidata = {}
+        self.wikidata2wikipedia = {}
 
     def add_alias(self, alias: str, entity_id: str):
         if alias not in self.aliases:
@@ -47,3 +49,7 @@ class EntityDatabase:
             return self.aliases[alias]
         else:
             return set()
+
+    def add_mapping(self, wikipedia_url: str, wikidata_id: str):
+        self.wikipedia2wikidata[wikipedia_url] = wikidata_id
+        self.wikidata2wikipedia[wikidata_id] = wikipedia_url

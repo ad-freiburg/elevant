@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
 
-    kb = KnowledgeBaseCreator.create_kb(entity_db=entity_db, include_link_aliases=True)
+    kb = KnowledgeBaseCreator.create_kb(entity_db=entity_db)
 
     print(kb.get_size_entities(), "knowledge base entities")
     print(kb.get_size_aliases(), "knowledge base aliases")

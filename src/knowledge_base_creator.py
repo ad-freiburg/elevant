@@ -9,8 +9,7 @@ from src import settings
 
 class KnowledgeBaseCreator:
     @staticmethod
-    def create_kb(entity_db: EntityDatabase,
-                  include_link_aliases: bool) -> KnowledgeBase:
+    def create_kb(entity_db: EntityDatabase) -> KnowledgeBase:
         model = spacy.load(settings.LARGE_MODEL_NAME)
         kb = KnowledgeBase(vocab=model.vocab, entity_vector_length=model.vocab.vectors.shape[1])
 
@@ -23,33 +22,32 @@ class KnowledgeBaseCreator:
         # print()
         print(len(kb), "entities")
 
-        print("reading aliases from database...")
-        aliases = {}  # alias -> {entity_id -> count}
-        for alias in entity_db.all_aliases():
-            aliases[alias] = {entity_id: 1 for entity_id in entity_db.get_candidates(alias)}
-
-        if include_link_aliases:
-            print("reading aliases from link frequencies...")
-            with open(settings.LINK_COUNTS_FILE, "rb") as f:
-                link_aliases = pickle.load(f)
-                for alias in link_aliases:
-                    if alias not in aliases:
-                        aliases[alias] = dict()
-                    for entity_id in link_aliases[alias]:
-                        count = link_aliases[alias][entity_id]
-                        if entity_id not in aliases[alias]:
-                            aliases[alias][entity_id] = count
-                        else:
-                            aliases[alias][entity_id] += count
+        print("reading link frequencies...")
+        with open(settings.LINK_FREEQUENCIES_FILE, "rb") as f:
+            link_frequencies = pickle.load(f)
 
         print("adding aliases...")
-        for alias in sorted(aliases):
-            alias_entity_ids = [entity_id for entity_id in aliases[alias] if kb.contains_entity(entity_id)]
-            if len(alias_entity_ids) > 0 and len(alias) > 0:
-                frequencies = [aliases[alias][entity_id] for entity_id in alias_entity_ids]
-                sum_frequencies = sum(frequencies)
-                probabilities = [frequency / sum_frequencies for frequency in frequencies]
-                kb.add_alias(alias=alias, entities=alias_entity_ids, probabilities=probabilities)
+        for alias in entity_db.all_aliases():
+            if len(alias) > 0:
+                alias_entity_ids = [entity_id for entity_id in entity_db.get_candidates(alias)
+                                    if kb.contains_entity(entity_id)]
+                if len(alias_entity_ids) > 0:
+                    frequencies = []
+                    for entity_id in alias_entity_ids:
+                        frequency = 0
+                        if alias in link_frequencies:
+                            if entity_id in entity_db.wikidata2wikipedia:
+                                entity_name = entity_db.wikidata2wikipedia[entity_id]
+                                if entity_name in link_frequencies[alias]:
+                                    frequency = link_frequencies[alias][entity_name]
+                        frequencies.append(frequency)
+                    sum_frequencies = sum(frequencies)
+                    if sum_frequencies > 0:
+                        probabilities = [frequency / sum_frequencies for frequency in frequencies]
+                    else:
+                        probabilities = [1 / len(alias_entity_ids) for _ in alias_entity_ids]
+                    # print(alias, list(zip(alias_entity_ids, probabilities)))
+                    kb.add_alias(alias=alias, entities=alias_entity_ids, probabilities=probabilities)
         print(kb.get_size_aliases(), "aliases")
 
         return kb

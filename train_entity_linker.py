@@ -1,6 +1,5 @@
 import sys
 import spacy
-from spacy.vocab import Vocab
 from spacy.kb import KnowledgeBase
 from spacy.language import Language
 

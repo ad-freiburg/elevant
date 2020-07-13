@@ -20,7 +20,7 @@ DATABASE_DIRECTORY = DATA_DIRECTORY + "yi-chun/"
 ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
 PERSON_NAMES_FILE = DATABASE_DIRECTORY + "wikidata-familyname.csv"
 ABSTRACTS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia.tsv"
-LINKS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
+WIKI_MAPPING_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
 
 TRAINING_PARAGRAPHS_FILE = DATA_DIRECTORY + "training.txt"
 DEVELOPMENT_PARAGRAPHS_FILE = DATA_DIRECTORY + "development.txt"
