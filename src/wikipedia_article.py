@@ -1,28 +1,24 @@
-from typing import Optional, List, Dict
+from typing import List, Dict, Tuple
 
 import json
-
-from src.paragraph import Paragraph, paragraph_from_dict
 
 
 class WikipediaArticle:
     def __init__(self,
                  id: int,
                  title: str,
-                 text: Optional[str] = None,
-                 paragraphs: Optional[List[Paragraph]] = None):
+                 text: str,
+                 links: List[Tuple[Tuple[int, int], str]]):
         self.id = id
         self.title = title
         self.text = text
-        self.paragraphs = paragraphs
+        self.links = links
 
     def to_dict(self) -> Dict:
         data = {"id": self.id,
-                "title": self.title}
-        if self.paragraphs is None:
-            data["text"] = self.text
-        else:
-            data["paragraphs"] = [paragraph.to_dict() for paragraph in self.paragraphs]
+                "title": self.title,
+                "text": self.text,
+                "links": self.links}
         return data
 
     def to_json(self) -> str:
@@ -38,9 +34,8 @@ class WikipediaArticle:
 def article_from_dict(data: Dict):
     return WikipediaArticle(id=int(data["id"]),
                             title=data["title"],
-                            text=data["text"] if "text" in data else None,
-                            paragraphs=[paragraph_from_dict(paragraph_data) for paragraph_data in data["paragraphs"]]
-                            if "paragraphs" in data else None)
+                            text=data["text"],
+                            links=data["links"])
 
 
 def article_from_json(dump: str):

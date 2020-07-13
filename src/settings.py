@@ -14,6 +14,8 @@ if DATA_DIRECTORY is None:
     print("ERROR: could not find the data directory.")
     exit(1)
 
+ARTICLE_JSON_DIR = DATA_DIRECTORY + "json/"
+
 DATABASE_DIRECTORY = DATA_DIRECTORY + "yi-chun/"
 ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
 PERSON_NAMES_FILE = DATABASE_DIRECTORY + "wikidata-familyname.csv"
@@ -23,7 +25,7 @@ LINKS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
 TRAINING_PARAGRAPHS_FILE = DATA_DIRECTORY + "training.txt"
 DEVELOPMENT_PARAGRAPHS_FILE = DATA_DIRECTORY + "development.txt"
 
-LINK_COUNTS_FILE = DATA_DIRECTORY + "link_counts.pkl"
+LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 
 ENTITY_PREFIX = "http://www.wikidata.org/entity/"
 
