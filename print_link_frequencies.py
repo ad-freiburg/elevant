@@ -9,5 +9,4 @@ if __name__ == "__main__":
 
     for link_text in sorted(links):
         targets = sorted([(target, links[link_text][target]) for target in links[link_text]])
-        if len(targets) > 1:
-            print(link_text, targets)
+        print(link_text, targets)
