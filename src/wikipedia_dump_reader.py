@@ -70,7 +70,10 @@ class WikipediaDumpReader:
         Create WikipediaArticle objects from the given XML page.
 
         :param page_content: xml of the page
-        :return: wikipedia article
+        :return: WikipediaArticle with properties:
+        - id: int
+        - title: str
+        - text: markup string, everything between <text> and </text> tags
         """
         id = None
         title = None
@@ -97,3 +100,15 @@ class WikipediaDumpReader:
         if len(markup) == 0:
             print(page_content)
         return WikipediaArticle(id, title, markup)
+
+    @staticmethod
+    def article_iterator(dump_file: str) -> Iterator[WikipediaArticle]:
+        """
+        Iterates over the articles in the given dump file.
+
+        :param dump_file: path to the bz2 Wikipedia dump file
+        :return: iterator over WikipediaArticle objects
+        """
+        for page in WikipediaDumpReader.page_iterator(dump_file):
+            article = WikipediaDumpReader.parse_article(page)
+            yield article

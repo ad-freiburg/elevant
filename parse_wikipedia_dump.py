@@ -10,8 +10,14 @@ ARTICLES_WITH_LINKS_FILE = DATA_DIR + "articles_with_links.txt"
 
 
 def print_help():
-    print("Usage:\n"
+    print("Extracts articles from a Wikipedia dump. Articles are split into paragraphs and article link information "
+          "is kept. Most paragraphs containing markup are ignored. Outputs a file with one article per line in JSON "
+          "format.\n"
+          "\n"
+          "Usage:\n"
           "  python3 parse_wikipedia_dump.py <dump_file> <output_file>\n"
+          "        <dump_file>: absolute path to the pages-articles.xml.bz2 file\n"
+          "        <output_file>: absolute path to a file where the extracted articles will be saved\n"
           "\n"
           "Example:\n"
           "  python3 parse_wikipedia_dump.py %s %s" % (DUMP_FILE, ARTICLES_WITH_LINKS_FILE))
@@ -25,8 +31,7 @@ if __name__ == "__main__":
     out_file = sys.argv[2]
     markup_processor = MarkupProcessor()
     with open(out_file, "w") as f:
-        for i, page in enumerate(WikipediaDumpReader.page_iterator(dump_file)):
-            article = WikipediaDumpReader.parse_article(page)
+        for i, article in enumerate(WikipediaDumpReader.article_iterator(dump_file)):
             markup_processor.filter_markup_and_link_entities(article)
             article_dump = article.to_json()
             f.write(article_dump + '\n')
