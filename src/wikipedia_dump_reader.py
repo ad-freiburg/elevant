@@ -14,15 +14,34 @@ class WikipediaDumpReader:
     _link_end_tag = "</a>"
 
     @staticmethod
-    def _file_iterator(json_dir: str) -> Iterator[str]:
-        for subdir in sorted(os.listdir(json_dir)):
-            subdir_path = os.path.join(json_dir, subdir)
+    def _file_iterator(extracted_corpus_dir: str) -> Iterator[str]:
+        """
+        Iterates over all files of a Wikipedia corpus extracted by the WikiExtractor in JSON or text format.
+        Assumes that the files are located at depth two at the given directory.
+        The usual directory structure is:
+        json_dir
+        ↳ AA
+          ↳ wiki_00
+
+        :param extracted_corpus_dir: path to the directory where the corpus was extracted to
+        :return: iterator over full paths to the files
+        """
+        for subdir in sorted(os.listdir(extracted_corpus_dir)):
+            subdir_path = os.path.join(extracted_corpus_dir, subdir)
             for file in sorted(os.listdir(subdir_path)):
                 file_path = os.path.join(subdir_path, file)
                 yield file_path
 
     @staticmethod
     def _extract_link_target_and_text(link_html: str) -> Tuple[str, str]:
+        """
+        Get the link target and link text for an HTML snippet with the format
+          <a href="...">...</a>
+        where the first '...' is the link target and the second '...' is the link text.
+
+        :param link_html: HTML snippet representing a link
+        :return: link target and link text
+        """
         if link_html.startswith(WikipediaDumpReader._link_start_tag_open) and \
                 link_html.endswith(WikipediaDumpReader._link_end_tag):
             target_end = link_html.find("\"", len(WikipediaDumpReader._link_start_tag_open))
@@ -31,11 +50,19 @@ class WikipediaDumpReader:
             text = link_html[(target_end + 2):-len(WikipediaDumpReader._link_end_tag)]
             return target, text
         else:
-            print("Warning: could not parse link '%s'." % link_html)
+            print("WARNING: could not parse link '%s'." % link_html)
             return link_html, link_html
 
     @staticmethod
     def _get_text_and_links(text_with_links: str) -> Tuple[str, List[Tuple[Tuple[int, int], str]]]:
+        """
+        Replace HTML links by their link texts and keep the link positions and targets.
+
+        :param text_with_links: A text that may contain HTML links.
+        :return: first: The text where the HTML links are replaced by the link texts.
+                 second: A list of the links, as tuples (span, target), where span is the start and end position
+                     of the link in the returned text, and target is the link target.
+        """
         text_position = 0
         text = ""
         links = []
