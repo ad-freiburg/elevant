@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 import json
 
@@ -11,7 +11,7 @@ class WikipediaArticle:
                  title: str,
                  text: str,
                  links: List[Tuple[Tuple[int, int], str]],
-                 entity_mentions: List[EntityMention] = []):
+                 entity_mentions: Optional[List[EntityMention]] = None):
         self.id = id
         self.title = title
         self.text = text
@@ -22,8 +22,9 @@ class WikipediaArticle:
         data = {"id": self.id,
                 "title": self.title,
                 "text": self.text,
-                "links": self.links,
-                "entity_mentions": self.entity_mentions}
+                "links": self.links}
+        if self.entity_mentions is not None:
+            data["entity_mentions"] = self.entity_mentions
         return data
 
     def to_json(self) -> str:
@@ -45,7 +46,7 @@ def article_from_dict(data: Dict):
                             title=data["title"],
                             text=data["text"],
                             links=links,
-                            entity_mentions=data["entity_mentions"] if "entity_mentions" in data else [])
+                            entity_mentions=data["entity_mentions"] if "entity_mentions" in data else None)
 
 
 def article_from_json(dump: str):
