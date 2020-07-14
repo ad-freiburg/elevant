@@ -89,6 +89,17 @@ class WikipediaDumpReader:
             yield None
 
     @staticmethod
+    def json2article(json_dump: str) -> WikipediaArticle:
+        article_data = json.loads(json_dump)
+        article_data: Dict
+        text, links = WikipediaDumpReader._get_text_and_links(article_data["text"])
+        article = WikipediaArticle(id=article_data["id"],
+                                   title=article_data["title"],
+                                   text=text,
+                                   links=links)
+        return article
+
+    @staticmethod
     def article_iterator(json_dir: str = settings.ARTICLE_JSON_DIR,
                          yield_none: bool = False) -> Iterator[WikipediaArticle]:
         """
@@ -99,13 +110,7 @@ class WikipediaDumpReader:
         :return: iterator over WikipediaArticle objects
         """
         for line in WikipediaDumpReader.json_iterator(json_dir):
-            article_data = json.loads(line)
-            article_data: Dict
-            text, links = WikipediaDumpReader._get_text_and_links(article_data["text"])
-            article = WikipediaArticle(id=article_data["id"],
-                                       title=article_data["title"],
-                                       text=text,
-                                       links=links)
+            article = WikipediaDumpReader.json2article(line)
             yield article
         if yield_none:
             yield None

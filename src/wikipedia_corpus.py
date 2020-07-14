@@ -1,5 +1,6 @@
 from typing import Iterator
-from src.wikipedia_article import WikipediaArticle, article_from_json
+from src.wikipedia_article import WikipediaArticle
+from src.wikipedia_dump_reader import WikipediaDumpReader
 from src import settings
 
 
@@ -8,7 +9,8 @@ class WikipediaCorpus:
     def get_articles(path: str, n: int = -1) -> Iterator[WikipediaArticle]:
         with open(path) as file:
             for l_i, line in enumerate(file):
-                yield article_from_json(line)
+                article = WikipediaDumpReader.json2article(line)
+                yield article
                 if (l_i + 1) == n:
                     break
 

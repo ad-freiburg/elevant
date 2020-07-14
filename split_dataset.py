@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     print("reading articles...")
     articles = []
-    for i, article in enumerate(WikipediaDumpReader.article_iterator(yield_none=True)):
+    for i, article in enumerate(WikipediaDumpReader.json_iterator(yield_none=True)):
         if i % PRINT_EVERY == 0 or article is None:
             print("\r%i articles" % i, end='')
         if article is None:
@@ -30,15 +30,14 @@ if __name__ == "__main__":
          open(settings.TEST_ARTICLES, "w") as f_test:
         n_train = n_dev = n_test = 0
         for i, article in enumerate(articles):
-            line = article.to_json() + '\n'
             if i < N_DEV_TEST:
-                f_dev.write(line)
+                f_dev.write(article)
                 n_dev += 1
             elif i < 2 * N_DEV_TEST:
-                f_test.write(line)
+                f_test.write(article)
                 n_test += 1
             else:
-                f_train.write(line)
+                f_train.write(article)
                 n_train += 1
             if (i + 1) % PRINT_EVERY == 0 or i + 1 == len(articles):
                 print("\r%i training, %i development, %i test articles" % (n_train, n_dev, n_test), end='')
