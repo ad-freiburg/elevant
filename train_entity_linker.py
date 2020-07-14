@@ -4,6 +4,7 @@ from spacy.kb import KnowledgeBase
 from spacy.language import Language
 
 from src import settings
+from src.link_entity_linker import get_mapping
 from src.label_generator import LabelGenerator
 
 
@@ -20,8 +21,8 @@ def save_model(model: Language):
     print("Saved model to", settings.LINKER_DIRECTORY)
 
 
-PRINT_EVERY = 10
-SAVE_EVERY = 10000
+PRINT_EVERY = 1
+SAVE_EVERY = 1000
 
 
 if __name__ == "__main__":
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
     nlp.vocab.from_disk(settings.VOCAB_DIRECTORY)
 
-    # add entity linker with knowledge base:
+    # create entity linker with the knowledge base and add it to the pipeline:
     entity_linker = nlp.create_pipe("entity_linker",
                                     {"incl_prior": True})
     kb = KnowledgeBase(vocab=nlp.vocab)
@@ -52,12 +53,14 @@ if __name__ == "__main__":
     optimizer = nlp.begin_training()
 
     # initialize label generator:
-    generator = LabelGenerator(nlp, kb)
+    mapping = get_mapping()
+    generator = LabelGenerator(nlp, kb, mapping)
 
-    # iterate over examples:
+    # iterate over training examples (batch size 1):
     print("training...")
     n_batches = 0
-    n_examples = 0
+    n_articles = 0
+    n_entities = 0
     loss_sum = 0
     if N_BATCHES != 0:
         for doc, labels in generator.training_examples():
@@ -72,13 +75,14 @@ if __name__ == "__main__":
                     losses=losses
                 )
             n_batches += 1
-            n_examples += len(batch_docs)
+            n_articles += len(batch_docs)
+            n_entities += len(labels["links"])
             loss = losses["entity_linker"]
             loss_sum += loss
             loss_mean = loss_sum / n_batches
             if n_batches % PRINT_EVERY == 0:
-                print("\r%i batches\t%i examples\tloss: %f\tmean: %f" %
-                      (n_batches, n_examples, loss, loss_mean), end='')
+                print("\r%i batches\t%i articles\t%i entities\tloss: %f\tmean: %f" %
+                      (n_batches, n_articles, n_entities, loss, loss_mean), end='')
             if n_batches == N_BATCHES:
                 break
             elif n_batches % SAVE_EVERY == 0:

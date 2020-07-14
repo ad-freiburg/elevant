@@ -82,6 +82,13 @@ class WikipediaDumpReader:
     @staticmethod
     def json_iterator(json_dir: str = settings.ARTICLE_JSON_DIR,
                       yield_none: bool = False) -> Iterator[str]:
+        """
+        Iterate over all articles in JSON format.
+
+        :param json_dir: directory where the dump was extracted to
+        :param yield_none: whether to yield None as last element
+        :return: iterator over JSON strings representing articles
+        """
         for file in WikipediaDumpReader._file_iterator(json_dir):
             for line in open(file):
                 yield line
@@ -90,6 +97,12 @@ class WikipediaDumpReader:
 
     @staticmethod
     def json2article(json_dump: str) -> WikipediaArticle:
+        """
+        Transform an extracted article from JSON format to a WikipediaArticle object.
+
+        :param json_dump: JSON string representing the extracted article
+        :return: the article as WikipediaArticle object
+        """
         article_data = json.loads(json_dump)
         article_data: Dict
         text, links = WikipediaDumpReader._get_text_and_links(article_data["text"])

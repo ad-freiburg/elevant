@@ -25,26 +25,20 @@
 
 ### 3. Create and train the Entity Linker
 
-(under construction -> has to be adapted to the WikiExtractor article format)
-
-6. Generate word vectors:
+1. Generate word vectors:
     + python3 create_word_vectors.py 0
-7. Create the knowledge base:
+2. Create the knowledge base:
     + python3 create_knowledge_base.py 0
-8. Train the entity linker:
+3. Train the entity linker:
     + python3 train_entity_linker.py
-9. Evaluate the entity linker:
+
+### 4. Test and use the trained Entity Linker
+
+1. Evaluate the entity linker:
     + python3 test_entity_linker.py
-10. Link entities in the extracted articles:
+
+(the following scripts are under construction)
+2. Link entities in the extracted articles:
     + python3 link_wiki_entities.py
-11. Print paragraphs with entity annotations:
-    + python3 print_paragraphs_with_entities.py
-
-### Old
-
-5. Recognize additional entities with spaCy:
-    + python3 recognize_entities.py
-6. Link entities by their names and synonyms:
-    + python3 link_names_and_synonyms.py
-7. Print the result:
+3. Print paragraphs with entity annotations:
     + python3 print_paragraphs_with_entities.py

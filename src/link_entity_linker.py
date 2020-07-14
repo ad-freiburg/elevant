@@ -7,7 +7,7 @@ WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"
 ENTITY_PREFIX = "http://www.wikidata.org/entity/"
 
 
-def get_mapping(mappings_file: str):
+def get_mapping(mappings_file: str = settings.WIKI_MAPPING_FILE):
     mapping = {}
     for i, line in enumerate(open(mappings_file)):
         line = line[:-1]
