@@ -1,8 +1,9 @@
 from typing import List, Dict, Tuple, Optional
 
 import json
+import numpy as np
 
-from src.entity_mention import EntityMention
+from src.entity_mention import EntityMention, entity_mention_from_dict
 
 
 class WikipediaArticle:
@@ -16,7 +17,9 @@ class WikipediaArticle:
         self.title = title
         self.text = text
         self.links = links
-        self.entity_mentions = entity_mentions
+        self.entity_mentions = None
+        self.entity_coverage = None
+        self.add_entity_mentions(entity_mentions)
 
     def to_dict(self) -> Dict:
         data = {"id": self.id,
@@ -24,14 +27,36 @@ class WikipediaArticle:
                 "text": self.text,
                 "links": self.links}
         if self.entity_mentions is not None:
-            data["entity_mentions"] = self.entity_mentions
+            data["entity_mentions"] = [self.entity_mentions[span].to_dict() for span in sorted(self.entity_mentions)]
         return data
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
-    def add_entity_mention(self, entity_mention: EntityMention):
-        self.entity_mentions.append(entity_mention)
+    def add_entity_mentions(self, entity_mentions: Optional[List[EntityMention]]):
+        if self.entity_mentions is None and entity_mentions is not None:
+            self.entity_mentions = {}
+        if entity_mentions is not None:
+            for entity_mention in entity_mentions:
+                self.entity_mentions[entity_mention.span] = entity_mention
+        self._update_entity_coverage()
+
+    def _update_entity_coverage(self):
+        self.entity_coverage = np.zeros(len(self.text), dtype=bool)
+        if self.entity_mentions is not None:
+            for span in self.entity_mentions:
+                begin, end = span
+                self.entity_coverage[begin:end] = True
+
+    def overlaps_entity_mention(self, span: Tuple[int, int]) -> bool:
+        begin, end = span
+        return np.sum(self.entity_coverage[begin:end]) > 0
+
+    def is_entity_mention(self, span: Tuple[int, int]) -> bool:
+        return self.entity_mentions is not None and span in self.entity_mentions
+
+    def get_entity_mention(self, span: Tuple[int, int]) -> EntityMention:
+        return self.entity_mentions[span]
 
     def __str__(self):
         return str(self.to_dict())
@@ -46,7 +71,8 @@ def article_from_dict(data: Dict):
                             title=data["title"],
                             text=data["text"],
                             links=links,
-                            entity_mentions=data["entity_mentions"] if "entity_mentions" in data else None)
+                            entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
+                                             data["entity_mentions"]] if "entity_mentions" in data else None)
 
 
 def article_from_json(dump: str):

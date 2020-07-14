@@ -23,7 +23,7 @@
 3. (optional) Print the link frequencies:
     + python3 print_link_frequencies.py
 
-### 3. Create and train the Entity Linker
+### 3. Initialize and train the Entity Linker
 
 1. Generate word vectors:
     + python3 create_word_vectors.py 0
@@ -36,8 +36,6 @@
 
 1. Evaluate the entity linker:
     + python3 test_entity_linker.py
-
-(the following scripts are under construction)
 2. Link entities in the extracted articles:
     + python3 link_wiki_entities.py
 3. Print paragraphs with entity annotations:

@@ -79,8 +79,8 @@ if __name__ == "__main__":
             n_entities += len(labels["links"])
             loss = losses["entity_linker"]
             loss_sum += loss
-            loss_mean = loss_sum / n_batches
             if n_batches % PRINT_EVERY == 0:
+                loss_mean = loss_sum / n_batches
                 print("\r%i batches\t%i articles\t%i entities\tloss: %f\tmean: %f" %
                       (n_batches, n_articles, n_entities, loss, loss_mean), end='')
             if n_batches == N_BATCHES:

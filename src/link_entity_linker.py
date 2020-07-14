@@ -23,12 +23,20 @@ def get_mapping(mappings_file: str = settings.WIKI_MAPPING_FILE):
 class LinkEntityLinker:
     LINKER_IDENTIFIER = "ARTICLE_LINK"
 
-    def __init__(self, mappings_file: str = settings.WIKI_MAPPING_FILE):
-        self.mapping = get_mapping(mappings_file)  # entity name -> entity id
-        self.entity_names = {self.mapping[entity_name]: entity_name for entity_name in self.mapping}
+    def __init__(self):
+        self.mapping = get_mapping()  # entity name -> entity id
 
     def link_entities(self, article: WikipediaArticle):
-        raise NotImplementedError()
+        entity_mentions = []
+        for span, target in article.links:
+            if target in self.mapping:
+                entity_id = self.mapping[target]
+                entity_mention = EntityMention(span=span,
+                                               recognized_by=self.LINKER_IDENTIFIER,
+                                               entity_id=entity_id,
+                                               linked_by=self.LINKER_IDENTIFIER)
+                entity_mentions.append(entity_mention)
+        article.add_entity_mentions(entity_mentions)
 
     def contains_name(self, name: str) -> bool:
         return name in self.mapping

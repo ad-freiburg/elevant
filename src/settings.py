@@ -3,7 +3,8 @@ import os
 
 _DATA_DIRECTORIES = [
     "/home/hertel/wikipedia/wikipedia_2020-06-08/",
-    "/local/data/hertelm/wikipedia_2020-06-08/"
+    "/local/data/hertelm/wikipedia_2020-06-08/",
+    "/nfs/students/matthias-hertel/wiki_entity_linker/"
 ]
 DATA_DIRECTORY = None
 for directory in _DATA_DIRECTORIES:
@@ -16,7 +17,7 @@ if DATA_DIRECTORY is None:
 
 ARTICLE_JSON_DIR = DATA_DIRECTORY + "json/"
 
-SPLIT_ARTICLES_DIR = DATA_DIRECTORY + "split/"
+SPLIT_ARTICLES_DIR = DATA_DIRECTORY + "articles_split/"
 TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "training.txt"
 DEVELOPMENT_ARTICLES = SPLIT_ARTICLES_DIR + "development.txt"
 TEST_ARTICLES = SPLIT_ARTICLES_DIR + "test.txt"
@@ -26,9 +27,6 @@ ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
 PERSON_NAMES_FILE = DATABASE_DIRECTORY + "wikidata-familyname.csv"
 ABSTRACTS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia.tsv"
 WIKI_MAPPING_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
-
-TRAINING_PARAGRAPHS_FILE = DATA_DIRECTORY + "training.txt"
-DEVELOPMENT_PARAGRAPHS_FILE = DATA_DIRECTORY + "development.txt"
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 
