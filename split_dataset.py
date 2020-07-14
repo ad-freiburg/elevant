@@ -6,7 +6,7 @@ from src import settings
 
 
 if __name__ == "__main__":
-    N_DEV_TEST = int(sys.argv[1])
+    N_DEV_TEST = int(sys.argv[1]) if len(sys.argv) > 1 else 10000
 
     random.seed(42)
     PRINT_EVERY = 100
