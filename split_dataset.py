@@ -30,7 +30,7 @@ if __name__ == "__main__":
          open(settings.TEST_ARTICLES, "w") as f_test:
         n_train = n_dev = n_test = 0
         for i, article in enumerate(articles):
-            line = article.to_json()
+            line = article.to_json() + '\n'
             if i < N_DEV_TEST:
                 f_dev.write(line)
                 n_dev += 1
