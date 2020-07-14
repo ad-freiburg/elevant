@@ -6,6 +6,7 @@ import re
 from urllib.parse import unquote
 
 from src.wikipedia_article import WikipediaArticle
+from src import settings
 
 
 class WikipediaDumpReader:
@@ -79,7 +80,7 @@ class WikipediaDumpReader:
         return text, links
 
     @staticmethod
-    def article_iterator(json_dir: str,
+    def article_iterator(json_dir: str = settings.ARTICLE_JSON_DIR,
                          yield_none: bool = False) -> Iterator[WikipediaArticle]:
         """
         Iterates over the articles in the given extracted Wikipedia dump.

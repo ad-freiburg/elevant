@@ -6,7 +6,6 @@ from termcolor import colored
 
 from src.trained_entity_linker import TrainedEntityLinker
 from src.alias_entity_linker import AliasEntityLinker
-from src.paragraph_reader import ParagraphReader
 from src.link_entity_linker import LinkEntityLinker
 
 
