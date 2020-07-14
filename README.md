@@ -13,6 +13,8 @@
 
 ### 2. Get data for the Entity Linker
 
+(These steps can be skipped. The resulting files are already on /nfs/students.)
+
 1. Get the following files (by Yi-Chun Lin; the files are currently located at /nfs/students/yi-chun-lin/database):
     + wikidata-wikipedia-mapping.csv
     + wikidata-familyname.csv
@@ -24,6 +26,8 @@
     + python3 print_link_frequencies.py
 
 ### 3. Initialize and train the Entity Linker
+
+(These steps can be skipped. The resulting files are already on /nfs/students.)
 
 1. Generate word vectors:
     + python3 create_word_vectors.py 0
