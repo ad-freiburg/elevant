@@ -4,7 +4,8 @@ import os
 _DATA_DIRECTORIES = [
     "/home/hertel/wikipedia/wikipedia_2020-06-08/",
     "/local/data/hertelm/wikipedia_2020-06-08/",
-    "/nfs/students/matthias-hertel/wiki_entity_linker/"
+    "/nfs/students/matthias-hertel/wiki_entity_linker/",
+    "/data/"
 ]
 DATA_DIRECTORY = None
 for directory in _DATA_DIRECTORIES:
