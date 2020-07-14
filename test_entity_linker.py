@@ -7,6 +7,7 @@ from termcolor import colored
 from src.trained_entity_linker import TrainedEntityLinker
 from src.alias_entity_linker import AliasEntityLinker
 from src.link_entity_linker import LinkEntityLinker
+from src.wikipedia_corpus import WikipediaCorpus
 
 
 class CaseType(Enum):
@@ -77,14 +78,11 @@ if __name__ == "__main__":
     wikipedia2wikidata_linker = LinkEntityLinker()
     case_counter = {case_type: 0 for case_type in CaseType}
 
-    for p_i, paragraph in enumerate(ParagraphReader.development_paragraphs()):
-        if p_i == n_examples:
-            break
-
-        predictions = linker.predict(paragraph.text)
+    for article in WikipediaCorpus.development_articles(n_examples):
+        predictions = linker.predict(article.text)
         cases = []
 
-        for span, target in paragraph.wikipedia_links:
+        for span, target in article.links:
             if wikipedia2wikidata_linker.contains_name(target):
                 true_entity_id = wikipedia2wikidata_linker.get_entity_id(target)
             else:
@@ -129,18 +127,19 @@ if __name__ == "__main__":
         position = 0
         for i, case in enumerate(cases):
             begin, end = case.predicted_span
-            print_str += paragraph.text[position:begin]
-            print_str += colored(paragraph.text[begin:end], color=CASE_COLORS[case.case_type])
+            print_str += article.text[position:begin]
+            print_str += colored(article.text[begin:end], color=CASE_COLORS[case.case_type])
             position = end
-        print_str += paragraph.text[position:]
+        print_str += article.text[position:]
         print(print_str)
         for case in cases:
-            print(colored("  %s %s %s %s %s %i" % (str(case.true_span),
-                                                   str(case.true_entity),
-                                                   str(case.predicted_span),
-                                                   str(case.predicted_entity),
-                                                   case.case_type.name,
-                                                   case.n_candidates),
+            print(colored("  %s %s %s %s %s %s %i" % (str(case.true_span),
+                                                      article.text[case.true_span[0]:case.true_span[1]],
+                                                      str(case.true_entity),
+                                                      str(case.predicted_span),
+                                                      str(case.predicted_entity),
+                                                      case.case_type.name,
+                                                      case.n_candidates),
                           color=CASE_COLORS[case.case_type]))
 
     print("\n== EVALUATION ==")

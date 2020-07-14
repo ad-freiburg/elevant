@@ -4,7 +4,6 @@ from spacy.kb import KnowledgeBase
 from spacy.language import Language, Doc
 
 from src import settings
-from src.paragraph import paragraph_from_json
 
 
 class LabelGenerator:
