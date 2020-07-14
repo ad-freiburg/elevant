@@ -1,5 +1,17 @@
 # Wikipedia-to-Wikidata Entity Linker
 
+## Docker/wharfer instructions
+
+Get the code, and build and start the container:
+
+    git clone git@github.com:ad-freiburg/wiki_entity_linker.git .
+    wharfer build -t wiki-entity-linker .
+    wharfer run -it -v /nfs/students/matthias-hertel/wiki_entity_linker:/data wiki-entity-linker
+
+Once the container is started, evaluate the trained entity linker:
+
+    python3 test_entity_linker.py trained 1000
+
 ## Usage
 
 ### 1. Extract articles with links from a Wikipedia dump
