@@ -12,11 +12,13 @@ class WikipediaArticle:
                  title: str,
                  text: str,
                  links: List[Tuple[Tuple[int, int], str]],
+                 url: Optional[str] = None,
                  entity_mentions: Optional[List[EntityMention]] = None):
         self.id = id
         self.title = title
         self.text = text
         self.links = links
+        self.url = url
         self.entity_mentions = None
         self.entity_coverage = None
         self.add_entity_mentions(entity_mentions)
@@ -26,6 +28,8 @@ class WikipediaArticle:
                 "title": self.title,
                 "text": self.text,
                 "links": self.links}
+        if self.url is not None:
+            data["url"] = self.url
         if self.entity_mentions is not None:
             data["entity_mentions"] = [self.entity_mentions[span].to_dict() for span in sorted(self.entity_mentions)]
         return data
@@ -71,6 +75,7 @@ def article_from_dict(data: Dict):
                             title=data["title"],
                             text=data["text"],
                             links=links,
+                            url=data["url"] if "url" in data else None,
                             entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
                                              data["entity_mentions"]] if "entity_mentions" in data else None)
 

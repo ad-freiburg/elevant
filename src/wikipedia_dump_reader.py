@@ -106,12 +106,12 @@ class WikipediaDumpReader:
         article = WikipediaArticle(id=article_data["id"],
                                    title=article_data["title"],
                                    text=text,
-                                   links=links)
+                                   links=links,
+                                   url=article_data["url"])
         return article
 
     @staticmethod
-    def article_iterator(json_dir: str = settings.ARTICLE_JSON_DIR,
-                         yield_none: bool = False) -> Iterator[WikipediaArticle]:
+    def article_iterator(yield_none: bool = False) -> Iterator[WikipediaArticle]:
         """
         Iterates over the articles in the given extracted Wikipedia dump.
 
@@ -119,7 +119,7 @@ class WikipediaDumpReader:
         :param yield_none: whether to yield None as the last object
         :return: iterator over WikipediaArticle objects
         """
-        for line in WikipediaDumpReader.json_iterator(json_dir):
+        for line in WikipediaDumpReader.json_iterator():
             article = WikipediaDumpReader.json2article(line)
             yield article
         if yield_none:
