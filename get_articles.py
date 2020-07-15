@@ -13,5 +13,5 @@ if __name__ == "__main__":
         if data["title"] in article_titles:
             print(json_dump, end='')
             n_found += 1
-            if n_found == len(article_urls):
+            if n_found == len(article_titles):
                 break
