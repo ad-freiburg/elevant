@@ -9,9 +9,10 @@ from src import settings
 
 class EntityLinkerLoader:
     @staticmethod
-    def load_trained_linker():
+    def load_trained_linker(name: str):
         print("loading model...")
-        with open(settings.LINKER_DIRECTORY, "rb") as f:
+        path = settings.LINKERS_DIRECTORY + name
+        with open(path, "rb") as f:
             model_bytes = f.read()
         model = spacy.blank("en")
         model: Language
@@ -32,7 +33,7 @@ class EntityLinkerLoader:
         return model
 
     @staticmethod
-    def load_entity_linker():
-        model = EntityLinkerLoader.load_trained_linker()
+    def load_entity_linker(name: str):
+        model = EntityLinkerLoader.load_trained_linker(name)
         entity_linker = model.get_pipe("entity_linker")
         return entity_linker

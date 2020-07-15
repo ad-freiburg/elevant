@@ -10,27 +10,29 @@ from src.label_generator import LabelGenerator
 
 def print_help():
     print("Usage:\n"
-          "    python3 train_entity_linker.py <batches>")
+          "    python3 train_entity_linker.py <name> <batches> [-prior]")
 
 
-def save_model(model: Language):
-    # save trained model
+def save_model(model: Language, model_name: str):
+    path = settings.LINKERS_DIRECTORY + model_name
     model_bytes = model.to_bytes()
-    with open(settings.LINKER_DIRECTORY, "wb") as f:
+    with open(path, "wb") as f:
         f.write(model_bytes)
-    print("Saved model to", settings.LINKER_DIRECTORY)
+    print("Saved model to", path)
 
 
 PRINT_EVERY = 1
-SAVE_EVERY = 1000
+SAVE_EVERY = 10000
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 3:
         print_help()
         exit(1)
 
-    N_BATCHES = int(sys.argv[1])
+    name = sys.argv[1]
+    N_BATCHES = int(sys.argv[2])
+    use_prior = "-prior" in sys.argv
 
     # make pipeline:
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
@@ -38,7 +40,7 @@ if __name__ == "__main__":
 
     # create entity linker with the knowledge base and add it to the pipeline:
     entity_linker = nlp.create_pipe("entity_linker",
-                                    {"incl_prior": True})
+                                    {"incl_prior": use_prior})
     kb = KnowledgeBase(vocab=nlp.vocab)
     kb.load_bulk(settings.KB_FILE)
     print(kb.get_size_entities(), "entities")
@@ -87,7 +89,6 @@ if __name__ == "__main__":
                 break
             elif n_batches % SAVE_EVERY == 0:
                 print()
-                save_model(nlp)
+                save_model(nlp, name)
         print()
-    save_model(nlp)
-    print(nlp.pipe_names)
+    save_model(nlp, name)

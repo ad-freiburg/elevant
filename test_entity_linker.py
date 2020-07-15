@@ -58,37 +58,46 @@ class Case:
 
 def print_help():
     print("Usage:\n"
-          "    python3 test_entity_linker.py <linker> <n_articles> [<minimum_score>]\n"
+          "    For a spaCy entity linker:\n"
+          "        python3 test_entity_linker.py spacy <linker_name> <n_articles>\n"
+          "    For a baseline entity linker:\n"
+          "        python3 test_entity_linker.py baseline <strategy> <n_articles> [<minimum_score>]\n"
           "\n"
           "Arguments:\n"
-          "    <linker>: Choose one out of {trained, links, scores}.\n"
-          "        trained: The spaCy entity linker that was trained previously.\n"
+          "    <linker_name>: Name of the saved spaCy entity linker.\n"
+          "    <n_articles>: Number of development articles to evaluate on.\n"
+          "    <strategy>: Choose one out of {links, scores}.\n"
           "        links:   Baseline using link frequencies for disambiguation.\n"
           "        scores:  Baseline using entity scores for disambiguation.\n"
-          "    <n_articles>: Number of development articles to evaluate on.\n"
           "    <minimum_score>: For the baseline linkers, link no entities with a score lower than minimum_score."
           " Default is 0.")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print_help()
         exit(1)
 
-    linker_name = sys.argv[1]
-    n_examples = int(sys.argv[2])
-    minimum_score = 0 if len(sys.argv) == 3 else int(sys.argv[3])
+    linker_type = sys.argv[1]
+    if linker_type not in ("spacy", "baseline"):
+        raise NotImplementedError("Unknown linker type '%s'." % linker_type)
 
-    if linker_name == "trained":
-        linker = TrainedEntityLinker()
-    elif linker_name == "links" or linker_name == "scores":
-        entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
-        if linker_name == "links":
-            linker = AliasEntityLinker(entity_db, LinkingStrategy.LINK_FREQUENCY)
-        else:
-            linker = AliasEntityLinker(entity_db, LinkingStrategy.ENTITY_SCORE)
+    if linker_type == "spacy":
+        linker_name = sys.argv[2]
+        linker = TrainedEntityLinker(linker_name)
     else:
-        raise Exception("Unknown linker '%s'." % linker_name)
+        strategy_name = sys.argv[2]
+        if strategy_name not in ("links", "scores"):
+            raise NotImplementedError("Unknown strategy '%s'." % strategy_name)
+        if strategy_name == "links":
+            strategy = LinkingStrategy.LINK_FREQUENCY
+        else:
+            strategy = LinkingStrategy.ENTITY_SCORE
+        minimum_score = int(sys.argv[4]) if len(sys.argv) > 3 else 0
+        entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
+        linker = AliasEntityLinker(entity_db, strategy)
+
+    n_examples = int(sys.argv[3])
 
     wikipedia2wikidata_linker = LinkEntityLinker()
     case_counter = {case_type: 0 for case_type in CaseType}

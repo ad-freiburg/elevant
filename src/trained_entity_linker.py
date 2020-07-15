@@ -12,12 +12,14 @@ from src.settings import NER_IGNORE_TAGS
 class TrainedEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "LINKER"
 
-    def __init__(self, model: Optional[Language] = None):
+    def __init__(self,
+                 name: Optional[str] = None,
+                 model: Optional[Language] = None):
         if model is None:
-            self.model = EntityLinkerLoader.load_trained_linker()
+            self.model = EntityLinkerLoader.load_trained_linker(name)
         else:
             self.model = model
-            self.model.add_pipe(EntityLinkerLoader.load_entity_linker())
+            self.model.add_pipe(EntityLinkerLoader.load_entity_linker(name))
         self.kb = self.model.get_pipe("entity_linker").kb
         self.known_entities = set(self.kb.get_entity_strings())
 
