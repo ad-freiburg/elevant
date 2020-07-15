@@ -5,8 +5,9 @@ from enum import Enum
 from termcolor import colored
 
 from src.trained_entity_linker import TrainedEntityLinker
-from src.alias_entity_linker import AliasEntityLinker
+from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.link_entity_linker import LinkEntityLinker
+from src.entity_database_reader import EntityDatabaseReader
 from src.wikipedia_corpus import WikipediaCorpus
 
 
@@ -57,21 +58,35 @@ class Case:
 
 def print_help():
     print("Usage:\n"
-          "    python3 test_entity_linker.py <linker> <n_paragraphs>")
+          "    python3 test_entity_linker.py <linker> <n_articles> [<minimum_score>]\n"
+          "\n"
+          "Arguments:\n"
+          "    <linker>: Choose one out of {trained, links, scores}.\n"
+          "        trained: The spaCy entity linker that was trained previously.\n"
+          "        links:   Baseline using link frequencies for disambiguation.\n"
+          "        scores:  Baseline using entity scores for disambiguation.\n"
+          "    <n_articles>: Number of development articles to evaluate on.\n"
+          "    <minimum_score>: For the baseline linkers, link no entities with a score lower than minimum_score."
+          " Default is 0.")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         print_help()
         exit(1)
 
     linker_name = sys.argv[1]
     n_examples = int(sys.argv[2])
+    minimum_score = 0 if len(sys.argv) == 3 else int(sys.argv[3])
 
     if linker_name == "trained":
         linker = TrainedEntityLinker()
-    elif linker_name == "links":
-        linker = AliasEntityLinker()
+    elif linker_name == "links" or linker_name == "scores":
+        entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
+        if linker_name == "links":
+            linker = AliasEntityLinker(entity_db, LinkingStrategy.LINK_FREQUENCY)
+        else:
+            linker = AliasEntityLinker(entity_db, LinkingStrategy.ENTITY_SCORE)
     else:
         raise Exception("Unknown linker '%s'." % linker_name)
 

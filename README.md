@@ -8,9 +8,9 @@ Get the code, and build and start the container:
     wharfer build -t wiki-entity-linker .
     wharfer run -it -v /nfs/students/matthias-hertel/wiki_entity_linker:/data wiki-entity-linker
 
-Once the container is started, evaluate the trained entity linker:
+Once the container is started, evaluate the trained entity linker, or one of the baselines:
 
-    python3 test_entity_linker.py trained 1000
+    python3 test_entity_linker.py
 
 ## Usage
 

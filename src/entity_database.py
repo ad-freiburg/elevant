@@ -44,6 +44,9 @@ class EntityDatabase:
         for alias in self.aliases:
             yield alias
 
+    def contains_alias(self, alias: str):
+        return alias in self.aliases
+
     def get_candidates(self, alias: str) -> Set[str]:
         if alias in self.aliases:
             return self.aliases[alias]
