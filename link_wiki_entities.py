@@ -1,7 +1,8 @@
 import sys
 import spacy
 
-from src.wikipedia_corpus import WikipediaCorpus, WikipediaArticle
+from src.wikipedia_corpus import WikipediaArticle
+from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.link_entity_linker import LinkEntityLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.coreference_entity_linker import CoreferenceEntityLinker
@@ -10,7 +11,7 @@ from src import settings
 
 def print_help():
     print("Usage:\n"
-          "    python3 link_wiki_entities.py <linker_name> <n> <out_file>")
+          "    python3 link_wiki_entities.py <in_file> <linker_name> <n> <out_file>")
 
 
 def link_entities(article: WikipediaArticle):
@@ -21,13 +22,14 @@ def link_entities(article: WikipediaArticle):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print_help()
         exit(1)
 
-    linker_name = sys.argv[1]
-    n_articles = int(sys.argv[2])
-    out_file = sys.argv[3]
+    in_file = sys.argv[1]
+    linker_name = sys.argv[2]
+    n_articles = int(sys.argv[3])
+    out_file = sys.argv[4]
 
     model = spacy.load(settings.LARGE_MODEL_NAME)
 
@@ -36,8 +38,11 @@ if __name__ == "__main__":
     coreference_linker = CoreferenceEntityLinker(model=model)
 
     with open(settings.DATA_DIRECTORY + out_file, "w") as f:
-        for a_i, article in enumerate(WikipediaCorpus.development_articles(n_articles)):
+        for i, line in enumerate(open(settings.SPLIT_ARTICLES_DIR + in_file)):
+            if i == n_articles:
+                break
+            article = WikipediaDumpReader.json2article(line)
             link_entities(article)
             f.write(article.to_json() + '\n')
-            print("\r%i articles" % (a_i + 1), end='')
+            print("\r%i articles" % (i + 1), end='')
         print()
