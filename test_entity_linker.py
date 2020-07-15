@@ -93,7 +93,7 @@ if __name__ == "__main__":
             strategy = LinkingStrategy.LINK_FREQUENCY
         else:
             strategy = LinkingStrategy.ENTITY_SCORE
-        minimum_score = int(sys.argv[4]) if len(sys.argv) > 3 else 0
+        minimum_score = int(sys.argv[4]) if len(sys.argv) > 4 else 0
         entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
         linker = AliasEntityLinker(entity_db, strategy)
 
