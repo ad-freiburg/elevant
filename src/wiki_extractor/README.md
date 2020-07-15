@@ -36,7 +36,7 @@ Each file will contains several documents in this [document format](http://media
                             [--filter_disambig_pages] [-it abbr,b,big]
                             [-de gallery,timeline,noinclude] [--keep_tables]
                             [--processes PROCESSES] [-q] [--debug] [-a] [-v]
-                            [--log_file]
+                            [--log_file] [--output_file OUTPUT_FILE]
                             input
 
     Wikipedia Extractor:
@@ -73,6 +73,8 @@ Each file will contains several documents in this [document format](http://media
                             maximum bytes per output file (default 1M)
       -c, --compress        compress output files using bzip
       --json                write output in json format instead of the default one
+      --output_file         provide a single file to which to write the output.
+                            Makes --bytes and --output useless.
 
     Processing:
       --html                produce HTML output, subsumes --links
@@ -134,3 +136,4 @@ Changes made to the original WikiExtractor
 - parse value-templates
 - parse convert-templates
 - remove lines starting with "!" or "|" from final output
+- add option to write output to a single specified output file via the `--output_file` option

@@ -21,8 +21,7 @@ Once the container is started, evaluate the trained entity linker, or one of the
        wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles-multistream.xml.bz2
 2. Extract articles in JSON format, keeping the link information:
 
-       python3 src/wiki_extractor/WikiExtractor.py --links --json --output json --bytes 100G enwiki-latest-pages-articles-multistream.xml.bz2
-
+       python3 src/wiki_extractor/WikiExtractor.py --links --json --output_file json/wiki_extracted.json enwiki-latest-pages-articles-multistream.xml.bz2
 ### 2. Get data for the Entity Linker
 
 (These steps can be skipped. The resulting files are already on `/nfs/students/matthias-hertel/wiki_entity_linker`.)

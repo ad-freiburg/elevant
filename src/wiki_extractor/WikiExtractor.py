@@ -204,6 +204,8 @@ options = SimpleNamespace(
         'ref', 'references', 'img', 'imagemap', 'source', 'small',
         'sub', 'sup', 'indicator'
     ],
+
+    output_file = None,
 )
 
 superscript_map = {"0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
@@ -2849,10 +2851,15 @@ class OutputSplitter(object):
         self.nextFile = nextFile
         self.compress = compress
         self.max_file_size = max_file_size
-        self.file = self.open(next(self.nextFile))
+        self.single_file = False
+        if isinstance(nextFile, NextFile):
+            self.file = self.open(next(self.nextFile))
+        else:
+            self.file = self.open(nextFile)
+            self.single_file = True
 
     def reserve(self, size):
-        if self.file.tell() + size > self.max_file_size:
+        if not self.single_file and self.max_file_size < self.file.tell() + size:
             self.close()
             self.file = self.open(next(self.nextFile))
 
@@ -3199,7 +3206,9 @@ def reduce_process(opts, output_queue, spool_length,
 
     createLogger(options.quiet, options.debug, options.log_file)
 
-    if out_file:
+    if options.output_file:
+        output = OutputSplitter(options.output_file, -1, file_compress)
+    elif out_file:
         nextFile = NextFile(out_file)
         output = OutputSplitter(nextFile, file_size, file_compress)
     else:
@@ -3263,7 +3272,9 @@ def main():
                         help="compress output files using bzip")
     groupO.add_argument("--json", action="store_true",
                         help="write output in json format instead of the default one")
-
+    groupO.add_argument("--output_file", default=None,
+                        help="provide a single file to which to write the output."
+                             "Makes --bytes and --output useless.")
 
     groupP = parser.add_argument_group('Processing')
     groupP.add_argument("--html", action="store_true",
@@ -3387,12 +3398,19 @@ def main():
         file.close()
         return
 
-    output_path = args.output
-    if output_path != '-' and not os.path.isdir(output_path):
+    if args.output_file:
+        options.output_file = args.output_file
+        output_path = args.output_file
+        output_dir = os.path.dirname(output_path)
+    else:
+        output_path = args.output
+        output_dir = output_path
+
+    if output_dir != '-' and not os.path.isdir(output_dir):
         try:
-            os.makedirs(output_path)
+            os.makedirs(output_dir)
         except:
-            logging.error('Could not create: %s', output_path)
+            logging.error('Could not create: %s', output_dir)
             return
 
     filter_category = args.filter_category
