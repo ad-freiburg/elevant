@@ -13,7 +13,7 @@ class TrainedEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "LINKER"
 
     def __init__(self,
-                 name: Optional[str] = None,
+                 name: str,
                  model: Optional[Language] = None):
         if model is None:
             self.model = EntityLinkerLoader.load_trained_linker(name)

@@ -10,7 +10,7 @@ from src import settings
 
 def print_help():
     print("Usage:\n"
-          "    python3 link_wiki_entities.py <n> <out_file>")
+          "    python3 link_wiki_entities.py <linker_name> <n> <out_file>")
 
 
 def link_entities(article: WikipediaArticle):
@@ -21,17 +21,18 @@ def link_entities(article: WikipediaArticle):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print_help()
         exit(1)
 
-    n_articles = int(sys.argv[1])
-    out_file = sys.argv[2]
+    linker_name = sys.argv[1]
+    n_articles = int(sys.argv[2])
+    out_file = sys.argv[3]
 
     model = spacy.load(settings.LARGE_MODEL_NAME)
 
     link_linker = LinkEntityLinker()
-    trained_entity_linker = TrainedEntityLinker(model=model)
+    trained_entity_linker = TrainedEntityLinker(name=linker_name, model=model)
     coreference_linker = CoreferenceEntityLinker(model=model)
 
     with open(settings.DATA_DIRECTORY + out_file, "w") as f:
