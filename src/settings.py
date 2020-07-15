@@ -17,6 +17,7 @@ if DATA_DIRECTORY is None:
     exit(1)
 
 ARTICLE_JSON_DIR = DATA_DIRECTORY + "json/"
+ARTICLE_JSON_FILE = "/nfs/students/natalie-prange/src/wiki_entity_linker/json/wiki_dump_with_links.json"
 
 SPLIT_ARTICLES_DIR = DATA_DIRECTORY + "articles_split/"
 TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "training.txt"

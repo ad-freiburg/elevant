@@ -80,18 +80,15 @@ class WikipediaDumpReader:
         return text, links
 
     @staticmethod
-    def json_iterator(json_dir: str = settings.ARTICLE_JSON_DIR,
-                      yield_none: bool = False) -> Iterator[str]:
+    def json_iterator(yield_none: bool = False) -> Iterator[str]:
         """
         Iterate over all articles in JSON format.
 
-        :param json_dir: directory where the dump was extracted to
         :param yield_none: whether to yield None as last element
         :return: iterator over JSON strings representing articles
         """
-        for file in WikipediaDumpReader._file_iterator(json_dir):
-            for line in open(file):
-                yield line
+        for line in open(settings.ARTICLE_JSON_FILE):
+            yield line
         if yield_none:
             yield None
 
