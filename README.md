@@ -10,9 +10,9 @@ Get the code, and build and start the container:
 
 Once the container is started, evaluate the trained entity linker, or one of the baselines:
 
-    python3 test_entity_linker.py spacy linker 1000
-    python3 test_entity_linker.py baseline links 1000
-    python3 test_entity_linker.py baseline scores 1000
+    python3 test_entity_linker.py spacy linker development.txt 1000
+    python3 test_entity_linker.py baseline links development.txt 1000
+    python3 test_entity_linker.py baseline scores development.txt 1000
 
 ## Usage
 

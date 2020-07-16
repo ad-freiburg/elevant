@@ -8,7 +8,8 @@ from src.trained_entity_linker import TrainedEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.link_entity_linker import LinkEntityLinker
 from src.entity_database_reader import EntityDatabaseReader
-from src.wikipedia_corpus import WikipediaCorpus
+from src.wikipedia_dump_reader import WikipediaDumpReader
+from src import settings
 
 
 class CaseType(Enum):
@@ -59,12 +60,13 @@ class Case:
 def print_help():
     print("Usage:\n"
           "    For a spaCy entity linker:\n"
-          "        python3 test_entity_linker.py spacy <linker_name> <n_articles>\n"
+          "        python3 test_entity_linker.py spacy <linker_name> <file> <n_articles>\n"
           "    For a baseline entity linker:\n"
-          "        python3 test_entity_linker.py baseline <strategy> <n_articles> [<minimum_score>]\n"
+          "        python3 test_entity_linker.py baseline <strategy> <file> <n_articles> [<minimum_score>]\n"
           "\n"
           "Arguments:\n"
           "    <linker_name>: Name of the saved spaCy entity linker.\n"
+          "    <file>: Name of the file with evaluation articles, e.g. development.txt or test.txt.\n"
           "    <n_articles>: Number of development articles to evaluate on.\n"
           "    <strategy>: Choose one out of {links, scores}.\n"
           "        links:   Baseline using link frequencies for disambiguation.\n"
@@ -93,16 +95,21 @@ if __name__ == "__main__":
             strategy = LinkingStrategy.LINK_FREQUENCY
         else:
             strategy = LinkingStrategy.ENTITY_SCORE
-        minimum_score = int(sys.argv[4]) if len(sys.argv) > 4 else 0
+        minimum_score = int(sys.argv[5]) if len(sys.argv) > 5 else 0
         entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
         linker = AliasEntityLinker(entity_db, strategy)
 
-    n_examples = int(sys.argv[3])
+    file_name = sys.argv[3]
+    n_examples = int(sys.argv[4])
 
     wikipedia2wikidata_linker = LinkEntityLinker()
     case_counter = {case_type: 0 for case_type in CaseType}
 
-    for article in WikipediaCorpus.development_articles(n_examples):
+    for i, line in enumerate(open(settings.SPLIT_ARTICLES_DIR + file_name)):
+        if i == n_examples:
+            break
+
+        article = WikipediaDumpReader.json2article(line)
         predictions = linker.predict(article.text)
         cases = []
 

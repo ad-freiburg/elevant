@@ -27,7 +27,7 @@ def entity_text(article: WikipediaArticle, entities: EntityDatabase):
 
 def print_help():
     print("Usage:\n"
-          "    python3 print_paragraphs_with_entities.py <in_file>")
+          "    python3 print_linked_entities.py <in_file>")
 
 
 if __name__ == "__main__":
