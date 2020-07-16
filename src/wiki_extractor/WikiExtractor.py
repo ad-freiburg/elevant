@@ -954,16 +954,71 @@ class Extractor(object):
         # logging.debug('%*stemplateParams> %s', self.frame.length, '', '|'.join(templateParams.values()))
         return templateParams
 
+    def is_number(self, string):
+        return re.match(r"[\-]?[0-9\.]+", string)
+
+    def expandCoordTemplate(self, parts):
+        """
+        >>> ex = Extractor(1, 1, "test", [])
+        >>> ex.expandCoordTemplate(['Coord', '22.13', 'N', '75.6', 'E', ''])
+        '22.13°N 75.6°E'
+        >>> ex.expandCoordTemplate(['coord', '39.098095', '-94.587307', 'format=dms'])
+        '39.098095°N 94.587307°W'
+        >>> ex.expandCoordTemplate(['coord', '43', '29', '12.6', 'N', '79', '23', '02.4', 'W'])
+        '43°29′12.6″N 79°23′02.4″W'
+        >>> ex.expandCoordTemplate(['coord', '55.752222', 'N', '37.615556', 'E'])
+        '55.752222°N 37.615556°E'
+        >>> ex.expandCoordTemplate(['coord', '33', '55', 'S', '18', '25', 'E'])
+        '33°55′S 18°25′E'
+        """
+        directions = {'N', 'S', 'E', 'W'}
+        symbols = ['°', '′', '″']
+        ret = ""
+        directions = [p for p in parts if p in directions]
+        if directions:
+            direction_index = [i for i, p in enumerate(parts) if p in directions][0]
+            number_part_1 = [p for p in parts[:direction_index] if self.is_number(p)]
+            number_part_2 = [p for p in parts[direction_index:] if self.is_number(p)]
+            number_parts = number_part_1, number_part_2
+        else:
+            number_parts = [p for p in parts if self.is_number(p)]
+            split_ind = int(len(number_parts) / 2)
+            number_parts = number_parts[:split_ind], number_parts[split_ind:]
+
+        if not number_parts[0] or not number_parts[1]:
+            logging.debug("Could not expand Template:Coord for %s" % parts)
+            return ""
+
+        for i, np in enumerate(number_parts):
+            # Append longitude / latitude value and cardinal symbol
+            for j, p in enumerate(np):
+                ret += p.strip('-') + symbols[j]
+
+            # Append cardinal direction symbol
+            if directions:
+                ret += directions[i]
+            else:
+                if np[0].startswith('-'):
+                    direction = 'S' if i == 0 else 'W'
+                else:
+                    direction = 'N' if i == 0 else 'E'
+                ret += direction
+            if i == 0:
+                ret += " "
+
+        logging.debug("EXPANDED Template:Coord \"%s\"" % ret)
+        return ret
+
     def expandConvertTemplate(self, parts):
         """
-        >>> e = Extractor(1, 1, "test", [])
-        >>> e.expandConvertTemplate(['convert', '1759540', 'km2', 'sqmi', '0'])
+        >>> ex = Extractor(1, 1, "test", [])
+        >>> ex.expandConvertTemplate(['convert', '1759540', 'km2', 'sqmi', '0'])
         '1759540 km2'
-        >>> e.expandConvertTemplate(['convert', '48', 'km'])
+        >>> ex.expandConvertTemplate(['convert', '48', 'km'])
         '48 km'
-        >>> e.expandConvertTemplate(['convert', '48', 'or', '49', 'km'])
+        >>> ex.expandConvertTemplate(['convert', '48', 'or', '49', 'km'])
         '48 or 49 km'
-        >>> e.expandConvertTemplate(['convert', '48', 'or', '49', 'e6km'])
+        >>> ex.expandConvertTemplate(['convert', '48', 'or', '49', 'e6km'])
         '48 or 49 million km'
         """
         range_indicators = {"-", "–", "&ndash;", "and", "and(-)", "or", "to", "to(-)", "to about", "+/-", "±",
@@ -986,20 +1041,20 @@ class Extractor(object):
 
     def get_exponent_string(self, exponent):
         """
-        >>> e = Extractor(1, 1, "test", [])
-        >>> e.get_exponent_string("21")
+        >>> ex = Extractor(1, 1, "test", [])
+        >>> ex.get_exponent_string("21")
         '×10²¹'
-        >>> e.get_exponent_string("-21")
+        >>> ex.get_exponent_string("-21")
         '×10⁻²¹'
         """
         return "×10" + exponent.translate(superscript_trans)
 
     def replace_sup_tag_with_superscript(self, string):
         """
-        >>> e = Extractor(1, 1, "test", [])
-        >>> e.replace_sup_tag_with_superscript("km<sup>2</sup>")
+        >>> ex = Extractor(1, 1, "test", [])
+        >>> ex.replace_sup_tag_with_superscript("km<sup>2</sup>")
         'km²'
-        >>> e.replace_sup_tag_with_superscript("km2")
+        >>> ex.replace_sup_tag_with_superscript("km2")
         'km2'
         """
         start_tag = "<sup>"
@@ -1017,18 +1072,18 @@ class Extractor(object):
         """
         :param parts: parts of the template as list of strings
         :return: expanded template
-        >>> e = Extractor(1, 1, "test", [])
-        >>> e.expandValTemplate(['val', '.938', 'e=21', 'u=kg'])
+        >>> ex = Extractor(1, 1, "test", [])
+        >>> ex.expandValTemplate(['val', '.938', 'e=21', 'u=kg'])
         '.938×10²¹ kg'
-        >>> e.expandValTemplate(["val","11","-","33"])
+        >>> ex.expandValTemplate(["val","11","-","33"])
         '11 - 33'
-        >>> e.expandValTemplate(["val","11","-","33", "ul=J/C", "upl=F/m"])
+        >>> ex.expandValTemplate(["val","11","-","33", "ul=J/C", "upl=F/m"])
         '11 - 33 (J/C)/(F/m)'
-        >>> e.expandValTemplate(["val","11","-","33", "ul=J", "upl=F/m"])
+        >>> ex.expandValTemplate(["val","11","-","33", "ul=J", "upl=F/m"])
         '11 - 33 J/(F/m)'
-        >>> e.expandValTemplate(['val', '7.6', 'u=[[metre per second squared|m/s<sup>2</sup>]]'])
+        >>> ex.expandValTemplate(['val', '7.6', 'u=[[metre per second squared|m/s<sup>2</sup>]]'])
         '7.6 [[metre per second squared|m/s²]]'
-        >>> e.expandValTemplate(['val', '5.4', 'u=[[kg]]&sdot;[[meter|m]]/s<sup>2</sup>'])
+        >>> ex.expandValTemplate(['val', '5.4', 'u=[[kg]]&sdot;[[meter|m]]/s<sup>2</sup>'])
         '5.4 [[kg]]&sdot;[[meter|m]]/s²'
         """
         conjunctions = {"-", "–", ",", "by", "and", "or", "to", "x", "×", "/"}
@@ -1183,6 +1238,8 @@ class Extractor(object):
             return self.expandConvertTemplate(parts)
         elif title == "Template:Val":
             return self.expandValTemplate(parts)
+        elif title == "Template:Coord":
+            return self.expandCoordTemplate(parts)
         else:
             # The page being included could not be identified
             logging.debug('%*s<EXPAND %s %s not identified', self.frame.depth, '', title, '')
@@ -3406,7 +3463,7 @@ def main():
         output_path = args.output
         output_dir = output_path
 
-    if output_dir != '-' and not os.path.isdir(output_dir):
+    if output_dir and output_dir != '-' and not os.path.isdir(output_dir):
         try:
             os.makedirs(output_dir)
         except:
