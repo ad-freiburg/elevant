@@ -41,12 +41,14 @@ CASE_COLORS = {
 class Case:
     def __init__(self,
                  true_span: Tuple[int, int],
+                 link_target: str,
                  true_entity: str,
                  predicted_span: Tuple[int, int],
                  predicted_entity: Optional[str],
                  n_candidates: int,
                  case_type: CaseType):
         self.true_span = true_span
+        self.link_target = link_target
         self.true_entity = true_entity
         self.predicted_span = predicted_span
         self.predicted_entity = predicted_entity
@@ -151,7 +153,7 @@ if __name__ == "__main__":
                     else:
                         case = CaseType.MULTI_CANDIDATE_ALL_WRONG
             case_counter[case] += 1
-            case = Case(span, true_entity_id, span, predicted_entity_id, n_candidates, case)
+            case = Case(span, target, true_entity_id, span, predicted_entity_id, n_candidates, case)
             cases.append(case)
 
         print_str = ""
@@ -164,13 +166,14 @@ if __name__ == "__main__":
         print_str += article.text[position:]
         print(print_str)
         for case in cases:
-            print(colored("  %s %s %s %s %s %s %i" % (str(case.true_span),
-                                                      article.text[case.true_span[0]:case.true_span[1]],
-                                                      str(case.true_entity),
-                                                      str(case.predicted_span),
-                                                      str(case.predicted_entity),
-                                                      case.case_type.name,
-                                                      case.n_candidates),
+            print(colored("  %s %s %s %s %s %s %s %i" % (str(case.true_span),
+                                                         article.text[case.true_span[0]:case.true_span[1]],
+                                                         case.link_target,
+                                                         str(case.true_entity),
+                                                         str(case.predicted_span),
+                                                         str(case.predicted_entity),
+                                                         case.case_type.name,
+                                                         case.n_candidates),
                           color=CASE_COLORS[case.case_type]))
 
     print("\n== EVALUATION ==")
