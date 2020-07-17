@@ -9,6 +9,7 @@ from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.link_entity_linker import LinkEntityLinker
 from src.entity_database_reader import EntityDatabaseReader
 from src.wikipedia_dump_reader import WikipediaDumpReader
+from src.ambiverse_prediction_reader import AmbiversePredictionReader
 from src import settings
 
 
@@ -65,6 +66,8 @@ def print_help():
           "        python3 test_entity_linker.py spacy <linker_name> <file> <n_articles>\n"
           "    For a baseline entity linker:\n"
           "        python3 test_entity_linker.py baseline <strategy> <file> <n_articles> [<minimum_score>]\n"
+          "    To evaluate ambiverse results:\n"
+          "        python3 test_entity_linker.py ambiverse <result_dir> <file> <n_articles>\n"
           "\n"
           "Arguments:\n"
           "    <linker_name>: Name of the saved spaCy entity linker.\n"
@@ -83,12 +86,15 @@ if __name__ == "__main__":
         exit(1)
 
     linker_type = sys.argv[1]
-    if linker_type not in ("spacy", "baseline"):
+    if linker_type not in ("spacy", "ambiverse", "baseline"):
         raise NotImplementedError("Unknown linker type '%s'." % linker_type)
 
     if linker_type == "spacy":
         linker_name = sys.argv[2]
         linker = TrainedEntityLinker(linker_name)
+    elif linker_type == "ambiverse":
+        result_dir = sys.argv[2]
+        ambiverse_prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
     else:
         strategy_name = sys.argv[2]
         if strategy_name not in ("links", "scores"):
@@ -112,7 +118,10 @@ if __name__ == "__main__":
             break
 
         article = WikipediaDumpReader.json2article(line)
-        predictions = linker.predict(article.text)
+        if linker_type == "ambiverse":
+            predictions = next(ambiverse_prediction_iterator)
+        else:
+            predictions = linker.predict(article.text)
         cases = []
 
         for span, target in article.links:
