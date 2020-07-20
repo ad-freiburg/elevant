@@ -31,6 +31,7 @@ ABSTRACTS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia.tsv"
 WIKI_MAPPING_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
+REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"
 
 ENTITY_PREFIX = "http://www.wikidata.org/entity/"
 
