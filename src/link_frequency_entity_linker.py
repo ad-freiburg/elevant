@@ -48,8 +48,7 @@ class LinkFrequencyEntityLinker(AbstractEntityLinker):
         predictions = {}
         for ent in doc.ents:
             ent: spacy.tokens.Span
-            candidates = self.get_candidates(ent.text)
-            entity_id, candidates = self.select_entity(ent.text, candidates)
+            entity_id, candidates = self.select_entity(ent.text)
             span = (ent.start_char, ent.end_char)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         return predictions
