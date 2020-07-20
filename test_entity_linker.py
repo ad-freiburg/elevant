@@ -7,6 +7,7 @@ from termcolor import colored
 from src.trained_entity_linker import TrainedEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.link_entity_linker import LinkEntityLinker
+from src.link_frequency_entity_linker import LinkFrequencyEntityLinker
 from src.entity_database_reader import EntityDatabaseReader
 from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
@@ -74,8 +75,9 @@ def print_help():
           "    <file>: Name of the file with evaluation articles, e.g. development.txt or test.txt.\n"
           "    <n_articles>: Number of development articles to evaluate on.\n"
           "    <strategy>: Choose one out of {links, scores}.\n"
-          "        links:   Baseline using link frequencies for disambiguation.\n"
-          "        scores:  Baseline using entity scores for disambiguation.\n"
+          "        links:     Baseline using link frequencies for disambiguation.\n"
+          "        scores:    Baseline using entity scores for disambiguation.\n"
+          "        links-all: Baseline using link frequencies for disambiguation and more candidates.\n"
           "    <minimum_score>: For the baseline linkers, link no entities with a score lower than minimum_score."
           " Default is 0.")
 
@@ -97,15 +99,18 @@ if __name__ == "__main__":
         ambiverse_prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
     else:
         strategy_name = sys.argv[2]
-        if strategy_name not in ("links", "scores"):
+        if strategy_name not in ("links", "scores", "links-all"):
             raise NotImplementedError("Unknown strategy '%s'." % strategy_name)
-        if strategy_name == "links":
-            strategy = LinkingStrategy.LINK_FREQUENCY
+        if strategy_name == "links-all":
+            linker = LinkFrequencyEntityLinker()
         else:
-            strategy = LinkingStrategy.ENTITY_SCORE
-        minimum_score = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-        entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
-        linker = AliasEntityLinker(entity_db, strategy)
+            if strategy_name == "links":
+                strategy = LinkingStrategy.LINK_FREQUENCY
+            else:
+                strategy = LinkingStrategy.ENTITY_SCORE
+            minimum_score = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+            entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
+            linker = AliasEntityLinker(entity_db, strategy)
 
     file_name = sys.argv[3]
     n_examples = int(sys.argv[4])

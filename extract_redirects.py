@@ -39,7 +39,8 @@ if __name__ == "__main__":
                     if end_match:
                         target_end = end_match.start()
                         target = line[target_start:target_end]
-                        print(title, "->", target)
+                        target = target.replace('_', ' ')
+                        # print(title, "->", target)
                         redirects[title] = target
     print("read %i redirects" % len(redirects))
 

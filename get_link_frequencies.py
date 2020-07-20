@@ -9,6 +9,9 @@ if __name__ == "__main__":
 
     links = {}
 
+    with open(settings.REDIRECTS_FILE, "rb") as f:
+        redirects = pickle.load(f)
+
     article_iterator = WikipediaDumpReader.article_iterator(yield_none=True)
 
     for a_i, article in enumerate(article_iterator):
@@ -20,6 +23,8 @@ if __name__ == "__main__":
             break
         for span, target in article.links:
             link_text = article.text[span[0]:span[1]]
+            if target in redirects:
+                target = redirects[target]
             if link_text not in links:
                 links[link_text] = {}
             if target not in links[link_text]:
