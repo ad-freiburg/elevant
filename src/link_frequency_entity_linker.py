@@ -28,10 +28,20 @@ class LinkFrequencyEntityLinker(AbstractEntityLinker):
         return candidates
 
     def select_entity(self, snippet: str, candidates: Set[str]) -> Optional[str]:
+        print("", snippet)
         if len(candidates) == 0:
             return None
+        best_frequency = -1
+        best_candidate = None
         frequencies = self.link_frequencies[snippet]
-        best_frequency, best_candidate = max((frequencies[c] if c in frequencies else 0, c) for c in candidates)
+        print(frequencies)
+        for candidate in sorted(candidates):
+            frequency = frequencies[candidate] if candidate in frequencies else 0
+            print(" ", candidate, frequency)
+            if frequency > best_frequency:
+                best_frequency = frequency
+                best_candidate = candidate
+        #best_frequency, best_candidate = max((frequencies[c] if c in frequencies else 0, c) for c in candidates)
         return best_candidate
 
     def predict(self, text: str, doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
