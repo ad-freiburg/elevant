@@ -25,7 +25,7 @@ class LinkFrequencyEntityLinker(AbstractEntityLinker):
     def select_entity(self, snippet: str) -> Tuple[Optional[str], Set[str]]:
         print("", snippet)
         link_targets = self.link_frequencies[snippet] if snippet in self.link_frequencies else []
-        frequencies = self.link_frequencies[snippet]
+        frequencies = self.link_frequencies[snippet] if snippet in self.link_frequencies else {}
         best_frequency = -1
         best_candidate = None
         candidates = set()
