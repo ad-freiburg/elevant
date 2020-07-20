@@ -34,6 +34,9 @@ class AliasEntityLinker(AbstractEntityLinker):
             with open(settings.LINK_FREEQUENCIES_FILE, "rb") as f:
                 self.link_frequencies = pickle.load(f)
 
+    def has_entity(self, entity_id: str) -> bool:
+        return entity_id in self.entity_db.wikidata2wikipedia
+
     def _score_entity_by_link_frequency(self, alias: str, entity_id: str) -> int:
         if entity_id not in self.entity_db.wikidata2wikipedia:
             return 0

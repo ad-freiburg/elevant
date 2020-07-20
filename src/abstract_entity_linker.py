@@ -19,6 +19,10 @@ class AbstractEntityLinker(abc.ABC):
                 doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def has_entity(self, entity_id: str) -> bool:
+        raise NotImplementedError()
+
     def link_entities(self,
                       article: WikipediaArticle,
                       doc: Optional[Doc] = None):

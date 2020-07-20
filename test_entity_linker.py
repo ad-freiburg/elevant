@@ -111,7 +111,7 @@ if __name__ == "__main__":
     n_examples = int(sys.argv[4])
 
     wikipedia2wikidata_linker = LinkEntityLinker()
-    case_counter = {case_type: 0 for case_type in CaseType}
+    all_cases = []
 
     for i, line in enumerate(open(settings.SPLIT_ARTICLES_DIR + file_name)):
         if i == n_examples:
@@ -161,7 +161,6 @@ if __name__ == "__main__":
                             case = CaseType.MULTI_CANDIDATE_WRONG
                     else:
                         case = CaseType.MULTI_CANDIDATE_ALL_WRONG
-            case_counter[case] += 1
             case = Case(span, target, true_entity_id, span, predicted_entity_id, n_candidates, case)
             cases.append(case)
 
@@ -184,6 +183,11 @@ if __name__ == "__main__":
                                                            case.case_type.name,
                                                            case.n_candidates),
                           color=CASE_COLORS[case.case_type]))
+        all_cases.extend(cases)
+
+    case_counter = {case_type: 0 for case_type in CaseType}
+    for case in all_cases:
+        case_counter[case.case_type] += 1
 
     print("\n== EVALUATION ==")
     n_total = sum(case_counter[case_type] for case_type in CaseType)
@@ -196,6 +200,9 @@ if __name__ == "__main__":
     print("\t%.2f%% known entities (%i/%i)" % (n_known / n_total * 100, n_known, n_total))
     print("\t\t%.2f%% correct (%i/%i)" % (n_correct / n_known * 100, n_correct, n_known))
     n_undetected = case_counter[CaseType.UNDETECTED]
+    if linker_type != "ambiverse":
+        n_contained = len([case for case in all_cases if linker.has_entity(case.true_entity)])
+        print("\t\t%.2f%% contained (%i/%i)" % (n_contained / n_known * 100, n_contained, n_known))
     print("\t\t%.2f%% not detected (%i/%i)" % (n_undetected / n_known * 100, n_undetected, n_known))
     n_detected = n_known - n_undetected
     print("\t\t%.2f%% detected (%i/%i)" % (n_detected / n_known * 100, n_detected, n_known))

@@ -26,6 +26,9 @@ class TrainedEntityLinker(AbstractEntityLinker):
         self.kb = self.model.get_pipe("entity_linker").kb
         self.known_entities = set(self.kb.get_entity_strings())
 
+    def has_entity(self, entity_id: str) -> bool:
+        return entity_id in self.known_entities
+
     def predict(self,
                 text: str,
                 doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
