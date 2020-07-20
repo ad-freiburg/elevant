@@ -7,11 +7,9 @@ from src import settings
 if __name__ == "__main__":
     PRINT_EVERY = 100
 
-    json_dir = settings.ARTICLE_JSON_DIR
-
     links = {}
 
-    article_iterator = WikipediaDumpReader.article_iterator(json_dir, yield_none=True)
+    article_iterator = WikipediaDumpReader.article_iterator(yield_none=True)
 
     for a_i, article in enumerate(article_iterator):
         if a_i % PRINT_EVERY == 0 or article is None:
