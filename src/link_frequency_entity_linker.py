@@ -22,27 +22,25 @@ class LinkFrequencyEntityLinker(AbstractEntityLinker):
         with open(settings.LINK_FREEQUENCIES_FILE, "rb") as f:
             self.link_frequencies = pickle.load(f)
 
-    def get_candidates(self, snippet: str) -> Set[str]:
-        link_targets = self.link_frequencies[snippet] if snippet in self.link_frequencies else []
-        candidates = {self.mapping[target] for target in link_targets if target in self.mapping}
-        return candidates
-
-    def select_entity(self, snippet: str, candidates: Set[str]) -> Optional[str]:
+    def select_entity(self, snippet: str) -> Tuple[Optional[str], Set[str]]:
         print("", snippet)
-        if len(candidates) == 0:
-            return None
+        link_targets = self.link_frequencies[snippet] if snippet in self.link_frequencies else []
+        frequencies = self.link_frequencies[snippet]
         best_frequency = -1
         best_candidate = None
-        frequencies = self.link_frequencies[snippet]
+        candidates = set()
         print(frequencies)
-        for candidate in sorted(candidates):
-            frequency = frequencies[candidate] if candidate in frequencies else 0
-            print(" ", candidate, frequency)
-            if frequency > best_frequency:
-                best_frequency = frequency
-                best_candidate = candidate
+        for target in sorted(link_targets):
+            if target in self.mapping:
+                entity_id = self.mapping[target]
+                candidates.add(entity_id)
+                frequency = frequencies[entity_id] if entity_id in frequencies else 0
+                print(" ", entity_id, frequency)
+                if frequency > best_frequency:
+                    best_frequency = frequency
+                    best_candidate = entity_id
         #best_frequency, best_candidate = max((frequencies[c] if c in frequencies else 0, c) for c in candidates)
-        return best_candidate
+        return best_candidate, candidates
 
     def predict(self, text: str, doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None:
@@ -51,7 +49,7 @@ class LinkFrequencyEntityLinker(AbstractEntityLinker):
         for ent in doc.ents:
             ent: spacy.tokens.Span
             candidates = self.get_candidates(ent.text)
-            entity_id = self.select_entity(ent.text, candidates)
+            entity_id, candidates = self.select_entity(ent.text, candidates)
             span = (ent.start_char, ent.end_char)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         return predictions
