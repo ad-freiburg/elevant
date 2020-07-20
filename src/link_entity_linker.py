@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 from src.entity_mention import EntityMention
 from src.wikipedia_article import WikipediaArticle
 from src import settings
@@ -14,6 +16,7 @@ def get_mapping(mappings_file: str = settings.WIKI_MAPPING_FILE):
         link_url, entity_url = line.split(">,<")
         link_url = link_url[1:]
         entity_url = entity_url[:-1]
+        link_url = unquote(link_url)
         entity_name = link_url[len(WIKI_URL_PREFIX):].replace('_', ' ')
         entity_id = entity_url[len(ENTITY_PREFIX):]
         mapping[entity_name] = entity_id
