@@ -1,10 +1,12 @@
 import spacy
 
 from src import settings
+from src.ner_postprocessing import shorten_entities
 
 
 if __name__ == "__main__":
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
+    nlp.add_pipe(shorten_entities, after="ner")
     while True:
         text = input("> ")
         doc = nlp(text)

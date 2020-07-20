@@ -7,6 +7,7 @@ from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_linker_loader import EntityLinkerLoader
 from src.entity_prediction import EntityPrediction
 from src.settings import NER_IGNORE_TAGS
+from src.ner_postprocessing import shorten_entities
 
 
 class TrainedEntityLinker(AbstractEntityLinker):
@@ -17,6 +18,8 @@ class TrainedEntityLinker(AbstractEntityLinker):
                  model: Optional[Language] = None):
         if model is None:
             self.model = EntityLinkerLoader.load_trained_linker(name)
+            if not self.model.has_pipe("shorten_ner"):
+                self.model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
         else:
             self.model = model
             self.model.add_pipe(EntityLinkerLoader.load_entity_linker(name))

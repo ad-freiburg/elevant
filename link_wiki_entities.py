@@ -9,6 +9,7 @@ from src.coreference_entity_linker import CoreferenceEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.entity_database_reader import EntityDatabaseReader
 from src import settings
+from src.ner_postprocessing import shorten_entities
 
 
 def print_help():
@@ -45,6 +46,7 @@ if __name__ == "__main__":
     coreference_linking = "-coref" in sys.argv
 
     model = spacy.load(settings.LARGE_MODEL_NAME)
+    model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
     link_linker = LinkEntityLinker()
 
     if linker_type == "spacy":

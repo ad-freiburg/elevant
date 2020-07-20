@@ -175,14 +175,14 @@ if __name__ == "__main__":
         print_str += article.text[position:]
         print(print_str)
         for case in cases:
-            print(colored("  %s %s %s %s %s %s %s %i" % (str(case.true_span),
-                                                         article.text[case.true_span[0]:case.true_span[1]],
-                                                         case.link_target,
-                                                         str(case.true_entity),
-                                                         str(case.predicted_span),
-                                                         str(case.predicted_entity),
-                                                         case.case_type.name,
-                                                         case.n_candidates),
+            print(colored("  %s %s (%s %s) %s %s %s %i" % (str(case.true_span),
+                                                           article.text[case.true_span[0]:case.true_span[1]],
+                                                           case.link_target,
+                                                           str(case.true_entity),
+                                                           str(case.predicted_span),
+                                                           str(case.predicted_entity),
+                                                           case.case_type.name,
+                                                           case.n_candidates),
                           color=CASE_COLORS[case.case_type]))
 
     print("\n== EVALUATION ==")

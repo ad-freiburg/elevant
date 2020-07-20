@@ -10,6 +10,7 @@ from src.entity_prediction import EntityPrediction
 from src.entity_database import EntityDatabase
 from src import settings
 from src.settings import NER_IGNORE_TAGS
+from src.ner_postprocessing import shorten_entities
 
 
 class LinkingStrategy(Enum):
@@ -28,6 +29,7 @@ class AliasEntityLinker(AbstractEntityLinker):
         self.strategy = strategy
         if load_model:
             self.model = spacy.load(settings.LARGE_MODEL_NAME)
+            self.model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
         if self.strategy == LinkingStrategy.LINK_FREQUENCY:
             with open(settings.LINK_FREEQUENCIES_FILE, "rb") as f:
                 self.link_frequencies = pickle.load(f)
