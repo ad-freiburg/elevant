@@ -10,9 +10,6 @@ if __name__ == "__main__":
 
     links = {}
 
-    with open(settings.REDIRECTS_FILE, "rb") as f:
-        redirects = pickle.load(f)
-
     article_iterator = chain(
         WikipediaCorpus.training_articles(),
         iter([None])
