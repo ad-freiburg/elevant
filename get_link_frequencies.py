@@ -1,6 +1,7 @@
+from itertools import chain
 import pickle
 
-from src.wikipedia_dump_reader import WikipediaDumpReader
+from src.wikipedia_corpus import WikipediaCorpus
 from src import settings
 
 
@@ -12,7 +13,10 @@ if __name__ == "__main__":
     with open(settings.REDIRECTS_FILE, "rb") as f:
         redirects = pickle.load(f)
 
-    article_iterator = WikipediaDumpReader.article_iterator(yield_none=True)
+    article_iterator = chain(
+        WikipediaCorpus.training_articles(),
+        iter([None])
+    )
 
     for a_i, article in enumerate(article_iterator):
         if a_i % PRINT_EVERY == 0 or article is None:
@@ -23,8 +27,6 @@ if __name__ == "__main__":
             break
         for span, target in article.links:
             link_text = article.text[span[0]:span[1]]
-            if target in redirects:
-                target = redirects[target]
             if link_text not in links:
                 links[link_text] = {}
             if target not in links[link_text]:
