@@ -28,9 +28,15 @@ class EntityDatabase:
     def get_entity(self, entity_id: str) -> WikidataEntity:
         return self.entities[entity_id]
 
-    def load_entities_small(self):
+    def get_score(self, entity_id: str) -> int:
+        if not self.contains_entity(entity_id):
+            return 0
+        return self.get_entity(entity_id).score
+
+    def load_entities_small(self, minimum_score: int = 0):
         for entity in EntityDatabaseReader.read_entity_file():
-            self.add_entity(entity)
+            if entity.score >= minimum_score:
+                self.add_entity(entity)
 
     def load_entities_big(self):
         mapping = get_mapping()
@@ -50,8 +56,9 @@ class EntityDatabase:
 
     def add_synonym_aliases(self):
         for entity in EntityDatabaseReader.read_entity_file():
-            for alias in entity.synonyms + [entity.name]:
-                self.add_alias(alias, entity.entity_id)
+            if self.contains_entity(entity.entity_id):
+                for alias in entity.synonyms + [entity.name]:
+                    self.add_alias(alias, entity.entity_id)
 
     def add_name_aliases(self):
         for entity_id, names in EntityDatabaseReader.read_names():

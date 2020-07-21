@@ -6,9 +6,6 @@ from termcolor import colored
 
 from src.trained_entity_linker import TrainedEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
-from src.link_entity_linker import LinkEntityLinker
-from src.link_frequency_entity_linker import LinkFrequencyEntityLinker
-from src.entity_database_reader import EntityDatabaseReader
 from src.entity_database_new import EntityDatabase
 from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
@@ -102,20 +99,39 @@ if __name__ == "__main__":
         strategy_name = sys.argv[2]
         if strategy_name not in ("links", "scores", "links-all"):
             raise NotImplementedError("Unknown strategy '%s'." % strategy_name)
-        if strategy_name == "links-all":
-            linker = LinkFrequencyEntityLinker()
-        else:
+        minimum_score = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+        entity_db = EntityDatabase()
+        if strategy_name in ("links", "links-all"):
+            print("load entities...")
             if strategy_name == "links":
-                strategy = LinkingStrategy.LINK_FREQUENCY
+                entity_db.load_entities_small(minimum_score)
             else:
-                strategy = LinkingStrategy.ENTITY_SCORE
-            minimum_score = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-            entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
-            linker = AliasEntityLinker(entity_db, strategy)
+                entity_db.load_entities_big()
+            print(entity_db.size_entities(), "entities")
+            print("load links...")
+            entity_db.load_mapping()
+            entity_db.load_redirects()
+            entity_db.add_link_aliases()
+            entity_db.load_link_frequencies()
+            print(entity_db.size_aliases(), "aliases")
+            strategy = LinkingStrategy.LINK_FREQUENCY
+        else:
+            print("load entities...")
+            entity_db.load_entities_small(minimum_score)
+            print(entity_db.size_entities(), "entities")
+            print("add synonyms...")
+            entity_db.add_synonym_aliases()
+            print(entity_db.size_aliases(), "aliases")
+            print("add names...")
+            entity_db.add_name_aliases()
+            print(entity_db.size_aliases(), "aliases")
+            strategy = LinkingStrategy.ENTITY_SCORE
+        linker = AliasEntityLinker(entity_db, strategy)
 
     file_name = sys.argv[3]
     n_examples = int(sys.argv[4])
 
+    print("load evaluation entities...")
     entity_db = EntityDatabase()
     entity_db.load_entities_big()
     entity_db.load_mapping()
