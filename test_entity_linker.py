@@ -9,6 +9,7 @@ from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.link_entity_linker import LinkEntityLinker
 from src.link_frequency_entity_linker import LinkFrequencyEntityLinker
 from src.entity_database_reader import EntityDatabaseReader
+from src.entity_database_new import EntityDatabase
 from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
 from src import settings
@@ -115,7 +116,11 @@ if __name__ == "__main__":
     file_name = sys.argv[3]
     n_examples = int(sys.argv[4])
 
-    wikipedia2wikidata_linker = LinkEntityLinker()
+    entity_db = EntityDatabase()
+    entity_db.load_entities_big()
+    entity_db.load_mapping()
+    entity_db.load_redirects()
+
     all_cases = []
 
     for i, line in enumerate(open(settings.SPLIT_ARTICLES_DIR + file_name)):
@@ -130,10 +135,7 @@ if __name__ == "__main__":
         cases = []
 
         for span, target in article.links:
-            if wikipedia2wikidata_linker.contains_name(target):
-                true_entity_id = wikipedia2wikidata_linker.get_entity_id(target)
-            else:
-                true_entity_id = None
+            true_entity_id = entity_db.link2id(target)
 
             detected = span in predictions
             if detected:
