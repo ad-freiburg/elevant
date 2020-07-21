@@ -1,7 +1,6 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Set
 
 import sys
-from enum import Enum
 from termcolor import colored
 
 from src.trained_entity_linker import TrainedEntityLinker
@@ -12,32 +11,6 @@ from src.ambiverse_prediction_reader import AmbiversePredictionReader
 from src import settings
 
 
-class CaseType(Enum):
-    UNDETECTED = 1
-    UNKNOWN = 2
-    NO_CANDIDATE = 3
-    SINGLE_CANDIDATE_CORRECT = 4
-    SINGLE_CANDIDATE_WRONG = 5
-    MULTI_CANDIDATE_CORRECT = 6
-    MULTI_CANDIDATE_ALL_WRONG = 7
-    MULTI_CANDIDATE_WRONG = 8
-
-    def is_correct(self):
-        return self == CaseType.SINGLE_CANDIDATE_CORRECT or self == CaseType.MULTI_CANDIDATE_CORRECT
-
-
-CASE_COLORS = {
-    CaseType.UNDETECTED: "blue",
-    CaseType.UNKNOWN: "yellow",
-    CaseType.NO_CANDIDATE: "red",
-    CaseType.SINGLE_CANDIDATE_CORRECT: "green",
-    CaseType.SINGLE_CANDIDATE_WRONG: "red",
-    CaseType.MULTI_CANDIDATE_CORRECT: "green",
-    CaseType.MULTI_CANDIDATE_ALL_WRONG: "red",
-    CaseType.MULTI_CANDIDATE_WRONG: "red"
-}
-
-
 class Case:
     def __init__(self,
                  true_span: Tuple[int, int],
@@ -45,18 +18,48 @@ class Case:
                  true_entity: str,
                  predicted_span: Tuple[int, int],
                  predicted_entity: Optional[str],
-                 n_candidates: int,
-                 case_type: CaseType):
+                 candidates: Set[str]):
         self.true_span = true_span
         self.link_target = link_target
         self.true_entity = true_entity
         self.predicted_span = predicted_span
         self.predicted_entity = predicted_entity
-        self.n_candidates = n_candidates
-        self.case_type = case_type
+        self.candidates = candidates
+
+    def is_known_entity(self):
+        return self.true_entity is not None
+
+    def is_detected(self):
+        return self.predicted_span is not None
 
     def is_correct(self):
-        return self.case_type.is_correct()
+        return self.predicted_entity is not None and self.true_entity == self.predicted_entity
+
+    def true_entity_is_candidate(self):
+        return self.true_entity in self.candidates
+
+    def n_candidates(self):
+        return len(self.candidates)
+
+    def print_color(self):
+        if not self.is_known_entity():
+            return None
+        if not self.is_detected():
+            return "blue"
+        if not self.true_entity_is_candidate():
+            return "yellow"
+        if self.is_correct():
+            return "green"
+        else:
+            return "red"
+
+
+def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
+    if denominator == 0:
+        percent = 0
+    else:
+        percent = nominator / denominator * 100
+    return percent, nominator, denominator
 
 
 def print_help():
@@ -155,99 +158,72 @@ if __name__ == "__main__":
 
             detected = span in predictions
             if detected:
+                predicted_span = span
                 prediction = predictions[span]
                 predicted_entity_id = prediction.entity_id
                 candidates = prediction.candidates
             else:
+                predicted_span = None
                 predicted_entity_id = None
                 candidates = set()
-            n_candidates = len(candidates)
 
-            if true_entity_id is None:
-                case = CaseType.UNKNOWN
-            elif not detected:
-                case = CaseType.UNDETECTED
-            else:
-                is_correct = (true_entity_id == predicted_entity_id)
-                if n_candidates == 0:
-                    case = CaseType.NO_CANDIDATE
-                elif n_candidates == 1:
-                    if is_correct:
-                        case = CaseType.SINGLE_CANDIDATE_CORRECT
-                    else:
-                        case = CaseType.SINGLE_CANDIDATE_WRONG
-                else:
-                    if true_entity_id in candidates:
-                        if is_correct:
-                            case = CaseType.MULTI_CANDIDATE_CORRECT
-                        else:
-                            case = CaseType.MULTI_CANDIDATE_WRONG
-                    else:
-                        case = CaseType.MULTI_CANDIDATE_ALL_WRONG
-            case = Case(span, target, true_entity_id, span, predicted_entity_id, n_candidates, case)
+            case = Case(span, target, true_entity_id, predicted_span, predicted_entity_id, candidates)
             cases.append(case)
 
         print_str = ""
         position = 0
         for i, case in enumerate(cases):
-            begin, end = case.predicted_span
+            begin, end = case.true_span
             print_str += article.text[position:begin]
-            print_str += colored(article.text[begin:end], color=CASE_COLORS[case.case_type])
+            print_str += colored(article.text[begin:end], color=case.print_color())
             position = end
         print_str += article.text[position:]
         print(print_str)
         for case in cases:
-            print(colored("  %s %s (%s %s) %s %s %s %i" % (str(case.true_span),
-                                                           article.text[case.true_span[0]:case.true_span[1]],
-                                                           case.link_target,
-                                                           str(case.true_entity),
-                                                           str(case.predicted_span),
-                                                           str(case.predicted_entity),
-                                                           case.case_type.name,
-                                                           case.n_candidates),
-                          color=CASE_COLORS[case.case_type]))
+            print(colored("  %s %s (%s %s) %s %s %i" % (str(case.true_span),
+                                                        article.text[case.true_span[0]:case.true_span[1]],
+                                                        case.link_target,
+                                                        str(case.true_entity),
+                                                        str(case.predicted_span),
+                                                        str(case.predicted_entity),
+                                                        case.n_candidates()),
+                          color=case.print_color()))
         all_cases.extend(cases)
 
-    case_counter = {case_type: 0 for case_type in CaseType}
+    n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
+        n_correct_multiple_candidates = 0
     for case in all_cases:
-        case_counter[case.case_type] += 1
+        n_total += 1
+        if case.is_known_entity():
+            n_known += 1
+            if linker_type != "ambiverse" and linker.has_entity(case.true_entity):
+                n_contained += 1
+            if case.is_detected():
+                n_detected += 1
+                if case.true_entity_is_candidate():
+                    n_is_candidate += 1
+                if len(case.candidates) > 1:
+                    n_true_in_multiple_candidates += 1
+                    if case.is_correct():
+                        n_correct_multiple_candidates += 1
+        if case.is_correct():
+            n_correct += 1
+
+    n_unknown = n_total - n_known
+    n_undetected = n_known - n_detected
 
     print("\n== EVALUATION ==")
-    n_total = sum(case_counter[case_type] for case_type in CaseType)
     print("%i links evaluated" % n_total)
-    n_correct = sum(case_counter[case_type] for case_type in CaseType if case_type.is_correct())
-    print("\t%.2f%% correct (%i/%i)" % (n_correct / n_total * 100, n_correct, n_total))
-    n_unknown = case_counter[CaseType.UNKNOWN]
-    print("\t%.2f%% not a known entity (%i/%i)" % (n_unknown / n_total * 100, n_unknown, n_total))
-    n_known = n_total - n_unknown
-    print("\t%.2f%% known entities (%i/%i)" % (n_known / n_total * 100, n_known, n_total))
-    print("\t\t%.2f%% correct (%i/%i)" % (n_correct / n_known * 100, n_correct, n_known))
-    n_undetected = case_counter[CaseType.UNDETECTED]
+    print("\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_total))
+    print("\t%.2f%% not a known entity (%i/%i)" % percentage(n_unknown, n_total))
+    print("\t%.2f%% known entities (%i/%i)" % percentage(n_known, n_total))
+    print("\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_known))
     if linker_type != "ambiverse":
-        n_contained = len([case for case in all_cases if linker.has_entity(case.true_entity)])
-        print("\t\t%.2f%% contained (%i/%i)" % (n_contained / n_known * 100, n_contained, n_known))
-    print("\t\t%.2f%% not detected (%i/%i)" % (n_undetected / n_known * 100, n_undetected, n_known))
-    n_detected = n_known - n_undetected
-    print("\t\t%.2f%% detected (%i/%i)" % (n_detected / n_known * 100, n_detected, n_known))
-    print("\t\t\t%.2f%% correct (%i/%i)" % (n_correct / n_detected * 100, n_correct, n_detected))
-    n_no_candidate = case_counter[CaseType.NO_CANDIDATE]
-    print("\t\t\t%.2f%% no candidate (%i/%i)" % (n_no_candidate / n_detected * 100, n_no_candidate, n_detected))
-    n_single_candidate = case_counter[CaseType.SINGLE_CANDIDATE_WRONG] + case_counter[CaseType.SINGLE_CANDIDATE_CORRECT]
-    print("\t\t\t%.2f%% 1 candidate (%i/%i)" % (n_single_candidate / n_detected * 100, n_single_candidate, n_detected))
-    n_single_candidate_correct = case_counter[CaseType.SINGLE_CANDIDATE_CORRECT]
-    print("\t\t\t\t%.2f%% correct (%i/%i)" % (n_single_candidate_correct / n_single_candidate * 100,
-                                              n_single_candidate_correct, n_single_candidate))
-    n_multi_candidates = case_counter[CaseType.MULTI_CANDIDATE_ALL_WRONG] + \
-        case_counter[CaseType.MULTI_CANDIDATE_WRONG] + case_counter[CaseType.MULTI_CANDIDATE_CORRECT]
-    print("\t\t\t%.2f%% >1 candidate (%i/%i)" % (n_multi_candidates / n_detected * 100, n_multi_candidates, n_detected))
-    n_multi_candidates_correct = case_counter[CaseType.MULTI_CANDIDATE_CORRECT]
-    print("\t\t\t\t%.2f%% correct (%i/%i)" % (n_multi_candidates_correct / n_multi_candidates * 100,
-                                              n_multi_candidates_correct, n_multi_candidates))
-    n_multi_candidates_all_wrong = case_counter[CaseType.MULTI_CANDIDATE_ALL_WRONG]
-    print("\t\t\t\t%.2f%% wrong candidates (%i/%i)" % (n_multi_candidates_all_wrong / n_multi_candidates * 100,
-                                                       n_multi_candidates_all_wrong, n_multi_candidates))
-    n_multi_candidates_right_contained = n_multi_candidates - n_multi_candidates_all_wrong
-    print("\t\t\t\t%.2f%% right contained (%i/%i)" % (n_multi_candidates_right_contained / n_multi_candidates * 100,
-                                                      n_multi_candidates_right_contained, n_multi_candidates))
-    print("\t\t\t\t\t%.2f%% correct (%i/%i)" % (n_multi_candidates_correct / n_multi_candidates_right_contained * 100,
-                                                n_multi_candidates_correct, n_multi_candidates_right_contained))
+        print("\t\t%.2f%% contained (%i/%i)" % percentage(n_contained, n_known))
+    print("\t\t%.2f%% not detected (%i/%i)" % percentage(n_undetected, n_known))
+    print("\t\t%.2f%% detected (%i/%i)" % percentage(n_detected, n_known))
+    print("\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_detected))
+    print("\t\t\t%.2f%% true entity in candidates (%i/%i)" % percentage(n_is_candidate, n_detected))
+    print("\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_is_candidate))
+    print("\t\t\t\t%.2f%% multiple candidates (%i/%i)" % percentage(n_true_in_multiple_candidates, n_is_candidate))
+    print("\t\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct_multiple_candidates, n_true_in_multiple_candidates))
