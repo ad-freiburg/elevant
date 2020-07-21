@@ -202,10 +202,10 @@ if __name__ == "__main__":
                 n_detected += 1
                 if case.true_entity_is_candidate():
                     n_is_candidate += 1
-                if len(case.candidates) > 1:
-                    n_true_in_multiple_candidates += 1
-                    if case.is_correct():
-                        n_correct_multiple_candidates += 1
+                    if len(case.candidates) > 1:
+                        n_true_in_multiple_candidates += 1
+                        if case.is_correct():
+                            n_correct_multiple_candidates += 1
         if case.is_correct():
             n_correct += 1
 
