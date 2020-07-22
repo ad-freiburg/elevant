@@ -19,7 +19,7 @@ def print_help():
           "Arguments:\n"
           "    <in_file>: Name of the input file with articles in JSON format or raw text.\n"
           "    <linker>: Choose from {spacy, baseline}.\n"
-          "    <name/strategy>: Name of the spacy linker, or one of {links, scores} for the baseline.\n"
+          "    <name/strategy>: Name of the spacy linker, or one of {links, links-all, scores} for the baseline.\n"
           "    <n>: Number of articles.\n"
           "    <out_file>: Name of the output file.\n"
           "    -coref: If set, coreference linking is done.\n"
@@ -84,7 +84,7 @@ if __name__ == "__main__":
             entity_db.add_name_aliases()
             print(entity_db.size_aliases(), "aliases")
             strategy = LinkingStrategy.ENTITY_SCORE
-        linker = AliasEntityLinker(entity_db, strategy)
+        linker = AliasEntityLinker(entity_db, strategy, load_model=False)
     else:
         raise Exception("Unknown linker '%s'." % linker_type)
 
