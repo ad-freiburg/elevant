@@ -57,12 +57,11 @@ if __name__ == "__main__":
         strategy_name = linker_name_or_strategy
         if strategy_name not in ("links", "scores", "links-all"):
             raise NotImplementedError("Unknown strategy '%s'." % strategy_name)
-        minimum_score = int(sys.argv[5]) if len(sys.argv) > 5 else 0
         entity_db = EntityDatabase()
         if strategy_name in ("links", "links-all"):
             print("load entities...")
             if strategy_name == "links":
-                entity_db.load_entities_small(minimum_score)
+                entity_db.load_entities_small()
             else:
                 entity_db.load_entities_big()
             print(entity_db.size_entities(), "entities")
@@ -75,7 +74,7 @@ if __name__ == "__main__":
             strategy = LinkingStrategy.LINK_FREQUENCY
         else:
             print("load entities...")
-            entity_db.load_entities_small(minimum_score)
+            entity_db.load_entities_small()
             print(entity_db.size_entities(), "entities")
             print("add synonyms...")
             entity_db.add_synonym_aliases()
