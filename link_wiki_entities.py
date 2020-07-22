@@ -14,7 +14,7 @@ from src.ner_postprocessing import shorten_entities
 
 def print_help():
     print("Usage:\n"
-          "    python3 link_wiki_entities.py <in_file> <linker> <name/strategy> <n> <out_file> [-coref]\n"
+          "    python3 link_wiki_entities.py <in_file> <linker> <name/strategy> <n> <out_file> [-coref] [-raw]\n"
           "\n"
           "Arguments:\n"
           "    <in_file>: Name of the input file with articles in JSON format.\n"
@@ -22,7 +22,8 @@ def print_help():
           "    <name/strategy>: Name of the spacy linker, or one of {links, scores} for the baseline.\n"
           "    <n>: Number of articles.\n"
           "    <out_file>: Name of the output file.\n"
-          "    -coref: If set, coreference linking is done.")
+          "    -coref: If set, coreference linking is done.\n"
+          "    -raw: Set to use an input file with raw text.")
 
 
 def link_entities(article: WikipediaArticle):
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     n_articles = int(sys.argv[4])
     out_file = sys.argv[5]
     coreference_linking = "-coref" in sys.argv
+    raw_input = "-raw" in sys.argv
 
     model = spacy.load(settings.LARGE_MODEL_NAME)
     model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
@@ -70,7 +72,10 @@ if __name__ == "__main__":
         for i, line in enumerate(open(settings.SPLIT_ARTICLES_DIR + in_file)):
             if i == n_articles:
                 break
-            article = WikipediaDumpReader.json2article(line)
+            if raw_input:
+                article = WikipediaArticle(id=i, title="", text=line[:-1], links=[])
+            else:
+                article = WikipediaDumpReader.json2article(line)
             link_entities(article)
             f.write(article.to_json() + '\n')
             print("\r%i articles" % (i + 1), end='')
