@@ -7,7 +7,7 @@ from src.link_entity_linker import LinkEntityLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.coreference_entity_linker import CoreferenceEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
-from src.entity_database_reader import EntityDatabaseReader
+from src.entity_database_new import EntityDatabase
 from src import settings
 from src.ner_postprocessing import shorten_entities
 
@@ -17,7 +17,7 @@ def print_help():
           "    python3 link_wiki_entities.py <in_file> <linker> <name/strategy> <n> <out_file> [-coref] [-raw]\n"
           "\n"
           "Arguments:\n"
-          "    <in_file>: Name of the input file with articles in JSON format.\n"
+          "    <in_file>: Name of the input file with articles in JSON format or raw text.\n"
           "    <linker>: Choose from {spacy, baseline}.\n"
           "    <name/strategy>: Name of the spacy linker, or one of {links, scores} for the baseline.\n"
           "    <n>: Number of articles.\n"
@@ -54,14 +54,37 @@ if __name__ == "__main__":
     if linker_type == "spacy":
         linker = TrainedEntityLinker(name=linker_name_or_strategy, model=model)
     elif linker_type == "baseline":
-        if linker_name_or_strategy == "links":
+        strategy_name = linker_name_or_strategy
+        if strategy_name not in ("links", "scores", "links-all"):
+            raise NotImplementedError("Unknown strategy '%s'." % strategy_name)
+        minimum_score = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+        entity_db = EntityDatabase()
+        if strategy_name in ("links", "links-all"):
+            print("load entities...")
+            if strategy_name == "links":
+                entity_db.load_entities_small(minimum_score)
+            else:
+                entity_db.load_entities_big()
+            print(entity_db.size_entities(), "entities")
+            print("load links...")
+            entity_db.load_mapping()
+            entity_db.load_redirects()
+            entity_db.add_link_aliases()
+            entity_db.load_link_frequencies()
+            print(entity_db.size_aliases(), "aliases")
             strategy = LinkingStrategy.LINK_FREQUENCY
-        elif linker_name_or_strategy == "scores":
-            strategy = LinkingStrategy.ENTITY_SCORE
         else:
-            raise Exception("Unknown strategy '%s'." % linker_name_or_strategy)
-        entity_db = EntityDatabaseReader.read_entity_database()
-        linker = AliasEntityLinker(entity_db, strategy, load_model=False)
+            print("load entities...")
+            entity_db.load_entities_small(minimum_score)
+            print(entity_db.size_entities(), "entities")
+            print("add synonyms...")
+            entity_db.add_synonym_aliases()
+            print(entity_db.size_aliases(), "aliases")
+            print("add names...")
+            entity_db.add_name_aliases()
+            print(entity_db.size_aliases(), "aliases")
+            strategy = LinkingStrategy.ENTITY_SCORE
+        linker = AliasEntityLinker(entity_db, strategy)
     else:
         raise Exception("Unknown linker '%s'." % linker_type)
 
