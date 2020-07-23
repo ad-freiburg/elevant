@@ -1,5 +1,6 @@
 from typing import Tuple, Optional, Set
 
+from enum import Enum
 import sys
 from termcolor import colored
 
@@ -10,24 +11,48 @@ from src.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.evaluation_examples_generator import WikipediaExampleReader, ConllExampleReader
 
 
+class CaseType(Enum):
+    UNKNOWN_ENTITY = 0
+    UNDETECTED = 1
+    WRONG_CANDIDATES = 2
+    CORRECT = 3
+    WRONG = 4
+    FALSE_DETECTION = 5
+
+
+CASE_COLORS = {
+    CaseType.UNKNOWN_ENTITY: None,
+    CaseType.UNDETECTED: "blue",
+    CaseType.WRONG_CANDIDATES: "yellow",
+    CaseType.CORRECT: "green",
+    CaseType.WRONG: "red",
+    CaseType.FALSE_DETECTION: "cyan",
+    "mixed": "magenta"
+}
+
+
 class Case:
     def __init__(self,
-                 true_span: Tuple[int, int],
-                 true_entity: str,
-                 predicted_span: Tuple[int, int],
+                 span: Tuple[int, int],
+                 true_entity: Optional[str],
+                 detected: bool,
                  predicted_entity: Optional[str],
                  candidates: Set[str]):
-        self.true_span = true_span
+        self.span = span
         self.true_entity = true_entity
-        self.predicted_span = predicted_span
+        self.detected = detected
         self.predicted_entity = predicted_entity
         self.candidates = candidates
+        self.eval_type = self._type()
 
-    def is_known_entity(self):
+    def has_ground_truth(self):
         return self.true_entity is not None
 
+    def is_known_entity(self):
+        return self.true_entity is not None and self.true_entity != "Unknown"
+
     def is_detected(self):
-        return self.predicted_span is not None
+        return self.detected
 
     def is_correct(self):
         return self.predicted_entity is not None and self.true_entity == self.predicted_entity
@@ -38,17 +63,25 @@ class Case:
     def n_candidates(self):
         return len(self.candidates)
 
-    def print_color(self):
+    def is_false_positive(self):
+        return self.predicted_entity is not None and self.true_entity != self.predicted_entity
+
+    def _type(self) -> CaseType:
+        if not self.has_ground_truth():
+            return CaseType.FALSE_DETECTION
         if not self.is_known_entity():
-            return None
+            return CaseType.UNKNOWN_ENTITY
         if not self.is_detected():
-            return "blue"
+            return CaseType.UNDETECTED
         if not self.true_entity_is_candidate():
-            return "yellow"
+            return CaseType.WRONG_CANDIDATES
         if self.is_correct():
-            return "green"
+            return CaseType.CORRECT
         else:
-            return "red"
+            return CaseType.WRONG
+
+    def __lt__(self, other):
+        return self.span < other.span
 
 
 def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
@@ -62,15 +95,15 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 def print_help():
     print("Usage:\n"
           "    For a spaCy entity linker:\n"
-          "        python3 test_entity_linker.py spacy <linker_name> <file> <n_articles>\n"
+          "        python3 test_entity_linker.py spacy <linker_name> <benchmark> <n_articles>\n"
           "    For a baseline entity linker:\n"
-          "        python3 test_entity_linker.py baseline <strategy> <file> <n_articles> [<minimum_score>]\n"
+          "        python3 test_entity_linker.py baseline <strategy> <benchmark> <n_articles> [<minimum_score>]\n"
           "    To evaluate ambiverse results:\n"
-          "        python3 test_entity_linker.py ambiverse <result_dir> <file> <n_articles>\n"
+          "        python3 test_entity_linker.py ambiverse <result_dir> <benchmark> <n_articles>\n"
           "\n"
           "Arguments:\n"
           "    <linker_name>: Name of the saved spaCy entity linker.\n"
-          "    <file>: Name of the file with evaluation articles, e.g. development.txt or test.txt.\n"
+          "    <benchmark>: Choose from {wikipedia, conll}.\n"
           "    <n_articles>: Number of development articles to evaluate on.\n"
           "    <strategy>: Choose one out of {links, scores}.\n"
           "        links:     Baseline using link frequencies for disambiguation.\n"
@@ -149,70 +182,103 @@ if __name__ == "__main__":
             predictions = next(ambiverse_prediction_iterator)
         else:
             predictions = linker.predict(text)
+
         cases = []
 
-        for span, true_entity_id in ground_truth:
+        # ground truth cases:
+        for span, true_entity_id in sorted(ground_truth):
             detected = span in predictions
             if detected:
-                predicted_span = span
                 prediction = predictions[span]
                 predicted_entity_id = prediction.entity_id
                 candidates = prediction.candidates
             else:
-                predicted_span = None
                 predicted_entity_id = None
                 candidates = set()
 
-            case = Case(span, true_entity_id, predicted_span, predicted_entity_id, candidates)
+            case = Case(span, true_entity_id, detected, predicted_entity_id, candidates)
             cases.append(case)
+
+        # predicted cases (potential false detections):
+        ground_truth_spans = set(span for span, _ in ground_truth)
+        for span in predictions:
+            predicted_entity_id = predictions[span].entity_id
+            if span not in ground_truth_spans and predicted_entity_id is not None:
+                case = Case(span, None, True, predicted_entity_id, candidates=predictions[span].candidates)
+                cases.append(case)
+
+        cases = sorted(cases)
+
+        colored_spans = [(case.span, CASE_COLORS[case.eval_type]) for case in cases
+                         if case.eval_type != CaseType.UNKNOWN_ENTITY]
+        i = 0
+        while i + 1 < len(colored_spans):
+            span, color = colored_spans[i]
+            next_span, next_color = colored_spans[i + 1]
+            if span[1] > next_span[0]:
+                left_span = (span[0], next_span[0]), color
+                mid_span = (next_span[0], span[1]), CASE_COLORS["mixed"]
+                right_span = (span[1], next_span[1]), next_color
+                colored_spans = colored_spans[:i] + [left_span, mid_span, right_span] + colored_spans[(i + 2):]
+            i += 1
 
         print_str = ""
         position = 0
-        for i, case in enumerate(cases):
-            begin, end = case.true_span
+        for span, color in colored_spans:
+            begin, end = span
             print_str += text[position:begin]
-            print_str += colored(text[begin:end], color=case.print_color())
+            print_str += colored(text[begin:end], color=color)
             position = end
         print_str += text[position:]
         print(print_str)
+
         for case in cases:
-            true_str = "(%s %s)" % (case.true_entity, entity_db.get_entity(case.true_entity).name) \
+            true_str = "(%s %s)" % (case.true_entity, entity_db.get_entity(case.true_entity).name
+                                    if entity_db.contains_entity(case.true_entity) else "Unknown") \
                 if case.true_entity is not None else "None"
-            predicted_str = "(%s %s)" % (case.predicted_entity, entity_db.get_entity(case.predicted_entity).name) \
+            predicted_str = "(%s %s)" % (case.predicted_entity,
+                                         entity_db.get_entity(case.predicted_entity).name
+                                         if entity_db.contains_entity(case.predicted_entity) else "Unknown") \
                 if case.predicted_entity is not None else "None"
-            print(colored("  %s %s %s %s %s %i" % (str(case.true_span),
-                                                   text[case.true_span[0]:case.true_span[1]],
+            print(colored("  %s %s %s %s %i %s" % (str(case.span),
+                                                   text[case.span[0]:case.span[1]],
                                                    true_str,
-                                                   str(case.predicted_span),
                                                    predicted_str,
-                                                   case.n_candidates()),
-                          color=case.print_color()))
+                                                   case.n_candidates(),
+                                                   case.eval_type.name),
+                          color=CASE_COLORS[case.eval_type]))
         all_cases.extend(cases)
 
     n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
-        n_correct_multiple_candidates = 0
+        n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = 0
     for case in all_cases:
         n_total += 1
-        if case.is_known_entity():
-            n_known += 1
-            if linker_type != "ambiverse" and linker.has_entity(case.true_entity):
-                n_contained += 1
-            if case.is_detected():
-                n_detected += 1
-                if case.true_entity_is_candidate():
-                    n_is_candidate += 1
-                    if len(case.candidates) > 1:
-                        n_true_in_multiple_candidates += 1
-                        if case.is_correct():
-                            n_correct_multiple_candidates += 1
+        if case.has_ground_truth():
+            n_ground_truth += 1
+            if case.is_known_entity():
+                n_known += 1
+                if linker_type != "ambiverse" and linker.has_entity(case.true_entity):
+                    n_contained += 1
+                if case.is_detected():
+                    n_detected += 1
+                    if case.true_entity_is_candidate():
+                        n_is_candidate += 1
+                        if len(case.candidates) > 1:
+                            n_true_in_multiple_candidates += 1
+                            if case.is_correct():
+                                n_correct_multiple_candidates += 1
         if case.is_correct():
             n_correct += 1
+        elif case.has_ground_truth():
+            n_false_negatives += 1
+        if case.is_false_positive():
+            n_false_positives += 1
 
     n_unknown = n_total - n_known
     n_undetected = n_known - n_detected
 
     print("\n== EVALUATION ==")
-    print("%i cases evaluated" % n_total)
+    print("%i ground truth entity mentions evaluated" % n_total)
     print("\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_total))
     print("\t%.2f%% not a known entity (%i/%i)" % percentage(n_unknown, n_total))
     print("\t%.2f%% known entities (%i/%i)" % percentage(n_known, n_total))
@@ -226,3 +292,9 @@ if __name__ == "__main__":
     print("\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_is_candidate))
     print("\t\t\t\t%.2f%% multiple candidates (%i/%i)" % percentage(n_true_in_multiple_candidates, n_is_candidate))
     print("\t\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct_multiple_candidates, n_true_in_multiple_candidates))
+    print("precision = %.2f%% (%i/%i)" % percentage(n_correct, n_correct + n_false_positives))
+    print("recall =    %.2f%% (%i/%i)" % percentage(n_correct, n_correct + n_false_negatives))
+    precision = n_correct / (n_correct + n_false_positives)
+    recall = n_correct / (n_correct + n_false_negatives)
+    f1 = 2 * precision * recall / (precision + recall)
+    print("f1 =        %.2f%%" % (f1 * 100))
