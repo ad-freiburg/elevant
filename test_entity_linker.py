@@ -6,21 +6,18 @@ from termcolor import colored
 from src.trained_entity_linker import TrainedEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.entity_database_new import EntityDatabase
-from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
-from src import settings
+from src.evaluation_examples_generator import WikipediaExampleReader, ConllExampleReader
 
 
 class Case:
     def __init__(self,
                  true_span: Tuple[int, int],
-                 link_target: str,
                  true_entity: str,
                  predicted_span: Tuple[int, int],
                  predicted_entity: Optional[str],
                  candidates: Set[str]):
         self.true_span = true_span
-        self.link_target = link_target
         self.true_entity = true_entity
         self.predicted_span = predicted_span
         self.predicted_entity = predicted_entity
@@ -140,22 +137,21 @@ if __name__ == "__main__":
     entity_db.load_mapping()
     entity_db.load_redirects()
 
+    if file_name == "conll":
+        example_generator = ConllExampleReader(entity_db)
+    else:
+        example_generator = WikipediaExampleReader(entity_db)
+
     all_cases = []
 
-    for i, line in enumerate(open(settings.SPLIT_ARTICLES_DIR + file_name)):
-        if i == n_examples:
-            break
-
-        article = WikipediaDumpReader.json2article(line)
+    for text, ground_truth in example_generator.iterate(n_examples):
         if linker_type == "ambiverse":
             predictions = next(ambiverse_prediction_iterator)
         else:
-            predictions = linker.predict(article.text)
+            predictions = linker.predict(text)
         cases = []
 
-        for span, target in article.links:
-            true_entity_id = entity_db.link2id(target)
-
+        for span, true_entity_id in ground_truth:
             detected = span in predictions
             if detected:
                 predicted_span = span
@@ -167,26 +163,29 @@ if __name__ == "__main__":
                 predicted_entity_id = None
                 candidates = set()
 
-            case = Case(span, target, true_entity_id, predicted_span, predicted_entity_id, candidates)
+            case = Case(span, true_entity_id, predicted_span, predicted_entity_id, candidates)
             cases.append(case)
 
         print_str = ""
         position = 0
         for i, case in enumerate(cases):
             begin, end = case.true_span
-            print_str += article.text[position:begin]
-            print_str += colored(article.text[begin:end], color=case.print_color())
+            print_str += text[position:begin]
+            print_str += colored(text[begin:end], color=case.print_color())
             position = end
-        print_str += article.text[position:]
+        print_str += text[position:]
         print(print_str)
         for case in cases:
-            print(colored("  %s %s (%s %s) %s %s %i" % (str(case.true_span),
-                                                        article.text[case.true_span[0]:case.true_span[1]],
-                                                        case.link_target,
-                                                        str(case.true_entity),
-                                                        str(case.predicted_span),
-                                                        str(case.predicted_entity),
-                                                        case.n_candidates()),
+            true_str = "(%s %s)" % (case.true_entity, entity_db.get_entity(case.true_entity).name) \
+                if case.true_entity is not None else "None"
+            predicted_str = "(%s %s)" % (case.predicted_entity, entity_db.get_entity(case.predicted_entity).name) \
+                if case.predicted_entity is not None else "None"
+            print(colored("  %s %s %s %s %s %i" % (str(case.true_span),
+                                                   text[case.true_span[0]:case.true_span[1]],
+                                                   true_str,
+                                                   str(case.predicted_span),
+                                                   predicted_str,
+                                                   case.n_candidates()),
                           color=case.print_color()))
         all_cases.extend(cases)
 
@@ -213,7 +212,7 @@ if __name__ == "__main__":
     n_undetected = n_known - n_detected
 
     print("\n== EVALUATION ==")
-    print("%i links evaluated" % n_total)
+    print("%i cases evaluated" % n_total)
     print("\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_total))
     print("\t%.2f%% not a known entity (%i/%i)" % percentage(n_unknown, n_total))
     print("\t%.2f%% known entities (%i/%i)" % percentage(n_known, n_total))
