@@ -5,6 +5,7 @@ import sys
 from termcolor import colored
 
 from src.trained_entity_linker import TrainedEntityLinker
+from src.explosion_linker import ExplosionEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.entity_database_new import EntityDatabase
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
@@ -94,8 +95,10 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 
 def print_help():
     print("Usage:\n"
-          "    For a spaCy entity linker:\n"
+          "    For a spaCy entity linker trained with our code:\n"
           "        python3 test_entity_linker.py spacy <linker_name> <benchmark> <n_articles>\n"
+          "    Fora spaCy entity linker trained with explosion's code:\n"
+          "        python3 test_entity_linker.py explosion <linker_path> <benchmark> <n_articles>\n"
           "    For a baseline entity linker:\n"
           "        python3 test_entity_linker.py baseline <strategy> <benchmark> <n_articles> [<minimum_score>]\n"
           "    To evaluate ambiverse results:\n"
@@ -105,6 +108,7 @@ def print_help():
           "    <linker_name>: Name of the saved spaCy entity linker.\n"
           "    <benchmark>: Choose from {wikipedia, conll}.\n"
           "    <n_articles>: Number of development articles to evaluate on.\n"
+          "    <linker_path>: For explosion's linker, specify the path to the saved model.\n"
           "    <strategy>: Choose one out of {links, scores}.\n"
           "        links:     Baseline using link frequencies for disambiguation.\n"
           "        scores:    Baseline using entity scores for disambiguation.\n"
@@ -119,12 +123,15 @@ if __name__ == "__main__":
         exit(1)
 
     linker_type = sys.argv[1]
-    if linker_type not in ("spacy", "ambiverse", "baseline"):
+    if linker_type not in ("spacy", "explosion", "ambiverse", "baseline"):
         raise NotImplementedError("Unknown linker type '%s'." % linker_type)
 
     if linker_type == "spacy":
         linker_name = sys.argv[2]
         linker = TrainedEntityLinker(linker_name)
+    elif linker_type == "explosion":
+        path = sys.argv[2]
+        linker = ExplosionEntityLinker(path)
     elif linker_type == "ambiverse":
         result_dir = sys.argv[2]
         ambiverse_prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
