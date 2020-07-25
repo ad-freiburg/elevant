@@ -285,10 +285,10 @@ if __name__ == "__main__":
     n_undetected = n_known - n_detected
 
     print("\n== EVALUATION ==")
-    print("%i ground truth entity mentions evaluated" % n_total)
-    print("\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_total))
-    print("\t%.2f%% not a known entity (%i/%i)" % percentage(n_unknown, n_total))
-    print("\t%.2f%% known entities (%i/%i)" % percentage(n_known, n_total))
+    print("%i ground truth entity mentions evaluated" % n_ground_truth)
+    print("\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_ground_truth))
+    print("\t%.2f%% not a known entity (%i/%i)" % percentage(n_unknown, n_ground_truth))
+    print("\t%.2f%% known entities (%i/%i)" % percentage(n_known, n_ground_truth))
     print("\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_known))
     if linker_type != "ambiverse":
         print("\t\t%.2f%% contained (%i/%i)" % percentage(n_contained, n_known))
