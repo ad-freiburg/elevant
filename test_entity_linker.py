@@ -281,7 +281,7 @@ if __name__ == "__main__":
         if case.is_false_positive():
             n_false_positives += 1
 
-    n_unknown = n_total - n_known
+    n_unknown = n_ground_truth - n_known
     n_undetected = n_known - n_detected
 
     print("\n== EVALUATION ==")
