@@ -7,12 +7,15 @@ from spacy.language import Language
 from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_prediction import EntityPrediction
 from spacy.kb import KnowledgeBase
+from src.ner_postprocessing import shorten_entities
 
 
 class ExplosionEntityLinker(AbstractEntityLinker):
     def __init__(self, model_path: str):
         self.model = spacy.load(model_path)
         self.model: Language
+        if not self.model.has_pipe("shorten_ner"):
+            self.model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
         linker = self.model.get_pipe("entity_linker")
         self.kb = linker.kb
         self.kb: KnowledgeBase
