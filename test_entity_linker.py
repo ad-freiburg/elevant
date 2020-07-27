@@ -9,6 +9,7 @@ from src.explosion_linker import ExplosionEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.entity_database_new import EntityDatabase
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
+from src.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.evaluation_examples_generator import WikipediaExampleReader, ConllExampleReader
 
 
@@ -95,26 +96,17 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 
 def print_help():
     print("Usage:\n"
-          "    For a spaCy entity linker trained with our code:\n"
-          "        python3 test_entity_linker.py spacy <linker_name> <benchmark> <n_articles>\n"
-          "    Fora spaCy entity linker trained with explosion's code:\n"
-          "        python3 test_entity_linker.py explosion <linker_path> <benchmark> <n_articles>\n"
-          "    For a baseline entity linker:\n"
-          "        python3 test_entity_linker.py baseline <strategy> <benchmark> <n_articles> [<minimum_score>]\n"
-          "    To evaluate ambiverse results:\n"
-          "        python3 test_entity_linker.py ambiverse <result_dir> <benchmark> <n_articles>\n"
+          "    python3 <linker_type> <linker> <benchmark> <n_articles>\n"
           "\n"
           "Arguments:\n"
-          "    <linker_name>: Name of the saved spaCy entity linker.\n"
+          "    <linker_type>: Choose from {baseline, spacy, explosion, iob}.\n"
+          "    <linker>: Specify the linker to be used, depending on its type:\n"
+          "        baseline: Choose baseline from {scores, links, links-all}.\n"
+          "        spacy: Name of the linker.\n"
+          "        explosion: Full path to the saved model.\n"
+          "        iob: Full path to the prediction file in IOB format (for the CoNLL benchmark only).\n"
           "    <benchmark>: Choose from {wikipedia, conll}.\n"
-          "    <n_articles>: Number of development articles to evaluate on.\n"
-          "    <linker_path>: For explosion's linker, specify the path to the saved model.\n"
-          "    <strategy>: Choose one out of {links, scores}.\n"
-          "        links:     Baseline using link frequencies for disambiguation.\n"
-          "        scores:    Baseline using entity scores for disambiguation.\n"
-          "        links-all: Baseline using link frequencies for disambiguation and more candidates.\n"
-          "    <minimum_score>: For the baseline linkers, link no entities with a score lower than minimum_score."
-          " Default is 0.")
+          "    <n_articles>: Number of articles to evaluate on.")
 
 
 if __name__ == "__main__":
@@ -123,18 +115,22 @@ if __name__ == "__main__":
         exit(1)
 
     linker_type = sys.argv[1]
-    if linker_type not in ("spacy", "explosion", "ambiverse", "baseline"):
+    if linker_type not in ("spacy", "explosion", "ambiverse", "baseline", "iob"):
         raise NotImplementedError("Unknown linker type '%s'." % linker_type)
 
+    linker = None
     if linker_type == "spacy":
         linker_name = sys.argv[2]
         linker = TrainedEntityLinker(linker_name)
     elif linker_type == "explosion":
         path = sys.argv[2]
         linker = ExplosionEntityLinker(path)
+    elif linker_type == "iob":
+        path = sys.argv[2]
+        prediction_iterator = ConllIobPredictionReader.document_predictions_iterator(path)
     elif linker_type == "ambiverse":
         result_dir = sys.argv[2]
-        ambiverse_prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
+        prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
     else:
         strategy_name = sys.argv[2]
         if strategy_name not in ("links", "scores", "links-all"):
@@ -185,8 +181,8 @@ if __name__ == "__main__":
     all_cases = []
 
     for text, ground_truth in example_generator.iterate(n_examples):
-        if linker_type == "ambiverse":
-            predictions = next(ambiverse_prediction_iterator)
+        if linker is None:
+            predictions = next(prediction_iterator)
         else:
             predictions = linker.predict(text)
 
@@ -264,7 +260,7 @@ if __name__ == "__main__":
             n_ground_truth += 1
             if case.is_known_entity():
                 n_known += 1
-                if linker_type != "ambiverse" and linker.has_entity(case.true_entity):
+                if linker is not None and linker.has_entity(case.true_entity):
                     n_contained += 1
                 if case.is_detected():
                     n_detected += 1
