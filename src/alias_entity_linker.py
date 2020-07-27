@@ -1,7 +1,6 @@
 from typing import Dict, Tuple, Optional, Set
 from enum import Enum
 
-import pickle
 import spacy
 from spacy.tokens import Doc
 

@@ -110,7 +110,7 @@ def print_help():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 5:
         print_help()
         exit(1)
 
@@ -164,16 +164,17 @@ if __name__ == "__main__":
             strategy = LinkingStrategy.ENTITY_SCORE
         linker = AliasEntityLinker(entity_db, strategy)
 
-    file_name = sys.argv[3]
+    benchmark = sys.argv[3]
     n_examples = int(sys.argv[4])
+    filter_predictions = "-small" in sys.argv or "-big" in sys.argv
 
     print("load evaluation entities...")
     entity_db = EntityDatabase()
-    entity_db.load_entities_big()
+    entity_db.load_entities_small() if "-small" in sys.argv else entity_db.load_entities_big()
     entity_db.load_mapping()
     entity_db.load_redirects()
 
-    if file_name == "conll":
+    if benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
     else:
         example_generator = WikipediaExampleReader(entity_db)
@@ -185,6 +186,10 @@ if __name__ == "__main__":
             predictions = next(prediction_iterator)
         else:
             predictions = linker.predict(text)
+
+        if filter_predictions:
+            predictions = {span: predictions[span] for span in predictions
+                           if entity_db.contains_entity(predictions[span].entity_id)}
 
         cases = []
 
@@ -204,6 +209,7 @@ if __name__ == "__main__":
 
         # predicted cases (potential false detections):
         ground_truth_spans = set(span for span, _ in ground_truth)
+
         for span in predictions:
             predicted_entity_id = predictions[span].entity_id
             if span not in ground_truth_spans and predicted_entity_id is not None:
@@ -253,7 +259,7 @@ if __name__ == "__main__":
         all_cases.extend(cases)
 
     n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
-        n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = 0
+        n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = n_false_detection = 0
     for case in all_cases:
         n_total += 1
         if case.has_ground_truth():
@@ -276,6 +282,8 @@ if __name__ == "__main__":
             n_false_negatives += 1
         if case.is_false_positive():
             n_false_positives += 1
+        if case.eval_type == CaseType.FALSE_DETECTION:
+            n_false_detection += 1
 
     n_unknown = n_ground_truth - n_known
     n_undetected = n_known - n_detected
@@ -295,6 +303,9 @@ if __name__ == "__main__":
     print("\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_is_candidate))
     print("\t\t\t\t%.2f%% multiple candidates (%i/%i)" % percentage(n_true_in_multiple_candidates, n_is_candidate))
     print("\t\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct_multiple_candidates, n_true_in_multiple_candidates))
+
+    print("tp = %i, fp = %i (false detections = %i), fn = %i" %
+          (n_correct, n_false_positives, n_false_detection, n_false_negatives))
     print("precision = %.2f%% (%i/%i)" % percentage(n_correct, n_correct + n_false_positives))
     print("recall =    %.2f%% (%i/%i)" % percentage(n_correct, n_correct + n_false_negatives))
     precision = n_correct / (n_correct + n_false_positives)

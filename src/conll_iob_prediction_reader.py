@@ -17,8 +17,8 @@ def get_predictions(document: ConllDocument) -> List[EntityPrediction]:
             inside = False
         if i > 0:
             pos += 1
-        if token.predicted_label.startswith("Q") or token.predicted_label == "I":
-            entity_id = token.predicted_label if token.predicted_label != "I" else None
+        if token.predicted_label.startswith("Q") or token.predicted_label.startswith("B"):
+            entity_id = token.predicted_label if token.predicted_label.startswith("Q") else None
             prediction_start = pos
             inside = True
         pos += len(token.text)

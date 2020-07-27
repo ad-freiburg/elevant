@@ -14,8 +14,6 @@ class WikipediaExampleReader:
             ground_truth = set()
             for span, target in article.links:
                 entity_id = self.entity_db.link2id(target)
-                if entity_id is None:
-                    entity_id = "Unknown"
                 ground_truth.add((span, entity_id))
             yield article.text, ground_truth
 
