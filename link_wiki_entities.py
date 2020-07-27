@@ -7,6 +7,7 @@ from src.link_entity_linker import LinkEntityLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.coreference_entity_linker import CoreferenceEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
+from src.explosion_linker import ExplosionEntityLinker
 from src.entity_database_new import EntityDatabase
 from src import settings
 from src.ner_postprocessing import shorten_entities
@@ -14,12 +15,13 @@ from src.ner_postprocessing import shorten_entities
 
 def print_help():
     print("Usage:\n"
-          "    python3 link_wiki_entities.py <in_file> <linker> <name/strategy> <n> <out_file> [-coref] [-raw]\n"
+          "    python3 link_wiki_entities.py <in_file> <linker_type> <linker> <n> <out_file> [-coref] [-raw]\n"
           "\n"
           "Arguments:\n"
           "    <in_file>: Name of the input file with articles in JSON format or raw text.\n"
-          "    <linker>: Choose from {spacy, baseline}.\n"
-          "    <name/strategy>: Name of the spacy linker, or one of {links, links-all, scores} for the baseline.\n"
+          "    <linker_type>: Choose from {spacy, explosion, baseline}.\n"
+          "    <linker>: Name of the spacy linker, or one of {links, links-all, scores} for the baseline,"
+          " or the path to the explosion linker.\n"
           "    <n>: Number of articles.\n"
           "    <out_file>: Name of the output file.\n"
           "    -coref: If set, coreference linking is done.\n"
@@ -27,7 +29,10 @@ def print_help():
 
 
 def link_entities(article: WikipediaArticle):
-    doc = model(article.text)
+    if model:
+        doc = model(article.text)
+    else:
+        doc = None
     link_linker.link_entities(article)
     linker.link_entities(article, doc=doc)
     if coreference_linking:
@@ -41,20 +46,26 @@ if __name__ == "__main__":
 
     in_file = sys.argv[1]
     linker_type = sys.argv[2]
-    linker_name_or_strategy = sys.argv[3]
     n_articles = int(sys.argv[4])
     out_file = sys.argv[5]
     coreference_linking = "-coref" in sys.argv
     raw_input = "-raw" in sys.argv
 
-    model = spacy.load(settings.LARGE_MODEL_NAME)
-    model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
+    model = None
+    if linker_type != "explosion" or coreference_linking:
+        model = spacy.load(settings.LARGE_MODEL_NAME)
+        model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
+
     link_linker = LinkEntityLinker()
 
     if linker_type == "spacy":
-        linker = TrainedEntityLinker(name=linker_name_or_strategy, model=model)
+        linker_name = sys.argv[3]
+        linker = TrainedEntityLinker(name=linker_name, model=model)
+    elif linker_type == "explosion":
+        linker_path = sys.argv[3]
+        linker = ExplosionEntityLinker(linker_path)
     elif linker_type == "baseline":
-        strategy_name = linker_name_or_strategy
+        strategy_name = sys.argv[3]
         if strategy_name not in ("links", "scores", "links-all"):
             raise NotImplementedError("Unknown strategy '%s'." % strategy_name)
         entity_db = EntityDatabase()
