@@ -66,8 +66,7 @@ class Case:
         return len(self.candidates)
 
     def is_false_positive(self):
-        return self.predicted_entity is not None and self.true_entity != self.predicted_entity \
-               and self.true_entity != "Unknown"
+        return self.predicted_entity is not None and self.true_entity != self.predicted_entity
 
     def _type(self) -> CaseType:
         if not self.has_ground_truth():
@@ -279,7 +278,7 @@ if __name__ == "__main__":
                                 n_correct_multiple_candidates += 1
         if case.is_correct():
             n_correct += 1
-        elif case.has_ground_truth():
+        elif case.is_known_entity():
             n_false_negatives += 1
         if case.is_false_positive():
             n_false_positives += 1
