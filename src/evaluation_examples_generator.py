@@ -14,6 +14,8 @@ class WikipediaExampleReader:
             ground_truth = set()
             for span, target in article.links:
                 entity_id = self.entity_db.link2id(target)
+                if entity_id is None:
+                    entity_id = "Unknown"
                 ground_truth.add((span, entity_id))
             yield article.text, ground_truth
 
@@ -37,9 +39,12 @@ class ConllExampleReader:
                     ground_truth.add((span, entity_id))
                     inside = False
                 text_pos += 1  # space
-                if token.true_label.startswith("Q"):
-                    entity_id = token.true_label
+                if token.true_label.startswith("Q") or token.true_label == "B":
+                    entity_id = token.true_label if token.true_label.startswith("Q") else "Unknown"
                     mention_start = text_pos
                     inside = True
                 text_pos += len(token.text)
+            if inside:
+                span = (mention_start, text_pos)
+                ground_truth.add((span, entity_id))
             yield document.text(), ground_truth
