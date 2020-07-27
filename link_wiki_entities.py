@@ -15,7 +15,8 @@ from src.ner_postprocessing import shorten_entities
 
 def print_help():
     print("Usage:\n"
-          "    python3 link_wiki_entities.py <in_file> <linker_type> <linker> <n> <out_file> [-coref] [-raw]\n"
+          "    python3 link_wiki_entities.py <in_file> <linker_type> <linker> <n> <out_file>"
+          " [-coref] [-raw] [-no_links]\n"
           "\n"
           "Arguments:\n"
           "    <in_file>: Name of the input file with articles in JSON format or raw text.\n"
@@ -25,7 +26,8 @@ def print_help():
           "    <n>: Number of articles.\n"
           "    <out_file>: Name of the output file.\n"
           "    -coref: If set, coreference linking is done.\n"
-          "    -raw: Set to use an input file with raw text.")
+          "    -raw: Set to use an input file with raw text.\n"
+          "    -no_links: Do not use page references to link entities.")
 
 
 def link_entities(article: WikipediaArticle):
@@ -33,7 +35,10 @@ def link_entities(article: WikipediaArticle):
         doc = model(article.text)
     else:
         doc = None
-    link_linker.link_entities(article)
+    if no_links:
+        article.add_entity_mentions([])
+    else:
+        link_linker.link_entities(article)
     linker.link_entities(article, doc=doc)
     if coreference_linking:
         coreference_linker.link_entities(article, doc=doc)
@@ -50,13 +55,15 @@ if __name__ == "__main__":
     out_file = sys.argv[5]
     coreference_linking = "-coref" in sys.argv
     raw_input = "-raw" in sys.argv
+    no_links = "-no_links" in sys.argv
 
     model = None
     if linker_type != "explosion" or coreference_linking:
         model = spacy.load(settings.LARGE_MODEL_NAME)
         model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
 
-    link_linker = LinkEntityLinker()
+    if not no_links:
+        link_linker = LinkEntityLinker()
 
     if linker_type == "spacy":
         linker_name = sys.argv[3]
