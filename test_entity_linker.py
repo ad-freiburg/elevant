@@ -48,7 +48,7 @@ class Case:
         self.eval_type = self._type()
 
     def has_ground_truth(self):
-        return self.true_entity is not None and self.true_entity != "Unknown"
+        return self.true_entity is not None
 
     def is_known_entity(self):
         return self.true_entity is not None and self.true_entity != "Unknown"
@@ -66,7 +66,8 @@ class Case:
         return len(self.candidates)
 
     def is_false_positive(self):
-        return self.predicted_entity is not None and self.true_entity != self.predicted_entity
+        return self.predicted_entity is not None and self.true_entity != self.predicted_entity \
+               and self.true_entity != "Unknown"
 
     def _type(self) -> CaseType:
         if not self.has_ground_truth():
