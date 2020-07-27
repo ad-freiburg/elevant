@@ -12,7 +12,7 @@ from src.ner_postprocessing import shorten_entities
 
 class ExplosionEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "EXPLOSION"
-    
+
     def __init__(self, model_path: str):
         self.model = spacy.load(model_path)
         self.model: Language
