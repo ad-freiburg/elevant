@@ -48,7 +48,7 @@ class Case:
         self.eval_type = self._type()
 
     def has_ground_truth(self):
-        return self.true_entity is not None
+        return self.true_entity is not None and self.true_entity != "Unknown"
 
     def is_known_entity(self):
         return self.true_entity is not None and self.true_entity != "Unknown"
