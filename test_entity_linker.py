@@ -99,11 +99,12 @@ def print_help():
           "    python3 <linker_type> <linker> <benchmark> <n_articles>\n"
           "\n"
           "Arguments:\n"
-          "    <linker_type>: Choose from {baseline, spacy, explosion, iob}.\n"
+          "    <linker_type>: Choose from {baseline, spacy, explosion, ambiverse, iob}.\n"
           "    <linker>: Specify the linker to be used, depending on its type:\n"
           "        baseline: Choose baseline from {scores, links, links-all}.\n"
           "        spacy: Name of the linker.\n"
           "        explosion: Full path to the saved model.\n"
+          "        ambiverse: Full path to the predictions directory (for the Wikipedia benchmark only).\n"
           "        iob: Full path to the prediction file in IOB format (for the CoNLL benchmark only).\n"
           "    <benchmark>: Choose from {wikipedia, conll}.\n"
           "    <n_articles>: Number of articles to evaluate on.")
@@ -118,10 +119,14 @@ if __name__ == "__main__":
     if linker_type not in ("spacy", "explosion", "ambiverse", "baseline", "iob"):
         raise NotImplementedError("Unknown linker type '%s'." % linker_type)
 
-    entity_db = EntityDatabase()
     print("load entities...")
+    entity_db = EntityDatabase()
     if linker_type == "baseline" and sys.argv[2] in ("scores", "links"):
-        entity_db.load_entities_small()
+        minimum_score = 0
+        for i in range(1, len(sys.argv)):
+            if sys.argv[i] == "-min":
+                minimum_score = int(sys.argv[i + 1])
+        entity_db.load_entities_small(minimum_score)
     else:
         entity_db.load_entities_big()
     print(entity_db.size_entities(), "entities")
@@ -165,7 +170,6 @@ if __name__ == "__main__":
 
     benchmark = sys.argv[3]
     n_examples = int(sys.argv[4])
-    filter_predictions = "-small" in sys.argv or "-big" in sys.argv
 
     print("load evaluation entities...")
     entity_db = EntityDatabase()
@@ -185,10 +189,6 @@ if __name__ == "__main__":
             predictions = next(prediction_iterator)
         else:
             predictions = linker.predict(text)
-
-        if filter_predictions:
-            predictions = {span: predictions[span] for span in predictions
-                           if entity_db.contains_entity(predictions[span].entity_id)}
 
         cases = []
 
