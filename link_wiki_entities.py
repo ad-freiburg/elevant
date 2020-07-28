@@ -69,6 +69,7 @@ if __name__ == "__main__":
             print("load link frequencies...")
             entity_db.load_mapping()
             entity_db.load_redirects()
+            entity_db.add_link_aliases()
             entity_db.load_link_frequencies()
         else:
             print("add synonyms...")
