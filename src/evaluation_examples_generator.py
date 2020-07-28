@@ -5,6 +5,15 @@ from src.entity_database import EntityDatabase
 from src.conll_benchmark import conll_documents
 
 
+def expand_span(text: str, span: Tuple[int, int]) -> Tuple[int, int]:
+    begin, end = span
+    while begin - 1 > 0 and text[begin - 1].isalpha():
+        begin = begin - 1
+    while end < len(text) and text[end].isalpha():
+        end = end + 1
+    return begin, end
+
+
 class WikipediaExampleReader:
     def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
@@ -13,6 +22,7 @@ class WikipediaExampleReader:
         for article in WikipediaCorpus.development_articles(n):
             ground_truth = set()
             for span, target in article.links:
+                span = expand_span(article.text, span)
                 entity_id = self.entity_db.link2id(target)
                 if entity_id is None:
                     entity_id = "Unknown"
