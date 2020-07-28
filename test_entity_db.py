@@ -1,6 +1,6 @@
 import sys
 
-from src.entity_database_new import EntityDatabase
+from src.entity_database import EntityDatabase
 
 
 if __name__ == "__main__":

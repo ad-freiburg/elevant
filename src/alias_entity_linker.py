@@ -6,10 +6,10 @@ from spacy.tokens import Doc
 
 from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_prediction import EntityPrediction
-from src.entity_database_new import EntityDatabase
+from src.entity_database import EntityDatabase
 from src import settings
 from src.settings import NER_IGNORE_TAGS
-from src.ner_postprocessing import shorten_entities
+from src.ner_postprocessing import NERPostprocessor
 
 
 class LinkingStrategy(Enum):
@@ -28,7 +28,8 @@ class AliasEntityLinker(AbstractEntityLinker):
         self.strategy = strategy
         if load_model:
             self.model = spacy.load(settings.LARGE_MODEL_NAME)
-            self.model.add_pipe(shorten_entities, name="shorten_ner", after="ner")
+            ner_postprocessor = NERPostprocessor(self.entity_db)
+            self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
     def has_entity(self, entity_id: str) -> bool:
         return self.entity_db.contains_entity(entity_id)

@@ -1,12 +1,18 @@
 import spacy
 
 from src import settings
-from src.ner_postprocessing import shorten_entities
+from src.ner_postprocessing import NERPostprocessor
+from src.entity_database import EntityDatabase
 
 
 if __name__ == "__main__":
+    entity_db = EntityDatabase()
+    entity_db.load_entities_big()
+
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
-    nlp.add_pipe(shorten_entities, after="ner")
+    ner_postprocessor = NERPostprocessor(entity_db)
+    nlp.add_pipe(ner_postprocessor, after="ner")
+
     while True:
         text = input("> ")
         doc = nlp(text)

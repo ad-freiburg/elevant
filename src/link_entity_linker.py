@@ -1,26 +1,10 @@
-from urllib.parse import unquote
-
 from src.entity_mention import EntityMention
 from src.wikipedia_article import WikipediaArticle
-from src import settings
+from src.entity_database_reader import EntityDatabaseReader
 
 
-WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"
-ENTITY_PREFIX = "http://www.wikidata.org/entity/"
-
-
-def get_mapping(mappings_file: str = settings.WIKI_MAPPING_FILE):
-    mapping = {}
-    for i, line in enumerate(open(mappings_file)):
-        line = line[:-1]
-        link_url, entity_url = line.split(">,<")
-        link_url = link_url[1:]
-        entity_url = entity_url[:-1]
-        link_url = unquote(link_url)
-        entity_name = link_url[len(WIKI_URL_PREFIX):].replace('_', ' ')
-        entity_id = entity_url[len(ENTITY_PREFIX):]
-        mapping[entity_name] = entity_id
-    return mapping
+def get_mapping():
+    return EntityDatabaseReader.get_mapping()
 
 
 class LinkEntityLinker:

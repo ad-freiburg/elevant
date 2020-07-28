@@ -1,7 +1,7 @@
 from typing import Iterator, Tuple, Set
 
 from src.wikipedia_corpus import WikipediaCorpus
-from src.entity_database_new import EntityDatabase
+from src.entity_database import EntityDatabase
 from src.conll_benchmark import conll_documents
 
 
