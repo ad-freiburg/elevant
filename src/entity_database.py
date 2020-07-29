@@ -55,7 +55,7 @@ class EntityDatabase:
             entity = WikidataEntity(entity_name, 0, entity_id, [])
             self.add_entity(entity)
 
-    def size_entities(self):
+    def size_entities(self) -> int:
         return len(self.entities)
 
     def add_alias(self, alias: str, entity_id: str):
@@ -76,8 +76,11 @@ class EntityDatabase:
                 for name in names:
                     self.add_alias(name, entity_id)
 
-    def size_aliases(self):
+    def size_aliases(self) -> int:
         return len(self.aliases)
+
+    def contains_alias(self, alias: str) -> bool:
+        return alias in self.aliases
 
     def load_mapping(self):
         mapping = EntityDatabaseReader.get_mapping()

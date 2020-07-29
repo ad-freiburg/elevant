@@ -1,7 +1,7 @@
 import sys
 import pickle
 
-from src.entity_database_reader import EntityDatabaseReader
+from src.entity_database import EntityDatabase
 from src.word_vectors import VectorGenerator
 from src import settings
 
@@ -27,7 +27,8 @@ if __name__ == "__main__":
     minimum_score = int(sys.argv[1])
     start_line = 0 if len(sys.argv) == 2 else int(sys.argv[2])
 
-    entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
+    entity_db = EntityDatabase()
+    entity_db.load_entities_small(minimum_score)
     generator = VectorGenerator()
 
     print("generating vectors...")
@@ -37,7 +38,7 @@ if __name__ == "__main__":
         if i < start_line:
             continue
         entity_id, name, description = line[:-1].split('\t')
-        if entity_db.contains(entity_id):
+        if entity_db.contains_entity(entity_id):
             description = preprocess_description(description)
             vector = generator.get_vector(description)
             vectors.append((entity_id, vector))

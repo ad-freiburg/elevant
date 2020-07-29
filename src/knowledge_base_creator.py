@@ -1,6 +1,5 @@
 import spacy
 from spacy.kb import KnowledgeBase
-import pickle
 
 from src.entity_database import EntityDatabase
 from src.word_vectors import VectorLoader
@@ -15,31 +14,22 @@ class KnowledgeBaseCreator:
 
         print("reading entity vectors...")
         for entity_id, vector in VectorLoader.iterate():
-            if entity_db.contains(entity_id) and not kb.contains_entity(entity_id):
+            if entity_db.contains_entity(entity_id) and not kb.contains_entity(entity_id):
                 score = entity_db.get_score(entity_id)
                 kb.add_entity(entity=entity_id, freq=score, entity_vector=vector)
                 # print("\r%i entities" % len(kb), end='')
         # print()
         print(len(kb), "entities")
 
-        print("reading link frequencies...")
-        with open(settings.LINK_FREEQUENCIES_FILE, "rb") as f:
-            link_frequencies = pickle.load(f)
-
         print("adding aliases...")
-        for alias in entity_db.all_aliases():
+        for alias in entity_db.aliases():
             if len(alias) > 0:
                 alias_entity_ids = [entity_id for entity_id in entity_db.get_candidates(alias)
                                     if kb.contains_entity(entity_id)]
                 if len(alias_entity_ids) > 0:
                     frequencies = []
                     for entity_id in alias_entity_ids:
-                        frequency = 0
-                        if alias in link_frequencies:
-                            if entity_id in entity_db.wikidata2wikipedia:
-                                entity_name = entity_db.wikidata2wikipedia[entity_id]
-                                if entity_name in link_frequencies[alias]:
-                                    frequency = link_frequencies[alias][entity_name]
+                        frequency = entity_db.get_link_frequency(alias, entity_id)
                         frequencies.append(frequency)
                     sum_frequencies = sum(frequencies)
                     if sum_frequencies > 0:

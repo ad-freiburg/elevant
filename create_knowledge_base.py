@@ -1,6 +1,6 @@
 import sys
 
-from src.entity_database_reader import EntityDatabaseReader
+from src.entity_database import EntityDatabase
 from src.knowledge_base_creator import KnowledgeBaseCreator
 from src import settings
 
@@ -17,8 +17,20 @@ if __name__ == "__main__":
 
     minimum_score = int(sys.argv[1])
 
-    entity_db = EntityDatabaseReader.read_entity_database(minimum_score=minimum_score)
+    entity_db = EntityDatabase()
+    print("load entities...")
+    entity_db.load_entities_small(minimum_score)
+    print(entity_db.size_entities(), "entities")
+    print("load aliases...")
+    entity_db.add_name_aliases()
+    entity_db.add_synonym_aliases()
+    print(entity_db.size_aliases(), "aliases")
+    print("load frequencies...")
+    entity_db.load_mapping()
+    entity_db.load_redirects()
+    entity_db.load_link_frequencies()
 
+    print("create knowledge base...")
     kb = KnowledgeBaseCreator.create_kb(entity_db=entity_db)
 
     print(kb.get_size_entities(), "knowledge base entities")
