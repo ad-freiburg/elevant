@@ -38,6 +38,7 @@ ENTITY_PREFIX = "http://www.wikidata.org/entity/"
 LARGE_MODEL_NAME = "en_core_web_lg"
 
 KB_FILE = DATA_DIRECTORY + "kb"
+KB_DIRECTORY = DATA_DIRECTORY + "knowledge_bases/"
 VOCAB_DIRECTORY = DATA_DIRECTORY + "vocab"
 
 VECTORS_DIRECTORY = DATA_DIRECTORY + "vectors/"

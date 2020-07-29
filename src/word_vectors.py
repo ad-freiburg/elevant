@@ -17,8 +17,8 @@ class VectorGenerator:
 
 class VectorLoader:
     @staticmethod
-    def iterate() -> Iterator[Tuple[str, List[int]]]:
-        for file in os.listdir(settings.VECTORS_DIRECTORY):
+    def iterate(vector_directory: str = settings.VECTORS_DIRECTORY) -> Iterator[Tuple[str, List[int]]]:
+        for file in os.listdir(vector_directory):
             with open(settings.VECTORS_DIRECTORY + file, "rb") as f:
                 vectors = pickle.load(f)
             for entity_id, vector in vectors:
