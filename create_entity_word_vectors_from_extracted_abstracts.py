@@ -1,3 +1,5 @@
+
+
 from src.word_vectors import VectorGenerator
 from src.entity_database import EntityDatabase
 from src import settings
@@ -13,7 +15,7 @@ if __name__ == "__main__":
     vector_generator = VectorGenerator()
 
     abstracts_file = settings.DATA_DIRECTORY + "article_abstracts.txt"
-    for line in abstracts_file:
+    for line in open(abstracts_file):
         article_id, title, url, abstract = line[:-1].split("\t")
         if article_id in entity_db.wikipedia2wikidata:
             entity_id = entity_db.wikipedia2wikidata[article_id]
