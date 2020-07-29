@@ -7,22 +7,15 @@ if __name__ == "__main__":
     entity_db.load_entities_big()
     entity_db.load_mapping()
     entity_db.load_redirects()
-    entity_db.add_link_aliases()
     entity_db.load_link_frequencies()
 
-    print("counting frequencies...")
-    entity_frequencies = {entity_id: 0 for entity_id in entity_db.entities}
-    total = 0
-    for alias in entity_db.aliases:
-        for entity_id in entity_db.get_candidates(alias):
-            frequency = entity_db.get_link_frequency(alias, entity_id)
-            entity_frequencies[entity_id] += frequency
-            total += frequency
+    frequency_id_pairs = sorted([(entity_db.get_entity_frequency(entity_id), entity_id)
+                                 for entity_id in entity_db.entities],
+                                reverse=True)
+    total = sum(frequency for frequency, id in frequency_id_pairs)
 
     accumulated = 0
-    for i, (frequency, entity_id) in enumerate(sorted([(entity_frequencies[entity_id], entity_id)
-                                                       for entity_id in entity_frequencies],
-                                               reverse=True)):
+    for i, (frequency, entity_id) in enumerate(frequency_id_pairs):
         accumulated += frequency
         coverage = accumulated / total
         print("\t".join((str(i + 1),

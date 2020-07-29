@@ -15,10 +15,12 @@ class EntityDatabase:
         self.wikipedia2wikidata: Dict[str, str]
         self.wikidata2wikipedia = {}
         self.wikidata2wikipedia: Dict[str, str]
-        self.link_frequencies = {}
-        self.link_frequencies: Dict[str, Tuple[str, int]]
         self.redirects = {}
         self.redirects: Dict[str, str]
+        self.link_frequencies = {}
+        self.link_frequencies: Dict[str, Tuple[str, int]]
+        self.entity_frequencies = {}
+        self.entity_frequencies: Dict[str, int]
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -115,6 +117,10 @@ class EntityDatabase:
                 self.link_frequencies[link_text][entity_id] = frequency
             else:
                 self.link_frequencies[link_text][entity_id] += frequency
+            if entity_id not in self.entity_frequencies:
+                self.entity_frequencies[entity_id] = frequency
+            else:
+                self.entity_frequencies[entity_id] += frequency
 
     def get_candidates(self, alias: str) -> Set[str]:
         if alias not in self.aliases:
@@ -126,3 +132,6 @@ class EntityDatabase:
         if alias not in self.link_frequencies or entity_id not in self.link_frequencies[alias]:
             return 0
         return self.link_frequencies[alias][entity_id]
+
+    def get_entity_frequency(self, entity_id: str):
+        return self.entity_frequencies[entity_id] if entity_id in self.entity_frequencies else 0
