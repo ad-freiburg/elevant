@@ -29,4 +29,4 @@ if __name__ == "__main__":
                          entity_id,
                          entity_db.get_entity(entity_id).name,
                          str(frequency),
-                         "%.2f" % coverage * 100)))
+                         "%.2f" % (coverage * 100))))
