@@ -19,6 +19,6 @@ if __name__ == "__main__":
     kb_path = save_path + "kb"
     kb.dump(kb_path)
     print("Saved knowledge base to", kb_path)
-    vocab_file = kb_path + "vocab"
+    vocab_file = save_path + "vocab"
     kb.vocab.to_disk(vocab_file)
     print("Saved vocab to", vocab_file)
