@@ -96,7 +96,7 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 
 def print_help():
     print("Usage:\n"
-          "    python3 <linker_type> <linker> <benchmark> <n_articles>\n"
+          "    python3 <linker_type> <linker> <benchmark> <n_articles> [-kb <kb_name>]\n"
           "\n"
           "Arguments:\n"
           "    <linker_type>: Choose from {baseline, spacy, explosion, ambiverse, iob}.\n"
@@ -107,7 +107,8 @@ def print_help():
           "        ambiverse: Full path to the predictions directory (for the Wikipedia benchmark only).\n"
           "        iob: Full path to the prediction file in IOB format (for the CoNLL benchmark only).\n"
           "    <benchmark>: Choose from {wikipedia, conll}.\n"
-          "    <n_articles>: Number of articles to evaluate on.")
+          "    <n_articles>: Number of articles to evaluate on.\n"
+          "    <kb_name>: Name of the knowledge base to use with a spacy linker.")
 
 
 if __name__ == "__main__":

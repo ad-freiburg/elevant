@@ -17,15 +17,16 @@ class TrainedEntityLinker(AbstractEntityLinker):
     def __init__(self,
                  name: str,
                  entity_db: EntityDatabase,
-                 model: Optional[Language] = None):
+                 model: Optional[Language] = None,
+                 kb_name: Optional[str] = None):
         if model is None:
-            self.model = EntityLinkerLoader.load_trained_linker(name)
+            self.model = EntityLinkerLoader.load_trained_linker(name, kb_name=kb_name)
             if not self.model.has_pipe("ner_postprocessor"):
                 ner_postprocessor = NERPostprocessor(entity_db)
                 self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
         else:
             self.model = model
-            self.model.add_pipe(EntityLinkerLoader.load_entity_linker(name))
+            self.model.add_pipe(EntityLinkerLoader.load_entity_linker(name, kb_name=kb_name))
         self.kb = self.model.get_pipe("entity_linker").kb
         self.known_entities = set(self.kb.get_entity_strings())
 

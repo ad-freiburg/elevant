@@ -44,10 +44,12 @@ if __name__ == "__main__":
         vocab_path = load_path + "vocab"
         kb_path = load_path + "kb"
 
+    print("load model...")
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
     nlp.vocab.from_disk(vocab_path)
 
     # create entity linker with the knowledge base and add it to the pipeline:
+    print("load kb...")
     entity_linker = nlp.create_pipe("entity_linker",
                                     {"incl_prior": use_prior})
     kb = KnowledgeBase(vocab=nlp.vocab)
