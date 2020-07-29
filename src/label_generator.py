@@ -26,7 +26,7 @@ class LabelGenerator:
 
     def training_examples(self, n: int = -1) -> Iterator[Tuple[Doc, Dict[str, Dict[Tuple[int, int], str]]]]:
         """
-        Generates training examples for the entity linker.
+        Generate training examples for the entity linker.
 
         The ground truth labels are generated from the page references in the article.
         The labels include all page references for which the reference target can be mapped to an entity ID that is

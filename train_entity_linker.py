@@ -10,7 +10,7 @@ from src.label_generator import LabelGenerator
 
 def print_help():
     print("Usage:\n"
-          "    python3 train_entity_linker.py <name> <batches> [-prior]")
+          "    python3 train_entity_linker.py <name> <batches> <kb_name> [-prior]")
 
 
 def save_model(model: Language, model_name: str):
@@ -26,23 +26,32 @@ SAVE_EVERY = 10000
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print_help()
         exit(1)
 
     name = sys.argv[1]
     N_BATCHES = int(sys.argv[2])
+    kb_name = sys.argv[3]
     use_prior = "-prior" in sys.argv
 
     # make pipeline:
+    if kb_name == "0":
+        vocab_path = settings.VOCAB_DIRECTORY
+        kb_path = settings.KB_FILE
+    else:
+        load_path = settings.KB_DIRECTORY + kb_name + "/"
+        vocab_path = load_path + "vocab"
+        kb_path = load_path + "kb"
+
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
-    nlp.vocab.from_disk(settings.VOCAB_DIRECTORY)
+    nlp.vocab.from_disk(vocab_path)
 
     # create entity linker with the knowledge base and add it to the pipeline:
     entity_linker = nlp.create_pipe("entity_linker",
                                     {"incl_prior": use_prior})
     kb = KnowledgeBase(vocab=nlp.vocab)
-    kb.load_bulk(settings.KB_FILE)
+    kb.load_bulk(kb_path)
     print(kb.get_size_entities(), "entities")
     print(kb.get_size_aliases(), "aliases")
     entity_linker.set_kb(kb)
