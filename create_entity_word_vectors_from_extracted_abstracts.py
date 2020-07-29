@@ -36,13 +36,13 @@ if __name__ == "__main__":
                 vectors.append((entity_id, vector))
                 if len(vectors) == SAVE_EVERY:
                     save_path = vector_dir + "%i.pkl" % file_no
-                    with open(save_path) as save_file:
+                    with open(save_path, "wb") as save_file:
                         pickle.dump(vectors, save_file)
                     print("Saved %i vectors to %s" % (len(vectors), save_path))
                     file_no += 1
                     vectors = []
     if len(vectors) > 0:
         save_path = vector_dir + "%i.pkl" % file_no
-        with open(save_path) as save_file:
+        with open(save_path, "wb") as save_file:
             pickle.dump(vectors, save_file)
         print("Saved %i vectors to %s" % (len(vectors), save_path))
