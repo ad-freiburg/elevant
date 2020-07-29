@@ -1,4 +1,5 @@
 import os
+import pickle
 
 from src.word_vectors import VectorGenerator
 from src.entity_database import EntityDatabase
@@ -28,8 +29,20 @@ if __name__ == "__main__":
         #print("\r%i lines read" % i, end="")
         article_id, title, url, abstract = line[:-1].split("\t")
         if title in entity_db.wikipedia2wikidata:
-            entity_id = entity_db.wikipedia2wikidata[article_id]
+            entity_id = entity_db.wikipedia2wikidata[title]
             if entity_db.get_entity_frequency(entity_id) > 0:
                 vector = vector_generator.get_vector(abstract)
-                print(entity_id, title, vector.shape)
-                #vectors.append()
+                print(entity_id, title, len(abstract), vector.shape)
+                vectors.append((entity_id, vector))
+                if len(vectors) == SAVE_EVERY:
+                    save_path = vector_dir + "%i.pkl" % file_no
+                    with open(save_path) as save_file:
+                        pickle.dump(vectors, save_file)
+                    print("Saved %i vectors to %s" % (len(vectors), save_path))
+                    file_no += 1
+                    vectors = []
+    if len(vectors) > 0:
+        save_path = vector_dir + "%i.pkl" % file_no
+        with open(save_path) as save_file:
+            pickle.dump(vectors, save_file)
+        print("Saved %i vectors to %s" % (len(vectors), save_path))
