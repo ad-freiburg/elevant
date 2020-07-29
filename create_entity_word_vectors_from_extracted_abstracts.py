@@ -25,12 +25,11 @@ if __name__ == "__main__":
     file_no = 0
 
     for i, line in enumerate(open(abstracts_file)):
-        print("\r%i lines read" % i, end="")
+        #print("\r%i lines read" % i, end="")
         article_id, title, url, abstract = line[:-1].split("\t")
-        if article_id in entity_db.wikipedia2wikidata:
+        if title in entity_db.wikipedia2wikidata:
             entity_id = entity_db.wikipedia2wikidata[article_id]
             if entity_db.get_entity_frequency(entity_id) > 0:
                 vector = vector_generator.get_vector(abstract)
-                print()
                 print(entity_id, title, vector.shape)
                 #vectors.append()
