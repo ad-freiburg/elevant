@@ -6,6 +6,13 @@ if __name__ == "__main__":
         print(article.id)
         print(article.title)
         print(article.url)
-        abstract = " ".join(article.text.split("\n\n")[:2]).replace("\n", " ")
+        paragraphs = article.text.split("\n\n")
+        if len(paragraphs) > 1:
+            abstract = paragraphs[1]
+            if len(abstract) < 100 and "°" in abstract and len(paragraphs) > 2:
+                abstract = paragraphs[2]
+        else:
+            abstract = article.text
+        abstract = abstract.replace("\n", " ")
         print(abstract)
         print("\n" * 2)
