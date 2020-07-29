@@ -149,7 +149,11 @@ if __name__ == "__main__":
     linker = None
     if linker_type == "spacy":
         linker_name = sys.argv[2]
-        linker = TrainedEntityLinker(linker_name, entity_db=entity_db)
+        kb_name = None
+        for i in range(len(sys.argv)):
+            if sys.argv[i] == "-kb":
+                kb_name = sys.argv[i + 1]
+        linker = TrainedEntityLinker(linker_name, entity_db=entity_db, kb_name=kb_name)
     elif linker_type == "explosion":
         path = sys.argv[2]
         linker = ExplosionEntityLinker(path, entity_db=entity_db)
