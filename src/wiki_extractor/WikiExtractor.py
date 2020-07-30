@@ -579,10 +579,12 @@ class Extractor(object):
         # |[[2005 MTV Video Music Awards Japan|2005]]
         # To prevent these from ending up in the processed dump, we simply filter out all lines that start
         # with ! or |.
+        # Similarly, [[File:xyz]] and [[Category:xyz]] lines should be filtered out
         # This should not break the keep_tables option, since in that case these line starters are removed
         cleaned_lines = []
         for line in text:
-            if not line.startswith("|") and not line.startswith("!"):
+            if not line.startswith("|") and not line.startswith("!") and not line.startswith("[[File:") \
+                    and not line.startswith("[[Category:"):
                 cleaned_lines.append(line)
             else:
                 logging.debug("Line starts with forbidden char. Drop line. %s" % line)
