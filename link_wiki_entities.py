@@ -4,6 +4,7 @@ import spacy
 from src.wikipedia_corpus import WikipediaArticle
 from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.link_entity_linker import LinkEntityLinker
+from src.link_text_entity_linker import LinkTextEntityLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.coreference_entity_linker import CoreferenceEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
@@ -27,7 +28,8 @@ def print_help():
           "    <out_file>: Name of the output file.\n"
           "    -coref: If set, coreference linking is done.\n"
           "    -raw: Set to use an input file with raw text.\n"
-          "    -no_links: Do not use page references to link entities.")
+          "    -no_links: Do not use page references to link entities.\n"
+          "    -link_text_linker: Use link text linker before applying selected linker.")
 
 
 def link_entities(article: WikipediaArticle):
@@ -56,6 +58,7 @@ if __name__ == "__main__":
     coreference_linking = "-coref" in sys.argv
     raw_input = "-raw" in sys.argv
     no_links = "-no_links" in sys.argv
+    link_text_linker = "-link_text_linker" in sys.argv
 
     entity_db = EntityDatabase()
     print("load entities...")
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     else:
         entity_db.load_entities_big()
     print(entity_db.size_entities(), "entities")
-    if linker_type == "baseline":
+    if linker_type == "baseline" or link_text_linker:
         if sys.argv[3] in ("links", "links-all"):
             print("load link frequencies...")
             entity_db.load_mapping()
@@ -86,7 +89,7 @@ if __name__ == "__main__":
         model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
     if not no_links:
-        link_linker = LinkEntityLinker()
+        link_linker = LinkTextEntityLinker(entity_db=entity_db) if link_text_linker else LinkEntityLinker()
 
     if linker_type == "spacy":
         linker_name = sys.argv[3]

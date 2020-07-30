@@ -63,6 +63,7 @@ class EntityDatabase:
             self.aliases[alias] = {entity_id}
         else:
             self.aliases[alias].add(entity_id)
+        self.entities[entity_id].synonyms.append(alias)
 
     def add_synonym_aliases(self):
         for entity in EntityDatabaseReader.read_entity_file():
