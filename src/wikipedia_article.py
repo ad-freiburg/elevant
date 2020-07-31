@@ -13,7 +13,8 @@ class WikipediaArticle:
                  text: str,
                  links: List[Tuple[Tuple[int, int], str]],
                  url: Optional[str] = None,
-                 entity_mentions: Optional[List[EntityMention]] = None):
+                 entity_mentions: Optional[List[EntityMention]] = None,
+                 evaluation_span: Optional[Tuple[int, int]] = None):
         self.id = id
         self.title = title
         self.text = text
@@ -22,6 +23,7 @@ class WikipediaArticle:
         self.entity_mentions = None
         self.entity_coverage = None
         self.add_entity_mentions(entity_mentions)
+        self.evaluation_span = evaluation_span
 
     def to_dict(self) -> Dict:
         data = {"id": self.id,
@@ -32,6 +34,8 @@ class WikipediaArticle:
             data["url"] = self.url
         if self.entity_mentions is not None:
             data["entity_mentions"] = [self.entity_mentions[span].to_dict() for span in sorted(self.entity_mentions)]
+        if self.evaluation_span is not None:
+            data["evaluation_span"] = self.evaluation_span
         return data
 
     def to_json(self) -> str:
@@ -62,6 +66,9 @@ class WikipediaArticle:
     def get_entity_mention(self, span: Tuple[int, int]) -> EntityMention:
         return self.entity_mentions[span]
 
+    def set_evaluation_span(self, start: int, end: int):
+        self.evaluation_span = (start, end)
+
     def __str__(self):
         return str(self.to_dict())
 
@@ -77,7 +84,8 @@ def article_from_dict(data: Dict):
                             links=links,
                             url=data["url"] if "url" in data else None,
                             entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
-                                             data["entity_mentions"]] if "entity_mentions" in data else None)
+                                             data["entity_mentions"]] if "entity_mentions" in data else None,
+                            evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None)
 
 
 def article_from_json(dump: str):
