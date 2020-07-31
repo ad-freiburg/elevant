@@ -14,7 +14,8 @@ class WikipediaArticle:
                  links: List[Tuple[Tuple[int, int], str]],
                  url: Optional[str] = None,
                  entity_mentions: Optional[List[EntityMention]] = None,
-                 evaluation_span: Optional[Tuple[int, int]] = None):
+                 evaluation_span: Optional[Tuple[int, int]] = None,
+                 labels: Optional[List[Tuple[Tuple[int, int], str]]] = None):
         self.id = id
         self.title = title
         self.text = text
@@ -24,6 +25,7 @@ class WikipediaArticle:
         self.entity_coverage = None
         self.add_entity_mentions(entity_mentions)
         self.evaluation_span = evaluation_span
+        self.labels = labels
 
     def to_dict(self) -> Dict:
         data = {"id": self.id,
@@ -36,6 +38,8 @@ class WikipediaArticle:
             data["entity_mentions"] = [self.entity_mentions[span].to_dict() for span in sorted(self.entity_mentions)]
         if self.evaluation_span is not None:
             data["evaluation_span"] = self.evaluation_span
+        if self.labels is not None:
+            data["labels"] = self.labels
         return data
 
     def to_json(self) -> str:
@@ -85,7 +89,8 @@ def article_from_dict(data: Dict):
                             url=data["url"] if "url" in data else None,
                             entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
                                              data["entity_mentions"]] if "entity_mentions" in data else None,
-                            evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None)
+                            evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
+                            labels=data["labels"] if "labels" in data else None)
 
 
 def article_from_json(dump: str):

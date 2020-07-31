@@ -28,7 +28,8 @@ if __name__ == "__main__":
         eval_end_paragraph = min(len(paragraphs), eval_begin_paragraph + N_PARAGRAPHS_PER_ARTICLE)
         paragraph_lengths = [len(paragraph) for paragraph in paragraphs]
         start = sum(paragraph_lengths[:eval_begin_paragraph]) + 2 * eval_begin_paragraph
-        end = start + sum(paragraph_lengths[eval_begin_paragraph:eval_end_paragraph]) + 2 * (eval_end_paragraph - eval_begin_paragraph - 1)
+        end = start + sum(paragraph_lengths[eval_begin_paragraph:eval_end_paragraph]) + \
+            2 * (eval_end_paragraph - eval_begin_paragraph - 1)
         article.set_evaluation_span(start, end)
         if print_text:
             preceding = text[:start]
