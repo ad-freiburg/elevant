@@ -64,3 +64,48 @@ Once the container is started, evaluate the trained entity linker, or one of the
 3. Print paragraphs with entity annotations:
 
        python3 print_paragraphs_with_entities.py
+
+## Evaluation script calls
+
+### Wikipedia benchmark
+
+baseline:
+
+    python3 test_entity_linker.py baseline links wikipedia 1000
+
+spaCy data files (entities and aliases queried from Wikidata):
+
+    python3 test_entity_linker.py spacy prior_trained wikipedia 1000
+
+spaCy wikipeida (entities and aliases extracted from a Wikipedia dump):
+
+    python3 test_entity_linker.py spacy wikipedia wikipedia 1000 -kb wikipedia
+
+Explosion's spaCy:
+
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp wikipedia 1000
+
+Ambiverse:
+
+    python3 test_entity_linker.py ambiverse /nfs/students/natalie-prange/src/ambiverse-nlu/dev_set_1k_results/ wikipedia 1000
+
+### CoNLL benchmark:
+baseline:
+
+    python3 test_entity_linker.py baseline links conll -1
+
+spaCy data files:
+
+    python3 test_entity_linker.py spacy prior_trained conll -1
+
+spaCy wikipedia:
+
+    python3 test_entity_linker.py spacy wikipedia conll -1 -kb wikipedia
+
+Explosion's spaCy:
+
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp conll -1
+
+Ambiverse:
+
+    python3 test_entity_linker.py iob /nfs/students/yi-chun-lin/outputs/conll/conll-wikidata-iob-annotations.alg-ambiverse conll -1
