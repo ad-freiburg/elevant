@@ -73,4 +73,4 @@ class OwnBenchmarkExampleReader:
                 ground_truth = set()
                 for span, entity_id in article.labels:
                     ground_truth.add(((span[0], span[1]), entity_id))
-                yield article.text, ground_truth, article.evaluation_span
+                yield article, ground_truth, article.evaluation_span

@@ -11,6 +11,9 @@ from src.entity_database import EntityDatabase
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.evaluation_examples_generator import WikipediaExampleReader, ConllExampleReader, OwnBenchmarkExampleReader
+from src.link_text_entity_linker import LinkTextEntityLinker
+from src.link_entity_linker import LinkEntityLinker
+from src.entity_prediction import EntityPrediction
 
 
 class CaseType(Enum):
@@ -96,7 +99,7 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 
 def print_help():
     print("Usage:\n"
-          "    python3 <linker_type> <linker> <benchmark> <n_articles> [-kb <kb_name>]\n"
+          "    python3 <linker_type> <linker> <benchmark> <n_articles> [-kb <kb_name>] [-link_linker <linker_type>]\n"
           "\n"
           "Arguments:\n"
           "    <linker_type>: Choose from {baseline, spacy, explosion, ambiverse, iob}.\n"
@@ -108,7 +111,9 @@ def print_help():
           "        iob: Full path to the prediction file in IOB format (for the CoNLL benchmark only).\n"
           "    <benchmark>: Choose from {wikipedia, conll, own}.\n"
           "    <n_articles>: Number of articles to evaluate on.\n"
-          "    <kb_name>: Name of the knowledge base to use with a spacy linker.")
+          "    <kb_name>: Name of the knowledge base to use with a spacy linker.\n"
+          "    <link_linker>: Apply link text linker before spacy or explosion linker.\n"
+          "         Choose from {link-linker, link-text-linker}.")
 
 
 if __name__ == "__main__":
@@ -119,6 +124,23 @@ if __name__ == "__main__":
     linker_type = sys.argv[1]
     if linker_type not in ("spacy", "explosion", "ambiverse", "baseline", "iob"):
         raise NotImplementedError("Unknown linker type '%s'." % linker_type)
+
+    benchmark = sys.argv[3]
+    n_examples = int(sys.argv[4])
+
+    link_linker_type = None
+    for i in range(len(sys.argv)):
+        if sys.argv[i] == "-link_linker":
+            link_linker_type = sys.argv[i + 1]
+            if linker_type not in {"spacy", "explosion"}:
+                print("Link linkers can only be applied for spacy or explosion linker.")
+                exit(1)
+            elif benchmark != "own":
+                print("Link linkers can only be evaluated over own benchmark.")
+                exit(1)
+            elif link_linker_type not in {"link-linker", "link-text-linker"}:
+                print("Unknown link linker type '%s'" % link_linker_type)
+                exit(1)
 
     print("load entities...")
     entity_db = EntityDatabase()
@@ -131,7 +153,7 @@ if __name__ == "__main__":
     else:
         entity_db.load_entities_big()
     print(entity_db.size_entities(), "entities")
-    if linker_type == "baseline":
+    if linker_type == "baseline" or link_linker_type:
         if sys.argv[2] in ("links", "links-all"):
             print("load link frequencies...")
             entity_db.load_mapping()
@@ -173,14 +195,15 @@ if __name__ == "__main__":
             strategy = LinkingStrategy.ENTITY_SCORE
         linker = AliasEntityLinker(entity_db, strategy)
 
-    benchmark = sys.argv[3]
-    n_examples = int(sys.argv[4])
-
     print("load evaluation entities...")
     entity_db = EntityDatabase()
     entity_db.load_entities_small() if "-small" in sys.argv else entity_db.load_entities_big()
     entity_db.load_mapping()
     entity_db.load_redirects()
+
+    if link_linker_type:
+        link_linker = LinkTextEntityLinker(entity_db=entity_db) if link_linker_type == "link-text-linker" \
+            else LinkEntityLinker()
 
     if benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
@@ -191,9 +214,25 @@ if __name__ == "__main__":
 
     all_cases = []
 
-    for text, ground_truth, evaluation_span in example_generator.iterate(n_examples):
+    for example in example_generator.iterate(n_examples):
+        if benchmark == "own":
+            article, ground_truth, evaluation_span = example
+            text = article.text
+        else:
+            text, ground_truth, evaluation_span = example
+
         if linker is None:
             predictions = next(prediction_iterator)
+        elif link_linker_type:
+            if linker.model:
+                doc = linker.model(article.text)
+            else:
+                doc = None
+            link_linker.link_entities(article)
+            linker.link_entities(article, doc)
+            predictions = {}
+            for _, em in article.entity_mentions.items():
+                predictions[em.span] = EntityPrediction(em.span, em.entity_id, {em.entity_id})
         else:
             predictions = linker.predict(text)
 

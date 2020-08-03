@@ -74,6 +74,16 @@ if __name__ == "__main__":
             entity_db.load_redirects()
             entity_db.add_link_aliases()
             entity_db.load_link_frequencies()
+        elif link_text_linker:
+            print("add synonyms...")
+            entity_db.add_synonym_aliases()
+            print(entity_db.size_aliases(), "aliases")
+            print("add names...")
+            entity_db.add_name_aliases()
+            print(entity_db.size_aliases(), "aliases")
+            print("add redirects...")
+            entity_db.load_redirects()
+            print(len(entity_db.redirects), "redirects")
         else:
             print("add synonyms...")
             entity_db.add_synonym_aliases()

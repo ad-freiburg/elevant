@@ -2,18 +2,12 @@ from typing import Dict
 
 from src.entity_mention import EntityMention
 from src.wikipedia_article import WikipediaArticle
-from src.entity_database_reader import EntityDatabaseReader
-
-
-def get_mapping():
-    return EntityDatabaseReader.get_mapping()
 
 
 class LinkTextEntityLinker:
     LINKER_IDENTIFIER = "LINK_TEXT_LINKER"
 
     def __init__(self, entity_db):
-        self.mapping = get_mapping()  # entity name -> entity id
         self.entity_db = entity_db
 
     def add_synonyms(self, entity_id: str, synonym_dict: Dict):
@@ -22,29 +16,28 @@ class LinkTextEntityLinker:
         if self.entity_db.contains_entity(entity_id):
             entity = self.entity_db.get_entity(entity_id)
             synonyms = entity.synonyms
-            # print(synonyms)
             for syn in synonyms:
                 # Do not append all lowercase synonyms (e.g. "it" for Italy)
                 if not syn.islower():
                     synonym_dict[syn] = entity_id
 
-    def link_entities(self, article: WikipediaArticle, doc=None):
+    def link_entities(self, article: WikipediaArticle):
         entity_links = dict()
         entity_synonyms = dict()
         covered_positions = set()
         entity_mentions = []
 
         # Link article entity to Wikidata id
-        if article.title in self.mapping:
-            entity_id = self.mapping[article.title]
-            entity_links[article.title] = entity_id
-            self.add_synonyms(entity_id, entity_synonyms)
+        title_entity_id = self.entity_db.link2id(article.title)
+        if title_entity_id:
+            entity_links[article.title] = title_entity_id
+            self.add_synonyms(title_entity_id, entity_synonyms)
 
         # Link article links to Wikidata ids
         for span, target in article.links:
             link_text = article.text[span[0]:span[1]]
-            if target in self.mapping and not link_text.islower():
-                entity_id = self.mapping[target]
+            entity_id = self.entity_db.link2id(target)
+            if entity_id and not link_text.islower():
                 entity_links[link_text] = entity_id
                 self.add_synonyms(entity_id, entity_synonyms)
                 covered_positions.update(range(span[0], span[1]))
@@ -106,4 +99,3 @@ class LinkTextEntityLinker:
                 search_start_idx = end_idx
 
         article.add_entity_mentions(entity_mentions)
-
