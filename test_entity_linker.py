@@ -10,7 +10,7 @@ from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.entity_database import EntityDatabase
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.conll_iob_prediction_reader import ConllIobPredictionReader
-from src.evaluation_examples_generator import WikipediaExampleReader, ConllExampleReader
+from src.evaluation_examples_generator import WikipediaExampleReader, ConllExampleReader, OwnBenchmarkExampleReader
 
 
 class CaseType(Enum):
@@ -106,7 +106,7 @@ def print_help():
           "        explosion: Full path to the saved model.\n"
           "        ambiverse: Full path to the predictions directory (for the Wikipedia benchmark only).\n"
           "        iob: Full path to the prediction file in IOB format (for the CoNLL benchmark only).\n"
-          "    <benchmark>: Choose from {wikipedia, conll}.\n"
+          "    <benchmark>: Choose from {wikipedia, conll, own}.\n"
           "    <n_articles>: Number of articles to evaluate on.\n"
           "    <kb_name>: Name of the knowledge base to use with a spacy linker.")
 
@@ -184,12 +184,14 @@ if __name__ == "__main__":
 
     if benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
+    elif benchmark == "own":
+        example_generator = OwnBenchmarkExampleReader()
     else:
         example_generator = WikipediaExampleReader(entity_db)
 
     all_cases = []
 
-    for text, ground_truth in example_generator.iterate(n_examples):
+    for text, ground_truth, evaluation_span in example_generator.iterate(n_examples):
         if linker is None:
             predictions = next(prediction_iterator)
         else:
@@ -216,7 +218,8 @@ if __name__ == "__main__":
 
         for span in predictions:
             predicted_entity_id = predictions[span].entity_id
-            if span not in ground_truth_spans and predicted_entity_id is not None:
+            if span not in ground_truth_spans and predicted_entity_id is not None and span[0] >= evaluation_span[0] \
+                    and span[1] <= evaluation_span[1]:
                 case = Case(span, None, True, predicted_entity_id, candidates=predictions[span].candidates)
                 cases.append(case)
 
