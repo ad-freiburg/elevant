@@ -1,6 +1,7 @@
 from typing import Iterator, Optional
 
 from src import settings
+from src.wikipedia_article import WikipediaArticle
 
 
 class ConllToken:
@@ -55,6 +56,28 @@ class ConllDocument:
 
     def get_predicted(self):
         return ' '.join([token.get_predicted() for token in self.tokens])
+
+    def to_article(self) -> WikipediaArticle:
+        text_pos = -1
+        inside = False
+        entity_id = None
+        mention_start = None
+        labels = []
+        for token in self.tokens:
+            if inside and token.true_label != "I":
+                span = (mention_start, text_pos)
+                labels.append((span, entity_id))
+                inside = False
+            text_pos += 1  # space
+            if token.true_label.startswith("Q") or token.true_label == "B":
+                entity_id = token.true_label if token.true_label.startswith("Q") else "Unknown"
+                mention_start = text_pos
+                inside = True
+            text_pos += len(token.text)
+        if inside:
+            span = (mention_start, text_pos)
+            labels.append((span, entity_id))
+        return WikipediaArticle(-1, "", self.text(), [], None, None, None, labels)
 
 
 def conll_documents() -> Iterator[ConllDocument]:

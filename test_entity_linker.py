@@ -214,12 +214,8 @@ if __name__ == "__main__":
 
     all_cases = []
 
-    for example in example_generator.iterate(n_examples):
-        if benchmark == "own":
-            article, ground_truth, evaluation_span = example
-            text = article.text
-        else:
-            text, ground_truth, evaluation_span = example
+    for article, ground_truth, evaluation_span in example_generator.iterate(n_examples):
+        text = article.text
 
         if linker is None:
             predictions = next(prediction_iterator)
