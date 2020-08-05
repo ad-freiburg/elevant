@@ -71,7 +71,7 @@ Once the container is started, evaluate the trained entity linker, or one of the
 
 baseline:
 
-    python3 test_entity_linker.py baseline links wikipedia 1000
+    python3 test_entity_linker.py baseline links-all wikipedia 1000
 
 spaCy data files (entities and aliases queried from Wikidata):
 
@@ -92,7 +92,7 @@ Ambiverse:
 ### CoNLL benchmark:
 baseline:
 
-    python3 test_entity_linker.py baseline links conll -1
+    python3 test_entity_linker.py baseline links-all conll -1
 
 spaCy data files:
 
@@ -109,3 +109,36 @@ Explosion's spaCy:
 Ambiverse:
 
     python3 test_entity_linker.py iob /nfs/students/yi-chun-lin/outputs/conll/conll-wikidata-iob-annotations.alg-ambiverse conll -1
+
+### Own benchmark:
+baseline:
+
+    python3 test_entity_linker.py baseline links-all own -1
+
+spaCy data files:
+
+    python3 test_entity_linker.py spacy prior_trained own -1
+
+spaCy wikipedia:
+
+    python3 test_entity_linker.py spacy wikipedia own -1 -kb wikipedia
+
+Explosion's spaCy:
+
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1
+
+Ambiverse:
+
+    python3 test_entity_linker.py ambiverse /nfs/students/natalie-prange/src/ambiverse-nlu/own_benchmark_results/ own -1
+
+Link-Linker + Explosion
+
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-linker
+
+Link-Text-Linker + Explosion
+
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-text-linker
+
+Link-Text-Linker + spaCy wikipedia
+
+    python3 test_entity_linker.py spacy wikipedia own -1 -kb wikipedia -link_linker link-text-linker
