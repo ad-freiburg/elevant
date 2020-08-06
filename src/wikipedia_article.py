@@ -23,6 +23,8 @@ class WikipediaArticle:
         self.url = url
         self.entity_mentions = None
         self.entity_coverage = None
+        self.entity_to_int_id = dict()
+        self.int_id_to_entity = dict()
         self.add_entity_mentions(entity_mentions)
         self.evaluation_span = evaluation_span
         self.labels = labels
@@ -51,18 +53,29 @@ class WikipediaArticle:
         if entity_mentions is not None:
             for entity_mention in entity_mentions:
                 self.entity_mentions[entity_mention.span] = entity_mention
+
+                # Int ids are not zero based such that 0 indicates no entity in entity_coverage
+                new_int_id = len(self.entity_to_int_id) + 1
+                if entity_mention.entity_id not in self.entity_to_int_id:
+                    self.entity_to_int_id[entity_mention.entity_id] = new_int_id
+                    self.int_id_to_entity[new_int_id] = entity_mention.entity_id
+
         self._update_entity_coverage()
 
     def _update_entity_coverage(self):
-        self.entity_coverage = np.zeros(len(self.text), dtype=bool)
+        self.entity_coverage = np.zeros(len(self.text), dtype=int)
         if self.entity_mentions is not None:
             for span in self.entity_mentions:
+                entity_id = self.entity_mentions[span].entity_id
                 begin, end = span
-                self.entity_coverage[begin:end] = True
+                self.entity_coverage[begin:end] = self.entity_to_int_id[entity_id]
 
-    def overlaps_entity_mention(self, span: Tuple[int, int]) -> bool:
+    def get_overlapping_entity(self, span: Tuple[int, int]) -> str:
         begin, end = span
-        return np.sum(self.entity_coverage[begin:end]) > 0
+        for val in self.entity_coverage[begin:end]:
+            if val != 0:
+                return self.int_id_to_entity[val]
+        return ""
 
     def is_entity_mention(self, span: Tuple[int, int]) -> bool:
         return self.entity_mentions is not None and span in self.entity_mentions

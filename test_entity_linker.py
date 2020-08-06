@@ -4,6 +4,7 @@ from enum import Enum
 import sys
 from termcolor import colored
 
+from src.coreference_entity_linker import CoreferenceEntityLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.explosion_linker import ExplosionEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
@@ -99,7 +100,8 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 
 def print_help():
     print("Usage:\n"
-          "    python3 <linker_type> <linker> <benchmark> <n_articles> [-kb <kb_name>] [-link_linker <linker_type>]\n"
+          "    python3 <linker_type> <linker> <benchmark> <n_articles> [-kb <kb_name>] [-link_linker <linker_type>]"
+          " [-coref]\n"
           "\n"
           "Arguments:\n"
           "    <linker_type>: Choose from {baseline, spacy, explosion, ambiverse, iob}.\n"
@@ -127,6 +129,10 @@ if __name__ == "__main__":
 
     benchmark = sys.argv[3]
     n_examples = int(sys.argv[4])
+
+    coreference_linking = False
+    if "-coref" in sys.argv:
+        coreference_linking = True
 
     link_linker_type = None
     for i in range(len(sys.argv)):
@@ -205,6 +211,9 @@ if __name__ == "__main__":
         link_linker = LinkTextEntityLinker(entity_db=entity_db) if link_linker_type == "link-text-linker" \
             else LinkEntityLinker()
 
+    if coreference_linking:
+        coreference_linker = CoreferenceEntityLinker()
+
     if benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
     elif benchmark == "own":
@@ -219,18 +228,27 @@ if __name__ == "__main__":
 
         if linker is None:
             predictions = next(prediction_iterator)
-        elif link_linker_type:
+        else:
             if linker.model:
-                doc = linker.model(article.text)
+                doc = linker.model(text)
             else:
                 doc = None
-            link_linker.link_entities(article)
-            linker.link_entities(article, doc)
+
+            if link_linker_type:
+                link_linker.link_entities(article)
+
             predictions = {}
-            for _, em in article.entity_mentions.items():
-                predictions[em.span] = EntityPrediction(em.span, em.entity_id, {em.entity_id})
-        else:
-            predictions = linker.predict(text)
+            if not link_linker_type and not coreference_linking:
+                predictions = linker.predict(text, doc)
+            else:
+                linker.link_entities(article, doc)
+
+            if coreference_linking:
+                coreference_linker.link_entities(article)
+
+            if link_linker_type or coreference_linking:
+                for _, em in article.entity_mentions.items():
+                    predictions[em.span] = EntityPrediction(em.span, em.entity_id, {em.entity_id})
 
         cases = []
 
@@ -341,10 +359,13 @@ if __name__ == "__main__":
     print("\t\t%.2f%% not detected (%i/%i)" % percentage(n_undetected, n_known))
     print("\t\t%.2f%% detected (%i/%i)" % percentage(n_detected, n_known))
     print("\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_detected))
-    print("\t\t\t%.2f%% true entity in candidates (%i/%i)" % percentage(n_is_candidate, n_detected))
-    print("\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_is_candidate))
-    print("\t\t\t\t%.2f%% multiple candidates (%i/%i)" % percentage(n_true_in_multiple_candidates, n_is_candidate))
-    print("\t\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct_multiple_candidates, n_true_in_multiple_candidates))
+    # Link-linker and coreference-linker do not yield candidate information
+    if not link_linker_type and not coreference_linking:
+        print("\t\t\t%.2f%% true entity in candidates (%i/%i)" % percentage(n_is_candidate, n_detected))
+        print("\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_is_candidate))
+        print("\t\t\t\t%.2f%% multiple candidates (%i/%i)" % percentage(n_true_in_multiple_candidates, n_is_candidate))
+        print("\t\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct_multiple_candidates,
+                                                              n_true_in_multiple_candidates))
 
     print("tp = %i, fp = %i (false detections = %i), fn = %i" %
           (n_correct, n_false_positives, n_false_detection, n_false_negatives))

@@ -24,14 +24,20 @@ class CoreferenceEntityLinker:
         if doc is None:
             doc = self.model(article.text)
         new_entity_mentions = []
+        if not doc._.coref_clusters:
+            article.add_entity_mentions([])
+            return
         for coreference_cluster in doc._.coref_clusters:
             main = coreference_cluster.main
             main_span = (main.start_char, main.end_char)
-            if article.is_entity_mention(main_span):
-                entity_id = article.get_entity_mention(main_span).entity_id
+            # print("Coreference found at (%d, %d): %s" %
+            #       (main_span[0], main_span[1], article.text[main_span[0]:main_span[1]]))
+            entity_id = article.get_overlapping_entity(main_span)
+            if entity_id:
+                # print("Main span entity: %s" % entity_id)
                 for mention in coreference_cluster.mentions:
                     mention_span = (mention.start_char, mention.end_char)
-                    if not article.overlaps_entity_mention(mention_span):
+                    if not article.get_overlapping_entity(mention_span):
                         entity_mention = EntityMention(mention_span, recognized_by=self.IDENTIFIER, entity_id=entity_id,
                                                        linked_by=self.IDENTIFIER)
                         new_entity_mentions.append(entity_mention)

@@ -29,7 +29,7 @@ class AbstractEntityLinker(abc.ABC):
         entity_predictions = self.predict(article.text, doc=doc)
         new_entity_mentions = []
         for span in entity_predictions:
-            if not article.overlaps_entity_mention(span):
+            if not article.get_overlapping_entity(span):
                 prediction = entity_predictions[span]
                 if prediction.entity_id is not None:
                     entity_mention = EntityMention(span,
