@@ -23,8 +23,8 @@ class WikipediaArticle:
         self.url = url
         self.entity_mentions = None
         self.entity_coverage = None
-        self.entity_to_int_id = dict()
-        self.int_id_to_entity = dict()
+        self.span_to_span_id = dict()
+        self.spans = []
         self.add_entity_mentions(entity_mentions)
         self.evaluation_span = evaluation_span
         self.labels = labels
@@ -55,10 +55,9 @@ class WikipediaArticle:
                 self.entity_mentions[entity_mention.span] = entity_mention
 
                 # Int ids are not zero based such that 0 indicates no entity in entity_coverage
-                new_int_id = len(self.entity_to_int_id) + 1
-                if entity_mention.entity_id not in self.entity_to_int_id:
-                    self.entity_to_int_id[entity_mention.entity_id] = new_int_id
-                    self.int_id_to_entity[new_int_id] = entity_mention.entity_id
+                new_span_id = len(self.span_to_span_id) + 1
+                self.span_to_span_id[entity_mention.span] = new_span_id
+                self.spans.append(entity_mention.span)
 
         self._update_entity_coverage()
 
@@ -66,16 +65,14 @@ class WikipediaArticle:
         self.entity_coverage = np.zeros(len(self.text), dtype=int)
         if self.entity_mentions is not None:
             for span in self.entity_mentions:
-                entity_id = self.entity_mentions[span].entity_id
                 begin, end = span
-                self.entity_coverage[begin:end] = self.entity_to_int_id[entity_id]
+                self.entity_coverage[begin:end] = self.span_to_span_id[span]
 
-    def get_overlapping_entity(self, span: Tuple[int, int]) -> str:
+    def get_overlapping_entity(self, span: Tuple[int, int]) -> EntityMention:
         begin, end = span
         for val in self.entity_coverage[begin:end]:
             if val != 0:
-                return self.int_id_to_entity[val]
-        return ""
+                return self.entity_mentions[self.get_span_by_id(val)]
 
     def is_entity_mention(self, span: Tuple[int, int]) -> bool:
         return self.entity_mentions is not None and span in self.entity_mentions
@@ -85,6 +82,10 @@ class WikipediaArticle:
 
     def set_evaluation_span(self, start: int, end: int):
         self.evaluation_span = (start, end)
+
+    def get_span_by_id(self, span_id):
+        if span_id - 1 < len(self.spans):
+            return self.spans[span_id - 1]
 
     def __str__(self):
         return str(self.to_dict())
