@@ -185,7 +185,7 @@ if __name__ == "__main__":
     else:
         entity_db.load_entities_big()
     print(entity_db.size_entities(), "entities")
-    if linker_type == "baseline" or link_linker_type:
+    if linker_type == "baseline":
         if sys.argv[2] in ("links", "links-all"):
             print("load link frequencies...")
             entity_db.load_mapping()
@@ -199,6 +199,16 @@ if __name__ == "__main__":
             print("add names...")
             entity_db.add_name_aliases()
             print(entity_db.size_aliases(), "aliases")
+    if link_linker_type:
+        entity_db.load_redirects()
+        print(entity_db.size_aliases(), "aliases")
+        print("add synonyms...")
+        entity_db.add_synonym_aliases()
+        print(entity_db.size_aliases(), "aliases")
+        print("add names...")
+        entity_db.add_name_aliases()
+        print(entity_db.size_aliases(), "aliases")
+        entity_db.add_link_aliases()
 
     linker = None
     if linker_type == "spacy":
@@ -238,7 +248,7 @@ if __name__ == "__main__":
             else LinkEntityLinker()
 
     if coreference_linking:
-        coreference_linker = CoreferenceEntityLinker()
+        coreference_linker = CoreferenceEntityLinker(only_pronouns=True)
 
     if benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
