@@ -131,6 +131,10 @@ Ambiverse:
 
     python3 test_entity_linker.py ambiverse /nfs/students/natalie-prange/src/ambiverse-nlu/own_benchmark_results/ own -1
 
+Link-Text-Linker + spaCy wikipedia
+
+    python3 test_entity_linker.py spacy wikipedia own -1 -kb wikipedia -link_linker link-text-linker
+
 Link-Linker + Explosion
 
     python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-linker
@@ -139,6 +143,6 @@ Link-Text-Linker + Explosion
 
     python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-text-linker
 
-Link-Text-Linker + spaCy wikipedia
+Link-Text-Linker + Explosion + Coref
 
-    python3 test_entity_linker.py spacy wikipedia own -1 -kb wikipedia -link_linker link-text-linker
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-text-linker -coref
