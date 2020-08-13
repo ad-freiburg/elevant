@@ -56,8 +56,36 @@ class CoreferenceEntityLinker:
                         new_entity_mentions.append(entity_mention)
         article.add_entity_mentions(new_entity_mentions)
 
+    def predict(self,
+                article: WikipediaArticle,
+                doc: Optional[Doc] = None,
+                only_pronouns: Optional[bool] = False,
+                evaluation_span: Tuple[int, int] = None):
+        if doc is None:
+            doc = self.model(article.text)
+        predictions = dict()
+        if not doc._.coref_clusters:
+            return predictions
+        for coreference_cluster in doc._.coref_clusters:
+            main = coreference_cluster.main
+            main_span = (main.start_char, main.end_char)
+
+            if evaluation_span:
+                new_main_span = self.get_first_reference_in_span(coreference_cluster.mentions, evaluation_span)
+                main_span = new_main_span if new_main_span else main_span
+
+            for mention in coreference_cluster.mentions:
+                mention_span = (mention.start_char, mention.end_char)
+                if mention_span == main_span:
+                    continue
+                mention_text = article.text[mention_span[0]:mention_span[1]]
+                if only_pronouns and mention_text.lower() not in CoreferenceGroundtruthGenerator.pronouns:
+                    continue
+                predictions[mention_span] = main_span
+        return predictions
+
     @staticmethod
     def get_first_reference_in_span(mentions, span: Tuple[int, int]) -> Tuple[int, int]:
         for mention in mentions:
-            if mention.start_char >= span[0]:
+            if mention.start_char >= span[0] and mention.end_char <= span[1]:
                 return mention.start_char, mention.end_char
