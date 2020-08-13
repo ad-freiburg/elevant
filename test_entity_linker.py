@@ -4,9 +4,10 @@ from enum import Enum
 import sys
 from termcolor import colored
 
-from src.coreference_entity_linker import CoreferenceEntityLinker
+from src.abstract_coref_linker import AbstractCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.entity_mention import EntityMention
+from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.explosion_linker import ExplosionEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
@@ -109,7 +110,7 @@ class Case:
                 return CaseType.CORRECT
             else:
                 return CaseType.WRONG
-        elif self.predicted_by == CoreferenceEntityLinker.IDENTIFIER:
+        elif self.predicted_by == AbstractCorefLinker.IDENTIFIER:
             return CaseType.FALSE_DETECTION
 
     def __lt__(self, other):
@@ -267,7 +268,7 @@ if __name__ == "__main__":
             else LinkEntityLinker()
 
     if coreference_linking:
-        coreference_linker = CoreferenceEntityLinker()
+        coreference_linker = NeuralcorefCorefLinker()
 
     if benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
@@ -334,7 +335,7 @@ if __name__ == "__main__":
             referenced_span = None
             is_true_coref = span in coref_groundtruth
             correct_span_referenced = False
-            if detected and predicted_by == CoreferenceEntityLinker.IDENTIFIER:
+            if detected and predicted_by == AbstractCorefLinker.IDENTIFIER:
                 referenced_eval_type = get_referenced_eval_type(predicted_mention, ground_truth, ground_truth_spans,
                                                                 evaluation_span)
                 referenced_span = predicted_mention.referenced_span
@@ -362,7 +363,7 @@ if __name__ == "__main__":
                 predicted_by = predicted_mention.linked_by
 
                 referenced_eval_type = None
-                if predicted_by == CoreferenceEntityLinker.IDENTIFIER:
+                if predicted_by == AbstractCorefLinker.IDENTIFIER:
                     referenced_eval_type = get_referenced_eval_type(predicted_mention, ground_truth, ground_truth_spans,
                                                                     evaluation_span)
 
@@ -401,7 +402,7 @@ if __name__ == "__main__":
                                     if entity_db.contains_entity(case.true_entity) else "Unknown") \
                 if case.true_entity is not None else "None"
             referenced_span = " -> %s" % (str(case.referenced_span)) \
-                if case.predicted_by == CoreferenceEntityLinker.IDENTIFIER else ""
+                if case.predicted_by == AbstractCorefLinker.IDENTIFIER else ""
             predicted_str = "(%s %s [%s]%s)" % (case.predicted_entity,
                                                 entity_db.get_entity(case.predicted_entity).name
                                                 if entity_db.contains_entity(case.predicted_entity) else "Unknown",
@@ -416,7 +417,7 @@ if __name__ == "__main__":
                           color=CASE_COLORS[case.eval_type]))
 
         coref_cases = [c for c in cases
-                       if c.is_true_coreference() or c.predicted_by == CoreferenceEntityLinker.IDENTIFIER]
+                       if c.is_true_coreference() or c.predicted_by == AbstractCorefLinker.IDENTIFIER]
         if coref_cases:
             print()
             print("Coreference Cases:")
@@ -426,7 +427,7 @@ if __name__ == "__main__":
                     if case.true_entity is not None else "None"
                 referenced_span = " -> %s %s" % (str(case.referenced_span), text[case.referenced_span[0]:
                                                                                  case.referenced_span[1]])\
-                    if case.predicted_by == CoreferenceEntityLinker.IDENTIFIER else ""
+                    if case.predicted_by == AbstractCorefLinker.IDENTIFIER else ""
                 predicted_str = "(%s %s %s)" % (case.predicted_entity,
                                                 entity_db.get_entity(case.predicted_entity).name
                                                 if entity_db.contains_entity(case.predicted_entity) else "Unknown",
@@ -454,7 +455,7 @@ if __name__ == "__main__":
                 n_coref_tp += 1
             else:
                 n_coref_fp += 1
-        if case.predicted_by == CoreferenceEntityLinker.IDENTIFIER:
+        if case.predicted_by == AbstractCorefLinker.IDENTIFIER:
             if not case.is_true_coreference():
                 n_coref_fp += 1
 

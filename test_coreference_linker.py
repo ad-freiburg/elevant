@@ -1,7 +1,8 @@
 import sys
 from termcolor import colored
 
-from src.coreference_entity_linker import CoreferenceEntityLinker
+from src.abstract_coref_linker import AbstractCorefLinker
+from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation_examples_generator import OwnBenchmarkExampleReader
 from test_entity_linker import CaseType, CASE_COLORS, Case, percentage
@@ -22,7 +23,7 @@ if __name__ == "__main__":
 
     n_examples = int(sys.argv[1])
 
-    coreference_linker = CoreferenceEntityLinker()
+    coreference_linker = NeuralcorefCorefLinker()
     coref_groundtruth_generator = CoreferenceGroundtruthGenerator()
 
     example_generator = OwnBenchmarkExampleReader()
@@ -50,7 +51,7 @@ if __name__ == "__main__":
                         correct_span_referenced = True
                         break
 
-            case = Case(span, None, detected, None, candidates=set(), predicted_by=CoreferenceEntityLinker.IDENTIFIER,
+            case = Case(span, None, detected, None, candidates=set(), predicted_by=AbstractCorefLinker.IDENTIFIER,
                         is_true_coref=True, correct_span_referenced=correct_span_referenced,
                         referenced_span=referenced_span)
             cases.append(case)
@@ -60,7 +61,7 @@ if __name__ == "__main__":
             referenced_span = predictions[span]
             if span not in coref_groundtruth and span[0] >= evaluation_span[0] and span[1] <= evaluation_span[1]:
                 case = Case(span, None, True, None, candidates=set(), is_true_coref=False,
-                            predicted_by=CoreferenceEntityLinker.IDENTIFIER, referenced_span=referenced_span)
+                            predicted_by=AbstractCorefLinker.IDENTIFIER, referenced_span=referenced_span)
                 cases.append(case)
 
         cases = sorted(cases)
@@ -90,7 +91,7 @@ if __name__ == "__main__":
 
         print("Coreference Cases:")
         coref_cases = [c for c in cases
-                       if c.is_true_coreference() or c.predicted_by == CoreferenceEntityLinker.IDENTIFIER]
+                       if c.is_true_coreference() or c.predicted_by == AbstractCorefLinker.IDENTIFIER]
         for case in coref_cases:
             referenced_span = " -> %s %s" % (str(case.referenced_span), text[case.referenced_span[0]:
                                                                              case.referenced_span[1]]) \
@@ -113,7 +114,7 @@ if __name__ == "__main__":
                 n_coref_tp += 1
             else:
                 n_coref_fp += 1
-        if case.predicted_by == CoreferenceEntityLinker.IDENTIFIER:
+        if case.predicted_by == AbstractCorefLinker.IDENTIFIER:
             if not case.is_true_coreference():
                 n_coref_fp += 1
 

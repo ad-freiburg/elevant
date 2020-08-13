@@ -1,39 +1,30 @@
 from typing import Optional, Tuple
 
-import spacy
-import neuralcoref
+import abc
 from spacy.tokens import Doc
-from spacy.language import Language
-
-from src import settings
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.wikipedia_article import WikipediaArticle
 from src.entity_mention import EntityMention
 
 
-class CoreferenceEntityLinker:
+class AbstractCorefLinker(abc.ABC):
     IDENTIFIER = "COREFERENCE"
 
-    def __init__(self,
-                 model: Optional[Language] = None):
-        if model is None:
-            self.model = spacy.load(settings.LARGE_MODEL_NAME)
-        else:
-            self.model = model
-        neuralcoref.add_to_pipe(self.model, max_dist=50, max_dist_match=100)
+    @abc.abstractmethod
+    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
+        raise NotImplementedError()
 
     def link_entities(self,
                       article: WikipediaArticle,
                       doc: Optional[Doc] = None,
                       only_pronouns: Optional[bool] = False,
                       evaluation_span: Tuple[int, int] = None):
-        if doc is None:
-            doc = self.model(article.text)
+        coref_clusters = self.get_clusters(article, doc)
         new_entity_mentions = []
-        if not doc._.coref_clusters:
+        if not coref_clusters:
             article.add_entity_mentions([])
             return
-        for coreference_cluster in doc._.coref_clusters:
+        for coreference_cluster in coref_clusters:
             main = coreference_cluster.main
             main_span = (main.start_char, main.end_char)
 
@@ -61,12 +52,11 @@ class CoreferenceEntityLinker:
                 doc: Optional[Doc] = None,
                 only_pronouns: Optional[bool] = False,
                 evaluation_span: Tuple[int, int] = None):
-        if doc is None:
-            doc = self.model(article.text)
+        coref_clusters = self.get_clusters(article, doc)
         predictions = dict()
-        if not doc._.coref_clusters:
+        if not coref_clusters:
             return predictions
-        for coreference_cluster in doc._.coref_clusters:
+        for coreference_cluster in coref_clusters:
             main = coreference_cluster.main
             main_span = (main.start_char, main.end_char)
 

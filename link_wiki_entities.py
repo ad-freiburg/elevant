@@ -6,7 +6,7 @@ from src.wikipedia_dump_reader import WikipediaDumpReader
 from src.link_entity_linker import LinkEntityLinker
 from src.link_text_entity_linker import LinkTextEntityLinker
 from src.trained_entity_linker import TrainedEntityLinker
-from src.coreference_entity_linker import CoreferenceEntityLinker
+from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
 from src.explosion_linker import ExplosionEntityLinker
 from src.entity_database import EntityDatabase
@@ -120,10 +120,10 @@ if __name__ == "__main__":
         raise Exception("Unknown linker '%s'." % linker_type)
 
     if coreference_linking:
-        coreference_linker = CoreferenceEntityLinker(model=model)
+        coreference_linker = NeuralcorefCorefLinker(model=model)
 
-    with open(settings.DATA_DIRECTORY + out_file, "w") as f:
-        for i, line in enumerate(open(settings.SPLIT_ARTICLES_DIR + in_file)):
+    with open(out_file, "w") as f:
+        for i, line in enumerate(open(in_file)):
             if i == n_articles:
                 break
             if raw_input:
