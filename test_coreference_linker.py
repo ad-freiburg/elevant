@@ -1,7 +1,10 @@
-import sys
+import argparse
+
 from termcolor import colored
 
 from src.abstract_coref_linker import AbstractCorefLinker
+from src.entity_coref_linker import EntityCorefLinker
+from src.entity_database import EntityDatabase
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation_examples_generator import OwnBenchmarkExampleReader
@@ -13,24 +16,38 @@ def print_help():
           "    python3 <n_articles>\n"
           "\n"
           "Arguments:\n"
+          "    <linker>: type of coreference linker. Choose one of {neuralcoref, entity}"
           "    <n_articles>: Number of articles to evaluate on.")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print_help()
-        exit(1)
+    parser = argparse.ArgumentParser()
 
-    n_examples = int(sys.argv[1])
+    parser.add_argument("-n", "--n_articles", type=int, default=-1,
+                        help="Number of articles to evaluate on.")
 
-    coreference_linker = NeuralcorefCorefLinker()
+    parser.add_argument("linker_type", choices=['neuralcoref', 'entity'],
+                        help="Type of coreference linker.")
+
+    args = parser.parse_args()
+
+    if args.linker_type == "neuralcoref":
+        coreference_linker = NeuralcorefCorefLinker()
+    else:
+        print("load entities...")
+        entity_db = EntityDatabase()
+        entity_db.load_entities_big()
+        print("load gender information...")
+        entity_db.load_gender()
+        coreference_linker = EntityCorefLinker(entity_db)
+
     coref_groundtruth_generator = CoreferenceGroundtruthGenerator()
 
     example_generator = OwnBenchmarkExampleReader()
 
     all_cases = []
 
-    for article, ground_truth, evaluation_span in example_generator.iterate(n_examples):
+    for article, ground_truth, evaluation_span in example_generator.iterate(args.n_articles):
         text = article.text
         coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article)
         predictions = coreference_linker.predict(article, only_pronouns=True, evaluation_span=evaluation_span)

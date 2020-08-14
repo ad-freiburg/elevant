@@ -6,6 +6,7 @@ from spacy.tokens import Doc
 from spacy.language import Language
 from src import settings
 from src.abstract_coref_linker import AbstractCorefLinker
+from src.coref_cluster import CorefCluster
 from src.wikipedia_article import WikipediaArticle
 
 
@@ -21,4 +22,11 @@ class NeuralcorefCorefLinker(AbstractCorefLinker):
     def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
         if doc is None:
             doc = self.model(article.text)
-        return doc._.coref_clusters
+
+        coref_clusters = []
+        for cluster in doc._.coref_clusters:
+            mentions = [(m.start_char, m.end_char) for m in cluster.mentions]
+            main = cluster.main.start_char, cluster.main.end_char
+            coref_cluster = CorefCluster(main, mentions)
+            coref_clusters.append(coref_cluster)
+        return coref_clusters

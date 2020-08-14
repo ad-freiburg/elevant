@@ -71,78 +71,78 @@ Once the container is started, evaluate the trained entity linker, or one of the
 
 baseline:
 
-    python3 test_entity_linker.py baseline links-all wikipedia 1000
+    python3 test_entity_linker.py baseline links-all -b wikipedia -n 1000
 
 spaCy data files (entities and aliases queried from Wikidata):
 
-    python3 test_entity_linker.py spacy prior_trained wikipedia 1000
+    python3 test_entity_linker.py spacy prior_trained -b wikipedia -n 1000
 
 spaCy wikipeida (entities and aliases extracted from a Wikipedia dump):
 
-    python3 test_entity_linker.py spacy wikipedia wikipedia 1000 -kb wikipedia
+    python3 test_entity_linker.py spacy wikipedia -b wikipedia -n 1000 -kb wikipedia
 
 Explosion's spaCy:
 
-    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp wikipedia 1000
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp -b wikipedia -n 1000
 
 Ambiverse:
 
-    python3 test_entity_linker.py ambiverse /nfs/students/natalie-prange/src/ambiverse-nlu/dev_set_1k_results/ wikipedia 1000
+    python3 test_entity_linker.py ambiverse /nfs/students/natalie-prange/src/ambiverse-nlu/dev_set_1k_results/ -b wikipedia -n 1000
 
 ### CoNLL benchmark:
 baseline:
 
-    python3 test_entity_linker.py baseline links-all conll -1
+    python3 test_entity_linker.py baseline links-all -b conll
 
 spaCy data files:
 
-    python3 test_entity_linker.py spacy prior_trained conll -1
+    python3 test_entity_linker.py spacy prior_trained -b conll
 
 spaCy wikipedia:
 
-    python3 test_entity_linker.py spacy wikipedia conll -1 -kb wikipedia
+    python3 test_entity_linker.py spacy wikipedia -b conll -kb wikipedia
 
 Explosion's spaCy:
 
-    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp conll -1
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp -b conll
 
 Ambiverse:
 
-    python3 test_entity_linker.py iob /nfs/students/yi-chun-lin/outputs/conll/conll-wikidata-iob-annotations.alg-ambiverse conll -1
+    python3 test_entity_linker.py iob /nfs/students/yi-chun-lin/outputs/conll/conll-wikidata-iob-annotations.alg-ambiverse -b conll
 
 ### Own benchmark:
 baseline:
 
-    python3 test_entity_linker.py baseline links-all own -1
+    python3 test_entity_linker.py baseline links-all
 
 spaCy data files:
 
-    python3 test_entity_linker.py spacy prior_trained own -1
+    python3 test_entity_linker.py spacy prior_trained
 
 spaCy wikipedia:
 
-    python3 test_entity_linker.py spacy wikipedia own -1 -kb wikipedia
+    python3 test_entity_linker.py spacy wikipedia -kb wikipedia
 
 Explosion's spaCy:
 
-    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp
 
 Ambiverse:
 
-    python3 test_entity_linker.py ambiverse /nfs/students/natalie-prange/src/ambiverse-nlu/own_benchmark_results/ own -1
+    python3 test_entity_linker.py ambiverse /nfs/students/natalie-prange/src/ambiverse-nlu/own_benchmark_results/
 
 Link-Text-Linker + spaCy wikipedia
 
-    python3 test_entity_linker.py spacy wikipedia own -1 -kb wikipedia -link_linker link-text-linker
+    python3 test_entity_linker.py spacy wikipedia -kb wikipedia --link_linker link-text-linker
 
 Link-Linker + Explosion
 
-    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-linker
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp --link_linker link-linker
 
 Link-Text-Linker + Explosion
 
-    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-text-linker
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp --link_linker link-text-linker
 
 Link-Text-Linker + Explosion + Coref
 
-    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp own -1 -link_linker link-text-linker -coref
+    python3 test_entity_linker.py explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp --link_linker link-text-linker -coref neuralcoref

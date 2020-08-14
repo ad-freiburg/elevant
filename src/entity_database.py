@@ -1,4 +1,6 @@
 from typing import Dict, Set, Tuple, Iterator, Optional
+
+from src.gender import Gender
 from src.wikidata_entity import WikidataEntity
 from src.entity_database_reader import EntityDatabaseReader
 
@@ -21,6 +23,8 @@ class EntityDatabase:
         self.link_frequencies: Dict[str, Tuple[str, int]]
         self.entity_frequencies = {}
         self.entity_frequencies: Dict[str, int]
+        self.entity2gender = {}
+        self.entity2gender: Dict[str, Gender]
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -139,3 +143,14 @@ class EntityDatabase:
 
     def get_entity_frequency(self, entity_id: str):
         return self.entity_frequencies[entity_id] if entity_id in self.entity_frequencies else 0
+
+    def load_gender(self):
+        self.entity2gender = EntityDatabaseReader.get_gender_mapping()
+
+    def get_gender(self, entity_id):
+        if len(self.entity2gender) == 0:
+            print("Warning: Tried to access gender information but gender mapping was not loaded.")
+        elif entity_id in self.entity2gender:
+            return self.entity2gender[entity_id]
+        else:
+            return Gender.NEUTRAL

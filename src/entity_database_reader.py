@@ -4,11 +4,13 @@ from urllib.parse import unquote
 import pickle
 
 from src import settings
+from src.gender import Gender
 from src.wikidata_entity import WikidataEntity
 
 
 WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"
 ENTITY_PREFIX = "http://www.wikidata.org/entity/"
+LABEL_SUFFIX = "@en"
 
 
 def parse_entity_id(url: str) -> str:
@@ -80,4 +82,21 @@ class EntityDatabaseReader:
             entity_name = link_url[len(WIKI_URL_PREFIX):].replace('_', ' ')
             entity_id = entity_url[len(ENTITY_PREFIX):]
             mapping[entity_name] = entity_id
+        return mapping
+
+    @staticmethod
+    def get_gender_mapping(mappings_file: str = settings.GENDER_MAPPING_FILE):
+        mapping = {}
+        for i, line in enumerate(open(mappings_file)):
+            line = line[:-1]
+            entity_url, gender_label = line.split("\t")
+            entity_url = entity_url.strip("<>")
+            entity_id = entity_url[len(ENTITY_PREFIX):]
+            gender_tokens = gender_label[:-len(LABEL_SUFFIX)].strip('"').split()
+            if "female" in gender_tokens:
+                mapping[entity_id] = Gender.FEMALE
+            elif "male" in gender_tokens:
+                mapping[entity_id] = Gender.MALE
+            else:
+                mapping[entity_id] = Gender.OTHER
         return mapping

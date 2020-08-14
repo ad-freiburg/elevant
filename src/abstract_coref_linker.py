@@ -1,8 +1,8 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import abc
 from spacy.tokens import Doc
-from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
+from src.pronoun_finder import PronounFinder
 from src.wikipedia_article import WikipediaArticle
 from src.entity_mention import EntityMention
 
@@ -26,7 +26,7 @@ class AbstractCorefLinker(abc.ABC):
             return
         for coreference_cluster in coref_clusters:
             main = coreference_cluster.main
-            main_span = (main.start_char, main.end_char)
+            main_span = (main[0], main[1])
 
             if evaluation_span:
                 new_main_span = self.get_first_reference_in_span(coreference_cluster.mentions, evaluation_span)
@@ -37,9 +37,9 @@ class AbstractCorefLinker(abc.ABC):
             if main_mention:
                 entity_id = main_mention.entity_id
                 for mention in coreference_cluster.mentions:
-                    mention_span = (mention.start_char, mention.end_char)
+                    mention_span = (mention[0], mention[1])
                     mention_text = article.text[mention_span[0]:mention_span[1]]
-                    if only_pronouns and mention_text.lower() not in CoreferenceGroundtruthGenerator.pronouns:
+                    if only_pronouns and mention_text.lower() not in PronounFinder.pronouns:
                         continue
                     if not article.get_overlapping_entity(mention_span):
                         entity_mention = EntityMention(mention_span, recognized_by=self.IDENTIFIER, entity_id=entity_id,
@@ -58,24 +58,24 @@ class AbstractCorefLinker(abc.ABC):
             return predictions
         for coreference_cluster in coref_clusters:
             main = coreference_cluster.main
-            main_span = (main.start_char, main.end_char)
+            main_span = (main[0], main[1])
 
             if evaluation_span:
                 new_main_span = self.get_first_reference_in_span(coreference_cluster.mentions, evaluation_span)
                 main_span = new_main_span if new_main_span else main_span
 
             for mention in coreference_cluster.mentions:
-                mention_span = (mention.start_char, mention.end_char)
+                mention_span = (mention[0], mention[1])
                 if mention_span == main_span:
                     continue
                 mention_text = article.text[mention_span[0]:mention_span[1]]
-                if only_pronouns and mention_text.lower() not in CoreferenceGroundtruthGenerator.pronouns:
+                if only_pronouns and mention_text.lower() not in PronounFinder.pronouns:
                     continue
                 predictions[mention_span] = main_span
         return predictions
 
     @staticmethod
-    def get_first_reference_in_span(mentions, span: Tuple[int, int]) -> Tuple[int, int]:
+    def get_first_reference_in_span(mentions: List[Tuple[int, int]], span: Tuple[int, int]) -> Tuple[int, int]:
         for mention in mentions:
-            if mention.start_char >= span[0] and mention.end_char <= span[1]:
-                return mention.start_char, mention.end_char
+            if mention[0] >= span[0] and mention[1] <= span[1]:
+                return mention[0], mention[1]

@@ -4,14 +4,12 @@ import spacy
 from spacy.tokens import Doc
 from spacy.language import Language
 
+from src.pronoun_finder import PronounFinder
 from src.wikipedia_article import WikipediaArticle
 from src import settings
 
 
 class CoreferenceGroundtruthGenerator:
-    pronouns = {"i", "my", "me", "you", "your", "he", "his", "him", "she", "her", "it", "its", "us", "our",
-                "they", "their", "them"}
-
     def __init__(self,
                  model: Optional[Language] = None):
         if model is None:
@@ -19,20 +17,14 @@ class CoreferenceGroundtruthGenerator:
         else:
             self.model = model
 
-    def find_pronouns(self, doc: Doc):
-        pronouns = set()
-        for tok in doc:
-            if tok.text.lower() in self.pronouns and not tok.text.isupper():  # do not match "US"
-                span = (tok.idx, tok.idx + len(tok))
-                pronouns.add(span)
-        return pronouns
-
     def get_groundtruth(self, article: WikipediaArticle, doc: Doc = None):
+        if not article.labels:
+            return {}
         if doc is None:
             doc = self.model(article.text)
-        pronouns = self.find_pronouns(doc)
-        referenced_entities = dict()
-        entity_to_pronouns = dict()
+        pronouns = PronounFinder.find_pronouns(doc)
+        referenced_entities = {}
+        entity_to_pronouns = {}
         pronoun_ground_truth = {((span[0], span[1]), entity_id) for span, entity_id in article.labels
                                 if (span[0], span[1]) in pronouns}
         for pronoun_span, entity_id in pronoun_ground_truth:

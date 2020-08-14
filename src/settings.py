@@ -29,6 +29,7 @@ ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
 PERSON_NAMES_FILE = DATABASE_DIRECTORY + "wikidata-familyname.csv"
 ABSTRACTS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia.tsv"
 WIKI_MAPPING_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
+GENDER_MAPPING_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_gender.tsv"
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"

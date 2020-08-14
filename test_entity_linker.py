@@ -1,11 +1,12 @@
 from typing import Tuple, Optional, Set
 
 from enum import Enum
-import sys
+import argparse
 from termcolor import colored
 
 from src.abstract_coref_linker import AbstractCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
+from src.entity_coref_linker import EntityCorefLinker
 from src.entity_mention import EntityMention
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.trained_entity_linker import TrainedEntityLinker
@@ -144,67 +145,52 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
     return percent, nominator, denominator
 
 
-def print_help():
-    print("Usage:\n"
-          "    python3 <linker_type> <linker> <benchmark> <n_articles> [-kb <kb_name>] [-link_linker <linker_type>]"
-          " [-coref]\n"
-          "\n"
-          "Arguments:\n"
-          "    <linker_type>: Choose from {baseline, spacy, explosion, ambiverse, iob}.\n"
-          "    <linker>: Specify the linker to be used, depending on its type:\n"
-          "        baseline: Choose baseline from {scores, links, links-all}.\n"
-          "        spacy: Name of the linker.\n"
-          "        explosion: Full path to the saved model.\n"
-          "        ambiverse: Full path to the predictions directory (for the Wikipedia benchmark only).\n"
-          "        iob: Full path to the prediction file in IOB format (for the CoNLL benchmark only).\n"
-          "    <benchmark>: Choose from {wikipedia, conll, own}.\n"
-          "    <n_articles>: Number of articles to evaluate on.\n"
-          "    <kb_name>: Name of the knowledge base to use with a spacy linker.\n"
-          "    <link_linker>: Apply link text linker before spacy or explosion linker.\n"
-          "         Choose from {link-linker, link-text-linker}.")
-
-
 if __name__ == "__main__":
-    if len(sys.argv) < 5:
-        print_help()
-        exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob"],
+                        help="Entity linker type.")
+    parser.add_argument("linker",
+                        help="Specify the linker to be used, depending on its type:\n"
+                        "BASELINE: Choose baseline from {scores, links, links-all}.\n"
+                        "SPACY: Name of the linker.\n"
+                        "EXPLOSION: Full path to the saved model.\n"
+                        "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
+                        "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
+    parser.add_argument("-b", "--benchmark", choices=["own", "wikipedia", "conll"], default="own",
+                        help="Benchmark over which to evaluate the linker.")
+    parser.add_argument("-n", "--n_articles", type=int, default=-1,
+                        help="Number of articles to evaluate on.")
+    parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"], default=None,
+                        help="Name of the knowledge base to use with a spacy linker.")
+    parser.add_argument("-ll", "--link_linker", choices=["link-linker", "link-text-linker"], default=None,
+                        help="Link linker to apply before spacy or explosion linker")
+    parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity"], default=None,
+                        help="Coreference linker to apply after entity linkers.")
+    parser.add_argument("--evaluation_span", action="store_true",
+                        help="If specified, let coreference linker refer only to entities within the evaluation span")
+    parser.add_argument("-min", "--minimum_score", type=int, default=0,
+                        help="Minimum entity score to include entity in database")
+    parser.add_argument("-small", "--small_database", action="store_true",
+                        help="Load a small version of the database")
+    args = parser.parse_args()
 
-    linker_type = sys.argv[1]
-    if linker_type not in ("spacy", "explosion", "ambiverse", "baseline", "iob"):
-        raise NotImplementedError("Unknown linker type '%s'." % linker_type)
-
-    benchmark = sys.argv[3]
-    n_examples = int(sys.argv[4])
-
-    coreference_linking = "-coref" in sys.argv
-
-    link_linker_type = None
-    for i in range(len(sys.argv)):
-        if sys.argv[i] == "-link_linker":
-            link_linker_type = sys.argv[i + 1]
-            if linker_type not in {"spacy", "explosion"}:
-                print("Link linkers can only be applied for spacy or explosion linker.")
-                exit(1)
-            elif benchmark != "own":
-                print("Link linkers can only be evaluated over own benchmark.")
-                exit(1)
-            elif link_linker_type not in {"link-linker", "link-text-linker"}:
-                print("Unknown link linker type '%s'" % link_linker_type)
-                exit(1)
+    if args.link_linker:
+        if args.linker_type not in {"spacy", "explosion"}:
+            print("Link linkers can only be applied for spacy or explosion linker.")
+            exit(1)
+        elif args.benchmark != "own":
+            print("Link linkers can only be evaluated over own benchmark.")
+            exit(1)
 
     print("load entities...")
     entity_db = EntityDatabase()
-    if linker_type == "baseline" and sys.argv[2] in ("scores", "links"):
-        minimum_score = 0
-        for i in range(1, len(sys.argv)):
-            if sys.argv[i] == "-min":
-                minimum_score = int(sys.argv[i + 1])
-        entity_db.load_entities_small(minimum_score)
+    if args.linker_type == "baseline" and args.linker in ("scores", "links"):
+        entity_db.load_entities_small(args.minimum_score)
     else:
         entity_db.load_entities_big()
     print(entity_db.size_entities(), "entities")
-    if linker_type == "baseline":
-        if sys.argv[2] in ("links", "links-all"):
+    if args.linker_type == "baseline":
+        if args.linker in ("links", "links-all"):
             print("load link frequencies...")
             entity_db.load_mapping()
             entity_db.load_redirects()
@@ -217,7 +203,7 @@ if __name__ == "__main__":
             print("add names...")
             entity_db.add_name_aliases()
             print(entity_db.size_aliases(), "aliases")
-    if link_linker_type:
+    if args.link_linker:
         print("add redirects...")
         entity_db.load_redirects()
         print("add synonyms...")
@@ -231,27 +217,23 @@ if __name__ == "__main__":
         print(entity_db.size_aliases(), "aliases")
 
     linker = None
-    if linker_type == "spacy":
-        linker_name = sys.argv[2]
-        kb_name = None
-        for i in range(len(sys.argv)):
-            if sys.argv[i] == "-kb":
-                kb_name = sys.argv[i + 1]
-        linker = TrainedEntityLinker(linker_name, entity_db=entity_db, kb_name=kb_name)
-    elif linker_type == "explosion":
-        path = sys.argv[2]
+    prediction_iterator = None
+    if args.linker_type == "spacy":
+        linker_name = args.linker
+        linker = TrainedEntityLinker(linker_name, entity_db=entity_db, kb_name=args.kb_name)
+    elif args.linker_type == "explosion":
+        path = args.linker
         linker = ExplosionEntityLinker(path, entity_db=entity_db)
-    elif linker_type == "iob":
-        path = sys.argv[2]
+    elif args.linker_type == "iob":
+        path = args.linker
         prediction_iterator = ConllIobPredictionReader.document_predictions_iterator(path)
-    elif linker_type == "ambiverse":
-        result_dir = sys.argv[2]
+    elif args.linker_type == "ambiverse":
+        result_dir = args.linker
         prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
     else:
-        strategy_name = sys.argv[2]
-        if strategy_name not in ("links", "scores", "links-all"):
-            raise NotImplementedError("Unknown strategy '%s'." % strategy_name)
-        if strategy_name in ("links", "links-all"):
+        if args.linker not in ("links", "scores", "links-all"):
+            raise NotImplementedError("Unknown strategy '%s'." % args.linker)
+        if args.linker in ("links", "links-all"):
             strategy = LinkingStrategy.LINK_FREQUENCY
         else:
             strategy = LinkingStrategy.ENTITY_SCORE
@@ -259,20 +241,31 @@ if __name__ == "__main__":
 
     print("load evaluation entities...")
     entity_db = EntityDatabase()
-    entity_db.load_entities_small() if "-small" in sys.argv else entity_db.load_entities_big()
+    entity_db.load_entities_small() if args.small_database else entity_db.load_entities_big()
     entity_db.load_mapping()
     entity_db.load_redirects()
 
-    if link_linker_type:
-        link_linker = LinkTextEntityLinker(entity_db=entity_db) if link_linker_type == "link-text-linker" \
-            else LinkEntityLinker()
+    link_linker = None
+    if args.link_linker == "link-text-linker":
+        link_linker = LinkTextEntityLinker(entity_db=entity_db)
+    elif args.link_linker == "link-linker":
+        link_linker = LinkEntityLinker()
 
-    if coreference_linking:
+    coreference_linker = None
+    if args.coreference_linker and not args.evaluation_span:
+        print("Warning: For a proper coreference evaluation add option --evaluation_span")
+        print("\tOtherwise referenced entities can occur outside of the evaluation span.")
+        print("\tThis can however lead to different overall results.")
+    if args.coreference_linker == "neuralcoref":
         coreference_linker = NeuralcorefCorefLinker()
+    elif args.coreference_linker == "entity":
+        print("load gender information...")
+        entity_db.load_gender()
+        coreference_linker = EntityCorefLinker(entity_db=entity_db)
 
-    if benchmark == "conll":
+    if args.benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
-    elif benchmark == "own":
+    elif args.benchmark == "own":
         example_generator = OwnBenchmarkExampleReader()
     else:
         example_generator = WikipediaExampleReader(entity_db)
@@ -281,7 +274,7 @@ if __name__ == "__main__":
 
     all_cases = []
 
-    for article, ground_truth, evaluation_span in example_generator.iterate(n_examples):
+    for article, ground_truth, evaluation_span in example_generator.iterate(args.n_articles):
         text = article.text
 
         if linker is None:
@@ -293,11 +286,11 @@ if __name__ == "__main__":
             else:
                 doc = None
 
-            if link_linker_type:
+            if args.link_linker:
                 link_linker.link_entities(article)
 
             predictions = {}
-            if not link_linker_type and not coreference_linking:
+            if not args.link_linker and not args.coreference_linker:
                 linker_predictions = linker.predict(text, doc)
                 for span, ep in linker_predictions.items():
                     entity_mention = EntityMention(span,
@@ -309,10 +302,13 @@ if __name__ == "__main__":
                 linker.link_entities(article, doc)
 
             coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article, doc)
-            if coreference_linking:
-                coreference_linker.link_entities(article, only_pronouns=True, evaluation_span=evaluation_span)
+            if args.coreference_linker:
+                if args.evaluation_span:
+                    coreference_linker.link_entities(article, only_pronouns=True, evaluation_span=evaluation_span)
+                else:
+                    coreference_linker.link_entities(article, only_pronouns=True)
 
-            if link_linker_type or coreference_linking:
+            if args.link_linker or args.coreference_linker:
                 for em in article.entity_mentions.values():
                     predictions[em.span] = em, {em.entity_id}
 
@@ -322,6 +318,7 @@ if __name__ == "__main__":
         # ground truth cases:
         for span, true_entity_id in sorted(ground_truth):
             detected = span in predictions
+            predicted_mention = None
             if detected:
                 predicted_mention, candidates = predictions[span]
                 predicted_by = predicted_mention.linked_by
@@ -492,19 +489,19 @@ if __name__ == "__main__":
     print("\t%.2f%% not a known entity (%i/%i)" % percentage(n_unknown, n_ground_truth))
     print("\t%.2f%% known entities (%i/%i)" % percentage(n_known, n_ground_truth))
     print("\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_known))
-    if linker_type != "ambiverse":
+    if args.linker_type != "ambiverse":
         print("\t\t%.2f%% contained (%i/%i)" % percentage(n_contained, n_known))
     print("\t\t%.2f%% not detected (%i/%i)" % percentage(n_undetected, n_known))
     print("\t\t%.2f%% detected (%i/%i)" % percentage(n_detected, n_known))
     print("\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_detected))
     # Link-linker and coreference-linker do not yield candidate information
-    if not link_linker_type and not coreference_linking:
+    if not args.link_linker and not args.coreference_linker:
         print("\t\t\t%.2f%% true entity in candidates (%i/%i)" % percentage(n_is_candidate, n_detected))
         print("\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_is_candidate))
         print("\t\t\t\t%.2f%% multiple candidates (%i/%i)" % percentage(n_true_in_multiple_candidates, n_is_candidate))
         print("\t\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct_multiple_candidates,
                                                               n_true_in_multiple_candidates))
-    if coreference_linking:
+    if args.coreference_linker:
         print()
         print("Coreference evaluation:")
         print("\tprecision = %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_tp + n_coref_fp))
