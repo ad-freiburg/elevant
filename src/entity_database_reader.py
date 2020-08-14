@@ -51,6 +51,20 @@ class EntityDatabaseReader:
         return entities
 
     @staticmethod
+    def read_entity_database() -> Dict[str, WikidataEntity]:
+        entities = dict()
+        for i, line in enumerate(open(settings.ENTITY_FILE)):
+            if i > 0:
+                values = line[:-1].split('\t')
+                name = values[0]
+                score = int(values[1])
+                entity_id = values[4]
+                synonyms = [synonym for synonym in values[5].split(";") if len(synonym) > 0]
+                entity = WikidataEntity(name, score, entity_id, synonyms)
+                entities[entity_id] = entity
+        return entities
+
+    @staticmethod
     def read_names() -> Iterator[Tuple[str, List[str]]]:
         for line in open(settings.PERSON_NAMES_FILE):
             wikidata_url, encoded_names = line[:-1].split(">,")
