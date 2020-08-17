@@ -9,6 +9,7 @@ from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerato
 from src.entity_coref_linker import EntityCorefLinker
 from src.entity_mention import EntityMention
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
+from src.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.explosion_linker import ExplosionEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
@@ -164,7 +165,7 @@ if __name__ == "__main__":
                         help="Name of the knowledge base to use with a spacy linker.")
     parser.add_argument("-ll", "--link_linker", choices=["link-linker", "link-text-linker"], default=None,
                         help="Link linker to apply before spacy or explosion linker")
-    parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity"], default=None,
+    parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity", "stanford"], default=None,
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--evaluation_span", action="store_true",
                         help="If specified, let coreference linker refer only to entities within the evaluation span")
@@ -262,6 +263,8 @@ if __name__ == "__main__":
         print("load gender information...")
         entity_db.load_gender()
         coreference_linker = EntityCorefLinker(entity_db=entity_db)
+    elif args.coreference_linker == "stanford":
+        coreference_linker = StanfordCoreNLPCorefLinker()
 
     if args.benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)

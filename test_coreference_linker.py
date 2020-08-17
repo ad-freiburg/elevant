@@ -8,6 +8,7 @@ from src.entity_database import EntityDatabase
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation_examples_generator import OwnBenchmarkExampleReader
+from src.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from test_entity_linker import CaseType, CASE_COLORS, Case, percentage
 
 
@@ -26,13 +27,15 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")
 
-    parser.add_argument("linker_type", choices=['neuralcoref', 'entity'],
+    parser.add_argument("linker_type", choices=['neuralcoref', 'entity', 'stanford'],
                         help="Type of coreference linker.")
 
     args = parser.parse_args()
 
     if args.linker_type == "neuralcoref":
         coreference_linker = NeuralcorefCorefLinker()
+    elif args.linker_type == "stanford":
+        coreference_linker = StanfordCoreNLPCorefLinker()
     else:
         print("load entities...")
         entity_db = EntityDatabase()
