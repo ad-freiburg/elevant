@@ -52,8 +52,7 @@ class Case:
                  predicted_by: str,
                  is_true_coref: Optional[bool] = False,
                  correct_span_referenced: Optional[bool] = False,
-                 referenced_span: Optional[Tuple[int, int]] = None,
-                 referenced_eval_type: Optional[CaseType] = None):
+                 referenced_span: Optional[Tuple[int, int]] = None):
         self.span = span
         self.true_entity = true_entity
         self.detected = detected
@@ -64,7 +63,6 @@ class Case:
         self.is_true_coref = is_true_coref
         self.correct_span_referenced = correct_span_referenced
         self.referenced_span = referenced_span
-        self.referenced_eval_type = referenced_eval_type
         self.coref_type = self._coref_type()
 
     def has_ground_truth(self):
@@ -118,25 +116,6 @@ class Case:
 
     def __lt__(self, other):
         return self.span < other.span
-
-
-def get_referenced_eval_type(predicted_mention: EntityMention,
-                             ground_truth: Set[Tuple[Tuple[int, int], str]],
-                             ground_truth_spans: Set[Tuple[int, int]],
-                             evaluation_span: Tuple[int, int]) -> CaseType:
-    referenced_tuple = (predicted_mention.referenced_span, predicted_mention.entity_id)
-    if referenced_tuple in ground_truth:
-        eval_type = CaseType.CORRECT
-    elif predicted_mention.referenced_span in ground_truth_spans:
-        # This could be WRONG_CANDIDATE, too, but not relevant for our evaluation
-        eval_type = CaseType.WRONG
-    elif predicted_mention.referenced_span[0] >= evaluation_span[0] and \
-            predicted_mention.referenced_span[1] <= evaluation_span[1]:
-        eval_type = CaseType.FALSE_DETECTION
-    else:
-        # Referenced entity lies outside of evaluation span
-        eval_type = "unknown"
-    return eval_type
 
 
 def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
@@ -333,13 +312,10 @@ if __name__ == "__main__":
                 predicted_entity_id = None
                 candidates = set()
 
-            referenced_eval_type = None
             referenced_span = None
             is_true_coref = span in coref_groundtruth
             correct_span_referenced = False
             if detected and predicted_by == AbstractCorefLinker.IDENTIFIER:
-                referenced_eval_type = get_referenced_eval_type(predicted_mention, ground_truth, ground_truth_spans,
-                                                                evaluation_span)
                 referenced_span = predicted_mention.referenced_span
                 if is_true_coref:
                     for poss_ref_span in coref_groundtruth[span]:
@@ -352,8 +328,7 @@ if __name__ == "__main__":
             case = Case(span, true_entity_id, detected, predicted_entity_id, candidates, predicted_by,
                         is_true_coref=is_true_coref,
                         correct_span_referenced=correct_span_referenced,
-                        referenced_span=referenced_span,
-                        referenced_eval_type=referenced_eval_type)
+                        referenced_span=referenced_span)
             cases.append(case)
 
         # predicted cases (potential false detections):
@@ -363,15 +338,8 @@ if __name__ == "__main__":
             if span not in ground_truth_spans and predicted_entity_id is not None and span[0] >= evaluation_span[0] \
                     and span[1] <= evaluation_span[1]:
                 predicted_by = predicted_mention.linked_by
-
-                referenced_eval_type = None
-                if predicted_by == AbstractCorefLinker.IDENTIFIER:
-                    referenced_eval_type = get_referenced_eval_type(predicted_mention, ground_truth, ground_truth_spans,
-                                                                    evaluation_span)
-
                 case = Case(span, None, True, predicted_entity_id, candidates=candidates,
-                            predicted_by=predicted_by, referenced_span=predicted_mention.referenced_span,
-                            referenced_eval_type=referenced_eval_type)
+                            predicted_by=predicted_by, referenced_span=predicted_mention.referenced_span)
                 cases.append(case)
 
         cases = sorted(cases)
