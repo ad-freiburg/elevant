@@ -77,5 +77,6 @@ class AbstractCorefLinker(abc.ABC):
     @staticmethod
     def get_first_reference_in_span(mentions: List[Tuple[int, int]], span: Tuple[int, int]) -> Tuple[int, int]:
         for mention in mentions:
-            if mention[0] >= span[0] and mention[1] <= span[1]:
+            # Look for overlapping spans
+            if span[0] <= mention[0] <= span[1] or span[0] <= mention[1] <= span[1]:
                 return mention[0], mention[1]

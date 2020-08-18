@@ -67,7 +67,8 @@ if __name__ == "__main__":
                 for poss_ref_span in poss_ref_spans:
                     # Do not require a perfect match of the spans but look for overlaps
                     if poss_ref_span[0] <= referenced_span[1] <= poss_ref_span[1] or \
-                            poss_ref_span[0] <= referenced_span[0] <= poss_ref_span[1]:
+                            poss_ref_span[0] <= referenced_span[0] <= poss_ref_span[1] or \
+                            (poss_ref_span[0] > referenced_span[0] and poss_ref_span[1] < referenced_span[1]):
                         correct_span_referenced = True
                         break
 
@@ -86,7 +87,7 @@ if __name__ == "__main__":
 
         cases = sorted(cases)
 
-        colored_spans = [(case.span, CASE_COLORS[case.eval_type]) for case in cases
+        colored_spans = [(case.span, CASE_COLORS[case.coref_type]) for case in cases
                          if case.eval_type != CaseType.UNKNOWN_ENTITY]
         i = 0
         while i + 1 < len(colored_spans):
