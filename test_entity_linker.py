@@ -185,7 +185,7 @@ if __name__ == "__main__":
             print("Link linkers can only be evaluated over own benchmark.")
             exit(1)
 
-    if args.linker_type in ("spacy", "explosion", "baseline"):
+    if args.linker_type in ("spacy", "explosion", "baseline") or args.link_linker:
         print("load entities...")
         entity_db = EntityDatabase()
         if args.linker_type == "baseline" and args.linker in ("scores", "links"):

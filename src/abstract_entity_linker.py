@@ -10,7 +10,6 @@ from src.entity_mention import EntityMention
 
 class AbstractEntityLinker(abc.ABC):
     NER_IDENTIFIER = "NER"
-
     LINKER_IDENTIFIER = None
 
     @abc.abstractmethod

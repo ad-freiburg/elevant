@@ -5,13 +5,14 @@ import numpy as np
 
 from src.entity_database import EntityDatabase
 from src.entity_prediction import EntityPrediction
+from src.abstract_entity_linker import AbstractEntityLinker
 
 
 TAGME_TOKEN = "56af583d-5f6e-496f-aea2-eab06673b6a3-843339462"
 tagme.GCUBE_TOKEN = TAGME_TOKEN
 
 
-class TagMeLinker:
+class TagMeLinker(AbstractEntityLinker):
     NER_IDENTIFIER = "TagMe"
     LINKER_IDENTIFIER = "TagMe"
 
