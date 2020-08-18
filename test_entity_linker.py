@@ -1,3 +1,4 @@
+import time
 from typing import Tuple, Optional, Set
 
 from enum import Enum
@@ -277,6 +278,7 @@ if __name__ == "__main__":
 
     all_cases = []
 
+    start_time = time.time()
     for article, ground_truth, evaluation_span in example_generator.iterate(args.n_articles):
         text = article.text
 
@@ -443,6 +445,8 @@ if __name__ == "__main__":
 
         all_cases.extend(cases)
 
+    total_time = time.time() - start_time
+
     n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
         n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = n_false_detection = \
         n_coref_total = n_coref_tp = n_coref_fp = 0
@@ -523,3 +527,4 @@ if __name__ == "__main__":
     recall = n_correct / (n_correct + n_false_negatives)
     f1 = 2 * precision * recall / (precision + recall)
     print("f1 =        %.2f%%" % (f1 * 100))
+    print("Evaluation done in %.2fs" % total_time)
