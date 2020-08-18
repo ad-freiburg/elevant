@@ -1,2 +1,4 @@
 spacy==2.3.0
 termcolor==1.1.0
+stanza==1.1.1
+tagme==0.1.3

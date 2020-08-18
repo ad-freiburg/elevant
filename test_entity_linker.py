@@ -14,6 +14,7 @@ from src.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.trained_entity_linker import TrainedEntityLinker
 from src.explosion_linker import ExplosionEntityLinker
 from src.alias_entity_linker import AliasEntityLinker, LinkingStrategy
+from src.tagme_linker import TagMeLinker
 from src.entity_database import EntityDatabase
 from src.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.conll_iob_prediction_reader import ConllIobPredictionReader
@@ -149,7 +150,7 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob"],
+    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme"],
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"
@@ -184,39 +185,40 @@ if __name__ == "__main__":
             print("Link linkers can only be evaluated over own benchmark.")
             exit(1)
 
-    print("load entities...")
-    entity_db = EntityDatabase()
-    if args.linker_type == "baseline" and args.linker in ("scores", "links"):
-        entity_db.load_entities_small(args.minimum_score)
-    else:
-        entity_db.load_entities_big()
-    print(entity_db.size_entities(), "entities")
-    if args.linker_type == "baseline":
-        if args.linker in ("links", "links-all"):
-            print("load link frequencies...")
-            entity_db.load_mapping()
-            entity_db.load_redirects()
-            entity_db.add_link_aliases()
-            entity_db.load_link_frequencies()
+    if args.linker_type in ("spacy", "explosion", "baseline"):
+        print("load entities...")
+        entity_db = EntityDatabase()
+        if args.linker_type == "baseline" and args.linker in ("scores", "links"):
+            entity_db.load_entities_small(args.minimum_score)
         else:
+            entity_db.load_entities_big()
+        print(entity_db.size_entities(), "entities")
+        if args.linker_type == "baseline":
+            if args.linker in ("links", "links-all"):
+                print("load link frequencies...")
+                entity_db.load_mapping()
+                entity_db.load_redirects()
+                entity_db.add_link_aliases()
+                entity_db.load_link_frequencies()
+            else:
+                print("add synonyms...")
+                entity_db.add_synonym_aliases()
+                print(entity_db.size_aliases(), "aliases")
+                print("add names...")
+                entity_db.add_name_aliases()
+                print(entity_db.size_aliases(), "aliases")
+        if args.link_linker:
+            print("add redirects...")
+            entity_db.load_redirects()
             print("add synonyms...")
             entity_db.add_synonym_aliases()
             print(entity_db.size_aliases(), "aliases")
             print("add names...")
             entity_db.add_name_aliases()
             print(entity_db.size_aliases(), "aliases")
-    if args.link_linker:
-        print("add redirects...")
-        entity_db.load_redirects()
-        print("add synonyms...")
-        entity_db.add_synonym_aliases()
-        print(entity_db.size_aliases(), "aliases")
-        print("add names...")
-        entity_db.add_name_aliases()
-        print(entity_db.size_aliases(), "aliases")
-        print("add link aliases")
-        entity_db.add_link_aliases()
-        print(entity_db.size_aliases(), "aliases")
+            print("add link aliases")
+            entity_db.add_link_aliases()
+            print(entity_db.size_aliases(), "aliases")
 
     linker = None
     prediction_iterator = None
@@ -232,6 +234,9 @@ if __name__ == "__main__":
     elif args.linker_type == "ambiverse":
         result_dir = args.linker
         prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
+    elif args.linker_type == "tagme":
+        rho_threshold = float(args.linker)
+        linker = TagMeLinker(rho_threshold)
     else:
         if args.linker not in ("links", "scores", "links-all"):
             raise NotImplementedError("Unknown strategy '%s'." % args.linker)
