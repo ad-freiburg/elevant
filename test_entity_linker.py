@@ -501,6 +501,8 @@ if __name__ == "__main__":
     print("precision = %.2f%% (%i/%i)" % (precision, prec_nominator, prec_denominator))
     recall, rec_nominator, rec_denominator = percentage(n_correct, n_correct + n_false_negatives)
     print("recall =    %.2f%% (%i/%i)" % (recall, rec_nominator, rec_denominator))
+    precision = precision / 100
+    recall = recall / 100
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     print("f1 =        %.2f%%" % (f1 * 100))
     print("Evaluation done in %.2fs" % total_time)
