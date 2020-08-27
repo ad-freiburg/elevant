@@ -35,18 +35,18 @@ class MaximumMatchingNER(AbstractEntityLinker):
         entity_db.add_link_aliases()
         model = spacy.load("en_core_web_sm")
         stopwords = model.Defaults.stop_words
-        months = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
-                  "November", "December"}
+        exclude = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+                   "November", "December", "The", "A", "An"}
+        remove_beginnings = {"a ", "an ", "the ", "in ", "at "}
         self.aliases = set()
         for alias in entity_db.aliases:
-            lowercased = alias.lower()
-            if lowercased.startswith("a "):
-                alias = alias[2:]
-            elif lowercased.startswith("an "):
-                alias = alias[3:]
-            elif lowercased.startswith("the "):
-                alias = alias[4:]
-            if lowercased not in stopwords and alias not in months and contains_uppercase(alias):
+            if len(alias) == 0:
+                continue
+            lowercased = alias[0].lower() + alias[1:]
+            for beginning in remove_beginnings:
+                if lowercased.startswith(beginning):
+                    continue
+            if lowercased not in stopwords and alias not in exclude and contains_uppercase(alias):
                 if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
                     continue
                 self.aliases.add(alias)
