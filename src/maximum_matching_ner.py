@@ -27,7 +27,7 @@ class MaximumMatchingNER(AbstractEntityLinker):
 
     def __init__(self):
         entity_db = EntityDatabase()
-        entity_db.load_entities_small()
+        entity_db.load_entities_big()
         entity_db.add_name_aliases()
         entity_db.add_synonym_aliases()
         entity_db.load_mapping()
