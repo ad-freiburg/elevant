@@ -27,7 +27,7 @@ class MaximumMatchingNER(AbstractEntityLinker):
 
     def __init__(self):
         entity_db = EntityDatabase()
-        entity_db.load_entities_big()
+        entity_db.load_entities_small()
         entity_db.add_name_aliases()
         entity_db.add_synonym_aliases()
         entity_db.load_mapping()
@@ -39,13 +39,16 @@ class MaximumMatchingNER(AbstractEntityLinker):
                   "November", "December"}
         self.aliases = set()
         for alias in entity_db.aliases:
-            if alias.startswith("a "):
+            lowercased = alias.lower()
+            if lowercased.startswith("a "):
                 alias = alias[2:]
-            elif alias.startswith("an "):
+            elif lowercased.startswith("an "):
                 alias = alias[3:]
-            elif alias.startswith("the "):
+            elif lowercased.startswith("the "):
                 alias = alias[4:]
-            if alias.lower() not in stopwords and alias not in months and contains_uppercase(alias):
+            if lowercased not in stopwords and alias not in months and contains_uppercase(alias):
+                if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
+                    continue
                 self.aliases.add(alias)
         self.max_len = 20
         self.model = None
