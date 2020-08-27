@@ -46,8 +46,9 @@ class MaximumMatchingNER(AbstractEntityLinker):
             ignore_alias = False
             for beginning in remove_beginnings:
                 if lowercased.startswith(beginning):
-                    ignore_alias = True
-                    break
+                    if alias[0].islower() or entity_db.contains_alias(alias[len(beginning):]):
+                        ignore_alias = True
+                        break
             if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
                 ignore_alias = True
             if ignore_alias:
