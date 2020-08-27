@@ -20,6 +20,7 @@ from src.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.evaluation_examples_generator import WikipediaExampleReader, ConllExampleReader, OwnBenchmarkExampleReader
 from src.link_text_entity_linker import LinkTextEntityLinker
 from src.link_entity_linker import LinkEntityLinker
+from src.maximum_matching_ner import MaximumMatchingNER
 
 
 class CaseType(Enum):
@@ -132,7 +133,7 @@ if __name__ == "__main__":
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"
-                        "BASELINE: Choose baseline from {scores, links, links-all}.\n"
+                        "BASELINE: Choose baseline from {scores, links, links-all, max-match-ner}.\n"
                         "SPACY: Name of the linker.\n"
                         "EXPLOSION: Full path to the saved model.\n"
                         "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
@@ -165,13 +166,17 @@ if __name__ == "__main__":
 
     print("load entities...")
     entity_db = EntityDatabase()
-    if args.linker_type == "baseline" and args.linker in ("scores", "links"):
+    if args.linker_type == "baseline" and args.linker == "max-match-ner":
+        pass
+    elif args.linker_type == "baseline" and args.linker in ("scores", "links"):
         entity_db.load_entities_small(args.minimum_score)
     else:
         entity_db.load_entities_big()
     print(entity_db.size_entities(), "entities")
     if args.linker_type == "baseline":
-        if args.linker in ("links", "links-all"):
+        if args.linker == "max-match-ner":
+            pass
+        elif args.linker in ("links", "links-all"):
             print("load link frequencies...")
             entity_db.load_mapping()
             entity_db.load_redirects()
@@ -212,13 +217,16 @@ if __name__ == "__main__":
         result_dir = args.linker
         prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
     else:
-        if args.linker not in ("links", "scores", "links-all"):
-            raise NotImplementedError("Unknown strategy '%s'." % args.linker)
-        if args.linker in ("links", "links-all"):
-            strategy = LinkingStrategy.LINK_FREQUENCY
+        if args.linker == "max-match-ner":
+            linker = MaximumMatchingNER()
         else:
-            strategy = LinkingStrategy.ENTITY_SCORE
-        linker = AliasEntityLinker(entity_db, strategy)
+            if args.linker not in ("links", "scores", "links-all"):
+                raise NotImplementedError("Unknown strategy '%s'." % args.linker)
+            if args.linker in ("links", "links-all"):
+                strategy = LinkingStrategy.LINK_FREQUENCY
+            else:
+                strategy = LinkingStrategy.ENTITY_SCORE
+            linker = AliasEntityLinker(entity_db, strategy)
 
     print("load evaluation entities...")
     entity_db = EntityDatabase()
@@ -489,10 +497,10 @@ if __name__ == "__main__":
     print()
     print("tp = %i, fp = %i (false detections = %i), fn = %i" %
           (n_correct, n_false_positives, n_false_detection, n_false_negatives))
-    print("precision = %.2f%% (%i/%i)" % percentage(n_correct, n_correct + n_false_positives))
-    print("recall =    %.2f%% (%i/%i)" % percentage(n_correct, n_correct + n_false_negatives))
-    precision = n_correct / (n_correct + n_false_positives)
-    recall = n_correct / (n_correct + n_false_negatives)
-    f1 = 2 * precision * recall / (precision + recall)
+    precision, prec_nominator, prec_denominator = percentage(n_correct, n_correct + n_false_positives)
+    print("precision = %.2f%% (%i/%i)" % (precision, prec_nominator, prec_denominator))
+    recall, rec_nominator, rec_denominator = percentage(n_correct, n_correct + n_false_negatives)
+    print("recall =    %.2f%% (%i/%i)" % (recall, rec_nominator, rec_denominator))
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     print("f1 =        %.2f%%" % (f1 * 100))
     print("Evaluation done in %.2fs" % total_time)
