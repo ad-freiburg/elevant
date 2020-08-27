@@ -43,12 +43,16 @@ class MaximumMatchingNER(AbstractEntityLinker):
             if len(alias) == 0:
                 continue
             lowercased = alias[0].lower() + alias[1:]
+            ignore_alias = False
             for beginning in remove_beginnings:
                 if lowercased.startswith(beginning):
-                    continue
+                    ignore_alias = True
+                    break
+            if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
+                ignore_alias = True
+            if ignore_alias:
+                continue
             if lowercased not in stopwords and alias not in exclude and contains_uppercase(alias):
-                if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
-                    continue
                 self.aliases.add(alias)
         self.max_len = 20
         self.model = None
