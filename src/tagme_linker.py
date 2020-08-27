@@ -16,7 +16,7 @@ class TagMeLinker(AbstractEntityLinker):
     NER_IDENTIFIER = "TagMe"
     LINKER_IDENTIFIER = "TagMe"
 
-    def __init__(self, rho_threshold: float):
+    def __init__(self, rho_threshold: float = 0.2):
         self.entity_db = EntityDatabase()
         self.entity_db.load_mapping()
         self.entity_db.load_redirects()
