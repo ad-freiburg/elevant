@@ -38,6 +38,7 @@ class MaximumMatchingNER(AbstractEntityLinker):
         exclude = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
                    "November", "December", "The", "A", "An"}
         remove_beginnings = {"a ", "an ", "the ", "in ", "at "}
+        remove_ends = {"'s"}
         self.aliases = set()
         for alias in entity_db.aliases:
             if len(alias) == 0:
@@ -54,7 +55,12 @@ class MaximumMatchingNER(AbstractEntityLinker):
             if ignore_alias:
                 continue
             if lowercased not in stopwords and alias not in exclude and contains_uppercase(alias):
-                self.aliases.add(alias)
+                for end in remove_ends:
+                    if alias.endswith(end):
+                        alias = alias[:-(len(end))]
+                        break
+                if len(alias) > 0:
+                    self.aliases.add(alias)
         self.max_len = 20
         self.model = None
 
