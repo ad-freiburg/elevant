@@ -54,12 +54,12 @@ class MaximumMatchingNER(AbstractEntityLinker):
                 ignore_alias = True
             if ignore_alias:
                 continue
+            for end in remove_ends:
+                if alias.endswith(end):
+                    alias = alias[:-(len(end))]
+                    break
             if lowercased not in stopwords and alias not in exclude and contains_uppercase(alias):
-                for end in remove_ends:
-                    if alias.endswith(end):
-                        alias = alias[:-(len(end))]
-                        break
-                if len(alias) > 0:
+                if len(alias) > 1:
                     self.aliases.add(alias)
         self.max_len = 20
         self.model = None
