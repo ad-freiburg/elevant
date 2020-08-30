@@ -241,7 +241,8 @@ if __name__ == "__main__":
     entity_db.load_mapping()
     entity_db.load_redirects()
 
-    COREFERENCE_PRONOUNS = {"he", "she", "it", "his", "her", "its", "him", "they", "their", "theirs"}
+    COREFERENCE_PRONOUNS = {"he", "she", "it", "his", "her", "its", "him", "they", "their", "theirs", "I", "my", "me",
+                            "mine"}
 
     link_linker = None
     if args.link_linker == "link-text-linker":
