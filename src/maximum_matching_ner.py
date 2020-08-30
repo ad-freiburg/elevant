@@ -25,14 +25,15 @@ class MaximumMatchingNER(AbstractEntityLinker):
     def has_entity(self, entity_id: str) -> bool:
         return False
 
-    def __init__(self):
-        entity_db = EntityDatabase()
-        entity_db.load_entities_big()
-        entity_db.add_name_aliases()
-        entity_db.add_synonym_aliases()
-        entity_db.load_mapping()
-        entity_db.load_redirects()
-        entity_db.add_link_aliases()
+    def __init__(self, entity_db: Optional[EntityDatabase] = None):
+        if entity_db is None:
+            entity_db = EntityDatabase()
+            entity_db.load_entities_big()
+            entity_db.add_name_aliases()
+            entity_db.add_synonym_aliases()
+            entity_db.load_mapping()
+            entity_db.load_redirects()
+            entity_db.add_link_aliases()
         model = spacy.load("en_core_web_sm")
         stopwords = model.Defaults.stop_words
         exclude = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October",

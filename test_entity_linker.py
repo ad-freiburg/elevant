@@ -157,6 +157,8 @@ if __name__ == "__main__":
                         help="Load a small version of the database")
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evalutation.")
+    parser.add_argument("--longest_alias_ner", action="store_true",
+                        help="For the baselines: use longest matching alias NER instead of SpaCy NER.")
     args = parser.parse_args()
 
     if args.link_linker:
@@ -233,7 +235,8 @@ if __name__ == "__main__":
                 strategy = LinkingStrategy.LINK_FREQUENCY
             else:
                 strategy = LinkingStrategy.ENTITY_SCORE
-            linker = AliasEntityLinker(entity_db, strategy)
+            linker = AliasEntityLinker(entity_db, strategy, load_model=not args.longest_alias_ner,
+                                       longest_alias_ner=args.longest_alias_ner)
 
     print("load evaluation entities...")
     entity_db = EntityDatabase()
