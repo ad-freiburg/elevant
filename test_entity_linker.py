@@ -169,7 +169,8 @@ if __name__ == "__main__":
 
     print("load entities...")
     entity_db = EntityDatabase()
-    if args.linker_type == "baseline" and args.linker == "max-match-ner":
+    if (args.linker_type == "baseline" and args.linker == "max-match-ner")\
+            or args.linker_type == "tagme":
         pass
     elif args.linker_type == "baseline" and args.linker in ("scores", "links"):
         entity_db.load_entities_small(args.minimum_score)
