@@ -8,13 +8,11 @@ from src.entity_prediction import EntityPrediction
 from src.abstract_entity_linker import AbstractEntityLinker
 
 
-TAGME_TOKEN = "56af583d-5f6e-496f-aea2-eab06673b6a3-843339462"
-tagme.GCUBE_TOKEN = TAGME_TOKEN
+tagme.GCUBE_TOKEN = "56af583d-5f6e-496f-aea2-eab06673b6a3-843339462"
 
 
 class TagMeLinker(AbstractEntityLinker):
-    NER_IDENTIFIER = "TagMe"
-    LINKER_IDENTIFIER = "TagMe"
+    NER_IDENTIFIER = LINKER_IDENTIFIER = "TAGME"
 
     def __init__(self, rho_threshold: float = 0.2):
         self.entity_db = EntityDatabase()
