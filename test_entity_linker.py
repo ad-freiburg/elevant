@@ -154,6 +154,8 @@ if __name__ == "__main__":
                         help="Minimum entity score to include entity in database")
     parser.add_argument("-small", "--small_database", action="store_true",
                         help="Load a small version of the database")
+    parser.add_argument("--no_coreference", action="store_true",
+                        help="Exclude coreference cases from the evalutation.")
     args = parser.parse_args()
 
     if args.link_linker:
@@ -234,6 +236,8 @@ if __name__ == "__main__":
     entity_db.load_mapping()
     entity_db.load_redirects()
 
+    COREFERENCE_PRONOUNS = {"he", "she", "it", "his", "her", "its", "him", "they", "their", "theirs"}
+
     link_linker = None
     if args.link_linker == "link-text-linker":
         link_linker = LinkTextEntityLinker(entity_db=entity_db)
@@ -264,10 +268,19 @@ if __name__ == "__main__":
     coref_groundtruth_generator = CoreferenceGroundtruthGenerator()
 
     all_cases = []
+    n_ner_tp = n_ner_fp = n_ner_fn = 0
 
     start_time = time.time()
     for article, ground_truth, evaluation_span in example_generator.iterate(args.n_articles):
         text = article.text
+
+        if args.no_coreference:
+            filtered_ground_truth = set()
+            for span, entity_id in ground_truth:
+                snippet = text[span[0]:span[1]]
+                if snippet.lower() not in COREFERENCE_PRONOUNS and not snippet.startswith("the "):
+                    filtered_ground_truth.add((span, entity_id))
+            ground_truth = filtered_ground_truth
 
         if linker is None:
             predictions = next(prediction_iterator)
@@ -374,6 +387,22 @@ if __name__ == "__main__":
             position = end
         print_str += text[position:]
         print(print_str)
+
+        # NER evaluation:
+        predicted_spans = set(predictions)
+        if args.evaluation_span:
+            eval_begin, eval_end = evaluation_span
+            predicted_spans = {(begin, end) for begin, end in predicted_spans
+                               if begin >= eval_begin and end <= eval_end}
+        ner_tp = ground_truth_spans.intersection(predicted_spans)
+        ner_fp = predicted_spans.difference(ground_truth_spans)
+        ner_fn = ground_truth_spans.difference(predicted_spans)
+        n_ner_tp += len(ner_tp)
+        n_ner_fp += len(ner_fp)
+        n_ner_fn += len(ner_fn)
+        print("NER TP:", [(span, text[span[0]:span[1]]) for span in ner_tp])
+        print("NER FP:", [(span, text[span[0]:span[1]]) for span in ner_fp])
+        print("NER FN:", [(span, text[span[0]:span[1]]) for span in ner_fn])
 
         for case in cases:
             true_str = "(%s %s)" % (case.true_entity, entity_db.get_entity(case.true_entity).name
@@ -494,7 +523,17 @@ if __name__ == "__main__":
         f1 = 2 * precision * recall / (precision + recall)
         print("\tf1 =        %.2f%%" % (f1*100))
 
-    print()
+    print("\nNER:")
+    ner_precision, ner_prec_nominator, ner_prec_denominator = percentage(n_ner_tp, n_ner_tp + n_ner_fp)
+    print("precision = %.2f%% (%i/%i)" % (ner_precision, ner_prec_nominator, ner_prec_denominator))
+    ner_recall, ner_rec_nominator, ner_rec_denominator = percentage(n_ner_tp, n_ner_tp + n_ner_fn)
+    print("recall =    %.2f%% (%i/%i)" % (ner_recall, ner_rec_nominator, ner_rec_denominator))
+    ner_precision = ner_precision / 100
+    ner_recall = ner_recall / 100
+    ner_f1 = 2 * ner_precision * ner_recall / (ner_precision + ner_recall)
+    print("f1 =        %.2f%%" % (ner_f1 * 100))
+
+    print("\nNERD:")
     print("tp = %i, fp = %i (false detections = %i), fn = %i" %
           (n_correct, n_false_positives, n_false_detection, n_false_negatives))
     precision, prec_nominator, prec_denominator = percentage(n_correct, n_correct + n_false_positives)
@@ -505,4 +544,5 @@ if __name__ == "__main__":
     recall = recall / 100
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     print("f1 =        %.2f%%" % (f1 * 100))
-    print("Evaluation done in %.2fs" % total_time)
+
+    print("\nEvaluation done in %.2fs" % total_time)
