@@ -1,5 +1,6 @@
 from typing import Optional
 
+import stanza
 from stanza.server import CoreNLPClient
 from spacy.tokens import Doc
 
