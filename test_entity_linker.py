@@ -22,6 +22,7 @@ from src.evaluation_examples_generator import WikipediaExampleReader, ConllExamp
 from src.link_text_entity_linker import LinkTextEntityLinker
 from src.link_entity_linker import LinkEntityLinker
 from src.maximum_matching_ner import MaximumMatchingNER
+from src.xrenner_coref_linker import XrennerCorefLinker
 
 
 class CaseType(Enum):
@@ -147,7 +148,8 @@ if __name__ == "__main__":
                         help="Name of the knowledge base to use with a spacy linker.")
     parser.add_argument("-ll", "--link_linker", choices=["link-linker", "link-text-linker"], default=None,
                         help="Link linker to apply before spacy or explosion linker")
-    parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity", "stanford"], default=None,
+    parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity", "stanford", "xrenner"],
+                        default=None,
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--evaluation_span", action="store_true",
                         help="If specified, let coreference linker refer only to entities within the evaluation span")
@@ -162,7 +164,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.link_linker:
-        if args.linker_type not in {"spacy", "explosion"}:
+        if args.linker_type in {"baseline", "ambiverse", "iob"}:
             print("Link linkers can only be applied for spacy or explosion linker.")
             exit(1)
         elif args.benchmark != "own":
@@ -266,6 +268,8 @@ if __name__ == "__main__":
         coreference_linker = EntityCorefLinker(entity_db=entity_db)
     elif args.coreference_linker == "stanford":
         coreference_linker = StanfordCoreNLPCorefLinker()
+    elif args.coreference_linker == "xrenner":
+        coreference_linker = XrennerCorefLinker()
 
     if args.benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
@@ -529,7 +533,7 @@ if __name__ == "__main__":
         print("\trecall =    %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_total))
         precision = n_coref_tp / (n_coref_tp + n_coref_fp)
         recall = n_coref_tp / n_coref_total
-        f1 = 2 * precision * recall / (precision + recall)
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
         print("\tf1 =        %.2f%%" % (f1*100))
 
     print("\nNER:")
