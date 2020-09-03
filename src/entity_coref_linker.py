@@ -53,9 +53,8 @@ class EntityCorefLinker(AbstractCorefLinker):
         if not article.entity_mentions:
             return []
 
-        all_entity_mentions = article.entity_mentions
-        for span, entity_mention in sorted(all_entity_mentions.items()):
-            if pronoun_idx < len(pronoun_spans) and span[0] > pronoun_spans[pronoun_idx][0]:
+        for span, entity_mention in sorted(article.entity_mentions.items()):
+            while pronoun_idx < len(pronoun_spans) and span[0] > pronoun_spans[pronoun_idx][0]:
                 p_span = pronoun_spans[pronoun_idx]
                 p_text = article.text[p_span[0]:p_span[1]].lower()
                 p_gender = PronounFinder.pronoun_genders[p_text]
@@ -82,7 +81,6 @@ class EntityCorefLinker(AbstractCorefLinker):
                     # Add pronoun to coreference cluster
                     clusters[referenced_entity.entity_id].append(p_span)
                 pronoun_idx += 1
-
             entity_id = entity_mention.entity_id
             gender = self.entity_db.get_gender(entity_id)
             deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
