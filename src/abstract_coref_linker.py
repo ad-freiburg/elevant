@@ -18,8 +18,11 @@ class AbstractCorefLinker(abc.ABC):
                       article: WikipediaArticle,
                       doc: Optional[Doc] = None,
                       only_pronouns: Optional[bool] = False,
-                      evaluation_span: Tuple[int, int] = None):
+                      evaluation_span: Tuple[int, int] = None,
+                      verbose: Optional[bool] = False):
         coref_clusters = self.get_clusters(article, doc)
+        if verbose:
+            self.print_clusters(coref_clusters, article.text)
         new_entity_mentions = []
         if not coref_clusters:
             article.add_entity_mentions([])
@@ -39,7 +42,7 @@ class AbstractCorefLinker(abc.ABC):
                 for mention in coreference_cluster.mentions:
                     mention_span = (mention[0], mention[1])
                     mention_text = article.text[mention_span[0]:mention_span[1]]
-                    if only_pronouns and mention_text.lower() not in PronounFinder.pronouns:
+                    if only_pronouns and mention_text.lower() not in PronounFinder.pronoun_genders:
                         continue
                     if not article.get_overlapping_entity(mention_span):
                         entity_mention = EntityMention(mention_span, recognized_by=self.IDENTIFIER, entity_id=entity_id,
@@ -51,8 +54,11 @@ class AbstractCorefLinker(abc.ABC):
                 article: WikipediaArticle,
                 doc: Optional[Doc] = None,
                 only_pronouns: Optional[bool] = False,
-                evaluation_span: Tuple[int, int] = None):
+                evaluation_span: Tuple[int, int] = None,
+                verbose: Optional[bool] = False):
         coref_clusters = self.get_clusters(article, doc)
+        if verbose:
+            self.print_clusters(coref_clusters, article.text)
         predictions = dict()
         if not coref_clusters:
             return predictions
@@ -69,7 +75,7 @@ class AbstractCorefLinker(abc.ABC):
                 if mention_span == main_span:
                     continue
                 mention_text = article.text[mention_span[0]:mention_span[1]]
-                if only_pronouns and mention_text.lower() not in PronounFinder.pronouns:
+                if only_pronouns and mention_text.lower() not in PronounFinder.pronoun_genders:
                     continue
                 predictions[mention_span] = main_span
         return predictions
@@ -80,3 +86,14 @@ class AbstractCorefLinker(abc.ABC):
             # Look for overlapping spans
             if span[0] <= mention[0] <= span[1] or span[0] <= mention[1] <= span[1]:
                 return mention[0], mention[1]
+
+    @staticmethod
+    def print_clusters(clusters, text):
+        print()
+        print("Predicted coreference clusters:")
+        for i, cluster in enumerate(clusters):
+            for j, span in enumerate(cluster.mentions):
+                end = " | " if j < len(cluster.mentions) - 1 else "\n"
+                text_span = text[span[0]:span[1]].replace("\n", "<br>")
+                print("(%d,%d) [%s]" % (span[0], span[1], text_span), end=end)
+        print()
