@@ -11,6 +11,7 @@ from src.evaluation_examples_generator import OwnBenchmarkExampleReader
 from src.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.xrenner_coref_linker import XrennerCorefLinker
 from test_entity_linker import CaseType, CASE_COLORS, Case, percentage
+from src.wikipedia_article import article_from_json
 
 
 def print_help():
@@ -31,6 +32,9 @@ if __name__ == "__main__":
     parser.add_argument("linker_type", choices=['neuralcoref', 'entity', 'stanford', 'xrenner'],
                         help="Type of coreference linker.")
 
+    parser.add_argument("--linked_file", type=str, default=None,
+                        help="Read existing linked entities from file.")
+
     args = parser.parse_args()
 
     if args.linker_type == "neuralcoref":
@@ -40,9 +44,7 @@ if __name__ == "__main__":
     elif args.linker_type == "xrenner":
         coreference_linker = XrennerCorefLinker()
     else:
-        print("load entities...")
         entity_db = EntityDatabase()
-        entity_db.load_entities_big()
         print("load gender information...")
         entity_db.load_gender()
         coreference_linker = EntityCorefLinker(entity_db)
@@ -51,11 +53,19 @@ if __name__ == "__main__":
 
     example_generator = OwnBenchmarkExampleReader()
 
-    all_cases = []
+    linked_file = None
+    if args.linked_file:
+        linked_file = open(args.linked_file, "r")
 
+    all_cases = []
     for article, ground_truth, evaluation_span in example_generator.iterate(args.n_articles):
         text = article.text
         coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article)
+
+        if linked_file:
+            json_line = linked_file.readline()
+            article = article_from_json(json_line)
+
         predictions = coreference_linker.predict(article, only_pronouns=True, evaluation_span=evaluation_span)
         ground_truth_spans = set(span for span, _ in ground_truth)
         cases = []
