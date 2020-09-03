@@ -65,14 +65,6 @@ class EntityDatabaseReader:
         return entities
 
     @staticmethod
-    def read_names() -> Iterator[Tuple[str, List[str]]]:
-        for line in open(settings.PERSON_NAMES_FILE):
-            wikidata_url, encoded_names = line[:-1].split(">,")
-            entity_id = parse_entity_id(wikidata_url)
-            entity_names = [parse_name(encoded) for encoded in encoded_names.split("@en,")]
-            yield entity_id, entity_names
-
-    @staticmethod
     def get_link_frequencies() -> Dict[str, Dict[str, int]]:
         with open(settings.LINK_FREEQUENCIES_FILE, "rb") as f:
             link_frequencies = pickle.load(f)
@@ -114,3 +106,11 @@ class EntityDatabaseReader:
             else:
                 mapping[entity_id] = Gender.OTHER
         return mapping
+
+    @staticmethod
+    def read_names() -> Iterator[Tuple[str, str]]:
+        for line in open(settings.GIVEN_NAME_FILE):
+            wikidata_url, encoded_given_name = line[:-1].split(">\t")
+            entity_id = parse_entity_id(wikidata_url)
+            given_name = encoded_given_name[:-len(LABEL_SUFFIX)].strip('"')
+            yield entity_id, given_name

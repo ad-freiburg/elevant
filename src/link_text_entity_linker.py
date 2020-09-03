@@ -5,10 +5,13 @@ from src.wikipedia_article import WikipediaArticle
 
 
 class LinkTextEntityLinker:
-    LINKER_IDENTIFIER = "LINK_TEXT_LINKER"
+    LINKER_IDENTIFIER = "LTL"
 
     def __init__(self, entity_db):
         self.entity_db = entity_db
+        if not self.entity_db.is_given_names_loaded():
+            print("Load first name mapping...")
+            self.entity_db.load_names()
 
     def add_synonyms(self, entity_id: str, synonym_dict: Dict):
         """Add all aliases of an entity to dictionary
@@ -51,13 +54,23 @@ class LinkTextEntityLinker:
                 entity_mention = EntityMention(span=(span[0], end_idx),
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,
-                                               linked_by=self.LINKER_IDENTIFIER)
+                                               linked_by="LTL_LINK")
                 entity_mentions.append(entity_mention)
+
+        # Get given names for detected entity mentions and use them like aliases
+        for entity_id in [title_entity_id] + [em.entity_id for em in entity_mentions]:
+            if self.entity_db.has_given_name(entity_id):
+                first_name = self.entity_db.get_given_name(entity_id)
+                # TODO: right now, always the first entity in the article with the given name is chosen
+                if first_name not in entity_synonyms:
+                    entity_synonyms[first_name] = entity_id
 
         # Link text that has been linked to an entity before, starting with the longest text
         for link_text, entity_id in sorted(entity_links.items(), key=lambda x: len(x[0]), reverse=True) + \
                                     sorted(entity_synonyms.items(), key=lambda x: len(x[0]), reverse=True):
             search_start_idx = 0
+            if not link_text:
+                continue
             while True:
                 start_idx = article.text.find(link_text, search_start_idx)
 
@@ -94,7 +107,7 @@ class LinkTextEntityLinker:
                 entity_mention = EntityMention(span=(start_idx, end_idx),
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,
-                                               linked_by=self.LINKER_IDENTIFIER)
+                                               linked_by="LTL_REFERENCE")
                 entity_mentions.append(entity_mention)
                 search_start_idx = end_idx
 

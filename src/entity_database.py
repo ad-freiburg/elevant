@@ -25,6 +25,10 @@ class EntityDatabase:
         self.entity_frequencies: Dict[str, int]
         self.entity2gender = {}
         self.entity2gender: Dict[str, Gender]
+        self.given_names = {}
+        self.given_names: Dict[str, str]
+        self.family_names = {}
+        self.family_names: Dict[str, str]
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -76,10 +80,10 @@ class EntityDatabase:
                     self.add_alias(alias, entity.entity_id)
 
     def add_name_aliases(self):
-        for entity_id, names in EntityDatabaseReader.read_names():
-            if self.contains_entity(entity_id):
-                for name in names:
-                    self.add_alias(name, entity_id)
+        for entity_id, name in EntityDatabaseReader.read_names():
+            if self.contains_entity(entity_id) and " " in name:
+                family_name = name.split()[-1]
+                self.add_alias(family_name, entity_id)
 
     def size_aliases(self) -> int:
         return len(self.aliases)
@@ -147,6 +151,9 @@ class EntityDatabase:
     def load_gender(self):
         self.entity2gender = EntityDatabaseReader.get_gender_mapping()
 
+    def is_gender_loaded(self):
+        return len(self.entity2gender) > 0
+
     def get_gender(self, entity_id):
         if len(self.entity2gender) == 0:
             print("Warning: Tried to access gender information but gender mapping was not loaded.")
@@ -154,3 +161,39 @@ class EntityDatabase:
             return self.entity2gender[entity_id]
         else:
             return Gender.NEUTRAL
+
+    def load_names(self):
+        for entity_id, name in EntityDatabaseReader.read_names():
+            if " " in name:
+                given_name = name.split()[0]
+                family_name = name.split()[-1]
+                self.given_names[entity_id] = given_name
+                self.family_names[entity_id] = family_name
+
+    def is_given_names_loaded(self):
+        return len(self.given_names) > 0
+
+    def has_given_name(self, entity_id):
+        if len(self.given_names) == 0:
+            print("Warning: Tried to access first names but first name mapping was not loaded.\n"
+                  "Use entity_database.load_names() to load the mapping")
+        if entity_id in self.given_names:
+            return True
+        return False
+
+    def get_given_name(self, entity_id):
+        return self.given_names[entity_id]
+
+    def is_family_names_loaded(self):
+        return len(self.family_names) > 0
+
+    def has_family_name(self, entity_id):
+        if len(self.family_names) == 0:
+            print("Warning: Tried to access family names but family name mapping was not loaded.\n"
+                  "Use entity_database.load_names() to load the mapping")
+        if entity_id in self.family_names:
+            return True
+        return False
+
+    def get_family_name(self, entity_id):
+        return self.family_names[entity_id]
