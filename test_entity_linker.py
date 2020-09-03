@@ -197,18 +197,6 @@ if __name__ == "__main__":
             print("add names...")
             entity_db.add_name_aliases()
             print(entity_db.size_aliases(), "aliases")
-        if args.link_linker:
-            print("add redirects...")
-            entity_db.load_redirects()
-            print("add synonyms...")
-            entity_db.add_synonym_aliases()
-            print(entity_db.size_aliases(), "aliases")
-            print("add names...")
-            entity_db.add_name_aliases()
-            print(entity_db.size_aliases(), "aliases")
-            print("add link aliases")
-            entity_db.add_link_aliases()
-            print(entity_db.size_aliases(), "aliases")
 
     linker = None
     prediction_iterator = None
@@ -251,6 +239,12 @@ if __name__ == "__main__":
 
     link_linker = None
     if args.link_linker == "link-text-linker":
+        print("add synonyms...")
+        entity_db.add_synonym_aliases()
+        print(entity_db.size_aliases(), "aliases")
+        print("add names...")
+        entity_db.add_name_aliases()
+        print(entity_db.size_aliases(), "aliases")
         link_linker = LinkTextEntityLinker(entity_db=entity_db)
     elif args.link_linker == "link-linker":
         link_linker = LinkEntityLinker()

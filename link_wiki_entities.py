@@ -67,23 +67,13 @@ if __name__ == "__main__":
     else:
         entity_db.load_entities_big()
     print(entity_db.size_entities(), "entities")
-    if linker_type == "baseline" or link_text_linker:
+    if linker_type == "baseline":
         if sys.argv[3] in ("links", "links-all"):
             print("load link frequencies...")
             entity_db.load_mapping()
             entity_db.load_redirects()
             entity_db.add_link_aliases()
             entity_db.load_link_frequencies()
-        elif link_text_linker:
-            print("add synonyms...")
-            entity_db.add_synonym_aliases()
-            print(entity_db.size_aliases(), "aliases")
-            print("add names...")
-            entity_db.add_name_aliases()
-            print(entity_db.size_aliases(), "aliases")
-            print("add redirects...")
-            entity_db.load_redirects()
-            print(len(entity_db.redirects), "redirects")
         else:
             print("add synonyms...")
             entity_db.add_synonym_aliases()
@@ -99,7 +89,19 @@ if __name__ == "__main__":
         model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
     if not no_links:
-        link_linker = LinkTextEntityLinker(entity_db=entity_db) if link_text_linker else LinkEntityLinker()
+        if link_text_linker:
+            print("load link text linker entity database...")
+            link_linker_entity_db = EntityDatabase()
+            link_linker_entity_db.load_entities_big()
+            link_linker_entity_db.load_mapping()
+            link_linker_entity_db.load_redirects()
+            print("add synonyms...")
+            link_linker_entity_db.add_synonym_aliases()
+            print("add names...")
+            link_linker_entity_db.add_name_aliases()
+            link_linker = LinkTextEntityLinker(entity_db=link_linker_entity_db)
+        else:
+            LinkEntityLinker()
 
     if linker_type == "spacy":
         linker_name = sys.argv[3]
