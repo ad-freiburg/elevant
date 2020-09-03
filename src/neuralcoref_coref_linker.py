@@ -20,8 +20,7 @@ class NeuralcorefCorefLinker(AbstractCorefLinker):
         neuralcoref.add_to_pipe(self.model, max_dist=50, max_dist_match=100)
 
     def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
-        if doc is None:
-            doc = self.model(article.text)
+        doc = self.model(article.text)
 
         coref_clusters = []
         for cluster in doc._.coref_clusters:
