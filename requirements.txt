@@ -4,3 +4,4 @@ stanza==1.1.1
 tagme==0.1.3
 spacy_conll==2.0.0
 xrenner
+nltk==3.5

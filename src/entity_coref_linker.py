@@ -1,13 +1,14 @@
 from typing import Optional, Tuple, List
-from spacy.tokens import Doc, Token
+from spacy.tokens import Doc, Token, Span
 from spacy.language import Language
 
 import spacy
 
 from src.abstract_coref_linker import AbstractCorefLinker
 from src.coref_cluster import CorefCluster
+from src.dependency_conll_extractor import DependencyConllExtractor
+from src.dependency_graph import EnhancedDependencyGraph
 from src.entity_database import EntityDatabase
-from src.entity_mention import EntityMention
 from src.gender import Gender
 from src.pronoun_finder import PronounFinder
 from src.wikipedia_article import WikipediaArticle
@@ -28,6 +29,19 @@ def get_tokens_in_span(span: Tuple[int, int], doc: Doc) -> List[Token]:
         if token.idx >= span[0] and token.idx + len(token.text) <= span[1]:
             tokens.append(token)
     return tokens
+
+
+def get_sentence(offset: int, doc: Doc) -> Span:
+    for i, sent in enumerate(doc.sents):
+        if sent.end_char >= offset:
+            return sent
+
+
+def get_token_idx_in_sent(offset: int, doc: Doc) -> int:
+    for i, sent in enumerate(doc.sents):
+        for j, tok in enumerate(sent):
+            if tok.idx >= offset:
+                return j
 
 
 class EntityCorefLinker(AbstractCorefLinker):
@@ -59,6 +73,17 @@ class EntityCorefLinker(AbstractCorefLinker):
                 p_text = article.text[p_span[0]:p_span[1]].lower()
                 p_gender = PronounFinder.pronoun_genders[p_text]
                 referenced_entity = None
+
+                # Don't add "it" to coreference cluster if it does not refer to an object
+                if p_text == "it":
+                    sent = get_sentence(p_span[0], doc)
+                    conll_string = DependencyConllExtractor.to_conll_7(sent)
+                    dep_graph = EnhancedDependencyGraph(conll_string)
+                    it_idx = get_token_idx_in_sent(p_span[0], doc) + 1
+                    if dep_graph.is_problematic_it(it_idx):
+                        pronoun_idx += 1
+                        continue
+
                 # print("Pronoun span: (%d,%d)[%s]" % (p_span[0], p_span[1], p_text))
                 for i, preceding_entity in enumerate(reversed(preceding_entities[p_gender.value])):
                     pre_span = preceding_entity.span
