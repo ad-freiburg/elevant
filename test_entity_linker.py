@@ -151,6 +151,8 @@ if __name__ == "__main__":
     parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity", "stanford", "xrenner"],
                         default=None,
                         help="Coreference linker to apply after entity linkers.")
+    parser.add_argument("--only_pronouns", action="store_true",
+                        help="Only link coreferences that are pronouns.")
     parser.add_argument("--evaluation_span", action="store_true",
                         help="If specified, let coreference linker refer only to entities within the evaluation span")
     parser.add_argument("-min", "--minimum_score", type=int, default=0,
@@ -315,10 +317,9 @@ if __name__ == "__main__":
 
             coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article)
             if args.coreference_linker:
-                if args.evaluation_span:
-                    coreference_linker.link_entities(article, only_pronouns=False, evaluation_span=evaluation_span)
-                else:
-                    coreference_linker.link_entities(article, only_pronouns=False)
+                coref_eval_span = evaluation_span if args.evaluation_span else None
+                coreference_linker.link_entities(article, only_pronouns=args.only_pronouns,
+                                                 evaluation_span=coref_eval_span)
 
             if args.link_linker or args.coreference_linker:
                 for em in article.entity_mentions.values():

@@ -1,4 +1,4 @@
-from typing import Dict, Set, Tuple, Iterator, Optional
+from typing import Dict, Set, Tuple, Iterator, Optional, List
 
 from src.gender import Gender
 from src.wikidata_entity import WikidataEntity
@@ -29,8 +29,8 @@ class EntityDatabase:
         self.given_names: Dict[str, str]
         self.family_names = {}
         self.family_names: Dict[str, str]
-        self.entity2type = {}
-        self.entity2type: Dict[str, str]
+        self.entity2types = {}
+        self.entity2types: Dict[str, List[str]]
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -201,13 +201,13 @@ class EntityDatabase:
         return self.family_names[entity_id]
 
     def load_types(self):
-        self.entity2type = EntityDatabaseReader.get_type_mapping()
+        self.entity2types = EntityDatabaseReader.get_type_mapping()
 
-    def is_type_loaded(self):
-        return len(self.entity2type) > 0
+    def is_types_loaded(self):
+        return len(self.entity2types) > 0
 
-    def has_type(self, entity_id):
-        return entity_id in self.entity2type
+    def has_types(self, entity_id):
+        return entity_id in self.entity2types
 
-    def get_type(self, entity_id):
-        return self.entity2type[entity_id]
+    def get_types(self, entity_id):
+        return self.entity2types[entity_id]

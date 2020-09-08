@@ -55,84 +55,101 @@ class EntityCorefLinker(AbstractCorefLinker):
         if not self.entity_db.is_gender_loaded():
             print("Load gender mapping...")
             self.entity_db.load_gender()
-        if not self.entity_db.is_type_loaded():
-            print("Load type mapping...")
+        if not self.entity_db.is_types_loaded():
+            print("Load types mapping...")
             self.entity_db.load_types()
+        if self.entity_db.size_entities() == 0:
+            print("Load entities...")
+            self.entity_db.load_entities_big()
+
+    @staticmethod
+    def get_referenced_entity(span, preceding_entities, max_distance=200):
+        referenced_entity = None
+        for i, preceding_entity in enumerate(reversed(preceding_entities)):
+            pre_span = preceding_entity.span
+            if pre_span[1] + max_distance < span[0]:
+                break
+            if i == 0:
+                referenced_entity = preceding_entity
+            if "nsubj" in preceding_entity.deps or "nsubjpass" in preceding_entity.deps:
+                referenced_entity = preceding_entity
+                break
+        return referenced_entity
 
     def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
-        if doc is None:
-            doc = self.model(article.text)
-
-        pronoun_spans = sorted(PronounFinder.find_pronouns(doc))
-        pronoun_idx = 0
-        preceding_entities_by_gender = [[] for _ in range(len(Gender))]
-        preceding_entities_by_type = {}
-        clusters = defaultdict(list)
-
         if not article.entity_mentions:
             return []
 
-        for span, entity_mention in sorted(article.entity_mentions.items()):
-            while pronoun_idx < len(pronoun_spans) and span[0] > pronoun_spans[pronoun_idx][0]:
-                p_span = pronoun_spans[pronoun_idx]
-                p_text = article.text[p_span[0]:p_span[1]].lower()
-                p_gender = PronounFinder.pronoun_genders[p_text]
-                referenced_entity = None
+        if doc is None:
+            doc = self.model(article.text)
 
-                # Don't add "it" to coreference cluster if it does not refer to an object
-                if p_text == "it":
-                    sent = get_sentence(p_span[0], doc)
-                    conll_string = DependencyConllExtractor.to_conll_7(sent)
-                    dep_graph = EnhancedDependencyGraph(conll_string)
-                    it_idx = get_token_idx_in_sent(p_span[0], doc) + 1
-                    if dep_graph.is_problematic_it(it_idx):
-                        pronoun_idx += 1
-                        continue
-
-                # print("Pronoun span: (%d,%d)[%s]" % (p_span[0], p_span[1], p_text))
-                for i, preceding_entity in enumerate(reversed(preceding_entities_by_gender[p_gender.value])):
-                    pre_span = preceding_entity.span
-                    # print("Preceding entity: (%d,%d)[%s]" % (pre_span[0], pre_span[1], article.text[pre_span[0]:pre_span[1]]))
-                    if pre_span[1] + 200 < p_span[0]:
-                        break
-                    if i == 0:
-                        referenced_entity = preceding_entity
-                        # print("FIRST PRECEDING ENTITY")
-                    if "nsubj" in preceding_entity.deps or "nsubjpass" in preceding_entity.deps:
-                        referenced_entity = preceding_entity
-                        # print("SUBJECT!")
-                        break
-
-                if referenced_entity:
-                    # Add pronoun to preceding entities under linked entity id
-                    deps = [tok.dep_ for tok in get_tokens_in_span(p_span, doc)]
-                    new_referenced_entity = ReferencedEntity(p_span, referenced_entity.entity_id, referenced_entity.gender, deps)
-                    preceding_entities_by_gender[referenced_entity.gender.value].append(new_referenced_entity)
-                    # Add pronoun to coreference cluster
-                    clusters[referenced_entity.entity_id].append(p_span)
-                pronoun_idx += 1
-            entity_id = entity_mention.entity_id
-            gender = self.entity_db.get_gender(entity_id)
-            deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
-            ref_entity = ReferencedEntity(span, entity_id, gender, deps)
-            preceding_entities_by_gender[gender.value].append(ref_entity)
-            if self.entity_db.has_type(entity_id):
-                typ = self.entity_db.get_type(entity_id)
-                if typ not in preceding_entities_by_type:
-                    preceding_entities_by_type[typ] = []
-                preceding_entities_by_type[typ].append(entity_id)
-
-            # print("Add pre entity under %s: (%d,%d)[%s:%s], deps: %s" % (gender.value, span[0], span[1], entity_id, article.text[span[0]:span[1]], deps))
-            clusters[entity_id].append(span)
-
+        preceding_entities_by_gender = defaultdict(list)
+        preceding_entities_by_type = defaultdict(list)
+        clusters = defaultdict(list)
+        sorted_entity_mentions = sorted(article.entity_mentions.items())
+        mention_idx = 0
         prev_tok = None
         for tok in doc:
-            # TODO only works for single word types right now
-            if tok.text.lower() in preceding_entities_by_type and prev_tok and prev_tok.text.lower() == "the":
-                # TODO: right now always the first occurrence of an entity of a certain type is used
-                entity_id = preceding_entities_by_type[tok.text.lower()][0]
-                span = prev_tok.idx, tok.idx + len(tok.text)
+            # Find preceding, already linked entities
+            if mention_idx < len(sorted_entity_mentions) and tok.idx >= sorted_entity_mentions[mention_idx][0][0]:
+                span, entity_mention = sorted_entity_mentions[mention_idx]
+                entity_id = entity_mention.entity_id
+                gender = self.entity_db.get_gender(entity_id)
+                deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
+                referenced_entity = ReferencedEntity(span, entity_id, gender, deps)
+                preceding_entities_by_gender[gender].append(referenced_entity)
+                if self.entity_db.has_types(entity_id):
+                    for type_id in self.entity_db.get_types(entity_id):
+                        if self.entity_db.contains_entity(type_id):
+                            type_entity = self.entity_db.get_entity(type_id)
+                            names = type_entity.synonyms + [type_entity.name]
+                            for name in names:
+                                preceding_entities_by_type[name.lower()].append(referenced_entity)
                 clusters[entity_id].append(span)
+                mention_idx += 1
+
+            # Find pronoun coreference
+            elif PronounFinder.is_pronoun(tok.text):
+                span = tok.idx, tok.idx + len(tok.text)
+                p_text = article.text[span[0]:span[1]].lower()
+                p_gender = PronounFinder.pronoun_genders[p_text]
+
+                # Don't add "it" to coreference cluster if it does not refer to an object
+                problematic_pronoun = False
+                if p_text == "it":
+                    sent = get_sentence(span[0], doc)
+                    conll_string = DependencyConllExtractor.to_conll_7(sent)
+                    dep_graph = EnhancedDependencyGraph(conll_string)
+                    it_idx = get_token_idx_in_sent(span[0], doc) + 1
+                    if dep_graph.is_problematic_it(it_idx):
+                        problematic_pronoun = True
+
+                # Find referenced entity
+                if not problematic_pronoun:
+                    referenced_entity = self.get_referenced_entity(span, preceding_entities_by_gender[p_gender])
+
+                    # Add coreference to cluster and to preceding entities
+                    if referenced_entity:
+                        # Add pronoun to preceding entities under linked entity id
+                        deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
+                        new_referenced_entity = ReferencedEntity(span, referenced_entity.entity_id,
+                                                                 referenced_entity.gender, deps)
+                        preceding_entities_by_gender[referenced_entity.gender].append(new_referenced_entity)
+                        # Add pronoun to coreference cluster
+                        clusters[referenced_entity.entity_id].append(span)
+
+            # Find "the <type>" coreference
+            # TODO only works for single word types right now
+            elif tok.text in preceding_entities_by_type and prev_tok and prev_tok.text.lower() == "the":
+                span = prev_tok.idx, tok.idx + len(tok.text)
+                referenced_entity = self.get_referenced_entity(span, preceding_entities_by_type[tok.text.lower()],
+                                                               max_distance=300)
+                if referenced_entity:
+                    clusters[referenced_entity.entity_id].append(span)
+                    deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
+                    new_referenced_entity = ReferencedEntity(span, referenced_entity.entity_id, Gender.UNKNOWN, deps)
+                    preceding_entities_by_type[tok.text.lower()].append(new_referenced_entity)
+
             prev_tok = tok
 
         coref_clusters = []

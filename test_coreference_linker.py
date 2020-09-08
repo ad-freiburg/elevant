@@ -35,6 +35,9 @@ if __name__ == "__main__":
     parser.add_argument("--linked_file", type=str, default=None,
                         help="Read existing linked entities from file.")
 
+    parser.add_argument("--only_pronouns", action="store_true",
+                        help="Only link coreferences that are pronouns.")
+
     args = parser.parse_args()
 
     if args.linker_type == "neuralcoref":
@@ -66,7 +69,7 @@ if __name__ == "__main__":
             json_line = linked_file.readline()
             article = article_from_json(json_line)
 
-        predictions = coreference_linker.predict(article, only_pronouns=False, evaluation_span=evaluation_span)
+        predictions = coreference_linker.predict(article, only_pronouns=args.only_pronouns, evaluation_span=evaluation_span)
         ground_truth_spans = set(span for span, _ in ground_truth)
         cases = []
 

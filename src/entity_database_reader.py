@@ -116,11 +116,10 @@ class EntityDatabaseReader:
             yield entity_id, given_name
 
     @staticmethod
-    def get_type_mapping(mappings_file: str = settings.TYPE_MAPPING_FILE):
+    def get_type_mapping(mappings_file: str = settings.RELEVANT_TYPES_FILE):
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
             line = line[:-1]
-            qid, primary, secondary = line.split("\t")
-            typ = primary.split(":")[1]
-            mapping[qid] = typ
+            entity_id, types = line.split("\t")
+            mapping[entity_id] = types.split(";")
         return mapping
