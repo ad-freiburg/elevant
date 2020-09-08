@@ -29,6 +29,8 @@ class EntityDatabase:
         self.given_names: Dict[str, str]
         self.family_names = {}
         self.family_names: Dict[str, str]
+        self.entity2type = {}
+        self.entity2type: Dict[str, str]
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -197,3 +199,15 @@ class EntityDatabase:
 
     def get_family_name(self, entity_id):
         return self.family_names[entity_id]
+
+    def load_types(self):
+        self.entity2type = EntityDatabaseReader.get_type_mapping()
+
+    def is_type_loaded(self):
+        return len(self.entity2type) > 0
+
+    def has_type(self, entity_id):
+        return entity_id in self.entity2type
+
+    def get_type(self, entity_id):
+        return self.entity2type[entity_id]

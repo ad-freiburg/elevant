@@ -114,3 +114,13 @@ class EntityDatabaseReader:
             entity_id = parse_entity_id(wikidata_url)
             given_name = encoded_given_name[:-len(LABEL_SUFFIX)].strip('"')
             yield entity_id, given_name
+
+    @staticmethod
+    def get_type_mapping(mappings_file: str = settings.TYPE_MAPPING_FILE):
+        mapping = {}
+        for i, line in enumerate(open(mappings_file)):
+            line = line[:-1]
+            qid, primary, secondary = line.split("\t")
+            typ = primary.split(":")[1]
+            mapping[qid] = typ
+        return mapping

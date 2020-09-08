@@ -1,12 +1,15 @@
 from typing import Optional
 
 import spacy
-from spacy.tokens import Doc
 from spacy.language import Language
 
 from src.pronoun_finder import PronounFinder
 from src.wikipedia_article import WikipediaArticle
 from src import settings
+
+
+def is_coreference(text):
+    return PronounFinder.is_pronoun(text) or (text.lower().startswith("the ") and len(text) > 4 and text[4].islower())
 
 
 class CoreferenceGroundtruthGenerator:
@@ -17,16 +20,18 @@ class CoreferenceGroundtruthGenerator:
         else:
             self.model = model
 
-    def get_groundtruth(self, article: WikipediaArticle, doc: Doc = None):
+    @staticmethod
+    def get_groundtruth(article: WikipediaArticle):
         if not article.labels:
             return {}
-        if doc is None:
-            doc = self.model(article.text)
-        pronouns = PronounFinder.find_pronouns(doc)
+
         referenced_entities = {}
         entity_to_pronouns = {}
-        pronoun_ground_truth = {((span[0], span[1]), entity_id) for span, entity_id in article.labels
-                                if (span[0], span[1]) in pronouns}
+        pronoun_ground_truth = []
+        for span, entity_id in article.labels:
+            text = article.text[span[0]:span[1]]
+            if is_coreference(text):
+                pronoun_ground_truth.append(((span[0], span[1]), entity_id))
         for pronoun_span, entity_id in pronoun_ground_truth:
             if entity_id not in entity_to_pronouns:
                 entity_to_pronouns[entity_id] = []
@@ -34,7 +39,8 @@ class CoreferenceGroundtruthGenerator:
 
         for span, entity_id in article.labels:
             span = (span[0], span[1])
-            if span in pronouns:
+            text = article.text[span[0]:span[1]]
+            if is_coreference(text):
                 referenced_entities[span] = set()
 
         for span, entity_id in article.labels:

@@ -66,7 +66,7 @@ if __name__ == "__main__":
             json_line = linked_file.readline()
             article = article_from_json(json_line)
 
-        predictions = coreference_linker.predict(article, only_pronouns=True, evaluation_span=evaluation_span)
+        predictions = coreference_linker.predict(article, only_pronouns=False, evaluation_span=evaluation_span)
         ground_truth_spans = set(span for span, _ in ground_truth)
         cases = []
 

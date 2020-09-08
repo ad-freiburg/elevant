@@ -313,12 +313,12 @@ if __name__ == "__main__":
             else:
                 linker.link_entities(article, doc)
 
-            coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article, doc)
+            coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article)
             if args.coreference_linker:
                 if args.evaluation_span:
-                    coreference_linker.link_entities(article, only_pronouns=True, evaluation_span=evaluation_span)
+                    coreference_linker.link_entities(article, only_pronouns=False, evaluation_span=evaluation_span)
                 else:
-                    coreference_linker.link_entities(article, only_pronouns=True)
+                    coreference_linker.link_entities(article, only_pronouns=False)
 
             if args.link_linker or args.coreference_linker:
                 for em in article.entity_mentions.values():

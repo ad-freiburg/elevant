@@ -31,6 +31,7 @@ ABSTRACTS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia.tsv"
 WIKI_MAPPING_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
 GENDER_MAPPING_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_gender.tsv"
 GIVEN_NAME_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_given_name.tsv"
+TYPE_MAPPING_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_categories_v9.txt"
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"

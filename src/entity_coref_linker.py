@@ -3,6 +3,7 @@ from spacy.tokens import Doc, Token, Span
 from spacy.language import Language
 
 import spacy
+from collections import defaultdict
 
 from src.abstract_coref_linker import AbstractCorefLinker
 from src.coref_cluster import CorefCluster
@@ -54,6 +55,9 @@ class EntityCorefLinker(AbstractCorefLinker):
         if not self.entity_db.is_gender_loaded():
             print("Load gender mapping...")
             self.entity_db.load_gender()
+        if not self.entity_db.is_type_loaded():
+            print("Load type mapping...")
+            self.entity_db.load_types()
 
     def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
         if doc is None:
@@ -61,8 +65,9 @@ class EntityCorefLinker(AbstractCorefLinker):
 
         pronoun_spans = sorted(PronounFinder.find_pronouns(doc))
         pronoun_idx = 0
-        preceding_entities = [[] for _ in range(len(Gender))]
-        clusters = {}
+        preceding_entities_by_gender = [[] for _ in range(len(Gender))]
+        preceding_entities_by_type = {}
+        clusters = defaultdict(list)
 
         if not article.entity_mentions:
             return []
@@ -85,7 +90,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                         continue
 
                 # print("Pronoun span: (%d,%d)[%s]" % (p_span[0], p_span[1], p_text))
-                for i, preceding_entity in enumerate(reversed(preceding_entities[p_gender.value])):
+                for i, preceding_entity in enumerate(reversed(preceding_entities_by_gender[p_gender.value])):
                     pre_span = preceding_entity.span
                     # print("Preceding entity: (%d,%d)[%s]" % (pre_span[0], pre_span[1], article.text[pre_span[0]:pre_span[1]]))
                     if pre_span[1] + 200 < p_span[0]:
@@ -102,7 +107,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                     # Add pronoun to preceding entities under linked entity id
                     deps = [tok.dep_ for tok in get_tokens_in_span(p_span, doc)]
                     new_referenced_entity = ReferencedEntity(p_span, referenced_entity.entity_id, referenced_entity.gender, deps)
-                    preceding_entities[referenced_entity.gender.value].append(new_referenced_entity)
+                    preceding_entities_by_gender[referenced_entity.gender.value].append(new_referenced_entity)
                     # Add pronoun to coreference cluster
                     clusters[referenced_entity.entity_id].append(p_span)
                 pronoun_idx += 1
@@ -110,12 +115,25 @@ class EntityCorefLinker(AbstractCorefLinker):
             gender = self.entity_db.get_gender(entity_id)
             deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
             ref_entity = ReferencedEntity(span, entity_id, gender, deps)
-            preceding_entities[gender.value].append(ref_entity)
+            preceding_entities_by_gender[gender.value].append(ref_entity)
+            if self.entity_db.has_type(entity_id):
+                typ = self.entity_db.get_type(entity_id)
+                if typ not in preceding_entities_by_type:
+                    preceding_entities_by_type[typ] = []
+                preceding_entities_by_type[typ].append(entity_id)
 
             # print("Add pre entity under %s: (%d,%d)[%s:%s], deps: %s" % (gender.value, span[0], span[1], entity_id, article.text[span[0]:span[1]], deps))
-            if entity_id not in clusters:
-                clusters[entity_id] = []
             clusters[entity_id].append(span)
+
+        prev_tok = None
+        for tok in doc:
+            # TODO only works for single word types right now
+            if tok.text.lower() in preceding_entities_by_type and prev_tok and prev_tok.text.lower() == "the":
+                # TODO: right now always the first occurrence of an entity of a certain type is used
+                entity_id = preceding_entities_by_type[tok.text.lower()][0]
+                span = prev_tok.idx, tok.idx + len(tok.text)
+                clusters[entity_id].append(span)
+            prev_tok = tok
 
         coref_clusters = []
         for entity_id, cluster in clusters.items():
