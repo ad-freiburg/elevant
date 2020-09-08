@@ -43,7 +43,7 @@ class AbstractCorefLinker(abc.ABC):
                 for mention in coreference_cluster.mentions:
                     mention_span = (mention[0], mention[1])
                     mention_text = article.text[mention_span[0]:mention_span[1]]
-                    if only_pronouns and PronounFinder.is_pronoun(mention_text):
+                    if only_pronouns and not PronounFinder.is_pronoun(mention_text):
                         continue
                     if not article.get_overlapping_entity(mention_span):
                         entity_mention = EntityMention(mention_span, recognized_by=self.IDENTIFIER, entity_id=entity_id,
@@ -76,7 +76,7 @@ class AbstractCorefLinker(abc.ABC):
                 if mention_span == main_span:
                     continue
                 mention_text = article.text[mention_span[0]:mention_span[1]]
-                if only_pronouns and PronounFinder.is_pronoun(mention_text):
+                if only_pronouns and not PronounFinder.is_pronoun(mention_text):
                     continue
                 if not article.get_overlapping_entity(mention_span) and is_coreference(mention_text):
                     predictions[mention_span] = main_span
