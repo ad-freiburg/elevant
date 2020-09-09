@@ -11,6 +11,7 @@ from src.dependency_conll_extractor import DependencyConllExtractor
 from src.dependency_graph import EnhancedDependencyGraph
 from src.entity_database import EntityDatabase
 from src.gender import Gender
+from src.offset_converter import OffsetConverter
 from src.pronoun_finder import PronounFinder
 from src.wikipedia_article import WikipediaArticle
 from src import settings
@@ -22,27 +23,6 @@ class ReferencedEntity:
         self.entity_id = entity_id
         self.gender = gender
         self.deps = deps
-
-
-def get_tokens_in_span(span: Tuple[int, int], doc: Doc) -> List[Token]:
-    tokens = []
-    for token in doc:
-        if token.idx >= span[0] and token.idx + len(token.text) <= span[1]:
-            tokens.append(token)
-    return tokens
-
-
-def get_sentence(offset: int, doc: Doc) -> Span:
-    for i, sent in enumerate(doc.sents):
-        if sent.end_char >= offset:
-            return sent
-
-
-def get_token_idx_in_sent(offset: int, doc: Doc) -> int:
-    for i, sent in enumerate(doc.sents):
-        for j, tok in enumerate(sent):
-            if tok.idx >= offset:
-                return j
 
 
 class EntityCorefLinker(AbstractCorefLinker):
@@ -95,7 +75,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                 span, entity_mention = sorted_entity_mentions[mention_idx]
                 entity_id = entity_mention.entity_id
                 gender = self.entity_db.get_gender(entity_id)
-                deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
+                deps = [tok.dep_ for tok in OffsetConverter.get_tokens_in_span(span, doc)]
                 referenced_entity = ReferencedEntity(span, entity_id, gender, deps)
                 preceding_entities_by_gender[gender].append(referenced_entity)
                 if self.entity_db.has_types(entity_id):
@@ -117,10 +97,10 @@ class EntityCorefLinker(AbstractCorefLinker):
                 # Don't add "it" to coreference cluster if it does not refer to an object
                 problematic_pronoun = False
                 if p_text == "it":
-                    sent = get_sentence(span[0], doc)
+                    sent = OffsetConverter.get_sentence(span[0], doc)
                     conll_string = DependencyConllExtractor.to_conll_7(sent)
                     dep_graph = EnhancedDependencyGraph(conll_string)
-                    it_idx = get_token_idx_in_sent(span[0], doc) + 1
+                    it_idx = OffsetConverter.get_token_idx_in_sent(span[0], doc) + 1
                     if dep_graph.is_problematic_it(it_idx):
                         problematic_pronoun = True
 
@@ -131,7 +111,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                     # Add coreference to cluster and to preceding entities
                     if referenced_entity:
                         # Add pronoun to preceding entities under linked entity id
-                        deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
+                        deps = [tok.dep_ for tok in OffsetConverter.get_tokens_in_span(span, doc)]
                         new_referenced_entity = ReferencedEntity(span, referenced_entity.entity_id,
                                                                  referenced_entity.gender, deps)
                         preceding_entities_by_gender[referenced_entity.gender].append(new_referenced_entity)
@@ -146,7 +126,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                                                                max_distance=300)
                 if referenced_entity:
                     clusters[referenced_entity.entity_id].append(span)
-                    deps = [tok.dep_ for tok in get_tokens_in_span(span, doc)]
+                    deps = [tok.dep_ for tok in OffsetConverter.get_tokens_in_span(span, doc)]
                     new_referenced_entity = ReferencedEntity(span, referenced_entity.entity_id, Gender.UNKNOWN, deps)
                     preceding_entities_by_type[tok.text.lower()].append(new_referenced_entity)
 

@@ -299,7 +299,7 @@ if __name__ == "__main__":
                 doc = None
 
             if args.link_linker:
-                link_linker.link_entities(article)
+                link_linker.link_entities(article, doc)
 
             predictions = {}
             if not args.link_linker and not args.coreference_linker:

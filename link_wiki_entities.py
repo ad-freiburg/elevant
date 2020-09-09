@@ -25,7 +25,7 @@ def link_entities(article: WikipediaArticle):
     if not args.link_linker:
         article.add_entity_mentions([])
     else:
-        link_linker.link_entities(article)
+        link_linker.link_entities(article, doc)
     linker.link_entities(article, doc=doc)
     if coreference_linker:
         coreference_linker.link_entities(article, doc=doc)

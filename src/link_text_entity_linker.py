@@ -1,13 +1,25 @@
-from typing import Dict
+from typing import Dict, Optional
+from spacy.tokens import Doc
+from spacy.language import Language
+
+import spacy
 
 from src.entity_mention import EntityMention
+from src.offset_converter import OffsetConverter
+from src.pronoun_finder import PronounFinder
 from src.wikipedia_article import WikipediaArticle
+from src import settings
 
 
 class LinkTextEntityLinker:
     LINKER_IDENTIFIER = "LTL"
 
-    def __init__(self, entity_db):
+    def __init__(self, entity_db, model: Optional[Language] = None):
+        if model is None:
+            self.model = spacy.load(settings.LARGE_MODEL_NAME)
+        else:
+            self.model = model
+
         self.entity_db = entity_db
         if not self.entity_db.is_given_names_loaded():
             print("Load first name mapping...")
@@ -24,7 +36,10 @@ class LinkTextEntityLinker:
                 if not syn.islower():
                     synonym_dict[syn] = entity_id
 
-    def link_entities(self, article: WikipediaArticle):
+    def link_entities(self, article: WikipediaArticle, doc: Optional[Doc] = None):
+        if doc is None:
+            doc = self.model(article.text)
+
         entity_links = dict()
         entity_synonyms = dict()
         covered_positions = set()
@@ -95,11 +110,20 @@ class LinkTextEntityLinker:
                 for i in range(start_idx, end_idx):
                     if i in covered_positions:
                         search_start_idx = end_idx
-                        # print("Overlap at %d for text %s" % (i, link_text))
                         skip = True
                         break
                 if skip:
                     continue
+
+                # Can't rely on case info at sentence start, therefore only link text at sentence start if it is likely
+                # to be an entity judging by its pos tag and dependency tag
+                tok_sent_idx = OffsetConverter.get_token_idx_in_sent(start_idx, doc)
+                if tok_sent_idx == 0 and start_idx != 0 and " " not in link_text:
+                    token = OffsetConverter.get_token(start_idx, doc)
+                    if not token.tag_.startswith("NN") and not token.tag_.startswith("JJ") and \
+                            (not token.dep_.startswith("nsubj") or PronounFinder.is_pronoun(token.text)):
+                        search_start_idx = end_idx
+                        continue
 
                 # Add text span to entity mentions
                 covered_positions.update(range(start_idx, end_idx))
