@@ -259,8 +259,6 @@ if __name__ == "__main__":
     if args.coreference_linker == "neuralcoref":
         coreference_linker = NeuralcorefCorefLinker()
     elif args.coreference_linker == "entity":
-        print("load gender information...")
-        entity_db.load_gender()
         coreference_linker = EntityCorefLinker(entity_db=entity_db)
     elif args.coreference_linker == "stanford":
         coreference_linker = StanfordCoreNLPCorefLinker()
