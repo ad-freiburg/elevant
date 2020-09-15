@@ -163,6 +163,8 @@ if __name__ == "__main__":
                         help="Exclude coreference cases from the evalutation.")
     parser.add_argument("--longest_alias_ner", action="store_true",
                         help="For the baselines: use longest matching alias NER instead of SpaCy NER.")
+    parser.add_argument("--uppercase", action="store_true",
+                        help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     args = parser.parse_args()
 
     if args.link_linker:
@@ -323,6 +325,16 @@ if __name__ == "__main__":
                 for em in article.entity_mentions.values():
                     predictions[em.span] = em, {em.entity_id}
 
+        if args.uppercase:
+            filtered_predictions = {}
+            for span in predictions:
+                mention, candidates = predictions[span]
+                begin, end = mention.span
+                snippet = text[begin:end]
+                if any([char.isupper() for char in snippet]):
+                    filtered_predictions[span] = mention, candidates
+            predictions = filtered_predictions
+
         ground_truth_spans = set(span for span, _ in ground_truth)
         cases = []
 
@@ -406,9 +418,18 @@ if __name__ == "__main__":
         n_ner_tp += len(ner_tp)
         n_ner_fp += len(ner_fp)
         n_ner_fn += len(ner_fn)
-        print("NER TP:", [(span, text[span[0]:span[1]]) for span in ner_tp])
-        print("NER FP:", [(span, text[span[0]:span[1]]) for span in ner_fp])
-        print("NER FN:", [(span, text[span[0]:span[1]]) for span in ner_fn])
+        print("NER TP:", sorted([(span, text[span[0]:span[1]],
+                                  linker.get_alias_frequency(text[span[0]:span[1]])
+                                  if args.linker == "max-match-ner" else 0)
+                                 for span in ner_tp]))
+        print("NER FP:", sorted([(span, text[span[0]:span[1]],
+                                  linker.get_alias_frequency(text[span[0]:span[1]])
+                                  if args.linker == "max-match-ner" else 0)
+                                 for span in ner_fp]))
+        print("NER FN:", sorted([(span, text[span[0]:span[1]],
+                                  linker.get_alias_frequency(text[span[0]:span[1]])
+                                  if args.linker == "max-match-ner" else 0)
+                                 for span in ner_fn]))
 
         for case in cases:
             true_str = "(%s %s)" % (case.true_entity, entity_db.get_entity(case.true_entity).name
