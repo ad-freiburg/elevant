@@ -169,8 +169,10 @@ class EntityDatabase:
             if " " in name:
                 given_name = name.split()[0]
                 family_name = name.split()[-1]
-                self.given_names[entity_id] = given_name
-                self.family_names[entity_id] = family_name
+                if len(given_name) > 1:
+                    self.given_names[entity_id] = given_name
+                if len(family_name) > 1:
+                    self.family_names[entity_id] = family_name
 
     def is_given_names_loaded(self):
         return len(self.given_names) > 0
