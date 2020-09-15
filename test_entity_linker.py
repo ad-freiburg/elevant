@@ -131,7 +131,7 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme"],
+    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme", "none"],
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     elif args.linker_type == "tagme":
         rho_threshold = float(args.linker)
         linker = TagMeLinker(rho_threshold)
-    else:
+    elif args.linker_type == "baseline":
         if args.linker == "max-match-ner":
             linker = MaximumMatchingNER()
         else:
@@ -291,11 +291,11 @@ if __name__ == "__main__":
                     filtered_ground_truth.add((span, entity_id))
             ground_truth = filtered_ground_truth
 
-        if linker is None:
+        if prediction_iterator:
             predictions = next(prediction_iterator)
             coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article)
         else:
-            if linker.model:
+            if linker and linker.model:
                 doc = linker.model(text)
             else:
                 doc = None
@@ -304,16 +304,17 @@ if __name__ == "__main__":
                 link_linker.link_entities(article, doc)
 
             predictions = {}
-            if not args.link_linker and not args.coreference_linker:
-                linker_predictions = linker.predict(text, doc)
-                for span, ep in linker_predictions.items():
-                    entity_mention = EntityMention(span,
-                                                   recognized_by=linker.NER_IDENTIFIER,
-                                                   entity_id=ep.entity_id,
-                                                   linked_by=linker.LINKER_IDENTIFIER)
-                    predictions[span] = entity_mention, ep.candidates
-            else:
-                linker.link_entities(article, doc)
+            if linker:
+                if not args.link_linker and not args.coreference_linker:
+                    linker_predictions = linker.predict(text, doc)
+                    for span, ep in linker_predictions.items():
+                        entity_mention = EntityMention(span,
+                                                       recognized_by=linker.NER_IDENTIFIER,
+                                                       entity_id=ep.entity_id,
+                                                       linked_by=linker.LINKER_IDENTIFIER)
+                        predictions[span] = entity_mention, ep.candidates
+                else:
+                    linker.link_entities(article, doc)
 
             coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article)
             if args.coreference_linker:
