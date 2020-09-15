@@ -142,10 +142,16 @@ class EntityDatabase:
         else:
             return self.aliases[alias]
 
-    def get_link_frequency(self, alias, entity_id):
+    def get_link_frequency(self, alias: str, entity_id: str) -> int:
         if alias not in self.link_frequencies or entity_id not in self.link_frequencies[alias]:
             return 0
         return self.link_frequencies[alias][entity_id]
+
+    def get_alias_frequency(self, alias: str) -> int:
+        frequency = 0
+        for entity_id in self.get_candidates(alias):
+            frequency += self.get_link_frequency(alias, entity_id)
+        return frequency
 
     def get_entity_frequency(self, entity_id: str):
         return self.entity_frequencies[entity_id] if entity_id in self.entity_frequencies else 0
