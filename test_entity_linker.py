@@ -166,8 +166,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.link_linker:
-        if args.linker_type in {"baseline", "ambiverse", "iob"}:
-            print("Link linkers can only be applied for spacy or explosion linker.")
+        if args.linker_type in {"ambiverse", "iob"}:
+            print("Link linkers can not be applied for linker '%s'." % args.linker_type)
             exit(1)
         elif args.benchmark != "own":
             print("Link linkers can only be evaluated over own benchmark.")
