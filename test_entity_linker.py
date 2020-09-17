@@ -72,7 +72,7 @@ class Case:
         return self.true_entity is not None
 
     def is_known_entity(self):
-        return self.true_entity is not None and self.true_entity != "Unknown"
+        return self.true_entity is not None and not self.true_entity.startswith("Unknown")
 
     def is_detected(self):
         return self.detected
@@ -166,8 +166,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.link_linker:
-        if args.linker_type in {"baseline", "ambiverse", "iob"}:
-            print("Link linkers can only be applied for spacy or explosion linker.")
+        if args.linker_type in {"ambiverse", "iob"}:
+            print("Link linkers can not be applied for linker '%s'." % args.linker_type)
             exit(1)
         elif args.benchmark != "own":
             print("Link linkers can only be evaluated over own benchmark.")
