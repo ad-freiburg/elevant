@@ -6,6 +6,7 @@ from spacy.tokens.doc import Doc
 from src.entity_database import EntityDatabase
 from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_prediction import EntityPrediction
+from src.dates import is_date
 
 
 def get_split_points(text: str) -> List[int]:
@@ -33,6 +34,7 @@ class MaximumMatchingNER(AbstractEntityLinker):
             entity_db.add_synonym_aliases()
             entity_db.load_mapping()
             entity_db.load_redirects()
+            entity_db.load_link_frequencies()
             entity_db.add_link_aliases()
         model = spacy.load("en_core_web_sm")
         stopwords = model.Defaults.stop_words
@@ -40,7 +42,7 @@ class MaximumMatchingNER(AbstractEntityLinker):
                    "November", "December", "The", "A", "An"}
         remove_beginnings = {"a ", "an ", "the ", "in ", "at "}
         remove_ends = {"'s"}
-        self.aliases = set()
+        self.alias_frequencies = {}
         for alias in entity_db.aliases:
             if len(alias) == 0:
                 continue
@@ -53,6 +55,10 @@ class MaximumMatchingNER(AbstractEntityLinker):
                         break
             if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
                 ignore_alias = True
+            if is_date(alias):
+                ignore_alias = True
+            if alias[0].islower():
+                ignore_alias = True
             if ignore_alias:
                 continue
             for end in remove_ends:
@@ -60,8 +66,9 @@ class MaximumMatchingNER(AbstractEntityLinker):
                     alias = alias[:-(len(end))]
                     break
             if lowercased not in stopwords and alias not in exclude and contains_uppercase(alias):
-                if len(alias) > 1:
-                    self.aliases.add(alias)
+                alias_frequency = entity_db.get_alias_frequency(alias)
+                if len(alias) > 1 and alias_frequency > 0:
+                    self.alias_frequencies[alias] = alias_frequency
         self.max_len = 20
         self.model = None
 
@@ -76,9 +83,12 @@ class MaximumMatchingNER(AbstractEntityLinker):
                 end_point = split_points[point_i + length]
                 if end_point > start_point:
                     snippet = text[start_point:end_point]
-                    if snippet in self.aliases:
+                    if snippet in self.alias_frequencies:
                         point_i += length - 1
                         mention_spans.append((start_point, end_point))
                         break
             point_i += 1
         return mention_spans
+
+    def get_alias_frequency(self, alias: str) -> int:
+        return self.alias_frequencies[alias] if alias in self.alias_frequencies else 0
