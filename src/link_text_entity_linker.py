@@ -63,7 +63,6 @@ class LinkTextEntityLinker:
                 # Expand entity span to end of word
                 end_idx = span[1]
                 while end_idx + 1 < len(article.text) and article.text[end_idx].isalpha():
-                    # TODO: consider expanding only up to a certain amount of characters
                     end_idx += 1
 
                 entity_mention = EntityMention(span=(span[0], end_idx),
@@ -100,10 +99,16 @@ class LinkTextEntityLinker:
 
                 # Expand entity span to end of word
                 end_idx = start_idx + len(link_text)
+                num_expansions = 0
+                skip = False
                 while end_idx + 1 < len(article.text) and article.text[end_idx].isalpha():
-                    # TODO: consider expanding only up to a certain amount of characters
-                    # print("Expanding mention \"%s\" by \"%s\"" % (link_text, article.text[end_idx]))
+                    if num_expansions >= 3:  # to cover cases like Waldeck -> Waldeckers
+                        skip = True
                     end_idx += 1
+                    num_expansions += 1
+                if skip:
+                    search_start_idx = end_idx
+                    continue
 
                 # Check if the found text span does overlap with an already linked entity
                 skip = False
