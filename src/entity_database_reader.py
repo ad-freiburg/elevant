@@ -123,3 +123,12 @@ class EntityDatabaseReader:
             entity_id, types = line.split("\t")
             mapping[entity_id] = types.split(";")
         return mapping
+
+    @staticmethod
+    def get_unigram_counts() -> Dict[str, int]:
+        counts = {}
+        with open(settings.UNIGRAMS_FILE) as f:
+            for line in f:
+                unigram, count = line.split()
+                counts[unigram] = int(count)
+        return counts

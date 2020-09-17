@@ -20,7 +20,7 @@ def contains_uppercase(text: str) -> bool:
 class MaximumMatchingNER(AbstractEntityLinker):
     def predict(self, text: str, doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
         mention_spans = self.entity_mentions(text)
-        predictions = {span: EntityPrediction(span, None, set()) for span in mention_spans}
+        predictions = {span: EntityPrediction(span, "Unknown", set()) for span in mention_spans}
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:
@@ -36,29 +36,40 @@ class MaximumMatchingNER(AbstractEntityLinker):
             entity_db.load_redirects()
             entity_db.load_link_frequencies()
             entity_db.add_link_aliases()
+        if len(entity_db.unigram_counts) == 0:
+            entity_db.load_unigram_counts()
         model = spacy.load("en_core_web_sm")
         stopwords = model.Defaults.stop_words
         exclude = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
-                   "November", "December", "The", "A", "An"}
+                   "November", "December", "The", "A", "An", "It"}
         remove_beginnings = {"a ", "an ", "the ", "in ", "at "}
         remove_ends = {"'s"}
+        exclude_ends = {" the"}
         self.alias_frequencies = {}
         for alias in entity_db.aliases:
+            ignore_alias = False
             if len(alias) == 0:
                 continue
             lowercased = alias[0].lower() + alias[1:]
-            ignore_alias = False
             for beginning in remove_beginnings:
                 if lowercased.startswith(beginning):
                     if alias[0].islower() or entity_db.contains_alias(alias[len(beginning):]):
                         ignore_alias = True
                         break
             if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
-                ignore_alias = True
+                continue
+            if alias.isnumeric():
+                continue
             if is_date(alias):
-                ignore_alias = True
+                continue
             if alias[0].islower():
-                ignore_alias = True
+                continue
+            if entity_db.get_alias_frequency(alias) < entity_db.get_unigram_count(lowercased):
+                continue
+            for end in exclude_ends:
+                if alias.endswith(end):
+                    ignore_alias = True
+                    break
             if ignore_alias:
                 continue
             for end in remove_ends:

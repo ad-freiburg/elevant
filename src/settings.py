@@ -60,3 +60,5 @@ CONLL_BENCHMARK_FILE = CONLL_BENCHMARK_DIRECTORY + "conll-wikidata-iob-annotatio
 
 OWN_BENCHMARK_DIRECOTRY = DATA_DIRECTORY + "benchmark/"
 OWN_BENCHMARK_FILE = OWN_BENCHMARK_DIRECOTRY + "development_labels.jsonl"
+
+UNIGRAMS_FILE = "/nfs/students/matthias-hertel/wiki_entity_linker/unigrams.txt"

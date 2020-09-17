@@ -6,7 +6,7 @@ import argparse
 from termcolor import colored
 
 from src.abstract_coref_linker import AbstractCorefLinker
-from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
+from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator, is_coreference
 from src.entity_coref_linker import EntityCorefLinker
 from src.entity_mention import EntityMention
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
@@ -238,9 +238,6 @@ if __name__ == "__main__":
     entity_db.load_mapping()
     entity_db.load_redirects()
 
-    COREFERENCE_PRONOUNS = {"he", "she", "it", "his", "her", "its", "him", "they", "their", "theirs", "I", "my", "me",
-                            "mine"}
-
     link_linker = None
     if args.link_linker == "link-text-linker":
         print("add synonyms...")
@@ -284,12 +281,8 @@ if __name__ == "__main__":
         text = article.text
 
         if args.no_coreference:
-            filtered_ground_truth = set()
-            for span, entity_id in ground_truth:
-                snippet = text[span[0]:span[1]]
-                if snippet.lower() not in COREFERENCE_PRONOUNS and not snippet.startswith("the "):
-                    filtered_ground_truth.add((span, entity_id))
-            ground_truth = filtered_ground_truth
+            ground_truth = [(span, entity_id) for span, entity_id in ground_truth
+                            if not is_coreference(text[span[0]:span[1]])]
 
         if prediction_iterator:
             predictions = next(prediction_iterator)
@@ -409,10 +402,9 @@ if __name__ == "__main__":
 
         # NER evaluation:
         predicted_spans = set(predictions)
-        if args.evaluation_span:
-            eval_begin, eval_end = evaluation_span
-            predicted_spans = {(begin, end) for begin, end in predicted_spans
-                               if begin >= eval_begin and end <= eval_end}
+        eval_begin, eval_end = evaluation_span
+        predicted_spans = {(begin, end) for begin, end in predicted_spans
+                           if begin >= eval_begin and end <= eval_end}
         ner_tp = ground_truth_spans.intersection(predicted_spans)
         ner_fp = predicted_spans.difference(ground_truth_spans)
         ner_fn = ground_truth_spans.difference(predicted_spans)

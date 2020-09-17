@@ -31,6 +31,7 @@ class EntityDatabase:
         self.family_names: Dict[str, str]
         self.entity2types = {}
         self.entity2types: Dict[str, List[str]]
+        self.unigram_counts = {}
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -219,3 +220,11 @@ class EntityDatabase:
 
     def get_types(self, entity_id):
         return self.entity2types[entity_id]
+
+    def load_unigram_counts(self):
+        self.unigram_counts = EntityDatabaseReader.get_unigram_counts()
+
+    def get_unigram_count(self, token: str) -> int:
+        if token not in self.unigram_counts:
+            return 0
+        return self.unigram_counts[token]
