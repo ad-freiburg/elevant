@@ -8,8 +8,17 @@ from src.wikipedia_article import WikipediaArticle
 from src import settings
 
 
+_COREF_PREFIXES = ("the ", "that ", "this ")
+
+
 def is_coreference(text):
-    return PronounFinder.is_pronoun(text) or (text.lower().startswith("the ") and len(text) > 4 and text[4].islower())
+    if PronounFinder.is_pronoun(text):
+        return True
+    lower = text.lower()
+    for prefix in _COREF_PREFIXES:
+        if lower.startswith(prefix) and len(text) > len(prefix) and text[len(prefix)].islower():
+            return True
+    return False
 
 
 class CoreferenceGroundtruthGenerator:
