@@ -72,7 +72,7 @@ class Case:
         return self.true_entity is not None
 
     def is_known_entity(self):
-        return self.true_entity is not None and self.true_entity != "Unknown"
+        return self.true_entity is not None and not self.true_entity.startswith("Unknown")
 
     def is_detected(self):
         return self.detected
