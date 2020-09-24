@@ -17,6 +17,22 @@ class OffsetConverter:
                 return sent
 
     @staticmethod
+    def get_sentence_idx(offset: int, doc: Doc) -> int:
+        for i, sent in enumerate(doc.sents):
+            if sent.end_char >= offset:
+                return i
+
+    @staticmethod
+    def get_containing_sents(offset: int, doc: Doc, sents_before=4) -> List[Span]:
+        containing_sents = []
+        for i, sent in enumerate(doc.sents):
+            if len(containing_sents) > sents_before:
+                containing_sents.pop(0)
+            containing_sents.append(sent)
+            if sent.end_char > offset:
+                return containing_sents
+
+    @staticmethod
     def get_tokens_in_span(span: Tuple[int, int], doc: Doc) -> List[Token]:
         tokens = []
         for token in doc:
@@ -32,8 +48,7 @@ class OffsetConverter:
 
     @staticmethod
     def get_token_idx_in_sent(offset: int, doc: Doc) -> int:
-        for i, sent in enumerate(doc.sents):
-            for j, tok in enumerate(sent):
+        for sent in doc.sents:
+            for i, tok in enumerate(sent):
                 if tok.idx >= offset:
-                    return j
-
+                    return i

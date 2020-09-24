@@ -5,6 +5,7 @@ from termcolor import colored
 from src.abstract_coref_linker import AbstractCorefLinker
 from src.entity_coref_linker import EntityCorefLinker
 from src.entity_database import EntityDatabase
+from src.hobbs_coref_linker import HobbsCorefLinker
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation_examples_generator import OwnBenchmarkExampleReader
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")
 
-    parser.add_argument("linker_type", choices=['neuralcoref', 'entity', 'stanford', 'xrenner'],
+    parser.add_argument("linker_type", choices=['neuralcoref', 'entity', 'stanford', 'xrenner', 'hobbs'],
                         help="Type of coreference linker.")
 
     parser.add_argument("--linked_file", type=str, default=None,
@@ -46,10 +47,11 @@ if __name__ == "__main__":
         coreference_linker = StanfordCoreNLPCorefLinker()
     elif args.linker_type == "xrenner":
         coreference_linker = XrennerCorefLinker()
+    elif args.linker_type == "hobbs":
+        entity_db = EntityDatabase()
+        coreference_linker = HobbsCorefLinker(entity_db)
     else:
         entity_db = EntityDatabase()
-        print("load gender information...")
-        entity_db.load_gender()
         coreference_linker = EntityCorefLinker(entity_db)
 
     coref_groundtruth_generator = CoreferenceGroundtruthGenerator()
