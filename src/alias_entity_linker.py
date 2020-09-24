@@ -11,6 +11,7 @@ from src import settings
 from src.settings import NER_IGNORE_TAGS
 from src.ner_postprocessing import NERPostprocessor
 from src.maximum_matching_ner import MaximumMatchingNER
+from src.dates import is_date
 
 
 class LinkingStrategy(Enum):
@@ -82,6 +83,8 @@ class AliasEntityLinker(AbstractEntityLinker):
         predictions = {}
         for span in self.entity_spans(text, doc):
             snippet = text[span[0]:span[1]]
+            if is_date(snippet):
+                continue
             candidates = self.entity_db.get_candidates(snippet)
             predicted_entity_id = self.select_entity(snippet, candidates)
             predictions[span] = EntityPrediction(span, predicted_entity_id, candidates)

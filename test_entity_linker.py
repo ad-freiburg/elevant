@@ -6,7 +6,7 @@ import argparse
 from termcolor import colored
 
 from src.abstract_coref_linker import AbstractCorefLinker
-from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
+from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator, is_coreference
 from src.entity_coref_linker import EntityCorefLinker
 from src.entity_mention import EntityMention
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
@@ -163,6 +163,8 @@ if __name__ == "__main__":
                         help="Exclude coreference cases from the evalutation.")
     parser.add_argument("--longest_alias_ner", action="store_true",
                         help="For the baselines: use longest matching alias NER instead of SpaCy NER.")
+    parser.add_argument("--uppercase", action="store_true",
+                        help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     args = parser.parse_args()
 
     if args.link_linker:
@@ -236,9 +238,6 @@ if __name__ == "__main__":
     entity_db.load_mapping()
     entity_db.load_redirects()
 
-    COREFERENCE_PRONOUNS = {"he", "she", "it", "his", "her", "its", "him", "they", "their", "theirs", "I", "my", "me",
-                            "mine"}
-
     link_linker = None
     if args.link_linker == "link-text-linker":
         print("add synonyms...")
@@ -282,12 +281,8 @@ if __name__ == "__main__":
         text = article.text
 
         if args.no_coreference:
-            filtered_ground_truth = set()
-            for span, entity_id in ground_truth:
-                snippet = text[span[0]:span[1]]
-                if snippet.lower() not in COREFERENCE_PRONOUNS and not snippet.startswith("the "):
-                    filtered_ground_truth.add((span, entity_id))
-            ground_truth = filtered_ground_truth
+            ground_truth = [(span, entity_id) for span, entity_id in ground_truth
+                            if not is_coreference(text[span[0]:span[1]])]
 
         if prediction_iterator:
             predictions = next(prediction_iterator)
@@ -323,6 +318,16 @@ if __name__ == "__main__":
             if args.link_linker or args.coreference_linker:
                 for em in article.entity_mentions.values():
                     predictions[em.span] = em, {em.entity_id}
+
+        if args.uppercase:
+            filtered_predictions = {}
+            for span in predictions:
+                mention, candidates = predictions[span]
+                begin, end = mention.span
+                snippet = text[begin:end]
+                if any([char.isupper() for char in snippet]):
+                    filtered_predictions[span] = mention, candidates
+            predictions = filtered_predictions
 
         ground_truth_spans = set(span for span, _ in ground_truth)
         cases = []
@@ -397,19 +402,27 @@ if __name__ == "__main__":
 
         # NER evaluation:
         predicted_spans = set(predictions)
-        if args.evaluation_span:
-            eval_begin, eval_end = evaluation_span
-            predicted_spans = {(begin, end) for begin, end in predicted_spans
-                               if begin >= eval_begin and end <= eval_end}
+        eval_begin, eval_end = evaluation_span
+        predicted_spans = {(begin, end) for begin, end in predicted_spans
+                           if begin >= eval_begin and end <= eval_end}
         ner_tp = ground_truth_spans.intersection(predicted_spans)
         ner_fp = predicted_spans.difference(ground_truth_spans)
         ner_fn = ground_truth_spans.difference(predicted_spans)
         n_ner_tp += len(ner_tp)
         n_ner_fp += len(ner_fp)
         n_ner_fn += len(ner_fn)
-        print("NER TP:", [(span, text[span[0]:span[1]]) for span in ner_tp])
-        print("NER FP:", [(span, text[span[0]:span[1]]) for span in ner_fp])
-        print("NER FN:", [(span, text[span[0]:span[1]]) for span in ner_fn])
+        print("NER TP:", sorted([(span, text[span[0]:span[1]],
+                                  linker.get_alias_frequency(text[span[0]:span[1]])
+                                  if args.linker == "max-match-ner" else 0)
+                                 for span in ner_tp]))
+        print("NER FP:", sorted([(span, text[span[0]:span[1]],
+                                  linker.get_alias_frequency(text[span[0]:span[1]])
+                                  if args.linker == "max-match-ner" else 0)
+                                 for span in ner_fp]))
+        print("NER FN:", sorted([(span, text[span[0]:span[1]],
+                                  linker.get_alias_frequency(text[span[0]:span[1]])
+                                  if args.linker == "max-match-ner" else 0)
+                                 for span in ner_fn]))
 
         for case in cases:
             true_str = "(%s %s)" % (case.true_entity, entity_db.get_entity(case.true_entity).name

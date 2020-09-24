@@ -6,6 +6,7 @@ from spacy.tokens.doc import Doc
 from src.entity_database import EntityDatabase
 from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_prediction import EntityPrediction
+from src.dates import is_date
 
 
 def get_split_points(text: str) -> List[int]:
@@ -19,7 +20,7 @@ def contains_uppercase(text: str) -> bool:
 class MaximumMatchingNER(AbstractEntityLinker):
     def predict(self, text: str, doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
         mention_spans = self.entity_mentions(text)
-        predictions = {span: EntityPrediction(span, None, set()) for span in mention_spans}
+        predictions = {span: EntityPrediction(span, "Unknown", set()) for span in mention_spans}
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:
@@ -33,26 +34,42 @@ class MaximumMatchingNER(AbstractEntityLinker):
             entity_db.add_synonym_aliases()
             entity_db.load_mapping()
             entity_db.load_redirects()
+            entity_db.load_link_frequencies()
             entity_db.add_link_aliases()
+        if len(entity_db.unigram_counts) == 0:
+            entity_db.load_unigram_counts()
         model = spacy.load("en_core_web_sm")
         stopwords = model.Defaults.stop_words
         exclude = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
-                   "November", "December", "The", "A", "An"}
+                   "November", "December", "The", "A", "An", "It"}
         remove_beginnings = {"a ", "an ", "the ", "in ", "at "}
         remove_ends = {"'s"}
-        self.aliases = set()
+        exclude_ends = {" the"}
+        self.alias_frequencies = {}
         for alias in entity_db.aliases:
+            ignore_alias = False
             if len(alias) == 0:
                 continue
             lowercased = alias[0].lower() + alias[1:]
-            ignore_alias = False
             for beginning in remove_beginnings:
                 if lowercased.startswith(beginning):
                     if alias[0].islower() or entity_db.contains_alias(alias[len(beginning):]):
                         ignore_alias = True
                         break
             if not alias[-1].isalnum() and entity_db.contains_alias(alias[:-1]):
-                ignore_alias = True
+                continue
+            if alias.isnumeric():
+                continue
+            if is_date(alias):
+                continue
+            if alias[0].islower():
+                continue
+            if entity_db.get_alias_frequency(alias) < entity_db.get_unigram_count(lowercased):
+                continue
+            for end in exclude_ends:
+                if alias.endswith(end):
+                    ignore_alias = True
+                    break
             if ignore_alias:
                 continue
             for end in remove_ends:
@@ -60,8 +77,9 @@ class MaximumMatchingNER(AbstractEntityLinker):
                     alias = alias[:-(len(end))]
                     break
             if lowercased not in stopwords and alias not in exclude and contains_uppercase(alias):
-                if len(alias) > 1:
-                    self.aliases.add(alias)
+                alias_frequency = entity_db.get_alias_frequency(alias)
+                if len(alias) > 1 and alias_frequency > 0:
+                    self.alias_frequencies[alias] = alias_frequency
         self.max_len = 20
         self.model = None
 
@@ -76,9 +94,12 @@ class MaximumMatchingNER(AbstractEntityLinker):
                 end_point = split_points[point_i + length]
                 if end_point > start_point:
                     snippet = text[start_point:end_point]
-                    if snippet in self.aliases:
+                    if snippet in self.alias_frequencies:
                         point_i += length - 1
                         mention_spans.append((start_point, end_point))
                         break
             point_i += 1
         return mention_spans
+
+    def get_alias_frequency(self, alias: str) -> int:
+        return self.alias_frequencies[alias] if alias in self.alias_frequencies else 0

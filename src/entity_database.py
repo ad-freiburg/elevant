@@ -31,6 +31,7 @@ class EntityDatabase:
         self.family_names: Dict[str, str]
         self.entity2types = {}
         self.entity2types: Dict[str, List[str]]
+        self.unigram_counts = {}
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -142,10 +143,16 @@ class EntityDatabase:
         else:
             return self.aliases[alias]
 
-    def get_link_frequency(self, alias, entity_id):
+    def get_link_frequency(self, alias: str, entity_id: str) -> int:
         if alias not in self.link_frequencies or entity_id not in self.link_frequencies[alias]:
             return 0
         return self.link_frequencies[alias][entity_id]
+
+    def get_alias_frequency(self, alias: str) -> int:
+        frequency = 0
+        for entity_id in self.get_candidates(alias):
+            frequency += self.get_link_frequency(alias, entity_id)
+        return frequency
 
     def get_entity_frequency(self, entity_id: str):
         return self.entity_frequencies[entity_id] if entity_id in self.entity_frequencies else 0
@@ -213,3 +220,11 @@ class EntityDatabase:
 
     def get_types(self, entity_id):
         return self.entity2types[entity_id]
+
+    def load_unigram_counts(self):
+        self.unigram_counts = EntityDatabaseReader.get_unigram_counts()
+
+    def get_unigram_count(self, token: str) -> int:
+        if token not in self.unigram_counts:
+            return 0
+        return self.unigram_counts[token]
