@@ -9,6 +9,7 @@ from src.abstract_coref_linker import AbstractCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator, is_coreference
 from src.entity_coref_linker import EntityCorefLinker
 from src.entity_mention import EntityMention
+from src.hobbs_coref_linker import HobbsCorefLinker
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.trained_entity_linker import TrainedEntityLinker
@@ -148,7 +149,7 @@ if __name__ == "__main__":
                         help="Name of the knowledge base to use with a spacy linker.")
     parser.add_argument("-ll", "--link_linker", choices=["link-linker", "link-text-linker"], default=None,
                         help="Link linker to apply before spacy or explosion linker")
-    parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity", "stanford", "xrenner"],
+    parser.add_argument("-coref", "--coreference_linker", choices=["neuralcoref", "entity", "stanford", "xrenner", "hobbs"],
                         default=None,
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
@@ -263,6 +264,8 @@ if __name__ == "__main__":
         coreference_linker = StanfordCoreNLPCorefLinker()
     elif args.coreference_linker == "xrenner":
         coreference_linker = XrennerCorefLinker()
+    elif args.coreference_linker == "hobbs":
+        coreference_linker = HobbsCorefLinker(entity_db=entity_db)
 
     if args.benchmark == "conll":
         example_generator = ConllExampleReader(entity_db)
