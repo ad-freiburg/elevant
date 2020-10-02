@@ -325,7 +325,8 @@ if __name__ == "__main__":
                 mention, candidates = predictions[span]
                 begin, end = mention.span
                 snippet = text[begin:end]
-                if any([char.isupper() for char in snippet]):
+                if mention.linked_by in (LinkTextEntityLinker.LINKER_IDENTIFIER, LinkEntityLinker.LINKER_IDENTIFIER) \
+                        or any([char.isupper() for char in snippet]):
                     filtered_predictions[span] = mention, candidates
             predictions = filtered_predictions
 
