@@ -8,7 +8,6 @@ from termcolor import colored
 from src.abstract_coref_linker import AbstractCorefLinker
 from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator, is_coreference
 from src.entity_coref_linker import EntityCorefLinker
-from src.entity_mention import EntityMention
 from src.hobbs_coref_linker import HobbsCorefLinker
 from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
@@ -301,16 +300,7 @@ if __name__ == "__main__":
 
             predictions = {}
             if linker:
-                if not args.link_linker and not args.coreference_linker:
-                    linker_predictions = linker.predict(text, doc)
-                    for span, ep in linker_predictions.items():
-                        entity_mention = EntityMention(span,
-                                                       recognized_by=linker.NER_IDENTIFIER,
-                                                       entity_id=ep.entity_id,
-                                                       linked_by=linker.LINKER_IDENTIFIER)
-                        predictions[span] = entity_mention, ep.candidates
-                else:
-                    linker.link_entities(article, doc)
+                linker.link_entities(article, doc)
 
             coref_groundtruth = coref_groundtruth_generator.get_groundtruth(article)
             if args.coreference_linker:
@@ -318,9 +308,8 @@ if __name__ == "__main__":
                 coreference_linker.link_entities(article, only_pronouns=args.only_pronouns,
                                                  evaluation_span=coref_eval_span)
 
-            if args.link_linker or args.coreference_linker:
-                for em in article.entity_mentions.values():
-                    predictions[em.span] = em, {em.entity_id}
+            for em in article.entity_mentions.values():
+                predictions[em.span] = em, {em.entity_id}
 
         if args.uppercase:
             filtered_predictions = {}
