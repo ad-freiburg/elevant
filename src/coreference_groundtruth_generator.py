@@ -54,7 +54,7 @@ class CoreferenceGroundtruthGenerator:
 
         for span, entity_id in article.labels:
             span = (span[0], span[1])
-            if span not in referenced_entities and entity_id in entity_to_pronouns:
+            if entity_id in entity_to_pronouns:
                 for pronoun_span in entity_to_pronouns[entity_id]:
                     # Only add span as potential referenced span, if it precedes the pronoun in the text
                     if span[0] < pronoun_span[0]:

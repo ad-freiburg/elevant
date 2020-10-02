@@ -1,10 +1,11 @@
-from typing import List, Iterator, Dict, Tuple
+from typing import List, Iterator, Dict, Tuple, Set
 
 from src.conll_benchmark import ConllDocument
+from src.entity_mention import EntityMention
 from src.entity_prediction import EntityPrediction
 
 
-def get_predictions(document: ConllDocument) -> List[EntityPrediction]:
+def get_predictions(document: ConllDocument) -> List[Tuple[EntityMention, Set[str]]]:
     pos = 0
     inside = False
     prediction_start = None
@@ -13,7 +14,8 @@ def get_predictions(document: ConllDocument) -> List[EntityPrediction]:
     for i, token in enumerate(document.tokens):
         if inside and token.predicted_label != "I":
             span = (prediction_start, pos)
-            predictions.append(EntityPrediction(span, entity_id, candidates={entity_id}))
+            entity_mention = EntityMention(span, recognized_by="CONLL", entity_id=entity_id, linked_by="CONLL")
+            predictions.append((entity_mention, {entity_id}))
             inside = False
         if i > 0:
             pos += 1
@@ -35,6 +37,6 @@ class ConllIobPredictionReader:
                 yield {}
                 next_id += 1
             predictions = get_predictions(document)
-            predictions = {prediction.span: prediction for prediction in predictions}
+            predictions = {em.span: (em, cand) for em, cand in predictions}
             yield predictions
             next_id += 1

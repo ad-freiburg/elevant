@@ -23,6 +23,9 @@ class DependencyConllExtractor:
             # Prevent line breaks in conll string.
             if "\n" in word.text:
                 dep_string += "\n"
+            # Exclude spaces since they otherwise cause an assertion error in dependencygraph.py
+            elif word.text.isspace():
+                continue
             else:
                 dep_string += ("%d\t%s\t%s\t%s\t%s\t%d\t%s\n" % (i + 1, word.text, word.text, word.tag_, word.tag_, head_idx, dep))
 
