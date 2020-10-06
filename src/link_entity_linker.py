@@ -21,7 +21,8 @@ class LinkEntityLinker:
                 entity_mention = EntityMention(span=span,
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,
-                                               linked_by=self.LINKER_IDENTIFIER)
+                                               linked_by=self.LINKER_IDENTIFIER,
+                                               candidates={entity_id})
                 entity_mentions.append(entity_mention)
         article.add_entity_mentions(entity_mentions)
 

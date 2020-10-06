@@ -77,12 +77,15 @@ class AliasEntityLinker(AbstractEntityLinker):
 
     def predict(self,
                 text: str,
-                doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+                doc: Optional[Doc] = None,
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None and self.model is not None:
             doc = self.model(text)
         predictions = {}
         for span in self.entity_spans(text, doc):
             snippet = text[span[0]:span[1]]
+            if uppercase and snippet.islower():
+                continue
             if is_date(snippet):
                 continue
             candidates = self.entity_db.get_candidates(snippet)

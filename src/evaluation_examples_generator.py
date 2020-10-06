@@ -28,39 +28,34 @@ class WikipediaExampleReader:
     def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
 
-    def iterate(self, n: int = -1) -> Iterator[Tuple[WikipediaArticle, Set[Tuple[Tuple[int, int], str]], Tuple[int, int]]]:
+    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
         for article in WikipediaCorpus.development_articles(n):
-            ground_truth = set()
+            article.labels = []
             for span, target in article.links:
                 span = expand_span(article.text, span)
                 entity_id = self.entity_db.link2id(target)
                 if entity_id is None:
                     entity_id = "Unknown"
-                ground_truth.add((span, entity_id))
-            yield article, ground_truth, (0, len(article.text))
+                article.labels.append((span, entity_id))
+            yield article
 
 
 class ConllExampleReader:
-    def __init__(self, entity_db: EntityDatabase):
-        self.entity_db = entity_db
-
     @staticmethod
-    def iterate(n: int = -1) -> Iterator[Tuple[WikipediaArticle, Set[Tuple[Tuple[int, int], str]], Tuple[int, int]]]:
+    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
         for i, document in enumerate(conll_documents()):
             if i == n:
                 break
             article = document.to_article()
-            ground_truth = get_ground_truth_from_labels(article.labels)
-            yield article, ground_truth, (0, len(document.text()))
+            yield article
 
 
 class OwnBenchmarkExampleReader:
     @staticmethod
-    def iterate(n: int = -1) -> Iterator[Tuple[WikipediaArticle, Set[Tuple[Tuple[int, int], str]], Tuple[int, int]]]:
+    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
         with open(settings.OWN_BENCHMARK_FILE, "r") as benchmark_file:
             for i, json_line in enumerate(benchmark_file):
                 if i == n:
                     break
                 article = article_from_json(json_line)
-                ground_truth = get_ground_truth_from_labels(article.labels)
-                yield article, ground_truth, article.evaluation_span
+                yield article

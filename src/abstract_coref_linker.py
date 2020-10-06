@@ -47,7 +47,8 @@ class AbstractCorefLinker(abc.ABC):
                         continue
                     if not article.get_overlapping_entity(mention_span):
                         entity_mention = EntityMention(mention_span, recognized_by=self.IDENTIFIER, entity_id=entity_id,
-                                                       linked_by=self.IDENTIFIER, referenced_span=main_mention.span)
+                                                       linked_by=self.IDENTIFIER, candidates={entity_id},
+                                                       referenced_span=main_mention.span)
                         new_entity_mentions.append(entity_mention)
         article.add_entity_mentions(new_entity_mentions)
 

@@ -4,6 +4,7 @@ import json
 import numpy as np
 
 from src.entity_mention import EntityMention, entity_mention_from_dict
+from src.entity_prediction import EntityPrediction
 
 
 class WikipediaArticle:
@@ -15,7 +16,8 @@ class WikipediaArticle:
                  url: Optional[str] = None,
                  entity_mentions: Optional[List[EntityMention]] = None,
                  evaluation_span: Optional[Tuple[int, int]] = None,
-                 labels: Optional[List[Tuple[Tuple[int, int], str]]] = None):
+                 labels: Optional[List[Tuple[Tuple[int, int], str]]] = None,
+                 evaluation_time: Optional[float] = None):
         self.id = id
         self.title = title
         self.text = text
@@ -26,8 +28,9 @@ class WikipediaArticle:
         self.span_to_span_id = dict()
         self.spans = []
         self.add_entity_mentions(entity_mentions)
-        self.evaluation_span = evaluation_span
+        self.evaluation_span = evaluation_span if evaluation_span is not None else (0, len(self.text))
         self.labels = labels
+        self.evaluation_time = evaluation_time
 
     def to_dict(self) -> Dict:
         data = {"id": self.id,
@@ -42,6 +45,8 @@ class WikipediaArticle:
             data["evaluation_span"] = self.evaluation_span
         if self.labels is not None:
             data["labels"] = self.labels
+        if self.evaluation_time is not None:
+            data["evaluation_time"] = self.evaluation_time
         return data
 
     def to_json(self) -> str:
@@ -74,6 +79,23 @@ class WikipediaArticle:
             if val != 0:
                 return self.entity_mentions[self.get_span_by_id(val)]
 
+    def link_entities(self,
+                      predictions: Dict[Tuple[int, int], EntityPrediction],
+                      recognized_by: str,
+                      linked_by: str):
+        new_entity_mentions = []
+        for span in predictions:
+            if not self.get_overlapping_entity(span):
+                prediction = predictions[span]
+                if prediction.entity_id is not None:
+                    entity_mention = EntityMention(span,
+                                                   recognized_by=recognized_by,
+                                                   entity_id=prediction.entity_id,
+                                                   linked_by=linked_by,
+                                                   candidates=prediction.candidates)
+                    new_entity_mentions.append(entity_mention)
+        self.add_entity_mentions(new_entity_mentions)
+
     def is_entity_mention(self, span: Tuple[int, int]) -> bool:
         return self.entity_mentions is not None and span in self.entity_mentions
 
@@ -82,6 +104,9 @@ class WikipediaArticle:
 
     def set_evaluation_span(self, start: int, end: int):
         self.evaluation_span = (start, end)
+
+    def set_evaluation_time(self, evaluation_time):
+        self.evaluation_time = evaluation_time
 
     def get_span_by_id(self, span_id):
         if span_id - 1 < len(self.spans):
@@ -104,7 +129,8 @@ def article_from_dict(data: Dict):
                             entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
                                              data["entity_mentions"]] if "entity_mentions" in data else None,
                             evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
-                            labels=data["labels"] if "labels" in data else None)
+                            labels=data["labels"] if "labels" in data else None,
+                            evaluation_time=data["evaluation_time"] if "evaluation_time" in data else None)
 
 
 def article_from_json(dump: str):

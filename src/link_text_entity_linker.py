@@ -68,7 +68,8 @@ class LinkTextEntityLinker:
                 entity_mention = EntityMention(span=(span[0], end_idx),
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,
-                                               linked_by="LTL_LINK")
+                                               linked_by="LTL_LINK",
+                                               candidates={entity_id})
                 entity_mentions.append(entity_mention)
 
         # Get given names for detected entity mentions and use them like aliases
@@ -136,7 +137,8 @@ class LinkTextEntityLinker:
                 entity_mention = EntityMention(span=(start_idx, end_idx),
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,
-                                               linked_by="LTL_REFERENCE")
+                                               linked_by="LTL_REFERENCE",
+                                               candidates={entity_id})
                 entity_mentions.append(entity_mention)
                 search_start_idx = end_idx
 

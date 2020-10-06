@@ -5,7 +5,6 @@ from spacy.tokens import Doc
 
 from src.entity_prediction import EntityPrediction
 from src.wikipedia_article import WikipediaArticle
-from src.entity_mention import EntityMention
 
 
 class AbstractEntityLinker(abc.ABC):
@@ -15,7 +14,8 @@ class AbstractEntityLinker(abc.ABC):
     @abc.abstractmethod
     def predict(self,
                 text: str,
-                doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+                doc: Optional[Doc] = None,
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -24,16 +24,7 @@ class AbstractEntityLinker(abc.ABC):
 
     def link_entities(self,
                       article: WikipediaArticle,
-                      doc: Optional[Doc] = None):
-        entity_predictions = self.predict(article.text, doc=doc)
-        new_entity_mentions = []
-        for span in entity_predictions:
-            if not article.get_overlapping_entity(span):
-                prediction = entity_predictions[span]
-                if prediction.entity_id is not None:
-                    entity_mention = EntityMention(span,
-                                                   recognized_by=self.NER_IDENTIFIER,
-                                                   entity_id=prediction.entity_id,
-                                                   linked_by=self.LINKER_IDENTIFIER)
-                    new_entity_mentions.append(entity_mention)
-        article.add_entity_mentions(new_entity_mentions)
+                      doc: Optional[Doc] = None,
+                      uppercase: Optional[bool] = False):
+        entity_predictions = self.predict(article.text, doc=doc, uppercase=uppercase)
+        article.link_entities(entity_predictions, self.NER_IDENTIFIER, self.LINKER_IDENTIFIER)

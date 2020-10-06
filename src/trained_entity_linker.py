@@ -9,6 +9,7 @@ from src.entity_prediction import EntityPrediction
 from src.settings import NER_IGNORE_TAGS
 from src.entity_database import EntityDatabase
 from src.ner_postprocessing import NERPostprocessor
+from src.dates import is_date
 
 
 class TrainedEntityLinker(AbstractEntityLinker):
@@ -35,7 +36,8 @@ class TrainedEntityLinker(AbstractEntityLinker):
 
     def predict(self,
                 text: str,
-                doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+                doc: Optional[Doc] = None,
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None:
             doc = self.model(text)
         predictions = {}
@@ -44,7 +46,12 @@ class TrainedEntityLinker(AbstractEntityLinker):
                 continue
             span = (ent.start_char, ent.end_char)
             entity_id = ent.kb_id_ if ent.kb_id_ != "NIL" else None
-            candidates = self.get_candidates(text[span[0]:span[1]])
+            snippet = text[span[0]:span[1]]
+            if uppercase and snippet.islower():
+                continue
+            if is_date(snippet):
+                continue
+            candidates = self.get_candidates(snippet)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         return predictions
 

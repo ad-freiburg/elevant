@@ -1,11 +1,5 @@
-from typing import Optional
-
-import spacy
-from spacy.language import Language
-
 from src.pronoun_finder import PronounFinder
 from src.wikipedia_article import WikipediaArticle
-from src import settings
 
 
 _COREF_PREFIXES = ("the ", "that ", "this ")
@@ -22,13 +16,6 @@ def is_coreference(text):
 
 
 class CoreferenceGroundtruthGenerator:
-    def __init__(self,
-                 model: Optional[Language] = None):
-        if model is None:
-            self.model = spacy.load(settings.LARGE_MODEL_NAME)
-        else:
-            self.model = model
-
     @staticmethod
     def get_groundtruth(article: WikipediaArticle):
         if not article.labels:

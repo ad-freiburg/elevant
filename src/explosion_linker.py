@@ -9,6 +9,7 @@ from src.abstract_entity_linker import AbstractEntityLinker
 from src.entity_prediction import EntityPrediction
 from src.entity_database import EntityDatabase
 from src.ner_postprocessing import NERPostprocessor
+from src.dates import is_date
 
 
 class ExplosionEntityLinker(AbstractEntityLinker):
@@ -24,13 +25,19 @@ class ExplosionEntityLinker(AbstractEntityLinker):
         self.kb = linker.kb
         self.kb: KnowledgeBase
 
-    def predict(self, text: str, doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+    def predict(self, text: str,
+                doc: Optional[Doc] = None,
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         doc = self.model(text)
         entities = {}
         for ent in doc.ents:
             span = ent.start_char, ent.end_char
             entity_id = ent.kb_id_ if ent.kb_id_ != "NIL" else None
             snippet = text[span[0]:span[1]]
+            if uppercase and snippet.islower():
+                continue
+            if is_date(snippet):
+                continue
             candidates = self.get_candidates(snippet)
             entities[span] = EntityPrediction(span, entity_id, candidates)
         return entities

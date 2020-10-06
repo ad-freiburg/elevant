@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 import tagme
 import numpy as np
@@ -21,7 +21,10 @@ class TagMeLinker(AbstractEntityLinker):
         self.model = None
         self.rho_threshold = rho_threshold
 
-    def predict(self, text: str, doc=None) -> Dict[Tuple[int, int], EntityPrediction]:
+    def predict(self,
+                text: str,
+                doc=None,
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         annotations = tagme.annotate(text).get_annotations(self.rho_threshold)
         annotations = sorted(annotations, key=lambda ann: ann.score, reverse=True)
         predictions = {}
@@ -32,6 +35,9 @@ class TagMeLinker(AbstractEntityLinker):
                 if np.sum(annotated_chars[ann.begin:ann.end]) == 0:
                     annotated_chars[ann.begin:ann.end] = True
                     span = (ann.begin, ann.end)
+                    snippet = text[span[0]:span[1]]
+                    if uppercase and snippet.islower():
+                        continue
                     predictions[span] = EntityPrediction(span, qid, {qid})
         return predictions
 

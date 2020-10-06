@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Set
+from typing import Optional
 from spacy.language import Language
 
 import re
