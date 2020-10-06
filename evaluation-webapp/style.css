@@ -1,0 +1,31 @@
+html, input, select { 
+    font-family: "Century Gothic", monospace, sans-serif;
+}
+
+header {
+    background-color: DodgerBlue;
+    margin: 0;
+    padding: 5pt;
+}
+
+header h1 {
+    margin: 0;
+    padding: 5pt;
+    text-align: center;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+.content {
+	padding-left: 10pt;
+}
+
+.column {
+	float: left;
+	width: 50%;
+	box-sizing: border-box;
+	padding: 5pt;
+}

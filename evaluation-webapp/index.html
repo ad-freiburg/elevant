@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script src="show_benchmark.js"></script>
+	</head>
+	
+	<body>
+		<header>
+			<h1>Wikipedia Entity Linking</h1>
+		</header>
+		<div class="content">
+			<h1>Benchmark</h1>
+			<p>
+				<select id="article" onchange="show_article()"></select>
+			</p>
+			<div class="row">
+				<div class="column">
+					<h2>Ground truth</h2>
+					<p id="textfield_left"></p>
+				</div>
+				<div class="column">
+					<h2>Predicted</h2>
+					<p id="textfield_right"></p>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
