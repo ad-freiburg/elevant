@@ -1,7 +1,7 @@
 import sys
 
-from src.conll_benchmark import conll_documents
-from src.conll_iob_prediction_reader import ConllIobPredictionReader
+from src.models.conll_benchmark import conll_documents
+from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
 
 
 if __name__ == "__main__":

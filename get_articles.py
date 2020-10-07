@@ -1,7 +1,7 @@
 import sys
 import json
 
-from src.wikipedia_dump_reader import WikipediaDumpReader
+from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 
 if __name__ == "__main__":

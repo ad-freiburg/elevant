@@ -1,7 +1,7 @@
 import sys
 
-from src.wikipedia_corpus import WikipediaCorpus
-from src.entity_database import EntityDatabase
+from src.helpers.wikipedia_corpus import WikipediaCorpus
+from src.models.entity_database import EntityDatabase
 from src.name_and_synonym_entity_linker import NameAndSynonymEntityLinker
 
 

@@ -1,8 +1,8 @@
 import os
 import pickle
 
-from src.word_vectors import VectorGenerator
-from src.entity_database import EntityDatabase
+from src.helpers.word_vectors import VectorGenerator
+from src.models.entity_database import EntityDatabase
 from src import settings
 
 

@@ -1,6 +1,6 @@
 import os
 
-from src.knowledge_base_creator import KnowledgeBaseCreator
+from src.helpers.knowledge_base_creator import KnowledgeBaseCreator
 from src import settings
 
 

@@ -4,8 +4,8 @@ from spacy.kb import KnowledgeBase
 from spacy.language import Language
 
 from src import settings
-from src.link_entity_linker import get_mapping
-from src.label_generator import LabelGenerator
+from src.linkers.link_entity_linker import get_mapping
+from src.helpers.label_generator import LabelGenerator
 
 
 def print_help():

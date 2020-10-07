@@ -2,8 +2,8 @@ import sys
 
 import json
 
-from src.link_entity_linker import LinkEntityLinker
-from src.wikipedia_corpus import WikipediaCorpus
+from src.linkers.link_entity_linker import LinkEntityLinker
+from src.helpers.wikipedia_corpus import WikipediaCorpus
 
 
 def print_help():

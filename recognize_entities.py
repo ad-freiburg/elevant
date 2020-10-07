@@ -2,8 +2,8 @@ import sys
 import time
 import json
 
-from src.wikipedia_corpus import WikipediaCorpus
-from src.spacy_named_entity_recognizer import SpacyNamedEntityRecognizer
+from src.helpers.wikipedia_corpus import WikipediaCorpus
+from src.ner.spacy_named_entity_recognizer import SpacyNamedEntityRecognizer
 
 
 def print_help():

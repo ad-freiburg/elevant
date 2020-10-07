@@ -1,7 +1,7 @@
 import sys
 import random
 
-from src.wikipedia_dump_reader import WikipediaDumpReader
+from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src import settings
 
 

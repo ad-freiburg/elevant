@@ -1,8 +1,8 @@
 import sys
 
 from src import settings
-from src.conll_benchmark import conll_documents, ConllDocument
-from src.wikipedia_article import WikipediaArticle, article_from_json, EntityMention
+from src.models.conll_benchmark import conll_documents, ConllDocument
+from src.models.wikipedia_article import WikipediaArticle, article_from_json, EntityMention
 
 
 def set_tags(document: ConllDocument, article: WikipediaArticle):
