@@ -1,8 +1,8 @@
 import spacy
 
 from src import settings
-from src.ner_postprocessing import NERPostprocessor
-from src.entity_database import EntityDatabase
+from src.ner.ner_postprocessing import NERPostprocessor
+from src.models.entity_database import EntityDatabase
 
 
 if __name__ == "__main__":

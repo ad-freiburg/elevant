@@ -1,7 +1,7 @@
 import sys
 import random
 
-from src.wikipedia_corpus import WikipediaCorpus
+from src.helpers.wikipedia_corpus import WikipediaCorpus
 
 
 N_PARAGRAPHS_PER_ARTICLE = 3

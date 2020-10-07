@@ -1,4 +1,4 @@
-from src.explosion_linker import ExplosionEntityLinker
+from src.linkers.explosion_linker import ExplosionEntityLinker
 
 
 if __name__ == "__main__":

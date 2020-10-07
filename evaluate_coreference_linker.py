@@ -5,16 +5,16 @@ from termcolor import colored
 
 from evaluate_linked_entities import percentage
 from link_benchmark_entities import initialize_example_generator
-from src.abstract_coref_linker import AbstractCorefLinker
-from src.case import Case, CASE_COLORS, CaseType, case_from_dict
-from src.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
-from src.entity_coref_linker import EntityCorefLinker
-from src.entity_database import EntityDatabase
-from src.hobbs_coref_linker import HobbsCorefLinker
-from src.neuralcoref_coref_linker import NeuralcorefCorefLinker
-from src.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
-from src.wikipedia_article import article_from_json
-from src.xrenner_coref_linker import XrennerCorefLinker
+from src.linkers.abstract_coref_linker import AbstractCorefLinker
+from src.models.case import Case, CASE_COLORS, CaseType, case_from_dict
+from src.helpers.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
+from src.linkers.entity_coref_linker import EntityCorefLinker
+from src.models.entity_database import EntityDatabase
+from src.linkers.hobbs_coref_linker import HobbsCorefLinker
+from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
+from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
+from src.models.wikipedia_article import article_from_json
+from src.linkers.xrenner_coref_linker import XrennerCorefLinker
 
 
 def initialize_coref_linker(linker_type):

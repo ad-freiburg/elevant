@@ -1,9 +1,9 @@
 import argparse
 import time
 
-from src.linking_system import LinkingSystem
-from src.entity_database import EntityDatabase
-from src.evaluation_examples_generator import ConllExampleReader, OwnBenchmarkExampleReader, WikipediaExampleReader
+from src.linkers.linking_system import LinkingSystem
+from src.models.entity_database import EntityDatabase
+from src.helpers.evaluation_examples_generator import ConllExampleReader, OwnBenchmarkExampleReader, WikipediaExampleReader
 
 
 def initialize_example_generator(benchmark_name):

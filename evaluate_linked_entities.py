@@ -4,13 +4,13 @@ import json
 
 from termcolor import colored
 
-from src.abstract_coref_linker import AbstractCorefLinker
-from src.case import Case, CASE_COLORS, CaseType, case_from_dict
-from src.coreference_groundtruth_generator import is_coreference, CoreferenceGroundtruthGenerator
-from src.entity_database import EntityDatabase
-from src.evaluation_examples_generator import get_ground_truth_from_labels
-from src.wikidata_entity import WikidataEntity
-from src.wikipedia_article import article_from_json
+from src.linkers.abstract_coref_linker import AbstractCorefLinker
+from src.models.case import Case, CASE_COLORS, CaseType, case_from_dict
+from src.helpers.coreference_groundtruth_generator import is_coreference, CoreferenceGroundtruthGenerator
+from src.models.entity_database import EntityDatabase
+from src.helpers.evaluation_examples_generator import get_ground_truth_from_labels
+from src.models.wikidata_entity import WikidataEntity
+from src.models.wikipedia_article import article_from_json
 
 
 def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:

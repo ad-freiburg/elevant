@@ -1,7 +1,7 @@
 from itertools import chain
 import pickle
 
-from src.wikipedia_corpus import WikipediaCorpus
+from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src import settings
 
 

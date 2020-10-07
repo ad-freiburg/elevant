@@ -1,4 +1,4 @@
-from src.conll_benchmark import conll_documents
+from src.models.conll_benchmark import conll_documents
 
 
 if __name__ == "__main__":

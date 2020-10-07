@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from src.wikipedia_article import article_from_json
+from src.models.wikipedia_article import article_from_json
 
 
 START_TAG = "<START>"

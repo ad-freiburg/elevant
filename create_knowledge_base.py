@@ -1,7 +1,7 @@
 import sys
 
-from src.entity_database import EntityDatabase
-from src.knowledge_base_creator import KnowledgeBaseCreator
+from src.models.entity_database import EntityDatabase
+from src.helpers.knowledge_base_creator import KnowledgeBaseCreator
 from src import settings
 
 

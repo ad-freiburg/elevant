@@ -1,9 +1,9 @@
 from typing import Dict
 import sys
 
-from src.wikipedia_article import WikipediaArticle, article_from_json
-from src.entity_database_reader import EntityDatabaseReader
-from src.wikidata_entity import WikidataEntity
+from src.models.wikipedia_article import WikipediaArticle, article_from_json
+from src.helpers.entity_database_reader import EntityDatabaseReader
+from src.models.wikidata_entity import WikidataEntity
 
 
 def entity_text(article: WikipediaArticle, entities: Dict[str, WikidataEntity]):

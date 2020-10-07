@@ -1,4 +1,4 @@
-from src.tagme_linker import TagMeLinker
+from src.linkers.tagme_linker import TagMeLinker
 
 
 if __name__ == "__main__":

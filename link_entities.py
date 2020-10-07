@@ -1,8 +1,8 @@
 import argparse
 
-from src.linking_system import LinkingSystem
-from src.wikipedia_article import WikipediaArticle
-from src.wikipedia_dump_reader import WikipediaDumpReader
+from src.linkers.linking_system import LinkingSystem
+from src.models.wikipedia_article import WikipediaArticle
+from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 
 def main(args):
