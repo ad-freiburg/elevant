@@ -29,3 +29,8 @@ html, body {
 	box-sizing: border-box;
 	padding: 5pt;
 }
+
+table, td, th {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
