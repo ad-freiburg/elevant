@@ -15,6 +15,7 @@ per line.
 """
 
 import argparse
+import os
 
 from src.linkers.linking_system import LinkingSystem
 from src.models.wikipedia_article import WikipediaArticle
@@ -31,6 +32,12 @@ def main(args):
                                    args.longest_alias_ner)
 
     input_file = open(args.input_file, 'r', encoding='utf8')
+
+    out_dir = os.path.dirname(args.output_file)
+    if not os.path.exists(out_dir):
+        print("Creating directory %s" % out_dir)
+        os.makedirs(out_dir)
+
     output_file = open(args.output_file, 'w', encoding='utf8')
 
     for i, line in enumerate(input_file):

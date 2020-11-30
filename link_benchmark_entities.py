@@ -16,6 +16,7 @@ per line.
 
 import argparse
 import time
+import os
 
 from src.linkers.linking_system import LinkingSystem
 from src.models.entity_database import EntityDatabase
@@ -52,6 +53,11 @@ def main(args):
                                    args.longest_alias_ner)
 
     example_generator = initialize_example_generator(args.benchmark)
+
+    out_dir = os.path.dirname(args.output_file)
+    if not os.path.exists(out_dir):
+        print("Creating directory %s" % out_dir)
+        os.makedirs(out_dir)
 
     output_file = open(args.output_file, 'w', encoding='utf8')
 
