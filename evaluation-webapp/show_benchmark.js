@@ -1,11 +1,17 @@
 var articles = [];
 
+GREEN = "#a9dfbf";
+RED = "#f1948a";
+
 $("document").ready(function() {
     textfield_left = document.getElementById("textfield_left");
     textfield_right = document.getElementById("textfield_right");
     article_select = document.getElementById("article");
+    file_select = document.getElementById("evaluation_file");
 
     parse_benchmark();
+    
+    get_runs("evaluation-results");
 });
 
 function parse_benchmark() {
@@ -25,9 +31,9 @@ function parse_benchmark() {
                         before = labelled_text.substring(0, begin);
                         after = labelled_text.substring(end);
                         entity_text = labelled_text.substring(begin, end);
-                        entity_representation = entity_text + " [" + entity_id + "]"
-                        link = "<a href=\"" + wikidata_url + "\">" + entity_representation +"</a>"
-                        labelled_text = before + link + after
+                        entity_representation = entity_text + " [" + entity_id + "]";
+                        link = "<a href=\"" + wikidata_url + "\">" + entity_representation +"</a>";
+                        labelled_text = before + link + after;
                     }
                     labelled_text = labelled_text.replaceAll("\n", "<br>");
                     json.labelled_text = labelled_text;
@@ -35,7 +41,6 @@ function parse_benchmark() {
                 }
             }
             set_article_select_options();
-            show_article();
         }
     );
 }
@@ -48,10 +53,203 @@ function set_article_select_options() {
         option.value = ai;
         article_select.add(option);
     }
+    $("#article").prop("selectedIndex", -1);
 }
 
 function show_article() {
     index = article_select.value;
-    textfield_left.innerHTML = articles[index].labelled_text;
-    textfield_right.innerHTML = articles[index].labelled_text;
+    
+    if (index == "") {
+        return;
+    }
+    article = articles[index];
+    
+    if (evaluation_cases.length == 0) {
+        textfield_left.innerHTML = article.labelled_text;
+        textfield_right.innerHTML = "ERROR: no file with cases found.";
+        $("#table").html("");
+        return;
+    }
+    
+    ground_truth_text = article.text;
+    predicted_text = article.text;
+    
+    for (eval_case of evaluation_cases[index].reverse()) {
+        if ("true_entity" in eval_case) {
+            before = ground_truth_text.substring(0, eval_case.span[0]);
+            text = ground_truth_text.substring(eval_case.span[0], eval_case.span[1]);
+            after = ground_truth_text.substring(eval_case.span[1]);
+            wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.true_entity.entity_id;
+            entity_representation = text + " [" + eval_case.true_entity.entity_id + "]";
+            if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
+                color = GREEN;
+            } else {
+                color = RED;
+            }
+            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
+            ground_truth_text = before + link + after;
+        }
+        
+        if ("predicted_entity" in eval_case) {
+            before = predicted_text.substring(0, eval_case.span[0]);
+            text = predicted_text.substring(eval_case.span[0], eval_case.span[1]);
+            after = predicted_text.substring(eval_case.span[1]);
+            wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.predicted_entity.entity_id;
+            entity_representation = text + " [" + eval_case.predicted_entity.entity_id + "]";
+            if ("true_entity" in eval_case && eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
+                color = GREEN;
+            } else {
+                color = RED;
+            }
+            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
+            predicted_text = before + link + after;
+        }
+    }
+    
+    textfield_left.innerHTML = ground_truth_text.replaceAll("\n", "<br>");
+    textfield_right.innerHTML = predicted_text.replaceAll("\n", "<br>");
+    
+    table = "<table>\n";
+    
+    table += "<tr>";
+    table += "<th>span</th>";
+    table += "<th>text</th>";
+    table += "<th>true ID</th>";
+    table += "<th>true name</th>";
+    table += "<th>detected</th>";
+    table += "<th>predicted ID</th>";
+    table += "<th>predicted name</th>";
+    table += "<th>case</th>";
+    table += "</tr>";
+    
+    for (eval_case of evaluation_cases[index].reverse()) {
+        if ("true_entity" in eval_case) {
+            has_true_entity = true;
+            true_entity_id = eval_case.true_entity.entity_id;
+            true_entity_name = eval_case.true_entity.name;
+        } else {
+            has_true_entity = false;
+            true_entity_id = "-";
+            true_entity_name = "-";
+        }
+        
+        if (has_true_entity) {
+            if (eval_case.detected) {
+                detected = "true positive";
+            } else {
+                detected = "false negative";
+            }
+        } else {
+            detected = "false positive";
+        }
+        
+        if ("predicted_entity" in eval_case) {
+            has_prediction_entity = true;
+            predicted_entity_id = eval_case.predicted_entity.entity_id;
+            predicted_entity_name = eval_case.predicted_entity.name;
+        } else {
+            has_prediction_entity = false;
+            predicted_entity_id = "-";
+            predicted_entity_name = "-";
+        }
+        
+        if (has_prediction_entity && has_true_entity) {
+            if (predicted_entity_id == true_entity_id) {
+                case_type = "true positive";
+            } else {
+                case_type = "wrong entity";
+            }
+        } else if (has_prediction_entity) {
+            case_type = "false positive";
+        } else {
+            case_type = "false negative";
+        }
+    
+        table += "<tr>";
+        table += "<td>" + eval_case.span[0] + ", " + eval_case.span[1] + "</td>";
+        table += "<td>" + article.text.substring(eval_case.span[0], eval_case.span[1]) + "</td>";
+        table += "<td>" + true_entity_id + "</td>";
+        table += "<td>" + true_entity_name + "</td>";
+        table += "<td>" + detected + "</td>";
+        table += "<td>" + predicted_entity_id + "</td>";
+        table += "<td>" + predicted_entity_name + "</td>";
+        table += "<td>" + case_type + "</td>";
+        table += "</tr>\n";
+    }
+    table += "</table>";
+    $("#table").html(table);
+}
+
+function get_runs(path) {
+    console.log(path);
+    files = [];
+    
+    promise = new Promise(function(request_done) {
+        $.get(path, function(data) {
+            request_done(data);
+        });    
+    });
+    
+    promise.then(function(data) {
+        $(data).find("a").each(function() {
+            name = $(this).attr("href");
+            name = name.substring(0, name.length - 1);
+            files.push(name);
+            
+            option = document.createElement("option");
+            option.text = name;
+            option.value = name;
+            file_select.add(option);
+            
+            $("#evaluation_file").prop("selectedIndex", -1);
+        });
+    });
+}
+
+function read_evaluation() {
+    run = $("#evaluation_file").val();
+    path = "evaluation-results/" + run + "/" + run + ".cases"
+    console.log(path);
+    evaluation_cases = [];
+    
+    n_tp = 0;
+    n_fp = 0;
+    n_fn = 0;
+    
+    $.get(path, function(data) {
+        lines = data.split("\n");
+        for (line of lines) {
+            if (line.length > 0) {
+                cases = JSON.parse(line);
+                evaluation_cases.push(cases);
+                
+                for (eval_case of cases) {
+                    if ("true_entity" in eval_case && "predicted_entity" in eval_case && eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
+                        n_tp += 1;
+                    } else {
+                        if ("true_entity" in eval_case) {
+                            n_fn += 1;
+                        }
+                        if ("predicted_entity" in eval_case) {
+                            n_fp += 1;
+                        }
+                    }
+                }
+            }
+        }
+        precision = n_tp / (n_tp + n_fp);
+        recall = n_tp / (n_tp + n_fn);
+        f1 = 2 * precision * recall / (precision + recall);
+        eval_html =  "true positives = &nbsp;" + n_tp + "<br>";
+        eval_html += "false positives = " + n_fp + "<br>";
+        eval_html += "false negatives = " + n_fn + "<br>";
+        eval_html += "precision = " + precision.toFixed(4) + "<br>";
+        eval_html += "recall = &nbsp;&nbsp;&nbsp;" + recall.toFixed(4) + "<br>";
+        eval_html += "F-score = &nbsp;&nbsp;" + f1.toFixed(4) + "<br>";
+        $("#evaluation").html(eval_html);
+        show_article();
+    }).fail(function() {
+        $("#evaluation").html("ERROR: no file with cases found.");
+        show_article();
+    });
 }
