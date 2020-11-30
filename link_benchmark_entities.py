@@ -1,3 +1,19 @@
+"""
+Links entities in a specified benchmark to their WikiData entry.
+The linker pipeline consists of three main components:
+
+    1) link linker: use intra-Wikipedia links to detect entity mentions and
+       link them to their WikiData entry.
+    2) linker: use a NER system and a NED system to detect and link remaining
+       entity mentions.
+    3) coreference linker: link coreferences to their WikiData entry.
+
+For each component, you can choose between different linker variants or omit
+the component from the pipeline.
+The result is written to a given output file in jsonl format with one article
+per line.
+"""
+
 import argparse
 import time
 
@@ -52,7 +68,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
 
     parser.add_argument("output_file", type=str, default=None,
                         help="Output file for the evaluation results")

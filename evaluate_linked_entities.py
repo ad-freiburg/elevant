@@ -1,3 +1,12 @@
+"""
+Evaluates entity linking.
+This takes a jsonl file produced by link_benchmark_entities.py with one linked
+article and its ground truth labels per line.
+The resulting evaluation cases are written to an output file in jsonl format
+with one case per line.
+The evaluation results are printed.
+"""
+
 from typing import Tuple
 import argparse
 import json
@@ -353,7 +362,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
 
     parser.add_argument("input_file", type=str,
                         help="Input file. Linked articles with ground truth labels.")
