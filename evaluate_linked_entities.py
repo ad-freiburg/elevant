@@ -368,7 +368,8 @@ if __name__ == "__main__":
     parser.add_argument("input_file", type=str,
                         help="Input file. Linked articles with ground truth labels.")
     parser.add_argument("-out", "--output_file", type=str, default=None,
-                        help="Output file for the evaluation results.")
+                        help="Output file for the evaluation results."
+                             "The input file with .cases extension if none is specified.")
     parser.add_argument("-in", "--input_case_file", type=str, default=None,
                         help="Input file that contains the evaluation cases. Cases are not written to file.")
     parser.add_argument("--no_coreference", action="store_true",
