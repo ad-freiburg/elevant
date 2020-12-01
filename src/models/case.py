@@ -108,7 +108,7 @@ class Case:
     def to_dict(self) -> Dict:
         data = {"span": self.span,
                 "detected": self.detected,
-                "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in self.candidates],
+                "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in sorted(self.candidates)],
                 "predicted_by": self.predicted_by,
                 "eval_type": self.eval_type.value}
         if self.true_entity is not None:

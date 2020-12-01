@@ -28,7 +28,7 @@ class EntityMention:
         if self.referenced_span is not None:
             d["referenced_span"] = self.referenced_span
         if self.candidates is not None:
-            d["candidates"] = list(self.candidates)
+            d["candidates"] = sorted(self.candidates)
         if self.contained is not None:
             d["contained"] = self.contained
         return d

@@ -11,3 +11,6 @@ class WikidataEntity:
         self.score = score
         self.entity_id = entity_id
         self.synonyms = synonyms
+
+    def __lt__(self, other):
+        return self.entity_id < other.entity_id
