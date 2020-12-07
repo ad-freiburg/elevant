@@ -55,7 +55,7 @@ def main(args):
     example_generator = initialize_example_generator(args.benchmark)
 
     out_dir = os.path.dirname(args.output_file)
-    if not os.path.exists(out_dir):
+    if out_dir and not os.path.exists(out_dir):
         print("Creating directory %s" % out_dir)
         os.makedirs(out_dir)
 
