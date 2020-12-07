@@ -17,7 +17,7 @@ if DATA_DIRECTORY is None:
     exit(1)
 
 ARTICLE_JSON_DIR = DATA_DIRECTORY + "json/"
-ARTICLE_JSON_FILE = "/nfs/students/natalie-prange/wiki_files/wiki_dump_with_links.json"
+ARTICLE_JSON_FILE = DATA_DIRECTORY + "wiki_extractor_output/wiki_dump_with_links.json"
 
 SPLIT_ARTICLES_DIR = DATA_DIRECTORY + "articles_split/"
 TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "training.txt"
@@ -29,11 +29,11 @@ ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
 PERSON_NAMES_FILE = DATABASE_DIRECTORY + "wikidata-familyname.csv"
 ABSTRACTS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia.tsv"
 WIKI_MAPPING_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
-GENDER_MAPPING_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_gender.tsv"
-GIVEN_NAME_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_given_name.tsv"
-TYPE_MAPPING_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_categories_v9.txt"
-ALL_TYPES_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_all_classes.txt"
-RELEVANT_TYPES_FILE = "/nfs/students/natalie-prange/wikidata_mappings/qid_to_relevant_classes.txt"
+GENDER_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_gender.tsv"
+GIVEN_NAME_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_given_name.tsv"
+TYPE_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_categories_v9.txt"
+ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_classes.txt"
+RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_classes.txt"
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"
@@ -61,4 +61,4 @@ CONLL_BENCHMARK_FILE = CONLL_BENCHMARK_DIRECTORY + "conll-wikidata-iob-annotatio
 OWN_BENCHMARK_DIRECOTRY = DATA_DIRECTORY + "benchmark/"
 OWN_BENCHMARK_FILE = OWN_BENCHMARK_DIRECOTRY + "development_labels.jsonl"
 
-UNIGRAMS_FILE = "/nfs/students/matthias-hertel/wiki_entity_linker/unigrams.txt"
+UNIGRAMS_FILE = DATA_DIRECTORY + "unigrams.txt"
