@@ -8,7 +8,9 @@ RUN python3 -m pip install -e neuralcoref
 COPY requirements.txt requirements.txt
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m spacy download en_core_web_lg
+RUN python3 -m spacy download en_core_web_sm
 COPY src src
+COPY Makefile .
 COPY *.py ./
 
 
