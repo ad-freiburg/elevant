@@ -1,7 +1,8 @@
 var articles = [];
 
-GREEN = "#a9dfbf";
+GREEN = "#7dcea0";
 RED = "#f1948a";
+BLUE = "#bb8fce";
 
 $("document").ready(function() {
     textfield_left = document.getElementById("textfield_left");
@@ -81,10 +82,14 @@ function show_article() {
             after = ground_truth_text.substring(eval_case.span[1]);
             wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.true_entity.entity_id;
             entity_representation = text + " [" + eval_case.true_entity.entity_id + "]";
-            if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
-                color = GREEN;
+            if ("predicted_entity" in eval_case) {
+                if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
+                    color = GREEN;
+                } else {
+                    color = RED;
+                }
             } else {
-                color = RED;
+                color = BLUE;
             }
             link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
             ground_truth_text = before + link + after;
@@ -96,10 +101,14 @@ function show_article() {
             after = predicted_text.substring(eval_case.span[1]);
             wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.predicted_entity.entity_id;
             entity_representation = text + " [" + eval_case.predicted_entity.entity_id + "]";
-            if ("true_entity" in eval_case && eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
-                color = GREEN;
+            if ("true_entity" in eval_case) {
+                if (eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
+                    color = GREEN;
+                } else {
+                    color = RED;
+                }
             } else {
-                color = RED;
+                color = BLUE;
             }
             link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
             predicted_text = before + link + after;
@@ -109,7 +118,7 @@ function show_article() {
     textfield_left.innerHTML = ground_truth_text.replaceAll("\n", "<br>");
     textfield_right.innerHTML = predicted_text.replaceAll("\n", "<br>");
     
-    table = "<table>\n";
+    table = "<table class=\"casesTable\">\n";
     
     table += "<tr>";
     table += "<th>span</th>";

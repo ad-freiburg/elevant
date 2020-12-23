@@ -33,4 +33,13 @@ html, body {
 table, td, th {
     border: 1px solid black;
     border-collapse: collapse;
+    padding: 3px;
+}
+
+.casesTable {
+    width: 100%;
+}
+
+a {
+    color: black;
 }
