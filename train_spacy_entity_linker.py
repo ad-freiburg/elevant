@@ -10,7 +10,7 @@ from src.helpers.label_generator import LabelGenerator
 
 def print_help():
     print("Usage:\n"
-          "    python3 train_entity_linker.py <name> <batches> <kb_name> [-prior]")
+          "    python3 train_spacy_entity_linker.py <name> <batches> <kb_name> [-prior]")
 
 
 def save_model(model: Language, model_name: str):
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     n_entities = 0
     loss_sum = 0
     if N_BATCHES != 0:
-        for doc, labels in generator.training_examples():
+        for doc, labels in generator.read_examples():
             batch_docs = [doc]
             batch_labels = [labels]
             losses = {}

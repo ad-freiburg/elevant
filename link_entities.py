@@ -20,6 +20,7 @@ import os
 from src.linkers.linking_system import LinkingSystem
 from src.models.wikipedia_article import WikipediaArticle
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
+from src.models.neural_net import NeuralNet
 
 
 def main(args):
@@ -64,7 +65,8 @@ if __name__ == "__main__":
                         help="Input file with articles in JSON format or raw text.")
     parser.add_argument("output_file", type=str, default=None,
                         help="Output file.")
-    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme", "none"],
+    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme",
+                                                "trained_model", "none"],
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"

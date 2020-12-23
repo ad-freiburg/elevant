@@ -20,7 +20,9 @@ import os
 
 from src.linkers.linking_system import LinkingSystem
 from src.models.entity_database import EntityDatabase
-from src.helpers.evaluation_examples_generator import ConllExampleReader, OwnBenchmarkExampleReader, WikipediaExampleReader
+from src.helpers.evaluation_examples_generator import ConllExampleReader, OwnBenchmarkExampleReader,\
+    WikipediaExampleReader
+from src.models.neural_net import NeuralNet
 
 
 def initialize_example_generator(benchmark_name):
@@ -79,7 +81,8 @@ if __name__ == "__main__":
 
     parser.add_argument("output_file", type=str, default=None,
                         help="Output file for the evaluation results")
-    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme", "none"],
+    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme",
+                                                "trained_model", "none"],
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"

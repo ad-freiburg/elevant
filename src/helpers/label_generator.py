@@ -24,7 +24,7 @@ class LabelGenerator:
         self.kb = kb
         self.mapping = mapping
 
-    def training_examples(self, n: int = -1) -> Iterator[Tuple[Doc, Dict[str, Dict[Tuple[int, int], str]]]]:
+    def read_examples(self, n: int = -1, test: bool = False) -> Iterator[Tuple[Doc, Dict[str, Dict[Tuple[int, int], str]]]]:
         """
         Generate training examples for the entity linker.
 
@@ -41,7 +41,9 @@ class LabelGenerator:
         :param n: number of training examples
         :return: iterator over training examples
         """
-        for article in WikipediaCorpus.training_articles(n):
+        disable_training = [pipe for pipe in LabelGenerator.DISABLE_TRAINING if pipe in self.model.pipeline]
+        iterator = WikipediaCorpus.training_articles(n) if not test else WikipediaCorpus.development_articles(n)
+        for article in iterator:
             link_dict = {}
             for span, link_target in article.links:
                 # check if target can be mapped to ID:
@@ -59,7 +61,7 @@ class LabelGenerator:
                                                for candidate_id in candidate_entities}
             # skip if no link could be mapped:
             if len(link_dict) > 0:
-                with self.model.disable_pipes(LabelGenerator.DISABLE_TRAINING):
+                with self.model.disable_pipes(disable_training):
                     doc = self.model(article.text)
                 # filter entities not recognized by the NER:
                 doc_entity_spans = {(e.start_char, e.end_char) for e in doc.ents}

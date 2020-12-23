@@ -4,6 +4,7 @@ from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
 from src.helpers.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.linkers.entity_coref_linker import EntityCorefLinker
+from src.linkers.trained_entity_linker import TrainedEntityLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
 from src.linkers.explosion_linker import ExplosionEntityLinker
@@ -14,7 +15,7 @@ from src.ner.maximum_matching_ner import MaximumMatchingNER
 from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.linkers.tagme_linker import TagMeLinker
-from src.linkers.trained_entity_linker import TrainedEntityLinker
+from src.linkers.trained_spacy_entity_linker import TrainedSpacyEntityLinker
 from src.models.wikipedia_article import WikipediaArticle
 from src.linkers.xrenner_coref_linker import XrennerCorefLinker
 
@@ -80,7 +81,7 @@ class LinkingSystem:
                            longest_alias_ner: Optional[bool] = False):
         if linker_type == "spacy":
             linker_name = linker_info
-            self.linker = TrainedEntityLinker(linker_name, entity_db=self.entity_db, kb_name=kb_name)
+            self.linker = TrainedSpacyEntityLinker(linker_name, entity_db=self.entity_db, kb_name=kb_name)
         elif linker_type == "explosion":
             path = linker_info
             self.linker = ExplosionEntityLinker(path, entity_db=self.entity_db)
@@ -105,6 +106,9 @@ class LinkingSystem:
                     strategy = LinkingStrategy.ENTITY_SCORE
                 self.linker = AliasEntityLinker(self.entity_db, strategy, load_model=not longest_alias_ner,
                                                 longest_alias_ner=longest_alias_ner)
+        elif linker_type == "trained_model":
+            linker_model = linker_info
+            self.linker = TrainedEntityLinker(linker_model, self.entity_db)
 
     def _initialize_link_linker(self, linker_type: str):
         self.entity_db.load_mapping()
