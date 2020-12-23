@@ -182,7 +182,7 @@ function show_article() {
 
 function get_runs(path) {
     console.log(path);
-    files = [];
+    folders = [];
     
     promise = new Promise(function(request_done) {
         $.get(path, function(data) {
@@ -194,21 +194,39 @@ function get_runs(path) {
         $(data).find("a").each(function() {
             name = $(this).attr("href");
             name = name.substring(0, name.length - 1);
-            files.push(name);
-            
-            option = document.createElement("option");
-            option.text = name;
-            option.value = name;
-            file_select.add(option);
-            
-            $("#evaluation_file").prop("selectedIndex", -1);
+            folders.push(name);
+        });
+        get_cases_files(path, folders);
+    });
+}
+
+function get_cases_files(path, folders) {
+    result_files = {};
+    folders.forEach(function(folder) {
+        $.get(path + "/" + folder, function(folder_data) {
+            console.log(path + "/" + folder);
+            $(folder_data).find("a").each(function() {
+                file_name = $(this).attr("href");
+                if (file_name.endsWith(".cases")) {
+                    approach_name = file_name.substring(0, file_name.length - 6);
+                    result_files[approach_name] = path + "/" + folder + "/" + approach_name;
+                    
+                    option = document.createElement("option");
+                    option.text = approach_name;
+                    option.value = approach_name;
+                    file_select.add(option);
+                    
+                    $("#evaluation_file").prop("selectedIndex", -1);
+                }
+            });
         });
     });
 }
 
 function read_evaluation() {
     run = $("#evaluation_file").val();
-    path = "evaluation-results/" + run + "/" + run + ".cases"
+    //path = "evaluation-results/" + run + "/" + run + ".cases";
+    path = result_files[run] + ".cases";
     console.log(path);
     evaluation_cases = [];
     
