@@ -42,12 +42,14 @@ def training_batches(x_train: torch.Tensor,
 
 
 class EntityLinkingTrainer:
-    def __init__(self, kb_path, vocab_path, prior: Optional[bool] = False, save_best: Optional[bool] = False):
+    def __init__(self, kb_path, vocab_path, prior: Optional[bool] = False, global_model: Optional[bool] = False,
+                 save_best: Optional[bool] = False):
         self.prior = prior
         self.model_path = "trained_entity_linking_model.pt"
         self.checkpoint_path = "trained_entity_linking_model.best.pt"
         self.save_best = save_best
         self.lowest_val_loss = None
+        self.global_model = global_model
 
         print("Load spacy model...")
         nlp = spacy.load(settings.LARGE_MODEL_NAME)
@@ -90,20 +92,38 @@ class EntityLinkingTrainer:
         The features are the concatenation of a sentence embedding and a
         candidate entity embedding.
         """
-        n_features = 2 * self.kb.entity_vector_length  # Input is the concatenation of sentence and entity vector
+        # Determine input feature size
+        if self.global_model:
+            # Concatenation of sentence vector, entity vector and mean of already linked entity vectors
+            n_features = 3 * self.kb.entity_vector_length
+        else:
+            # Input is the concatenation of sentence and entity vector
+            n_features = 2 * self.kb.entity_vector_length
         if self.prior:
-            n_features += 1  # One feature for the prior probability of a candidate given the entity mention
+            # One feature for the prior probability of a candidate given the entity mention
+            n_features += 1
+
         x = torch.zeros(n_samples, n_features)
         y = torch.zeros(n_samples, 1)
         samples_counter = 0
         conjugate_indices = []
         for doc, labels in self.generator.read_examples(test=test):
             links = labels['links']
-            for span in sorted(links):
+            if self.global_model:
+                true_entity_vectors = self.get_true_entity_vectors(links)
+            for i, span in enumerate(sorted(links)):
                 snippet = doc.text[span[0]:span[1]]
                 sentence_span = OffsetConverter.get_sentence(span[0], doc)
                 sentence_span = sentence_span.start_char, sentence_span.end_char
                 sentence_vector = EmbeddingsExtractor.get_span_embedding(sentence_span, doc)
+
+                if self.global_model:
+                    # Get the average of all true entity vectors in the document except for the current one
+                    # TODO: Use random vector if there is only one linked entity in the document
+                    mean_true_entity_vector = torch.div(torch.sum(true_entity_vectors[:i], 0) +
+                                                       torch.sum(true_entity_vectors[i + 1:], 0),
+                                                       true_entity_vectors.size()[0])
+                    mean_true_entity_vector = mean_true_entity_vector.reshape((1, mean_true_entity_vector.shape[0]))
                 for cand, prob in sorted(links[span].items()):
                     if samples_counter >= n_samples:
                         print()
@@ -112,6 +132,8 @@ class EntityLinkingTrainer:
                     entity_vector = torch.Tensor(self.kb.get_vector(cand))
                     entity_vector = entity_vector.reshape((1, entity_vector.shape[0]))
                     input_tensor = torch.cat((sentence_vector, entity_vector), dim=1)
+                    if self.global_model:
+                        input_tensor = torch.cat((input_tensor, mean_true_entity_vector), dim=1)
                     if self.prior:
                         prior_prob = self.kb.get_prior_prob(cand, snippet)
                         input_tensor = torch.cat((input_tensor, torch.Tensor([[prior_prob]])), dim=1)
@@ -120,6 +142,21 @@ class EntityLinkingTrainer:
                     samples_counter += 1
                     print(f"\rAdded {samples_counter} samples", end="")
                 conjugate_indices.append(samples_counter)
+
+    def get_true_entity_vectors(self, links):
+        """
+        Retrieve all entity vectors of candidates with probability 1.0 in the
+        label generator data for a single document. I.e. the ground truth
+        entity vectors
+        """
+        true_entity_vectors = torch.zeros(len(links), self.kb.entity_vector_length)
+        for i, span in enumerate(sorted(links)):
+            for cand, prob in sorted(links[span].items()):
+                if prob == 1:
+                    entity_vector = torch.Tensor(self.kb.get_vector(cand))
+                    entity_vector = entity_vector.reshape((1, entity_vector.shape[0]))
+                    true_entity_vectors[i] = entity_vector
+        return true_entity_vectors
 
     def train(self,
               x_train: torch.Tensor,
@@ -162,7 +199,8 @@ class EntityLinkingTrainer:
                                 'model': self.model,
                                 'optimizer_state_dict': optimizer.state_dict(),
                                 'loss': loss,
-                                'prior': self.prior
+                                'prior': self.prior,
+                                'global_model': self.global_model
                             }, self.checkpoint_path)
 
     def evaluate(self,
@@ -212,11 +250,12 @@ class EntityLinkingTrainer:
             avg_candidates = conjugate_indices[-1] / len(conjugate_indices)
             random_guess_accuracy = 1 / avg_candidates
             print(f"Accuracy: {accuracy}")
-            print(f"Baseline accuracy (prior prob): {baseline_accuracy}")
+            if self.prior:
+                print(f"Baseline accuracy (prior prob): {baseline_accuracy}")
             print(f"Guessing accuracy: {random_guess_accuracy}")
 
     def save_model(self):
-        torch.save({'model': self.model, 'prior': self.prior}, self.model_path)
+        torch.save({'model': self.model, 'prior': self.prior, 'global_model': self.global_model}, self.model_path)
         print(f"Dictionary with trained model saved to {self.model_path}")
         if self.save_best:
             print(f"Best checkpoint saved to {self.checkpoint_path}")
@@ -233,8 +272,13 @@ def main(args):
     learning_rate = args.learning_rate
     dropout = args.dropout
 
-    vocab_path = settings.VOCAB_DIRECTORY
-    kb_path = settings.KB_FILE
+    if args.kb_name is None:
+        vocab_path = settings.VOCAB_DIRECTORY
+        kb_path = settings.KB_FILE
+    else:
+        load_path = settings.KB_DIRECTORY + args.kb_name + "/"
+        vocab_path = load_path + "vocab"
+        kb_path = load_path + "kb"
 
     # Build output model path
     if args.output_file:
@@ -242,13 +286,17 @@ def main(args):
     else:
         lr_str = str(learning_rate).lstrip("0").lstrip(".")
         do_str = str(dropout).lstrip("0").lstrip(".")
-        version = "local_model_"
+        version = "global" if args.global_model else "local"
+        version += "_model_"
         version += "vanilla" if not args.prior else "prior"
         model_name = "%s.%i.%iep.%ibs.%ihu.%slr.%sdo" % (version, n_samples, n_epochs, batch_size, hidden_units,
                                                          lr_str, do_str)
+        if args.kb_name:
+            model_name += ".%s" % args.kb_name
         model_path = settings.LINKER_MODEL_PATH + model_name + ".pt"
 
-    trainer = EntityLinkingTrainer(kb_path, vocab_path, args.prior, args.save_best)
+    trainer = EntityLinkingTrainer(kb_path, vocab_path, prior=args.prior, global_model=args.global_model,
+                                   save_best=args.save_best)
 
     if not args.load_model:
         trainer.set_model_path(model_path)
@@ -289,7 +337,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-o", "--output_file", type=str,
                         help="Output file to write the model to. Should end on '.pt'. Per default this is"
-                             "vanilla_local_model.<n_samples>.<epochs>ep.<batch_size>bs.<hidden_units>hu."
+                             "<local/global>_model_<prior/vanilla>.<n_samples>.<epochs>ep.<batch_size>bs.<hidden_units>hu."
                              "<learning_rate>lr.pt")
 
     parser.add_argument("-n", "--n_samples", type=int, default=100000,
@@ -321,6 +369,12 @@ if __name__ == "__main__":
 
     parser.add_argument("--prior", action="store_true",
                         help="Add prior probability to input feature vector.")
+
+    parser.add_argument("--global_model", action="store_true",
+                        help="Train a global model by adding mean of already linked entity vectors to input vector.")
+
+    parser.add_argument("-kb", "--kb_name", type=str, default=None, choices=["wikipedia"],
+                        help="Name of the knowledgebase.")
 
     parser.add_argument("--load_model", type=str, default=None,
                         help="Load model from given path instead of training a new model and evaluate over it.")
