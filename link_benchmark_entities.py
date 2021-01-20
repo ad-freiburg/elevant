@@ -21,13 +21,18 @@ import os
 from src.linkers.linking_system import LinkingSystem
 from src.models.entity_database import EntityDatabase
 from src.helpers.evaluation_examples_generator import ConllExampleReader, OwnBenchmarkExampleReader,\
-    WikipediaExampleReader
+    WikipediaExampleReader, PseudoLinkConllExampleReader
 from src.models.neural_net import NeuralNet
 
 
 def initialize_example_generator(benchmark_name):
     if benchmark_name == "conll":
         example_generator = ConllExampleReader()
+    elif benchmark_name == "conll-links":
+        print("load evaluation entities...")
+        entity_db = EntityDatabase()
+        entity_db.load_mapping()
+        example_generator = PseudoLinkConllExampleReader(entity_db)
     elif benchmark_name == "own":
         example_generator = OwnBenchmarkExampleReader()
     else:
@@ -42,7 +47,7 @@ def initialize_example_generator(benchmark_name):
 
 def main(args):
     if args.link_linker:
-        if args.benchmark != "own":
+        if args.benchmark != "own" and args.benchmark != "conll-links":
             print("Link linkers can only be evaluated over own benchmark.")
             exit(1)
 
@@ -91,7 +96,7 @@ if __name__ == "__main__":
                         "EXPLOSION: Full path to the saved model.\n"
                         "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
                         "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
-    parser.add_argument("-b", "--benchmark", choices=["own", "wikipedia", "conll"], default="own",
+    parser.add_argument("-b", "--benchmark", choices=["own", "wikipedia", "conll", "conll-links"], default="own",
                         help="Benchmark over which to evaluate the linker.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")

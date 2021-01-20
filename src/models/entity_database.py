@@ -111,6 +111,10 @@ class EntityDatabase:
             return self.wikipedia2wikidata[self.redirects[link_target]]
         return None
 
+    def id2wikipedia_name(self, entity_id: str) -> str:
+        if entity_id in self.wikidata2wikipedia:
+            return self.wikidata2wikipedia[entity_id]
+
     def _iterate_link_frequencies(self) -> Iterator[Tuple[str, str, int]]:
         link_frequencies = EntityDatabaseReader.get_link_frequencies()
         for link_text in link_frequencies:

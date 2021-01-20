@@ -16,8 +16,7 @@ class AbstractEntityLinker(abc.ABC):
     def predict(self,
                 text: str,
                 doc: Optional[Doc] = None,
-                uppercase: Optional[bool] = False,
-                linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -28,6 +27,5 @@ class AbstractEntityLinker(abc.ABC):
                       article: WikipediaArticle,
                       doc: Optional[Doc] = None,
                       uppercase: Optional[bool] = False):
-        entity_predictions = self.predict(article.text, doc=doc, uppercase=uppercase,
-                                          linked_entities=article.entity_mentions)
+        entity_predictions = self.predict(article.text, doc=doc, uppercase=uppercase)
         article.link_entities(entity_predictions, self.NER_IDENTIFIER, self.LINKER_IDENTIFIER)
