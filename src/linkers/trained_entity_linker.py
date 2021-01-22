@@ -69,7 +69,7 @@ class TrainedEntityLinker(AbstractEntityLinker):
             rdf2vec_model = gensim.models.Word2Vec.load(settings.RDF2VEC_MODEL_PATH, mmap='r')
 
         # Determine the dimensionality of an entity vector
-        self.entity_vector_length = rdf2vec_model.wv.vector_size if rdf2vec_model else self.kb.entity_vector_length
+        self.entity_vector_length = rdf2vec_model.wv.vector_size if rdf2vec else self.kb.entity_vector_length
 
         self.embedding_extractor = EmbeddingsExtractor(self.entity_vector_length, self.kb, rdf2vec_model)
 
