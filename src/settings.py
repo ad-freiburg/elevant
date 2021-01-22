@@ -64,3 +64,4 @@ OWN_BENCHMARK_FILE = OWN_BENCHMARK_DIRECOTRY + "development_labels.jsonl"
 UNIGRAMS_FILE = DATA_DIRECTORY + "unigrams.txt"
 
 LINKER_MODEL_PATH = "/nfs/students/natalie-prange/wiki-entity-linker_data/linker_models/"
+RDF2VEC_MODEL_PATH = "/nfs/students/natalie-prange/wiki-entity-linker_data/entity_embeddings/wikid2vec_sg_500_7_4_15_4_500"

@@ -19,6 +19,8 @@ from src.linkers.trained_spacy_entity_linker import TrainedSpacyEntityLinker
 from src.models.wikipedia_article import WikipediaArticle
 from src.linkers.xrenner_coref_linker import XrennerCorefLinker
 
+import torch
+
 
 def uppercase_predictions(predictions: Dict[Tuple[int, int], EntityPrediction],
                           text: str) -> Dict[Tuple[int, int], EntityPrediction]:
@@ -107,8 +109,15 @@ class LinkingSystem:
                 self.linker = AliasEntityLinker(self.entity_db, strategy, load_model=not longest_alias_ner,
                                                 longest_alias_ner=longest_alias_ner)
         elif linker_type == "trained_model":
-            linker_model = linker_info
-            self.linker = TrainedEntityLinker(linker_model, self.entity_db)
+            print("loading trained entity linking model...")
+            linker_model_path = linker_info
+            model_dict = torch.load(linker_model_path)
+            prior = model_dict.get('prior', False)
+            global_model = model_dict.get('global_model', False)
+            rdf2vec = model_dict.get('rdf2vec', False)
+            linker_model = model_dict['model']
+            self.linker = TrainedEntityLinker(linker_model, self.entity_db, prior=prior, global_model=global_model,
+                                              rdf2vec=rdf2vec)
 
     def _initialize_link_linker(self, linker_type: str):
         self.entity_db.load_mapping()

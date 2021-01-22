@@ -7,15 +7,15 @@ import spacy
 import random
 import math
 import argparse
+import gensim
 
 from spacy.kb import KnowledgeBase
-from src import settings
 
 from src.linkers.link_entity_linker import get_mapping
 from src.helpers.label_generator import LabelGenerator
 from src.utils.embeddings_extractor import EmbeddingsExtractor
 from src.models.neural_net import NeuralNet
-from src.utils.offset_converter import OffsetConverter
+from src import settings
 
 
 # Ensure reproducibility
@@ -29,9 +29,9 @@ def training_batches(x_train: torch.Tensor,
     """
     Iterator over random batches of size <batch_size> from the training data
     """
-    indices = list(range(x_train.size()[0]))
+    indices = list(range(x_train.shape[0]))
     random.shuffle(indices)
-    n_batches = math.ceil(x_train.size()[0] / batch_size)
+    n_batches = math.ceil(x_train.shape[0] / batch_size)
     for batch_no in range(n_batches):
         begin = batch_no * batch_size
         end = begin + batch_size
@@ -42,7 +42,12 @@ def training_batches(x_train: torch.Tensor,
 
 
 class EntityLinkingTrainer:
-    def __init__(self, kb_path, vocab_path, prior: Optional[bool] = False, global_model: Optional[bool] = False,
+    def __init__(self,
+                 kb_path: str,
+                 vocab_path: str,
+                 prior: Optional[bool] = False,
+                 global_model: Optional[bool] = False,
+                 rdf2vec: Optional[bool] = False,
                  save_best: Optional[bool] = False):
         self.prior = prior
         self.model_path = "trained_entity_linking_model.pt"
@@ -51,18 +56,28 @@ class EntityLinkingTrainer:
         self.lowest_val_loss = None
         self.global_model = global_model
 
-        print("Load spacy model...")
+        print("Loading spacy model...")
         nlp = spacy.load(settings.LARGE_MODEL_NAME)
 
-        print("Load vocabulary")
+        print("Loading vocabulary...")
         nlp.vocab.from_disk(vocab_path)
 
-        print("Load knowledge base")
+        print("Loading knowledge base...")
         self.kb = KnowledgeBase(vocab=nlp.vocab)
         self.kb.load_bulk(kb_path)
         print(self.kb.get_size_entities(), "entities")
         print(self.kb.get_size_aliases(), "aliases")
 
+        self.rdf2vec = rdf2vec
+        rdf2vec_model = None
+        if rdf2vec:
+            print("Loading rdf2vec model...")
+            rdf2vec_model = gensim.models.Word2Vec.load(settings.RDF2VEC_MODEL_PATH, mmap='r')
+
+        self.entity_vector_length = rdf2vec_model.wv.vector_size if self.rdf2vec else self.kb.entity_vector_length
+        self.embedding_extractor = EmbeddingsExtractor(self.entity_vector_length, self.kb, rdf2vec_model)
+
+        print("Loading wikipedia - wikidata mapping...")
         mapping = get_mapping()
         self.generator = LabelGenerator(nlp, self.kb, mapping)
 
@@ -77,86 +92,88 @@ class EntityLinkingTrainer:
     def initialize_model(self, n_features, hidden_units, dropout):
         self.model = NeuralNet(n_features, hidden_units, 1, dropout)
 
-    def load_model(self, model_path):
-        loaded_model = torch.load(model_path)
-        if type(loaded_model) is dict:
-            self.model = loaded_model['model']
-            self.prior = loaded_model.get('prior', False)
-        else:
-            self.model = loaded_model
-
     def create_data(self, n_samples: int, test: Optional[bool] = False) -> Tuple[torch.Tensor, torch.Tensor, List[int]]:
         """
         Create X (samples) and y (labels) as torch tensors by iterating over
         Wikipedia articles and using hyperlinks as labels.
-        The features are the concatenation of a sentence embedding and a
-        candidate entity embedding.
+        The features are the concatenation of vectors depending on the user
+        settings.
         """
-        # Determine input feature size
-        if self.global_model:
-            # Concatenation of sentence vector, entity vector and mean of already linked entity vectors
-            n_features = 3 * self.kb.entity_vector_length
-        else:
-            # Input is the concatenation of sentence and entity vector
-            n_features = 2 * self.kb.entity_vector_length
-        if self.prior:
-            # One feature for the prior probability of a candidate given the entity mention
-            n_features += 1
-
+        # Create empty data matrices
+        n_features = self.determine_n_features(300)  # Spacy word vector size. This is fix for now.
         x = torch.zeros(n_samples, n_features)
         y = torch.zeros(n_samples, 1)
+
         samples_counter = 0
         conjugate_indices = []
+
         for doc, labels in self.generator.read_examples(test=test):
             links = labels['links']
+
             if self.global_model:
-                true_entity_vectors = self.get_true_entity_vectors(links)
+                true_entity_ids = self.get_true_entity_ids(links)
+
             for i, span in enumerate(sorted(links)):
-                snippet = doc.text[span[0]:span[1]]
-                sentence_span = OffsetConverter.get_sentence(span[0], doc)
-                sentence_span = sentence_span.start_char, sentence_span.end_char
-                sentence_vector = EmbeddingsExtractor.get_span_embedding(sentence_span, doc)
+                # Get the sentence vector
+                sentence_vector = self.embedding_extractor.get_sentence_vector(span, doc)
 
                 if self.global_model:
-                    # Get the average of all true entity vectors in the document except for the current one
-                    # TODO: Use random vector if there is only one linked entity in the document
-                    mean_true_entity_vector = torch.div(torch.sum(true_entity_vectors[:i], 0) +
-                                                       torch.sum(true_entity_vectors[i + 1:], 0),
-                                                       true_entity_vectors.size()[0])
-                    mean_true_entity_vector = mean_true_entity_vector.reshape((1, mean_true_entity_vector.shape[0]))
+                    curr_true_entity_ids = true_entity_ids[:i] + true_entity_ids[i+1:]
+                    global_entity_vector = self.embedding_extractor.get_global_entity_vector(curr_true_entity_ids)
+
+                snippet = doc.text[span[0]:span[1]]
                 for cand, prob in sorted(links[span].items()):
+                    # Stop if the required number of samples was reached.
                     if samples_counter >= n_samples:
                         print()
                         return x, y, conjugate_indices
 
-                    entity_vector = torch.Tensor(self.kb.get_vector(cand))
-                    entity_vector = entity_vector.reshape((1, entity_vector.shape[0]))
+                    # Get the entity vector
+                    entity_vector = self.embedding_extractor.get_entity_vector(cand)
+
+                    # Combine vectors into single input vector
                     input_tensor = torch.cat((sentence_vector, entity_vector), dim=1)
                     if self.global_model:
-                        input_tensor = torch.cat((input_tensor, mean_true_entity_vector), dim=1)
+                        input_tensor = torch.cat((input_tensor, global_entity_vector), dim=1)
                     if self.prior:
                         prior_prob = self.kb.get_prior_prob(cand, snippet)
                         input_tensor = torch.cat((input_tensor, torch.Tensor([[prior_prob]])), dim=1)
+
+                    # Update X and y matrices
                     x[samples_counter] = input_tensor
                     y[samples_counter] = torch.Tensor([prob])
+
                     samples_counter += 1
                     print(f"\rAdded {samples_counter} samples", end="")
+
                 conjugate_indices.append(samples_counter)
 
-    def get_true_entity_vectors(self, links):
+    def determine_n_features(self, token_vector_length: int) -> int:
         """
-        Retrieve all entity vectors of candidates with probability 1.0 in the
-        label generator data for a single document. I.e. the ground truth
-        entity vectors
+        Determine the number of features of the input vector.
         """
-        true_entity_vectors = torch.zeros(len(links), self.kb.entity_vector_length)
+        if self.global_model:
+            # Vector of candidate entity, mean vector of already linked entities, sentence vector
+            n_features = self.entity_vector_length * 2 + token_vector_length
+        else:
+            # Vector of candidate entity, sentence vector
+            n_features = self.entity_vector_length + token_vector_length
+
+        if self.prior:
+            n_features += 1
+        return n_features
+
+    def get_true_entity_ids(self, links) -> List[str]:
+        """
+        Retrieve all entity ids of candidates with probability 1.0 in the label
+        generator data for a single document. I.e. the ground truth entity ids.
+        """
+        true_entity_ids = []
         for i, span in enumerate(sorted(links)):
             for cand, prob in sorted(links[span].items()):
                 if prob == 1:
-                    entity_vector = torch.Tensor(self.kb.get_vector(cand))
-                    entity_vector = entity_vector.reshape((1, entity_vector.shape[0]))
-                    true_entity_vectors[i] = entity_vector
-        return true_entity_vectors
+                    true_entity_ids.append(cand)
+        return true_entity_ids
 
     def train(self,
               x_train: torch.Tensor,
@@ -200,7 +217,8 @@ class EntityLinkingTrainer:
                                 'optimizer_state_dict': optimizer.state_dict(),
                                 'loss': loss,
                                 'prior': self.prior,
-                                'global_model': self.global_model
+                                'global_model': self.global_model,
+                                'rdf2vec': self.rdf2vec
                             }, self.checkpoint_path)
 
     def evaluate(self,
@@ -215,11 +233,11 @@ class EntityLinkingTrainer:
             y_hat = self.model(x_test)
             print(f"Prediction (first 20): {y_hat[:20]}")
             hard_prediction = torch.where(y_hat < 0.5, 0, 1)
-            accuracy = torch.where(hard_prediction == y_test, 1, 0).sum() / hard_prediction.size(0)
+            accuracy = torch.where(hard_prediction == y_test, 1, 0).sum() / hard_prediction.shape[0]
             print(f"Accuracy: {accuracy.item()}")
             # Compute accuracy for always guessing 0:
-            num_zeros = y_test.size(0) - y_test.sum()
-            guessing_accuracy = num_zeros / y_test.size(0)
+            num_zeros = y_test.shape[0] - y_test.sum()
+            guessing_accuracy = num_zeros / y_test.shape[0]
             print(f"Accuracy when always guessing label 0: {guessing_accuracy}")
 
             # Real world evaluation
@@ -255,10 +273,29 @@ class EntityLinkingTrainer:
             print(f"Guessing accuracy: {random_guess_accuracy}")
 
     def save_model(self):
-        torch.save({'model': self.model, 'prior': self.prior, 'global_model': self.global_model}, self.model_path)
+        """
+        Save the model and its settings in a dictionary.
+        """
+        torch.save({'model': self.model, 'prior': self.prior, 'global_model': self.global_model,
+                    'rdf2vec': self.rdf2vec}, self.model_path)
         print(f"Dictionary with trained model saved to {self.model_path}")
         if self.save_best:
             print(f"Best checkpoint saved to {self.checkpoint_path}")
+
+    @staticmethod
+    def load_model(model_path, kb_path, vocab_path):
+        """
+        Load the model and its settings from a dictionary.
+        """
+        model_dict = torch.load(model_path)
+        model = model_dict['model']
+        prior = model_dict.get('prior', False)
+        global_model = model_dict.get('global_model', False)
+        rdf2vec = model_dict.get('rdf2vec', False)
+
+        trainer = EntityLinkingTrainer(kb_path, vocab_path, prior=prior, global_model=global_model, rdf2vec=rdf2vec)
+        trainer.model = model
+        return trainer
 
 
 def main(args):
@@ -289,16 +326,19 @@ def main(args):
         version = "global" if args.global_model else "local"
         version += "_model_"
         version += "vanilla" if not args.prior else "prior"
+        version += ".%s" % args.kb_name if args.kb_name else ""
+        version += ".rdf2vec" if args.rdf2vec else ""
+
         model_name = "%s.%i.%iep.%ibs.%ihu.%slr.%sdo" % (version, n_samples, n_epochs, batch_size, hidden_units,
                                                          lr_str, do_str)
-        if args.kb_name:
-            model_name += ".%s" % args.kb_name
         model_path = settings.LINKER_MODEL_PATH + model_name + ".pt"
 
-    trainer = EntityLinkingTrainer(kb_path, vocab_path, prior=args.prior, global_model=args.global_model,
-                                   save_best=args.save_best)
-
-    if not args.load_model:
+    # Load or train the model
+    if args.load_model:
+        trainer = EntityLinkingTrainer.load_model(kb_path, vocab_path, args.load_model)
+    else:
+        trainer = EntityLinkingTrainer(kb_path, vocab_path, prior=args.prior, global_model=args.global_model,
+                                       rdf2vec=args.rdf2vec, save_best=args.save_best)
         trainer.set_model_path(model_path)
 
         # Build training and validation data
@@ -313,13 +353,11 @@ def main(args):
 
         # Train the model
         print("Start training...")
-        trainer.initialize_model(x_train.size(1), hidden_units, dropout)
+        trainer.initialize_model(x_train.shape[1], hidden_units, dropout)
         trainer.train(x_train, y_train, n_epochs, batch_size, learning_rate, x_val, y_val)
 
         # Save the model
         trainer.save_model()
-    else:
-        trainer.load_model(args.load_model)
 
     # Build test data
     print("Create test data...")
@@ -337,8 +375,8 @@ if __name__ == "__main__":
 
     parser.add_argument("-o", "--output_file", type=str,
                         help="Output file to write the model to. Should end on '.pt'. Per default this is"
-                             "<local/global>_model_<prior/vanilla>.<n_samples>.<epochs>ep.<batch_size>bs.<hidden_units>hu."
-                             "<learning_rate>lr.pt")
+                             "<local/global>_model_<prior/vanilla>.<dot_separated_settings>."
+                             "<n_samples>.<epochs>ep.<batch_size>bs.<hidden_units>hu.<learning_rate>lr.<dropout>do.pt")
 
     parser.add_argument("-n", "--n_samples", type=int, default=100000,
                         help="Number of samples to train on. (Default: 100000)")
@@ -355,8 +393,8 @@ if __name__ == "__main__":
     parser.add_argument("-lr", "--learning_rate", type=float, default=0.01,
                         help="Learning rate. (Default: 0.01)")
 
-    parser.add_argument("-do", "--dropout", type=float, default=0.2,
-                        help="Dropout. (Default: 0.2)")
+    parser.add_argument("-do", "--dropout", type=float, default=0,
+                        help="Dropout. (Default: 0.0)")
 
     parser.add_argument("--n_test_samples", type=int, default=10000,
                         help="Number of samples in the test set. (Default: 10000)")
@@ -372,6 +410,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--global_model", action="store_true",
                         help="Train a global model by adding mean of already linked entity vectors to input vector.")
+
+    parser.add_argument("--rdf2vec", action="store_true",
+                        help="Use RDF2Vec entity vectors.")
 
     parser.add_argument("-kb", "--kb_name", type=str, default=None, choices=["wikipedia"],
                         help="Name of the knowledgebase.")

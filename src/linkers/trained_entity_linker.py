@@ -9,26 +9,29 @@ from spacy.kb import KnowledgeBase, Candidate
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
 from src.models.entity_mention import EntityMention
 from src.models.entity_prediction import EntityPrediction
+from src.models.neural_net import NeuralNet
 from src.settings import NER_IGNORE_TAGS
 from src.models.entity_database import EntityDatabase
 from src.ner.ner_postprocessing import NERPostprocessor
 from src.utils.dates import is_date
+from src.utils.embeddings_extractor import EmbeddingsExtractor
 from src import settings
 
 import torch
-
-from src.utils.embeddings_extractor import EmbeddingsExtractor
-from src.utils.offset_converter import OffsetConverter
+import gensim
 
 
 class TrainedEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "VANILLA_LOCAL_LINKER"
 
     def __init__(self,
-                 linker_model_name: str,
+                 linker_model: NeuralNet,
                  entity_db: EntityDatabase,
                  model: Optional[Language] = None,
-                 kb_name: Optional[str] = None):
+                 kb_name: Optional[str] = None,
+                 prior: Optional[bool] = False,
+                 global_model: Optional[bool] = False,
+                 rdf2vec: Optional[bool] = False):
         if model is None:
             self.model = spacy.load(settings.LARGE_MODEL_NAME)
         else:
@@ -50,25 +53,37 @@ class TrainedEntityLinker(AbstractEntityLinker):
         self.kb = KnowledgeBase(vocab=vocab)
         self.kb.load_bulk(kb_path)
 
-        print("loading trained entity linking model...")
-        self.loaded_model = torch.load(linker_model_name)
-        self.prior = False
-        self.global_model = False
-        if type(self.loaded_model) is dict:
-            self.linker_model = self.loaded_model['model']
-            self.prior = self.loaded_model.get('prior', False)
-            self.global_model = self.loaded_model.get('global_model', False)
-            print(f"use prior probs: {self.prior}")
-            print(f"global model: {self.global_model}")
-        else:
-            self.linker_model = self.loaded_model
+        self.linker_model = linker_model
         self.linker_model.eval()
+
+        self.prior = prior
+        self.global_model = global_model
+        print(f"Use prior probabilities: {prior}")
+        print(f"Use a global model: {global_model}")
+        print(f"Use RDF2Vec as entity vectors: {rdf2vec}")
+
+        # Load rdf2vec model
+        rdf2vec_model = None
+        if rdf2vec:
+            print("Loading RDF2Vec model...")
+            rdf2vec_model = gensim.models.Word2Vec.load(settings.RDF2VEC_MODEL_PATH, mmap='r')
+
+        # Determine the dimensionality of an entity vector
+        self.entity_vector_length = rdf2vec_model.wv.vector_size if rdf2vec_model else self.kb.entity_vector_length
+
+        self.embedding_extractor = EmbeddingsExtractor(self.entity_vector_length, self.kb, rdf2vec_model)
 
     def predict(self,
                 text: str,
                 doc: Optional[Doc] = None,
-                uppercase: Optional[bool] = False,
-                linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
+        return self.predict_globally(text, doc, uppercase)
+
+    def predict_globally(self,
+                         text: str,
+                         doc: Optional[Doc] = None,
+                         uppercase: Optional[bool] = False,
+                         linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None) -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None:
             doc = self.model(text)
         predictions = {}
@@ -101,49 +116,45 @@ class TrainedEntityLinker(AbstractEntityLinker):
         Returns the input tensor for the trained model.
         """
         # Get sentence vector
-        sentence_span = OffsetConverter.get_sentence(span[0], doc)
-        sentence_span = sentence_span.start_char, sentence_span.end_char
-        sentence_vector = EmbeddingsExtractor.get_span_embedding(sentence_span, doc)
+        sentence_vector = self.embedding_extractor.get_sentence_vector(span, doc)
 
-        # Create empty x tensor
-        if self.global_model:
-            n_features = sentence_vector.size(1) * 3
-            mean_linked_entity_vector = self.get_mean_linked_entity_vector(linked_entities)
-        else:
-            n_features = sentence_vector.size(1) * 2
-        if self.prior:
-            n_features += 1
+        # Create empty input tensor
+        n_features = self.determine_n_features(sentence_vector.shape[1])
         x = torch.empty(size=(len(candidates), n_features))
 
-        # Compute probability for each candidate given sentence vector
+        if self.global_model:
+            if linked_entities:
+                linked_entity_ids = [em.entity_id for span, em in sorted(linked_entities.items())]
+            else:
+                linked_entity_ids = []
+            global_entity_vector = self.embedding_extractor.get_global_entity_vector(linked_entity_ids)
+
+        # Build input data
         for i, cand in enumerate(candidates):
-            # Get entity vector
-            entity_vector = torch.Tensor(self.kb.get_vector(cand.entity_))
-            entity_vector = entity_vector.reshape((1, entity_vector.shape[0]))
+            entity_vector = self.embedding_extractor.get_entity_vector(cand.entity_)
+
             input_vector = torch.cat((sentence_vector, entity_vector), dim=1)
             if self.global_model:
-                input_vector = torch.cat((input_vector, mean_linked_entity_vector), dim=1)
+                input_vector = torch.cat((input_vector, global_entity_vector), dim=1)
             if self.prior:
                 input_vector = torch.cat((input_vector, torch.Tensor([[cand.prior_prob]])), dim=1)
             x[i] = input_vector
         return x
 
-    def get_mean_linked_entity_vector(self, linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None):
+    def determine_n_features(self, token_vector_length) -> int:
         """
-        Retrieve mean of vectors of entities that were already linked.
+        Determine the number of features of the input vector.
         """
-        if linked_entities is None:
-            # TODO: should later be a random vector as in train_own_linker.py
-            return torch.zeros(1, self.kb.entity_vector_length)
+        if self.global_model:
+            # Vector of candidate entity, mean vector of already linked entities, sentence vector
+            n_features = self.entity_vector_length * 2 + token_vector_length
         else:
-            linked_entity_vectors = torch.zeros(len(linked_entities), self.kb.entity_vector_length)
-        for i, entity_mention in enumerate(sorted(linked_entities.values())):
-            entity_vector = torch.Tensor(self.kb.get_vector(entity_mention.entity_id))
-            entity_vector = entity_vector.reshape((1, entity_vector.shape[0]))
-            linked_entity_vectors[i] = entity_vector
-        mean_linked_entity_vector = torch.mean(linked_entity_vectors, 0)
-        mean_linked_entity_vector = mean_linked_entity_vector.reshape((1, mean_linked_entity_vector.shape[0]))
-        return mean_linked_entity_vector
+            # Vector of candidate entity, sentence vector
+            n_features = self.entity_vector_length + token_vector_length
+
+        if self.prior:
+            n_features += 1
+        return n_features
 
     def has_entity(self, entity_id: str) -> bool:
         return self.kb.contains_entity(entity_id)
