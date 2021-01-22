@@ -335,7 +335,7 @@ def main(args):
 
     # Load or train the model
     if args.load_model:
-        trainer = EntityLinkingTrainer.load_model(kb_path, vocab_path, args.load_model)
+        trainer = EntityLinkingTrainer.load_model(args.load_model, kb_path, vocab_path)
     else:
         trainer = EntityLinkingTrainer(kb_path, vocab_path, prior=args.prior, global_model=args.global_model,
                                        rdf2vec=args.rdf2vec, save_best=args.save_best)
