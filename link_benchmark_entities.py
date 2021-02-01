@@ -87,7 +87,7 @@ if __name__ == "__main__":
     parser.add_argument("output_file", type=str, default=None,
                         help="Output file for the evaluation results")
     parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme",
-                                                "trained_model", "none"],
+                                                "wexea", "neural_el", "trained_model", "none"],
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"

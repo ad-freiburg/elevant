@@ -101,8 +101,14 @@ class EntityDatabase:
             self.wikipedia2wikidata[entity_name] = entity_id
             self.wikidata2wikipedia[entity_id] = entity_name
 
+    def is_mapping_loaded(self):
+        return len(self.wikidata2wikipedia) > 0 and len(self.wikipedia2wikidata) > 0
+
     def load_redirects(self):
         self.redirects = EntityDatabaseReader.get_link_redirects()
+
+    def is_redirects_loaded(self):
+        return len(self.redirects) > 0
 
     def link2id(self, link_target: str) -> Optional[str]:
         if link_target in self.wikipedia2wikidata:

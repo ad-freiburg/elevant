@@ -1,5 +1,7 @@
 from typing import Optional, Tuple, Dict
 
+from src.helpers.neural_el_prediction_reader import NeuralELPredictionReader
+from src.helpers.wexea_prediction_reader import WexeaPredictionReader
 from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
 from src.helpers.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
@@ -96,6 +98,25 @@ class LinkingSystem:
         elif linker_type == "tagme":
             rho_threshold = float(linker_info)
             self.linker = TagMeLinker(rho_threshold)
+        elif linker_type == "wexea":
+            result_dir = linker_info
+            if not self.entity_db.is_mapping_loaded():
+                print("Loading wikipedia-wikidata mapping...")
+                self.entity_db.load_mapping()
+            if not self.entity_db.is_redirects_loaded():
+                print("Loading redirects...")
+                self.entity_db.load_redirects()
+            self.prediction_iterator = WexeaPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
+        elif linker_type == "neural_el":
+            result_file = linker_info
+            if not self.entity_db.is_mapping_loaded():
+                print("Loading wikipedia-wikidata mapping...")
+                self.entity_db.load_mapping()
+            if not self.entity_db.is_redirects_loaded():
+                print("Loading redirects...")
+                self.entity_db.load_redirects()
+            self.prediction_iterator = NeuralELPredictionReader(self.entity_db).\
+                article_predictions_iterator(result_file)
         elif linker_type == "baseline":
             if linker_info == "max-match-ner":
                 self.linker = MaximumMatchingNER()
