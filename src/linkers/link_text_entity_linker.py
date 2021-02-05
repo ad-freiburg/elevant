@@ -11,6 +11,13 @@ from src.models.wikipedia_article import WikipediaArticle
 from src import settings
 
 
+def is_overlapping_span(covered_positions, span):
+    for i in range(span[0], span[1]):
+        if i in covered_positions:
+            return True
+    return False
+
+
 class LinkTextEntityLinker:
     LINKER_IDENTIFIER = "LTL"
 
@@ -33,7 +40,7 @@ class LinkTextEntityLinker:
             synonyms = entity.synonyms
             for syn in synonyms:
                 # Do not append all lowercase synonyms (e.g. "it" for Italy)
-                if not syn.islower():
+                if not syn.islower() and syn not in synonym_dict:
                     synonym_dict[syn] = entity_id
 
     def link_entities(self, article: WikipediaArticle, doc: Optional[Doc] = None):
@@ -44,15 +51,26 @@ class LinkTextEntityLinker:
         entity_synonyms = dict()
         covered_positions = set()
         entity_mentions = []
+        bold_title_spans = []
 
         # Link article entity to Wikidata id
         title_entity_id = self.entity_db.link2id(article.title)
         if title_entity_id:
             entity_links[article.title] = title_entity_id
             self.add_synonyms(title_entity_id, entity_synonyms)
+            if article.title_synonyms:
+                title_synonyms = [article.text[s:e] for (s, e) in article.title_synonyms]
+                bold_title_spans = [((s, e), article.title) for (s, e) in article.title_synonyms]
+                for syn in title_synonyms:
+                    # Bold title spans are treated like links. Not like synonyms of hyperlinked entities
+                    entity_links[syn] = title_entity_id
 
         # Link article links to Wikidata ids
-        for span, target in article.links:
+        for span, target in bold_title_spans + article.links:
+            # Overlaps are possible due to possible overlap between link and bold title synonym
+            if is_overlapping_span(covered_positions, (span[0], span[1])):
+                continue
+
             link_text = article.text[span[0]:span[1]]
             entity_id = self.entity_db.link2id(target)
             if entity_id and not link_text.islower():
@@ -64,7 +82,6 @@ class LinkTextEntityLinker:
                 end_idx = span[1]
                 while end_idx + 1 < len(article.text) and article.text[end_idx].isalpha():
                     end_idx += 1
-
                 entity_mention = EntityMention(span=(span[0], end_idx),
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,
@@ -112,13 +129,8 @@ class LinkTextEntityLinker:
                     continue
 
                 # Check if the found text span does overlap with an already linked entity
-                skip = False
-                for i in range(start_idx, end_idx):
-                    if i in covered_positions:
-                        search_start_idx = end_idx
-                        skip = True
-                        break
-                if skip:
+                if is_overlapping_span(covered_positions, (start_idx, end_idx)):
+                    search_start_idx = end_idx
                     continue
 
                 # Can't rely on case info at sentence start, therefore only link text at sentence start if it is likely

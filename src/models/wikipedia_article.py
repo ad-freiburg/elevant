@@ -13,6 +13,7 @@ class WikipediaArticle:
                  title: str,
                  text: str,
                  links: List[Tuple[Tuple[int, int], str]],
+                 title_synonyms: Optional[List[Tuple[int, int]]] = None,
                  url: Optional[str] = None,
                  entity_mentions: Optional[List[EntityMention]] = None,
                  evaluation_span: Optional[Tuple[int, int]] = None,
@@ -22,6 +23,7 @@ class WikipediaArticle:
         self.title = title
         self.text = text
         self.links = links
+        self.title_synonyms = title_synonyms
         self.url = url
         self.entity_mentions = None
         self.entity_coverage = None
@@ -37,6 +39,8 @@ class WikipediaArticle:
                 "title": self.title,
                 "text": self.text,
                 "links": self.links}
+        if self.title_synonyms is not None:
+            data["title_synonyms"] = self.title_synonyms
         if self.url is not None:
             data["url"] = self.url
         if self.entity_mentions is not None:
@@ -121,10 +125,12 @@ class WikipediaArticle:
 
 def article_from_dict(data: Dict):
     links = [(tuple(span), target) for span, target in data["links"]]  # span is saved as list, but must be tuple
+    title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
     return WikipediaArticle(id=int(data["id"]),
                             title=data["title"],
                             text=data["text"],
                             links=links,
+                            title_synonyms=title_synonyms,
                             url=data["url"] if "url" in data else None,
                             entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
                                              data["entity_mentions"]] if "entity_mentions" in data else None,

@@ -77,7 +77,7 @@ class ConllDocument:
         if inside:
             span = (mention_start, text_pos)
             labels.append((span, entity_id))
-        return WikipediaArticle(-1, "", self.text(), [], None, None, None, labels)
+        return WikipediaArticle(id=-1, title="", text=self.text(), links=[], labels=labels)
 
 
 def conll_documents() -> Iterator[ConllDocument]:

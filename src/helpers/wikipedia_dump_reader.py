@@ -10,9 +10,8 @@ from src import settings
 
 
 class WikipediaDumpReader:
-    _link_re = re.compile("<a href=\"[^>]*>[^<]*</a>")
     _link_start_tag_open = "<a href=\""
-    _link_end_tag = "</a>"
+    _tag_re = re.compile("<([/]?)([^<>]*)>")
 
     @staticmethod
     def _file_iterator(extracted_corpus_dir: str) -> Iterator[str]:
@@ -34,50 +33,84 @@ class WikipediaDumpReader:
                 yield file_path
 
     @staticmethod
-    def _extract_link_target_and_text(link_html: str) -> Tuple[str, str]:
+    def _extract_link_target(link_html: str) -> str:
         """
-        Get the link target and link text for an HTML snippet with the format
-          <a href="...">...</a>
-        where the first '...' is the link target and the second '...' is the link text.
+        Get the link target for an HTML link start tag with the format
+          <a href="...">
+        where the '...' is the link target.
 
-        :param link_html: HTML snippet representing a link
-        :return: link target and link text
+        :param link_html: HTML snippet representing a link start tag
+        :return: link target
         """
-        if link_html.startswith(WikipediaDumpReader._link_start_tag_open) and \
-                link_html.endswith(WikipediaDumpReader._link_end_tag):
+        if link_html.startswith(WikipediaDumpReader._link_start_tag_open):
             target_end = link_html.find("\"", len(WikipediaDumpReader._link_start_tag_open))
             target = link_html[len(WikipediaDumpReader._link_start_tag_open):target_end]
             target = unquote(target)
-            text = link_html[(target_end + 2):-len(WikipediaDumpReader._link_end_tag)]
-            return target, text
+            return target
         else:
             print("WARNING: could not parse link '%s'." % link_html)
-            return link_html, link_html
+            return ""
 
     @staticmethod
-    def _get_text_and_links(text_with_links: str) -> Tuple[str, List[Tuple[Tuple[int, int], str]]]:
+    def _process_tagged_text(text_with_tags: str) -> Tuple[str, List[Tuple[Tuple[int, int], str]],
+                                                           List[Tuple[int, int]]]:
         """
         Replace HTML links by their link texts and keep the link positions and targets.
+        Additionally keep texts that were printed in bold.
 
-        :param text_with_links: A text that may contain HTML links.
+        :param text_with_tags: A text that may contain HTML links.
         :return: first: The text where the HTML links are replaced by the link texts.
                  second: A list of the links, as tuples (span, target), where span is the start and end position
                      of the link in the returned text, and target is the link target.
+                 third: A list of spans of title synonyms (text in the first article paragraph printed in bold)
         """
         text_position = 0
         text = ""
         links = []
-        for link_match in WikipediaDumpReader._link_re.finditer(text_with_links):
-            link_snippet = text_with_links[link_match.start():link_match.end()]
-            link_target, link_text = WikipediaDumpReader._extract_link_target_and_text(link_snippet)
-            text += text_with_links[text_position:link_match.start()]
-            link_start_pos = len(text)
-            text += link_text
-            link_end_pos = len(text)
-            links.append(((link_start_pos, link_end_pos), link_target))
-            text_position = link_match.end()
-        text += text_with_links[text_position:]
-        return text, links
+        title_synonyms = []
+        bold_open_pos = -1
+        link_open_pos = -1
+        link_target = ""
+        for tag_match in WikipediaDumpReader._tag_re.finditer(text_with_tags):
+            # Check whether it's an opening or closing tag
+            open_tag = False
+            if not tag_match.group(1):
+                open_tag = True
+
+            # Expand text up until current tag start
+            text += text_with_tags[text_position:tag_match.start()]
+
+            if open_tag:
+                # Keep track of tag opening positions
+                if tag_match.group(2) == "b":
+                    bold_open_pos = len(text)
+                elif tag_match.group(2).startswith("a "):
+                    link_open_pos = len(text)
+                    link_target = WikipediaDumpReader._extract_link_target(tag_match.group(0))
+            else:
+                # Add link or title synonym
+                tag_end_pos = len(text)
+                if tag_match.group(2) == "b":
+                    if bold_open_pos < 0:
+                        print("WARNING: Something went wrong with bold tag: '%s'" % text[len(text) - 30:])
+                    if text.count("\n\n") < 2:
+                        # Extract title synonyms from bold text in the first paragraph
+                        title_synonyms.append((bold_open_pos, tag_end_pos))
+                    bold_open_pos = -1
+                elif tag_match.group(2) == "a":
+                    if link_open_pos < 0:
+                        print("WARNING: Something went wrong with link tag: '%s'" % text[len(text) - 30:])
+
+                    links.append(((link_open_pos, tag_end_pos), link_target))
+                    link_open_pos = -1
+
+            # Update current text position
+            text_position = tag_match.end()
+
+        # Append remaining text
+        text += text_with_tags[text_position:]
+
+        return text, links, title_synonyms
 
     @staticmethod
     def json_iterator(yield_none: bool = False) -> Iterator[str]:
@@ -102,11 +135,12 @@ class WikipediaDumpReader:
         """
         article_data = json.loads(json_dump)
         article_data: Dict
-        text, links = WikipediaDumpReader._get_text_and_links(article_data["text"])
+        text, links, title_synonyms = WikipediaDumpReader._process_tagged_text(article_data["text"])
         article = WikipediaArticle(id=article_data["id"],
                                    title=article_data["title"],
                                    text=text,
                                    links=links,
+                                   title_synonyms=title_synonyms,
                                    url=article_data["url"])
         return article
 
@@ -115,7 +149,6 @@ class WikipediaDumpReader:
         """
         Iterates over the articles in the given extracted Wikipedia dump.
 
-        :param json_dir: path to the extracted JSON dump
         :param yield_none: whether to yield None as the last object
         :return: iterator over WikipediaArticle objects
         """

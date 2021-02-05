@@ -743,7 +743,10 @@ class Extractor(object):
             text = italic.sub(r'<i>\1</i>', text)
         else:
             text = bold_italic.sub(r'\1', text)
-            text = bold.sub(r'\1', text)
+            if options.keepBold:
+                text = bold.sub(r'<b>\1</b>', text)
+            else:
+                text = bold.sub(r'\1', text)
             text = italic_quote.sub(r'"\1"', text)
             text = italic.sub(r'"\1"', text)
             text = quote_quote.sub(r'"\1"', text)
@@ -3055,6 +3058,8 @@ def main():
                          help="produce HTML output, subsumes --links")
     group_p.add_argument("-l", "--links", action="store_true",
                          help="preserve links")
+    group_p.add_argument("--bold", action="store_true",
+                         help="preserve annotations for bold font style as <b>boldtext</b>")
     group_p.add_argument("-s", "--sections", action="store_true",
                          help="preserve sections")
     group_p.add_argument("--lists", action="store_true",
@@ -3100,6 +3105,7 @@ def main():
     args = parser.parse_args()
 
     options.keepLinks = args.links
+    options.keepBold = args.bold
     options.keepSections = args.sections
     options.keepLists = args.lists
     options.toHTML = args.html
@@ -3130,11 +3136,13 @@ def main():
         ignored_tags = set(args.ignored_tags.split(','))
     else:
         ignored_tags = [
-            'abbr', 'b', 'big', 'blockquote', 'center', 'cite', 'em',
+            'abbr', 'big', 'blockquote', 'center', 'cite', 'em',
             'font', 'h1', 'h2', 'h3', 'h4', 'hiero', 'i', 'kbd',
             'p', 'plaintext', 's', 'span', 'strike', 'strong',
             'tt', 'u', 'var'
         ]
+        if not options.keepBold:
+            ignored_tags.append('b')
 
     # 'a' tag is handled separately
     for tag in ignored_tags:
