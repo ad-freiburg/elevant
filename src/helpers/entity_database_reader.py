@@ -1,4 +1,4 @@
-from typing import List, Iterator, Tuple, Dict
+from typing import List, Iterator, Tuple, Dict, Set
 
 from urllib.parse import unquote
 import pickle
@@ -75,6 +75,18 @@ class EntityDatabaseReader:
         with open(settings.REDIRECTS_FILE, "rb") as f:
             redirects = pickle.load(f)
         return redirects
+
+    @staticmethod
+    def get_title_synonyms() -> Dict[str, Set[str]]:
+        with open(settings.TITLE_SYNONYMS_FILE, "rb") as f:
+            title_synonyms = pickle.load(f)
+        return title_synonyms
+
+    @staticmethod
+    def get_akronyms() -> Dict[str, Set[str]]:
+        with open(settings.AKRONYMS_FILE, "rb") as f:
+            akronyms = pickle.load(f)
+        return akronyms
 
     @staticmethod
     def get_mapping(mappings_file: str = settings.WIKI_MAPPING_FILE):

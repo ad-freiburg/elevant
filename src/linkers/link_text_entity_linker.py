@@ -1,3 +1,4 @@
+import re
 from typing import Dict, Optional
 from spacy.tokens import Doc
 from spacy.language import Language
@@ -31,6 +32,12 @@ class LinkTextEntityLinker:
         if not self.entity_db.is_given_names_loaded():
             print("Load first name mapping...")
             self.entity_db.load_names()
+        if not self.entity_db.is_title_synonyms_loaded():
+            print("Load title synonyms...")
+            self.entity_db.load_title_synonyms()
+        if not self.entity_db.is_akronyms_loaded():
+            print("Load akronyms...")
+            self.entity_db.load_akronyms()
 
     def add_synonyms(self, entity_id: str, synonym_dict: Dict):
         """Add all aliases of an entity to dictionary
@@ -38,7 +45,9 @@ class LinkTextEntityLinker:
         if self.entity_db.contains_entity(entity_id):
             entity = self.entity_db.get_entity(entity_id)
             synonyms = entity.synonyms
-            for syn in synonyms:
+            title_synonyms = list(entity.title_synonyms)
+            akronyms = list(entity.akronyms)
+            for syn in title_synonyms + synonyms + akronyms:
                 # Do not append all lowercase synonyms (e.g. "it" for Italy)
                 if not syn.islower() and syn not in synonym_dict:
                     synonym_dict[syn] = entity_id
@@ -58,6 +67,10 @@ class LinkTextEntityLinker:
         if title_entity_id:
             entity_links[article.title] = title_entity_id
             self.add_synonyms(title_entity_id, entity_synonyms)
+            bracketless_title = re.sub(r" \([^)]*?\)", "", article.title)
+            if bracketless_title != article.title:
+                if bracketless_title not in entity_synonyms:
+                    entity_synonyms[bracketless_title] = title_entity_id
             if article.title_synonyms:
                 title_synonyms = [article.text[s:e] for (s, e) in article.title_synonyms]
                 bold_title_spans = [((s, e), article.title) for (s, e) in article.title_synonyms]

@@ -19,6 +19,10 @@ class EntityDatabase:
         self.wikidata2wikipedia: Dict[str, str]
         self.redirects = {}
         self.redirects: Dict[str, str]
+        self.title_synonyms = {}
+        self.title_synonyms: Dict[str, Set[str]]
+        self.akronyms = {}
+        self.akronyms: Dict[str, Set[str]]
         self.link_frequencies = {}
         self.link_frequencies: Dict[str, Tuple[str, int]]
         self.entity_frequencies = {}
@@ -101,14 +105,40 @@ class EntityDatabase:
             self.wikipedia2wikidata[entity_name] = entity_id
             self.wikidata2wikipedia[entity_id] = entity_name
 
-    def is_mapping_loaded(self):
+    def is_mapping_loaded(self) -> bool:
         return len(self.wikidata2wikipedia) > 0 and len(self.wikipedia2wikidata) > 0
 
     def load_redirects(self):
         self.redirects = EntityDatabaseReader.get_link_redirects()
 
-    def is_redirects_loaded(self):
+    def is_redirects_loaded(self) -> bool:
         return len(self.redirects) > 0
+
+    def load_title_synonyms(self):
+        self.title_synonyms = EntityDatabaseReader.get_title_synonyms()
+        if not self.entities:
+            print("WARNING: Entities were not loaded. Title synonyms are not added to db entities.")
+        for synonym, entity_set in self.title_synonyms.items():
+            for entity_title in entity_set:
+                entity_id = self.link2id(entity_title)
+                if entity_id is not None and self.contains_entity(entity_id):
+                    self.entities[entity_id].add_title_synonym(synonym)
+
+    def is_title_synonyms_loaded(self) -> bool:
+        return len(self.title_synonyms) > 0
+
+    def load_akronyms(self):
+        self.akronyms = EntityDatabaseReader.get_akronyms()
+        if not self.entities:
+            print("WARNING: Entities were not loaded. Akronyms are not added to db entities.")
+        for akronym, entity_set in self.akronyms.items():
+            for entity_title in entity_set:
+                entity_id = self.link2id(entity_title)
+                if entity_id is not None and self.contains_entity(entity_id):
+                    self.entities[entity_id].add_akronym(akronym)
+
+    def is_akronyms_loaded(self) -> bool:
+        return len(self.akronyms) > 0
 
     def link2id(self, link_target: str) -> Optional[str]:
         if link_target in self.wikipedia2wikidata:

@@ -17,12 +17,12 @@ if DATA_DIRECTORY is None:
     exit(1)
 
 ARTICLE_JSON_DIR = DATA_DIRECTORY + "json/"
-ARTICLE_JSON_FILE = DATA_DIRECTORY + "wiki_extractor_output/wiki_dump_with_links.json"
+ARTICLE_JSON_FILE = DATA_DIRECTORY + "wiki_extractor_output/wiki_dump_with_links_and_bold.json"
 
 SPLIT_ARTICLES_DIR = DATA_DIRECTORY + "articles_split/"
-TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "training.txt"
-DEVELOPMENT_ARTICLES = SPLIT_ARTICLES_DIR + "development.txt"
-TEST_ARTICLES = SPLIT_ARTICLES_DIR + "test.txt"
+TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "training_bold.jsonl"
+DEVELOPMENT_ARTICLES = SPLIT_ARTICLES_DIR + "development_bold.jsonl"
+TEST_ARTICLES = SPLIT_ARTICLES_DIR + "test_bold.jsonl"
 
 DATABASE_DIRECTORY = DATA_DIRECTORY + "yi-chun/"
 ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
@@ -37,6 +37,8 @@ RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_classe
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"
+TITLE_SYNONYMS_FILE = DATA_DIRECTORY + "title_synonyms.pkl"
+AKRONYMS_FILE = DATA_DIRECTORY + "akronyms.pkl"
 
 ENTITY_PREFIX = "http://www.wikidata.org/entity/"
 
@@ -59,7 +61,7 @@ CONLL_BENCHMARK_DIRECTORY = DATA_DIRECTORY + "conll/"
 CONLL_BENCHMARK_FILE = CONLL_BENCHMARK_DIRECTORY + "conll-wikidata-iob-annotations"
 
 OWN_BENCHMARK_DIRECOTRY = DATA_DIRECTORY + "benchmark/"
-OWN_BENCHMARK_FILE = OWN_BENCHMARK_DIRECOTRY + "development_labels.jsonl"
+OWN_BENCHMARK_FILE = OWN_BENCHMARK_DIRECOTRY + "development_labels_bold.jsonl"
 
 UNIGRAMS_FILE = DATA_DIRECTORY + "unigrams.txt"
 

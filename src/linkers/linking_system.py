@@ -141,8 +141,10 @@ class LinkingSystem:
                                               rdf2vec=rdf2vec)
 
     def _initialize_link_linker(self, linker_type: str):
-        self.entity_db.load_mapping()
-        self.entity_db.load_redirects()
+        if not self.entity_db.is_mapping_loaded():
+            self.entity_db.load_mapping()
+        if not self.entity_db.is_redirects_loaded():
+            self.entity_db.load_redirects()
         if linker_type == "link-text-linker":
             print("add synonyms...")
             self.entity_db.add_synonym_aliases()

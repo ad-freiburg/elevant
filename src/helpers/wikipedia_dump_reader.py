@@ -91,17 +91,13 @@ class WikipediaDumpReader:
                 # Add link or title synonym
                 tag_end_pos = len(text)
                 if tag_match.group(2) == "b":
-                    if bold_open_pos < 0:
-                        print("WARNING: Something went wrong with bold tag: '%s'" % text[len(text) - 30:])
-                    if text.count("\n\n") < 2:
+                    if text.count("\n\n") < 2 and bold_open_pos >= 0:
                         # Extract title synonyms from bold text in the first paragraph
                         title_synonyms.append((bold_open_pos, tag_end_pos))
                     bold_open_pos = -1
                 elif tag_match.group(2) == "a":
-                    if link_open_pos < 0:
-                        print("WARNING: Something went wrong with link tag: '%s'" % text[len(text) - 30:])
-
-                    links.append(((link_open_pos, tag_end_pos), link_target))
+                    if link_open_pos >= 0:
+                        links.append(((link_open_pos, tag_end_pos), link_target))
                     link_open_pos = -1
 
             # Update current text position
