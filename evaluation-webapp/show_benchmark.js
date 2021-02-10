@@ -57,26 +57,11 @@ function set_article_select_options() {
     $("#article").prop("selectedIndex", -1);
 }
 
-function show_article() {
-    index = article_select.value;
-    
-    if (index == "") {
-        return;
-    }
-    article = articles[index];
-    
+function show_article_link() {
     $("#article_link").html("<a href=\"" + article.url + "\" target=\"_blank\">Wikipedia article</a>");
-    
-    if (evaluation_cases.length == 0) {
-        textfield_left.innerHTML = article.labelled_text;
-        textfield_right.innerHTML = "ERROR: no file with cases found.";
-        $("#table").html("");
-        return;
-    }
-    
-    ground_truth_text = article.text;
-    predicted_text = article.text;
-    
+}
+
+function show_linked_entities() {
     for (eval_case of evaluation_cases[index].reverse()) {
         if ("true_entity" in eval_case) {
             before = ground_truth_text.substring(0, eval_case.span[0]);
@@ -93,7 +78,7 @@ function show_article() {
             } else {
                 color = BLUE;
             }
-            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
+            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + entity_representation + "</a>";
             tooltip = "<div class=\"tooltip\">";
             tooltip += link;
             tooltip += "<span class=\"tooltiptext\">";
@@ -118,7 +103,7 @@ function show_article() {
             } else {
                 color = BLUE;
             }
-            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
+            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + entity_representation + "</a>";
             tooltip = "<div class=\"tooltip\">";
             tooltip += link;
             tooltip += "<span class=\"tooltiptext\">";
@@ -132,7 +117,9 @@ function show_article() {
     
     textfield_left.innerHTML = ground_truth_text.replaceAll("\n", "<br>");
     textfield_right.innerHTML = predicted_text.replaceAll("\n", "<br>");
-    
+}
+
+function show_table() {
     table = "<table class=\"casesTable\">\n";
     
     table += "<tr>";
@@ -202,6 +189,30 @@ function show_article() {
     }
     table += "</table>";
     $("#table").html(table);
+}
+
+function show_article() {
+    index = article_select.value;
+    
+    if (index == "") {
+        return;
+    }
+    article = articles[index];
+    
+    show_article_link();
+    
+    if (evaluation_cases.length == 0) {
+        textfield_left.innerHTML = article.labelled_text;
+        textfield_right.innerHTML = "ERROR: no file with cases found.";
+        $("#table").html("");
+        return;
+    }
+    
+    ground_truth_text = article.text;
+    predicted_text = article.text;
+    
+    show_linked_entities();
+    show_table();
 }
 
 function get_runs(path) {

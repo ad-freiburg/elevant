@@ -28,6 +28,8 @@ html, body {
 	width: 50%;
 	box-sizing: border-box;
 	padding: 5pt;
+    border-style: solid;
+    border-width: 1px;
 }
 
 table, td, th {
@@ -58,7 +60,7 @@ a {
     padding: 5px 0;
     border-radius: 6px;
 
-    /* Position the tooltip text - see examples below! */
+    /* Position of the tooltip text */
     position: absolute;
     z-index: 1;
     bottom: 100%;
@@ -73,3 +75,4 @@ a {
 #evaluation table tbody tr td:nth-child(2) {
     text-align: right;
 }
+
