@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple, Set
 from spacy.tokens import Doc
 from spacy.language import Language
 
@@ -12,7 +12,7 @@ from src.models.wikipedia_article import WikipediaArticle
 from src import settings
 
 
-def is_overlapping_span(covered_positions, span):
+def is_overlapping_span(covered_positions: Set[int], span: Tuple[int, int]):
     for i in range(span[0], span[1]):
         if i in covered_positions:
             return True
