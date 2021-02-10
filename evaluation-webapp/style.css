@@ -1,5 +1,5 @@
 html, input, select { 
-    font-family: "Century Gothic", monospace, sans-serif;
+    font-family: Helvetica, sans-serif;
 }
 
 header {
@@ -42,4 +42,34 @@ table, td, th {
 
 a {
     color: black;
+}
+
+.tooltip {
+    position: relative;
+    display: inline;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: black;
+    color: #fff;
+    text-align: left;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 0;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+#evaluation table tbody tr td:nth-child(2) {
+    text-align: right;
 }

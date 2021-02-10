@@ -16,10 +16,45 @@
 				Select approach: <select id="evaluation_file" onchange="read_evaluation()"></select> <br>
 			</p>
 			<p>
-				<div id="evaluation"></div>
+				<div id="evaluation" style="display: none">
+				    <table>
+				        <thead>
+				            <tr>
+				                <th colspan="2">Results</th>
+				            </tr>
+				        </thead>
+				        <tbody>
+				            <tr>
+				                <td>True positives</td>
+				                <td id="n_tp"></td>
+				            </tr>
+				            <tr>
+				                <td>False positives</td>
+				                <td id="n_fp"></td>
+				            </tr>
+				            <tr>
+				                <td>False negatives</td>
+				                <td id="n_fn"></td>
+				            </tr>
+				            <tr>
+				                <td>Precision</td>
+				                <td id="precision"></td>
+				            </tr>
+				            <tr>
+				                <td>Recall</td>
+				                <td id="recall"></td>
+				            </tr>
+				            <tr>
+				                <td>F-Score</td>
+				                <td id="f_score"></td>
+				            </tr>
+				        </tbody>
+				    </table>
+				</div>
 			</p>
 			<p>
 				Select article: <select id="article" onchange="show_article()"></select>
+				<span id="article_link"></span>
 			</p>
 			<div class="row">
 				<div class="column">

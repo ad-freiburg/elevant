@@ -65,6 +65,8 @@ function show_article() {
     }
     article = articles[index];
     
+    $("#article_link").html("<a href=\"" + article.url + "\" target=\"_blank\">Wikipedia article</a>");
+    
     if (evaluation_cases.length == 0) {
         textfield_left.innerHTML = article.labelled_text;
         textfield_right.innerHTML = "ERROR: no file with cases found.";
@@ -81,7 +83,7 @@ function show_article() {
             text = ground_truth_text.substring(eval_case.span[0], eval_case.span[1]);
             after = ground_truth_text.substring(eval_case.span[1]);
             wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.true_entity.entity_id;
-            entity_representation = text + " [" + eval_case.true_entity.entity_id + "]";
+            entity_representation = text
             if ("predicted_entity" in eval_case) {
                 if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
                     color = GREEN;
@@ -92,7 +94,13 @@ function show_article() {
                 color = BLUE;
             }
             link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
-            ground_truth_text = before + link + after;
+            tooltip = "<div class=\"tooltip\">";
+            tooltip += link;
+            tooltip += "<span class=\"tooltiptext\">";
+            tooltip += eval_case.true_entity.name + " (" + eval_case.true_entity.entity_id + ")";
+            tooltip += "</span>";
+            tooltip += "</div>";
+            ground_truth_text = before + tooltip + after;
         }
         
         if ("predicted_entity" in eval_case) {
@@ -100,7 +108,7 @@ function show_article() {
             text = predicted_text.substring(eval_case.span[0], eval_case.span[1]);
             after = predicted_text.substring(eval_case.span[1]);
             wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.predicted_entity.entity_id;
-            entity_representation = text + " [" + eval_case.predicted_entity.entity_id + "]";
+            entity_representation = text
             if ("true_entity" in eval_case) {
                 if (eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
                     color = GREEN;
@@ -111,7 +119,14 @@ function show_article() {
                 color = BLUE;
             }
             link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\">" + entity_representation + "</a>";
-            predicted_text = before + link + after;
+            tooltip = "<div class=\"tooltip\">";
+            tooltip += link;
+            tooltip += "<span class=\"tooltiptext\">";
+            tooltip += eval_case.predicted_entity.name + " (" + eval_case.predicted_entity.entity_id + ")<br>";
+            tooltip += "predicted_by=" + eval_case.predicted_by
+            tooltip += "</span>";
+            tooltip += "</div>";
+            predicted_text = before + tooltip + after;
         }
     }
     
@@ -267,13 +282,13 @@ function read_evaluation() {
         precision = n_tp / (n_tp + n_fp);
         recall = n_tp / (n_tp + n_fn);
         f1 = 2 * precision * recall / (precision + recall);
-        eval_html =  "true positives = &nbsp;" + n_tp + "<br>";
-        eval_html += "false positives = " + n_fp + "<br>";
-        eval_html += "false negatives = " + n_fn + "<br>";
-        eval_html += "precision = " + precision.toFixed(4) + "<br>";
-        eval_html += "recall = &nbsp;&nbsp;&nbsp;" + recall.toFixed(4) + "<br>";
-        eval_html += "F-score = &nbsp;&nbsp;" + f1.toFixed(4) + "<br>";
-        $("#evaluation").html(eval_html);
+        $("#n_tp").html(n_tp);
+        $("#n_fp").html(n_fp);
+        $("#n_fn").html(n_fn);
+        $("#precision").html((precision * 100).toFixed(2) + " %");
+        $("#recall").html((recall * 100).toFixed(2) + " %");
+        $("#f_score").html((f1 * 100).toFixed(2) + " %");
+        $("#evaluation").show();
         show_article();
     }).fail(function() {
         $("#evaluation").html("ERROR: no file with cases found.");
