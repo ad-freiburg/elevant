@@ -141,10 +141,16 @@ class EntityDatabase:
         return len(self.akronyms) > 0
 
     def link2id(self, link_target: str) -> Optional[str]:
-        if link_target in self.wikipedia2wikidata:
-            return self.wikipedia2wikidata[link_target]
-        elif link_target in self.redirects and self.redirects[link_target] in self.wikipedia2wikidata:
-            return self.wikipedia2wikidata[self.redirects[link_target]]
+        link_target_variants = [link_target]
+        if link_target and link_target[0].islower():
+            # In Wikipedia, links that start with a lowercase first letter are automatically redirected to the same link
+            # that starts with a capital letter. So there probably won't exist redirect pages for such cases.
+            link_target_variants.append(link_target[0].upper() + link_target[1:])
+        for target in link_target_variants:
+            if target in self.wikipedia2wikidata:
+                return self.wikipedia2wikidata[target]
+            elif target in self.redirects and self.redirects[target] in self.wikipedia2wikidata:
+                return self.wikipedia2wikidata[self.redirects[target]]
         return None
 
     def id2wikipedia_name(self, entity_id: str) -> str:
