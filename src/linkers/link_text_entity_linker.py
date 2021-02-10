@@ -91,8 +91,15 @@ class LinkTextEntityLinker:
                 self.add_synonyms(entity_id, entity_synonyms)
                 covered_positions.update(range(span[0], span[1]))
 
-                # Expand entity span to end of word
                 end_idx = span[1]
+
+                # A trailing 's or ' should not be included in the mention unless it's part of the target article title
+                trim_endings = ["'s", "'"]
+                for ending in trim_endings:
+                    if link_text.endswith(ending) and not target.endswith(ending):
+                        end_idx = end_idx - len(ending)
+
+                # Expand entity span to end of word
                 while end_idx + 1 < len(article.text) and article.text[end_idx].isalpha():
                     end_idx += 1
                 entity_mention = EntityMention(span=(span[0], end_idx),
