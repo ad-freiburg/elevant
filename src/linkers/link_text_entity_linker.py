@@ -89,7 +89,6 @@ class LinkTextEntityLinker:
             if entity_id and not link_text.islower():
                 entity_links[link_text] = entity_id
                 self.add_synonyms(entity_id, entity_synonyms)
-                covered_positions.update(range(span[0], span[1]))
 
                 end_idx = span[1]
 
@@ -99,9 +98,16 @@ class LinkTextEntityLinker:
                     if link_text.endswith(ending) and not target.endswith(ending):
                         end_idx = end_idx - len(ending)
 
-                # Expand entity span to end of word
+                # Expand mention if that means the mention contains the target article title
+                if span[0] + len(target) != end_idx and article.text[span[0]:span[0] + len(target)] == target:
+                    end_idx = span[0] + len(target)
+
+                # Expand mention to end of word
                 while end_idx + 1 < len(article.text) and article.text[end_idx].isalpha():
                     end_idx += 1
+
+                covered_positions.update(range(span[0], end_idx))
+
                 entity_mention = EntityMention(span=(span[0], end_idx),
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,
