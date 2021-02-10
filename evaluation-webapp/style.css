@@ -20,14 +20,14 @@ html, body {
 }
 
 .content {
-	padding-left: 10pt;
+    padding-left: 10pt;
 }
 
 .column {
-	float: left;
-	width: 50%;
-	box-sizing: border-box;
-	padding: 5pt;
+    float: left;
+    width: 50%;
+    box-sizing: border-box;
+    padding: 5pt;
     border-style: solid;
     border-width: 1px;
 }
@@ -69,7 +69,7 @@ a {
 
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
-  visibility: visible;
+    visibility: visible;
 }
 
 #evaluation table tbody tr td:nth-child(2) {
