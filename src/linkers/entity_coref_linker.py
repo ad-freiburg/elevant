@@ -240,7 +240,7 @@ class EntityCorefLinker(AbstractCorefLinker):
 
                 # Find "the <type>" coreference
                 # TODO only works for single word types right now
-                elif tok.text.lower() in seen_types and prev_tok and prev_tok.text.lower() in self.COREF_PREFIXES:
+                elif tok.text in seen_types and prev_tok and prev_tok.text.lower() in self.COREF_PREFIXES:
                     span = prev_tok.idx, tok.idx + len(tok.text)
                     typ = tok.text.lower()
                     preceding_entities = self.get_preceding_entities(recent_ents_per_sent, typ=typ)
