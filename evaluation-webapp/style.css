@@ -54,8 +54,7 @@ a {
 /* Tooltip text */
 .tooltip .tooltiptext {
     visibility: hidden;
-    background-color: black;
-    color: #fff;
+    background-color: lightgrey;
     text-align: left;
     padding: 5px 0;
     border-radius: 6px;
