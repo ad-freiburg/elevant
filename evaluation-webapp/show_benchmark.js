@@ -3,6 +3,7 @@ var articles = [];
 GREEN = "#7dcea0";
 RED = "#f1948a";
 BLUE = "#bb8fce";
+GREY = "#e0e0e0";
 
 $("document").ready(function() {
     textfield_left = document.getElementById("textfield_left");
@@ -62,7 +63,29 @@ function show_article_link() {
 }
 
 function show_linked_entities() {
-    for (eval_case of evaluation_cases[index].reverse()) {
+    article_cases = evaluation_cases[index];
+    article_predictions = predictions[index];
+    
+    evaluation_begin = article_predictions.evaluation_span[0];
+    evaluation_end = article_predictions.evaluation_span[1];
+    
+    mentions = [];
+    
+    for (prediction of article_predictions.entity_mentions) {
+        if (prediction.span[1] < evaluation_begin) {
+            mentions.push(prediction);
+        }
+    }
+    for (eval_case of article_cases) {
+        mentions.push(eval_case);
+    }
+    for (prediction of article_predictions.entity_mentions) {
+        if (prediction.span[0] >= evaluation_end) {
+            mentions.push(prediction);
+        }
+    }
+    
+    for (eval_case of mentions.reverse()) {
         if ("true_entity" in eval_case) {
             before = ground_truth_text.substring(0, eval_case.span[0]);
             text = ground_truth_text.substring(eval_case.span[0], eval_case.span[1]);
@@ -88,27 +111,36 @@ function show_linked_entities() {
             ground_truth_text = before + tooltip + after;
         }
         
-        if ("predicted_entity" in eval_case) {
+        if ("linked_by" in eval_case || "predicted_entity" in eval_case) {
             before = predicted_text.substring(0, eval_case.span[0]);
             text = predicted_text.substring(eval_case.span[0], eval_case.span[1]);
             after = predicted_text.substring(eval_case.span[1]);
-            wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.predicted_entity.entity_id;
-            entity_representation = text
-            if ("true_entity" in eval_case) {
-                if (eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
-                    color = GREEN;
+            if ("true_entity" in eval_case || "predicted_entity" in eval_case) {
+                if ("true_entity" in eval_case) {
+                    if (eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
+                        color = GREEN;
+                    } else {
+                        color = RED;
+                    }
                 } else {
-                    color = RED;
+                    color = BLUE;
                 }
+                entity_id = eval_case.predicted_entity.entity_id;
+                entity_representation = eval_case.predicted_entity.name + " (" + entity_id + ")";
+                predicted_by = eval_case.predicted_by;
             } else {
-                color = BLUE;
+                color = GREY;
+                entity_id = eval_case.id;
+                entity_representation = entity_id;
+                predicted_by = eval_case.linked_by;
             }
-            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + entity_representation + "</a>";
+            wikidata_url = "https://www.wikidata.org/wiki/" + entity_id;
+            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + text + "</a>";
             tooltip = "<div class=\"tooltip\">";
             tooltip += link;
             tooltip += "<span class=\"tooltiptext\">";
-            tooltip += eval_case.predicted_entity.name + " (" + eval_case.predicted_entity.entity_id + ")<br>";
-            tooltip += "predicted_by=" + eval_case.predicted_by
+            tooltip += entity_representation + "<br>";
+            tooltip += "predicted_by=" + predicted_by;
             tooltip += "</span>";
             tooltip += "</div>";
             predicted_text = before + tooltip + after;
@@ -258,11 +290,9 @@ function get_cases_files(path, folders) {
     });
 }
 
-function read_evaluation() {
-    run = $("#evaluation_file").val();
-    //path = "evaluation-results/" + run + "/" + run + ".cases";
-    path = result_files[run] + ".cases";
-    console.log(path);
+function run_evaluation(path) {
+    console.log(cases_path);
+    
     evaluation_cases = [];
     
     n_tp = 0;
@@ -305,4 +335,30 @@ function read_evaluation() {
         $("#evaluation").html("ERROR: no file with cases found.");
         show_article();
     });
+}
+
+function read_predictions(path) {
+    console.log(path);
+    
+    predictions = [];
+    
+    $.get(path, function(data) {
+        lines = data.split("\n");
+        for (line of lines) {
+            if (line.length > 0) {
+                predictions.push(JSON.parse(line));
+            }
+        }
+        console.log(predictions);
+    });
+}
+
+function read_evaluation() {
+    run = $("#evaluation_file").val();
+
+    cases_path = result_files[run] + ".cases";
+    run_evaluation(cases_path);
+    
+    predictions_path = result_files[run] + ".jsonl";
+    read_predictions(predictions_path);
 }
