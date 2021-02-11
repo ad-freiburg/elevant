@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, List, Set
+from typing import Optional, Tuple, List, Set, Dict
 from spacy.tokens import Doc, Token
 from spacy.language import Language
 
@@ -116,12 +116,26 @@ class EntityCorefLinker(AbstractCorefLinker):
             print("Load entities...")
             self.entity_db.load_entities_big()
 
-    def get_referenced_entity(self, span, preceding_entities, tok_text, doc=None, max_distance=None,
-                              type_reference=False, direct_speech=None):
+    def get_referenced_entity(self,
+                              span: Tuple[int, int],
+                              preceding_entities: List[ReferencedEntity],
+                              tok_text: str,
+                              doc: Optional[Doc] = None,
+                              max_distance: Optional[int] = None,
+                              type_reference: Optional[bool] = False,
+                              direct_speech: Optional[DirectSpeech] = None) -> ReferencedEntity:
         referenced_entity = None
         direct_speech_len = 0
         for i, preceding_entity in enumerate(reversed(preceding_entities)):
             pre_span = preceding_entity.span
+            if direct_speech and PronounFinder.is_first_person_singular(tok_text):
+                # Resolve first person singular references in direct speech to the direct speech speaker entity
+                speaker_s = direct_speech.speaker.idx
+                if pre_span[0] <= speaker_s <= pre_span[1]:
+                    if preceding_entity.gender in [Gender.MALE, Gender.FEMALE]:
+                        return preceding_entity
+                    return
+                continue
             if not direct_speech and preceding_entity.direct_speech:
                 # If reference is not part of direct speech, ignore entities in direct speech spans
                 ds_s, ds_e = preceding_entity.direct_speech.span
@@ -133,17 +147,19 @@ class EntityCorefLinker(AbstractCorefLinker):
             if i == 0:
                 referenced_entity = preceding_entity
             if "nsubj" in preceding_entity.deps or "nsubjpass" in preceding_entity.deps:
-                referenced_entity = preceding_entity
-                break
+                return preceding_entity
         return referenced_entity
 
     @staticmethod
-    def get_preceding_entities(recent_ents_per_sent, gender, typ):
+    def get_preceding_entities(recent_ents_per_sent: List[Dict[Tuple[int, int], ReferencedEntity]],
+                               gender: Optional[Gender] = None,
+                               typ: Optional[str] = None) -> List[ReferencedEntity]:
         preceding_entities = []
         for sent_entities in recent_ents_per_sent:
             for preceding_entity in sent_entities.values():
-                if (gender and preceding_entity.gender == gender) or \
-                        (not gender and typ and typ in preceding_entity.types):
+                matching_gender = gender and (preceding_entity.gender == gender or gender == Gender.UNKNOWN)
+                matching_type = typ and typ in preceding_entity.types
+                if matching_gender or matching_type:
                     preceding_entities.append(preceding_entity)
         return preceding_entities
 
@@ -216,8 +232,9 @@ class EntityCorefLinker(AbstractCorefLinker):
                             problematic_pronoun = True
 
                     # Find referenced entity
-                    if not problematic_pronoun and p_gender != Gender.UNKNOWN:
-                        preceding_entities = self.get_preceding_entities(recent_ents_per_sent, p_gender, None)
+                    if not problematic_pronoun and (p_gender != Gender.UNKNOWN or
+                                                    PronounFinder.is_first_person_singular(tok.text)):
+                        preceding_entities = self.get_preceding_entities(recent_ents_per_sent, gender=p_gender)
                         referenced_entity = self.get_referenced_entity(span, preceding_entities, tok.text, doc,
                                                                        max_distance=200, direct_speech=direct_speech)
 
@@ -226,7 +243,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                 elif tok.text.lower() in seen_types and prev_tok and prev_tok.text.lower() in self.COREF_PREFIXES:
                     span = prev_tok.idx, tok.idx + len(tok.text)
                     typ = tok.text.lower()
-                    preceding_entities = self.get_preceding_entities(recent_ents_per_sent, None, typ)
+                    preceding_entities = self.get_preceding_entities(recent_ents_per_sent, typ=typ)
                     referenced_entity = self.get_referenced_entity(span, preceding_entities, tok.text, doc,
                                                                    max_distance=300, type_reference=True,
                                                                    direct_speech=direct_speech)

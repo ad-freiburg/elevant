@@ -24,3 +24,7 @@ class PronounFinder:
                 span = (tok.idx, tok.idx + len(tok))
                 pronoun_spans.add(span)
         return pronoun_spans
+
+    @classmethod
+    def is_first_person_singular(cls, text):
+        return text in ("I", "my", "me")
