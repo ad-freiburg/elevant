@@ -1,8 +1,9 @@
-from typing import Optional, Tuple, List, Set
-from spacy.tokens import Doc
+from typing import Optional, Tuple, List, Set, Dict
+from spacy.tokens import Doc, Token
 from spacy.language import Language
 
 import spacy
+import re
 from collections import defaultdict
 
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
@@ -18,13 +19,79 @@ from src.models.wikipedia_article import WikipediaArticle
 from src import settings
 
 
+QUOTATION_MARKS = ('"', '“')
+DIRECT_SPEECH_MIN_TOKENS = 4
+
+
+class DirectSpeech:
+    def __init__(self,
+                 span: Tuple[int, int],
+                 speaker: Token):
+        self.span = span
+        self.speaker = speaker
+
+
 class ReferencedEntity:
-    def __init__(self, span: Tuple[int, int], entity_id: str, gender: Gender, types: Set[str], deps: List[str]):
+    def __init__(self,
+                 span: Tuple[int, int],
+                 entity_id: str,
+                 gender: Gender,
+                 types: Set[str],
+                 deps: List[str],
+                 direct_speech: DirectSpeech):
         self.span = span
         self.entity_id = entity_id
         self.gender = gender
         self.types = types
         self.deps = deps
+        self.direct_speech = direct_speech
+
+
+def get_direct_speeches(article: WikipediaArticle, doc: Doc):
+    paragraph_matches = re.finditer(r"\n\n", article.text)
+    paragraph_boundaries = [m.start() for m in paragraph_matches] if paragraph_matches else []
+
+    start_offset = -1
+    start_index = -1
+    subject = False
+    verb = False
+    possible_speaker_tok = None
+    direct_speeches = []
+    for tok in doc:
+        if tok.text in QUOTATION_MARKS:
+            if start_offset >= 0:
+                # Add span to direct speech span if it is a valid direct speech span
+                start_ps = [b for b in paragraph_boundaries if start_offset <= b]
+                end_ps = [b for b in paragraph_boundaries if tok.idx <= b]
+                single_paragraph = True if start_ps and end_ps and start_ps[-1] == end_ps[-1] else False
+                if subject and verb and tok.i >= start_index + DIRECT_SPEECH_MIN_TOKENS and single_paragraph:
+                    direct_speech = DirectSpeech((start_offset, tok.idx), possible_speaker_tok)
+                    direct_speeches.append(direct_speech)
+
+                # Reset direct speech values
+                start_offset = -1
+                start_index = -1
+                subject = False
+                verb = False
+            else:
+                start_offset = tok.idx
+                start_index = tok.i
+        elif start_offset >= 0:
+            # Check whether the current direct speech span is a somewhat valid sentence with subject and a verb
+            if tok.dep_ == "nsubj" or tok.dep_ == "nsubjpass":
+                subject = True
+            if tok.pos_ == "VERB" or tok.pos_ == "AUX":
+                verb = True
+        elif tok.dep_ == "nsubj":
+            possible_speaker_tok = tok
+    return direct_speeches
+
+
+def get_containing_direct_speech(offset: int, direct_speeches: List[DirectSpeech]) -> DirectSpeech:
+    for ds in direct_speeches:
+        s, e = ds.span
+        if s <= offset <= e:
+            return ds
 
 
 class EntityCorefLinker(AbstractCorefLinker):
@@ -49,27 +116,50 @@ class EntityCorefLinker(AbstractCorefLinker):
             print("Load entities...")
             self.entity_db.load_entities_big()
 
-    def get_referenced_entity(self, span, preceding_entities, tok_text, doc=None, max_distance=None,
-                              type_reference=False):
+    def get_referenced_entity(self,
+                              span: Tuple[int, int],
+                              preceding_entities: List[ReferencedEntity],
+                              tok_text: str,
+                              doc: Optional[Doc] = None,
+                              max_distance: Optional[int] = None,
+                              type_reference: Optional[bool] = False,
+                              direct_speech: Optional[DirectSpeech] = None) -> ReferencedEntity:
         referenced_entity = None
+        direct_speech_len = 0
         for i, preceding_entity in enumerate(reversed(preceding_entities)):
             pre_span = preceding_entity.span
-            if pre_span[1] + max_distance < span[0]:
+            if direct_speech and PronounFinder.is_first_person_singular(tok_text):
+                # Resolve first person singular references in direct speech to the direct speech speaker entity
+                speaker_s = direct_speech.speaker.idx
+                if pre_span[0] <= speaker_s <= pre_span[1]:
+                    if preceding_entity.gender in [Gender.MALE, Gender.FEMALE]:
+                        return preceding_entity
+                    return
+                continue
+            if not direct_speech and preceding_entity.direct_speech:
+                # If reference is not part of direct speech, ignore entities in direct speech spans
+                ds_s, ds_e = preceding_entity.direct_speech.span
+                direct_speech_len = ds_e - ds_s
+                continue
+            if pre_span[1] + max_distance + direct_speech_len < span[0]:
+                # Direct speech span is not included in max distance unless the reference itself is direct speech
                 break
             if i == 0:
                 referenced_entity = preceding_entity
             if "nsubj" in preceding_entity.deps or "nsubjpass" in preceding_entity.deps:
-                referenced_entity = preceding_entity
-                break
+                return preceding_entity
         return referenced_entity
 
     @staticmethod
-    def get_preceding_entities(recent_ents_per_sent, gender, typ):
+    def get_preceding_entities(recent_ents_per_sent: List[Dict[Tuple[int, int], ReferencedEntity]],
+                               gender: Optional[Gender] = None,
+                               typ: Optional[str] = None) -> List[ReferencedEntity]:
         preceding_entities = []
         for sent_entities in recent_ents_per_sent:
             for preceding_entity in sent_entities.values():
-                if (gender and preceding_entity.gender == gender) or \
-                        (not gender and typ and typ in preceding_entity.types):
+                matching_gender = gender and (preceding_entity.gender == gender or gender == Gender.UNKNOWN)
+                matching_type = typ and typ in preceding_entity.types
+                if matching_gender or matching_type:
                     preceding_entities.append(preceding_entity)
         return preceding_entities
 
@@ -87,6 +177,7 @@ class EntityCorefLinker(AbstractCorefLinker):
         prev_tok = None
         tok_idx = 0
         seen_types = set()
+        direct_speeches = get_direct_speeches(article, doc)
 
         for sent in doc.sents:
 
@@ -97,6 +188,8 @@ class EntityCorefLinker(AbstractCorefLinker):
             self.sent_start_idxs.append(OffsetConverter.get_token_idx(sent.start_char, doc))
 
             for tok in sent:
+                direct_speech = get_containing_direct_speech(tok.idx, direct_speeches)
+
                 # Add already linked entity at current index
                 if mention_idx < len(sorted_entity_mentions) and tok.idx >= sorted_entity_mentions[mention_idx][0][0]:
                     span, entity_mention = sorted_entity_mentions[mention_idx]
@@ -114,7 +207,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                                 for name in names:
                                     types.add(name.lower())
                         seen_types.update(types)
-                    referenced_entity = ReferencedEntity(span, entity_id, gender, types, deps)
+                    referenced_entity = ReferencedEntity(span, entity_id, gender, types, deps, direct_speech)
                     recent_ents_per_sent[-1][(tok_idx, end_idx)] = referenced_entity
                     mention_idx += 1
                     clusters[entity_id].append(span)
@@ -139,26 +232,29 @@ class EntityCorefLinker(AbstractCorefLinker):
                             problematic_pronoun = True
 
                     # Find referenced entity
-                    if not problematic_pronoun and p_gender != Gender.UNKNOWN:
-                        preceding_entities = self.get_preceding_entities(recent_ents_per_sent, p_gender, None)
+                    if not problematic_pronoun and (p_gender != Gender.UNKNOWN or
+                                                    PronounFinder.is_first_person_singular(tok.text)):
+                        preceding_entities = self.get_preceding_entities(recent_ents_per_sent, gender=p_gender)
                         referenced_entity = self.get_referenced_entity(span, preceding_entities, tok.text, doc,
-                                                                       max_distance=200)
+                                                                       max_distance=200, direct_speech=direct_speech)
 
                 # Find "the <type>" coreference
                 # TODO only works for single word types right now
                 elif tok.text.lower() in seen_types and prev_tok and prev_tok.text.lower() in self.COREF_PREFIXES:
                     span = prev_tok.idx, tok.idx + len(tok.text)
                     typ = tok.text.lower()
-                    preceding_entities = self.get_preceding_entities(recent_ents_per_sent, None, typ)
+                    preceding_entities = self.get_preceding_entities(recent_ents_per_sent, typ=typ)
                     referenced_entity = self.get_referenced_entity(span, preceding_entities, tok.text, doc,
-                                                                   max_distance=300, type_reference=True)
+                                                                   max_distance=300, type_reference=True,
+                                                                   direct_speech=direct_speech)
 
                 # Add coreference to cluster and to preceding entities
                 if referenced_entity:
                     # Add coreference to preceding entities under linked entity id
                     deps = [tok.dep_ for tok in OffsetConverter.get_tokens_in_span(span, doc)]
                     new_referenced_entity = ReferencedEntity(span, referenced_entity.entity_id,
-                                                             referenced_entity.gender, referenced_entity.types, deps)
+                                                             referenced_entity.gender, referenced_entity.types, deps,
+                                                             direct_speech)
                     recent_ents_per_sent[-1][(tok_idx, tok_idx)] = new_referenced_entity
                     # Add coreference to coreference cluster
                     clusters[referenced_entity.entity_id].append(span)

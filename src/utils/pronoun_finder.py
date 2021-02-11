@@ -6,10 +6,10 @@ from src.models.gender import Gender
 
 class PronounFinder:
     pronoun_genders = {"i": Gender.UNKNOWN, "my": Gender.UNKNOWN, "me": Gender.UNKNOWN, "you": Gender.UNKNOWN,
-                "your": Gender.UNKNOWN, "he": Gender.MALE, "his": Gender.MALE, "him": Gender.MALE, "she": Gender.FEMALE,
-                "her": Gender.FEMALE, "it": Gender.NEUTRAL, "its": Gender.NEUTRAL, "us": Gender.UNKNOWN,
-                "our": Gender.UNKNOWN, "they": Gender.UNKNOWN, "their": Gender.UNKNOWN, "them": Gender.UNKNOWN}
-
+                       "your": Gender.UNKNOWN, "he": Gender.MALE, "his": Gender.MALE, "him": Gender.MALE,
+                       "she": Gender.FEMALE, "her": Gender.FEMALE, "it": Gender.NEUTRAL, "its": Gender.NEUTRAL,
+                       "us": Gender.UNKNOWN, "our": Gender.UNKNOWN, "they": Gender.UNKNOWN, "their": Gender.UNKNOWN,
+                       "them": Gender.UNKNOWN}
 
     @classmethod
     def is_pronoun(cls, text):
@@ -24,3 +24,7 @@ class PronounFinder:
                 span = (tok.idx, tok.idx + len(tok))
                 pronoun_spans.add(span)
         return pronoun_spans
+
+    @classmethod
+    def is_first_person_singular(cls, text):
+        return text in ("I", "my", "me")

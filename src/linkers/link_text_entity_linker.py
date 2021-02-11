@@ -125,7 +125,7 @@ class LinkTextEntityLinker:
 
         # Link text that has been linked to an entity before, starting with the longest text
         for link_text, entity_id in sorted(entity_links.items(), key=lambda x: len(x[0]), reverse=True) + \
-                                    sorted(entity_synonyms.items(), key=lambda x: len(x[0]), reverse=True):
+                sorted(entity_synonyms.items(), key=lambda x: len(x[0]), reverse=True):
             search_start_idx = 0
             if not link_text:
                 continue
