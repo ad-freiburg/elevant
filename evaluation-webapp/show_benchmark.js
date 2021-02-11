@@ -63,6 +63,9 @@ function show_article_link() {
 }
 
 function show_linked_entities() {
+    ground_truth_text = article.text;
+    predicted_text = article.text;
+        
     article_cases = evaluation_cases[index];
     article_predictions = predictions[index];
     
@@ -91,7 +94,6 @@ function show_linked_entities() {
             text = ground_truth_text.substring(eval_case.span[0], eval_case.span[1]);
             after = ground_truth_text.substring(eval_case.span[1]);
             wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.true_entity.entity_id;
-            entity_representation = text
             if ("predicted_entity" in eval_case) {
                 if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
                     color = GREEN;
@@ -101,7 +103,7 @@ function show_linked_entities() {
             } else {
                 color = BLUE;
             }
-            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + entity_representation + "</a>";
+            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + text + "</a>";
             tooltip = "<div class=\"tooltip\">";
             tooltip += link;
             tooltip += "<span class=\"tooltiptext\">";
@@ -239,9 +241,6 @@ function show_article() {
         $("#table").html("");
         return;
     }
-    
-    ground_truth_text = article.text;
-    predicted_text = article.text;
     
     show_linked_entities();
     show_table();
