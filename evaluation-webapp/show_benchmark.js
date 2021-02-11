@@ -167,7 +167,7 @@ function show_table() {
     table += "<th>case</th>";
     table += "</tr>";
     
-    for (eval_case of evaluation_cases[index].reverse()) {
+    for (eval_case of evaluation_cases[index]) {
         if ("true_entity" in eval_case) {
             has_true_entity = true;
             true_entity_id = eval_case.true_entity.entity_id;
