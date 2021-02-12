@@ -742,10 +742,11 @@ class Extractor(object):
             text = bold.sub(r'<b>\1</b>', text)
             text = italic.sub(r'<i>\1</i>', text)
         else:
-            text = bold_italic.sub(r'\1', text)
             if options.keepBold:
+                text = bold_italic.sub(r'<b>\1</b>', text)
                 text = bold.sub(r'<b>\1</b>', text)
             else:
+                text = bold_italic.sub(r'\1', text)
                 text = bold.sub(r'\1', text)
             text = italic_quote.sub(r'"\1"', text)
             text = italic.sub(r'"\1"', text)

@@ -17,7 +17,7 @@ if DATA_DIRECTORY is None:
     exit(1)
 
 ARTICLE_JSON_DIR = DATA_DIRECTORY + "json/"
-ARTICLE_JSON_FILE = DATA_DIRECTORY + "wiki_extractor_output/wiki_dump_with_links_and_bold.json"
+ARTICLE_JSON_FILE = DATA_DIRECTORY + "wiki_extractor_output/wiki_dump_with_links_and_bold.jsonl"
 
 SPLIT_ARTICLES_DIR = DATA_DIRECTORY + "articles_split/"
 TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "training_bold.jsonl"

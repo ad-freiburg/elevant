@@ -72,11 +72,8 @@ class LinkTextEntityLinker:
                 if bracketless_title not in entity_synonyms:
                     entity_synonyms[bracketless_title] = title_entity_id
             if article.title_synonyms:
-                title_synonyms = [article.text[s:e] for (s, e) in article.title_synonyms]
+                # Bold title spans are treated like links. Not like synonyms of hyperlinked entities
                 bold_title_spans = [((s, e), article.title) for (s, e) in article.title_synonyms]
-                for syn in title_synonyms:
-                    # Bold title spans are treated like links. Not like synonyms of hyperlinked entities
-                    entity_links[syn] = title_entity_id
 
         # Link article links to Wikidata ids
         for span, target in bold_title_spans + article.links:
@@ -99,7 +96,7 @@ class LinkTextEntityLinker:
                         end_idx = end_idx - len(ending)
 
                 # Expand mention if that means the mention contains the target article title
-                if span[0] + len(target) != end_idx and article.text[span[0]:span[0] + len(target)] == target:
+                if span[0] + len(target) > end_idx and article.text[span[0]:span[0] + len(target)] == target:
                     end_idx = span[0] + len(target)
 
                 # Expand mention to end of word
