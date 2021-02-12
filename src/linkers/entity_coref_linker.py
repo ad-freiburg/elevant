@@ -205,7 +205,8 @@ class EntityCorefLinker(AbstractCorefLinker):
                                 type_entity = self.entity_db.get_entity(type_id)
                                 names = type_entity.synonyms + [type_entity.name]
                                 for name in names:
-                                    types.add(name.lower())
+                                    name_list = name.lower().split("/")
+                                    types.update(name_list)
                         seen_types.update(types)
                     referenced_entity = ReferencedEntity(span, entity_id, gender, types, deps, direct_speech)
                     recent_ents_per_sent[-1][(tok_idx, end_idx)] = referenced_entity
