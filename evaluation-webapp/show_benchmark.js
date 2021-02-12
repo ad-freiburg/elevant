@@ -164,7 +164,6 @@ function deep_copy_array(array) {
 }
 
 function annotate_text(text, annotations, links) {
-    console.log("ANNOTATE");
     links = deep_copy_array(links);
     annotations = deep_copy_array(annotations);
     annotations_with_links = [];
@@ -183,9 +182,6 @@ function annotate_text(text, annotations, links) {
             annotation = annotations[0];
             link = links[0];
             link_span = link[0];
-            console.log("step:");
-            console.log(link);
-            console.log(annotation);
             if (link_span[0] < annotation.span[0]) {
                 // add link
                 link_annotation = {
@@ -213,7 +209,6 @@ function annotate_text(text, annotations, links) {
                 annotation["link"] = link[1];
                 annotation_end = Math.min(annotation.span[1], link_span[1]);
                 annotations_with_links.push([[annotation.span[0], annotation_end], annotation]);
-                console.log(annotations_with_links[annotations_with_links.length - 1]);
                 if (annotation_end == link_span[1]) {
                     links.shift();
                 } else {
@@ -227,7 +222,6 @@ function annotate_text(text, annotations, links) {
             }
         }
     }
-    console.log(annotations_with_links);
     for (annotation of annotations_with_links.reverse()) {
         span = annotation[0];
         annotation = annotation[1];
@@ -257,7 +251,6 @@ function annotate_text(text, annotations, links) {
         }
         text = before + replacement + after;
     }
-    annotations_with_links.reverse();
     text = text.replaceAll("\n", "<br>");
     return text;
 }
