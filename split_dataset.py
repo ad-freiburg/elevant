@@ -26,8 +26,8 @@ if __name__ == "__main__":
 
     print("writing articles...")
     with open(settings.TRAINING_ARTICLES, "w") as f_train, \
-         open(settings.DEVELOPMENT_ARTICLES, "w") as f_dev, \
-         open(settings.TEST_ARTICLES, "w") as f_test:
+            open(settings.DEVELOPMENT_ARTICLES, "w") as f_dev, \
+            open(settings.TEST_ARTICLES, "w") as f_test:
         n_train = n_dev = n_test = 0
         for i, article in enumerate(articles):
             if i < N_DEV_TEST:
