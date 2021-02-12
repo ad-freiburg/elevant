@@ -49,6 +49,8 @@ a {
 .tooltip {
     position: relative;
     display: inline;
+    padding: 0 1px;
+    border-radius: 6px;
 }
 
 /* Tooltip text */
@@ -56,7 +58,7 @@ a {
     visibility: hidden;
     background-color: lightgrey;
     text-align: left;
-    padding: 5px 0;
+    padding: 5px 1px;
     border-radius: 6px;
 
     /* Position of the tooltip text */
