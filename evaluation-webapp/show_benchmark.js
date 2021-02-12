@@ -158,8 +158,6 @@ function copy(object) {
 function annotate_text(text, annotations, links) {
     links = links.slice();
     annotations = annotations.slice();
-    console.log("annotate text:");
-    console.log(links);
     annotations_with_links = [];
     while (annotations.length > 0 || links.length > 0) {
         if (annotations.length == 0) {
@@ -439,7 +437,7 @@ function read_articles_data(path) {
     
     articles_data = [];
     
-    $.get(path, function(data) {
+    promise = $.get(path, function(data) {
         lines = data.split("\n");
         for (line of lines) {
             if (line.length > 0) {
@@ -447,14 +445,17 @@ function read_articles_data(path) {
             }
         }
     });
+    return promise;
 }
 
 function read_evaluation() {
     run = $("#evaluation_file").val();
 
     cases_path = result_files[run] + ".cases";
-    run_evaluation(cases_path);
-    
     articles_path = result_files[run] + ".jsonl";
-    read_articles_data(articles_path);
+
+    reading_promise = read_articles_data(articles_path);
+    reading_promise.then(function() {
+        run_evaluation(cases_path);
+    });
 }
