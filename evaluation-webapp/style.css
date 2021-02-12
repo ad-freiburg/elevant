@@ -43,21 +43,22 @@ table, td, th {
 }
 
 a {
-    color: black;
+    color: blue;
 }
 
 .tooltip {
     position: relative;
     display: inline;
+    padding: 0 1px;
+    border-radius: 6px;
 }
 
 /* Tooltip text */
 .tooltip .tooltiptext {
     visibility: hidden;
-    background-color: black;
-    color: #fff;
+    background-color: lightgrey;
     text-align: left;
-    padding: 5px 0;
+    padding: 5px 1px;
     border-radius: 6px;
 
     /* Position of the tooltip text */

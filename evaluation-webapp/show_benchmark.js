@@ -3,7 +3,7 @@ var articles = [];
 GREEN = "#7dcea0";
 RED = "#f1948a";
 BLUE = "#bb8fce";
-GREY = "#e0e0e0";
+GREY = "lightgrey";
 
 $("document").ready(function() {
     textfield_left = document.getElementById("textfield_left");
@@ -62,38 +62,10 @@ function show_article_link() {
     $("#article_link").html("<a href=\"" + article.url + "\" target=\"_blank\">Wikipedia article</a>");
 }
 
-function show_linked_entities() {
-    ground_truth_text = article.text;
-    predicted_text = article.text;
-        
-    article_cases = evaluation_cases[index];
-    article_predictions = predictions[index];
-    
-    evaluation_begin = article_predictions.evaluation_span[0];
-    evaluation_end = article_predictions.evaluation_span[1];
-    
-    mentions = [];
-    
-    for (prediction of article_predictions.entity_mentions) {
-        if (prediction.span[1] < evaluation_begin) {
-            mentions.push(prediction);
-        }
-    }
-    for (eval_case of article_cases) {
-        mentions.push(eval_case);
-    }
-    for (prediction of article_predictions.entity_mentions) {
-        if (prediction.span[0] >= evaluation_end) {
-            mentions.push(prediction);
-        }
-    }
-    
-    for (eval_case of mentions.reverse()) {
+function show_ground_truth_entities() {
+    annotations = [];
+    for (eval_case of evaluation_cases[index]) {
         if ("true_entity" in eval_case) {
-            before = ground_truth_text.substring(0, eval_case.span[0]);
-            text = ground_truth_text.substring(eval_case.span[0], eval_case.span[1]);
-            after = ground_truth_text.substring(eval_case.span[1]);
-            wikidata_url = "https://www.wikidata.org/wiki/" + eval_case.true_entity.entity_id;
             if ("predicted_entity" in eval_case) {
                 if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
                     color = GREEN;
@@ -103,20 +75,47 @@ function show_linked_entities() {
             } else {
                 color = BLUE;
             }
-            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + text + "</a>";
-            tooltip = "<div class=\"tooltip\">";
-            tooltip += link;
-            tooltip += "<span class=\"tooltiptext\">";
-            tooltip += eval_case.true_entity.name + " (" + eval_case.true_entity.entity_id + ")";
-            tooltip += "</span>";
-            tooltip += "</div>";
-            ground_truth_text = before + tooltip + after;
+            var annotation = {
+                "span": eval_case.span,
+                "color": color,
+                "entity_name": eval_case.true_entity.name,
+                "entity_id": eval_case.true_entity.entity_id
+            };
+            annotations.push(annotation);
         }
-        
+    }
+    
+    ground_truth_text = annotate_text(article.text, annotations, article.links);
+    textfield_left.innerHTML = ground_truth_text;
+}
+
+function show_linked_entities() {
+    article_cases = evaluation_cases[index];
+    article_data = articles_data[index];
+    
+    evaluation_begin = article_data.evaluation_span[0];
+    evaluation_end = article_data.evaluation_span[1];
+    
+    mentions = [];
+    
+    for (prediction of article_data.entity_mentions) {
+        if (prediction.span[1] < evaluation_begin) {
+            mentions.push(prediction);
+        }
+    }
+    for (eval_case of article_cases) {
+        mentions.push(eval_case);
+    }
+    for (prediction of article_data.entity_mentions) {
+        if (prediction.span[0] >= evaluation_end) {
+            mentions.push(prediction);
+        }
+    }
+    
+    annotations = []
+    
+    for (eval_case of mentions) {
         if ("linked_by" in eval_case || "predicted_entity" in eval_case) {
-            before = predicted_text.substring(0, eval_case.span[0]);
-            text = predicted_text.substring(eval_case.span[0], eval_case.span[1]);
-            after = predicted_text.substring(eval_case.span[1]);
             if ("true_entity" in eval_case || "predicted_entity" in eval_case) {
                 if ("true_entity" in eval_case) {
                     if (eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
@@ -128,29 +127,127 @@ function show_linked_entities() {
                     color = BLUE;
                 }
                 entity_id = eval_case.predicted_entity.entity_id;
-                entity_representation = eval_case.predicted_entity.name + " (" + entity_id + ")";
+                entity_name = eval_case.predicted_entity.name;
                 predicted_by = eval_case.predicted_by;
             } else {
                 color = GREY;
                 entity_id = eval_case.id;
-                entity_representation = entity_id;
+                entity_name = null;
                 predicted_by = eval_case.linked_by;
             }
-            wikidata_url = "https://www.wikidata.org/wiki/" + entity_id;
-            link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + text + "</a>";
-            tooltip = "<div class=\"tooltip\">";
-            tooltip += link;
-            tooltip += "<span class=\"tooltiptext\">";
-            tooltip += entity_representation + "<br>";
-            tooltip += "predicted_by=" + predicted_by;
-            tooltip += "</span>";
-            tooltip += "</div>";
-            predicted_text = before + tooltip + after;
+            var annotation = {
+                "span": eval_case.span,
+                "color": color,
+                "entity_name": entity_name,
+                "predicted_by": predicted_by,
+                "entity_id": entity_id
+            };
+            annotations.push(annotation);
         }
     }
     
-    textfield_left.innerHTML = ground_truth_text.replaceAll("\n", "<br>");
-    textfield_right.innerHTML = predicted_text.replaceAll("\n", "<br>");
+    predicted_text = annotate_text(article.text, annotations, article.links);
+    
+    textfield_right.innerHTML = predicted_text;
+}
+
+function copy(object) {
+    return JSON.parse(JSON.stringify(object));
+}
+
+function annotate_text(text, annotations, links) {
+    links = links.slice();
+    annotations = annotations.slice();
+    console.log("annotate text:");
+    console.log(links);
+    annotations_with_links = [];
+    while (annotations.length > 0 || links.length > 0) {
+        if (annotations.length == 0) {
+            link = links.shift();
+            link_span = link[0];
+            link_annotation = {
+                "link": link[1]
+            };
+            annotations_with_links.push([link_span, link_annotation]);
+        } else if (links.length == 0) {
+            annotation = annotations.shift();
+            annotations_with_links.push([annotation.span, annotation]);
+        } else {
+            annotation = annotations[0];
+            link = links[0];
+            link_span = link[0];
+            if (link_span[0] < annotation.span[0]) {
+                // add link
+                link_annotation = {
+                    "link": link[1]
+                };
+                link_end = Math.min(link_span[1], annotation.span[0]);
+                annotations_with_links.push([[link_span[0], link_end], link_annotation]);
+                if (link_end == link_span[1]) {
+                    links.shift();
+                } else {
+                    links[0][0][0] = link_end;
+                }
+            } else if (annotation.span[0] < link_span[0]) {
+                // add annotation
+                annotation_end = Math.min(annotation.span[1], link_span[0]);
+                annotations_with_links.push([[annotation.span[0], annotation_end], annotation]);
+                if (annotation_end == annotation.span[1]) {
+                    annotations.shift();
+                } else {
+                    annotation.span[0] = annotation_end;
+                }
+            } else {
+                // add both
+                annotation = copy(annotation);
+                annotation["link"] = link[1];
+                annotation_end = Math.min(annotation.span[1], link_span[1]);
+                annotations_with_links.push([[annotation.span[0], annotation_end], annotation]);
+                if (annotation_end == link_span[1]) {
+                    links.shift();
+                } else {
+                    links[0][0][0] = annotation_end;
+                }
+                if (annotation_end == annotation.span[1]) {
+                    annotations.shift();
+                } else {
+                    annotations[0].span[0] = annotation_end;
+                }
+            }
+        }
+    }
+    for (annotation of annotations_with_links.reverse()) {
+        span = annotation[0];
+        annotation = annotation[1];
+        before = text.substring(0, span[0]);
+        snippet = text.substring(span[0], span[1]);
+        after = text.substring(span[1]);
+        if (annotation.hasOwnProperty("link")) {
+            snippet = "<a href=\"https://en.wikipedia.org/wiki/" + annotation.link + "\" target=\"_blank\">" + snippet + "</a>";
+        }
+        if (annotation.hasOwnProperty("entity_id")) {
+            wikidata_url = "https://www.wikidata.org/wiki/" + annotation.entity_id;
+            entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.entity_id + "</a>";
+            if (annotation.entity_name != null) {
+                tooltip_text = annotation.entity_name + " (" + entity_link + ")";
+            } else {
+                tooltip_text = entity_link;
+            }
+            if (annotation.hasOwnProperty("predicted_by")) {
+                tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
+            }
+            replacement = "<div class=\"tooltip\" style=\"background-color:" + annotation.color + "\">";
+            replacement += snippet;
+            replacement += "<span class=\"tooltiptext\">" + tooltip_text + "</span>";
+            replacement += "</div>";
+        } else {
+            replacement = snippet;
+        }
+        text = before + replacement + after;
+    }
+    annotations.reverse();
+    text = text.replaceAll("\n", "<br>");
+    return text;
 }
 
 function show_table() {
@@ -242,6 +339,7 @@ function show_article() {
         return;
     }
     
+    show_ground_truth_entities();
     show_linked_entities();
     show_table();
 }
@@ -336,19 +434,18 @@ function run_evaluation(path) {
     });
 }
 
-function read_predictions(path) {
+function read_articles_data(path) {
     console.log(path);
     
-    predictions = [];
+    articles_data = [];
     
     $.get(path, function(data) {
         lines = data.split("\n");
         for (line of lines) {
             if (line.length > 0) {
-                predictions.push(JSON.parse(line));
+                articles_data.push(JSON.parse(line));
             }
         }
-        console.log(predictions);
     });
 }
 
@@ -358,6 +455,6 @@ function read_evaluation() {
     cases_path = result_files[run] + ".cases";
     run_evaluation(cases_path);
     
-    predictions_path = result_files[run] + ".jsonl";
-    read_predictions(predictions_path);
+    articles_path = result_files[run] + ".jsonl";
+    read_articles_data(articles_path);
 }
