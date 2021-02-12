@@ -3,7 +3,7 @@ var articles = [];
 GREEN = "#7dcea0";
 RED = "#f1948a";
 BLUE = "#bb8fce";
-GREY = "#e0e0e0";
+GREY = "lightgrey";
 
 $("document").ready(function() {
     textfield_left = document.getElementById("textfield_left");
@@ -75,13 +75,6 @@ function show_ground_truth_entities() {
             } else {
                 color = BLUE;
             }
-            /*link = "<a href=\"" + wikidata_url + "\" style=\"background-color:" + color + "\" target=\"_blank\">" + text + "</a>";
-            tooltip = "<div class=\"tooltip\">";
-            tooltip += link;
-            tooltip += "<span class=\"tooltiptext\">";
-            tooltip += eval_case.true_entity.name + " (" + eval_case.true_entity.entity_id + ")";
-            tooltip += "</span>";
-            tooltip += "</div>";*/
             var annotation = {
                 "span": eval_case.span,
                 "color": color,
@@ -92,7 +85,7 @@ function show_ground_truth_entities() {
         }
     }
     
-    ground_truth_text = annotate_text(article.text, annotations);
+    ground_truth_text = annotate_text(article.text, annotations, article.links);
     textfield_left.innerHTML = ground_truth_text;
 }
 
@@ -153,27 +146,103 @@ function show_linked_entities() {
         }
     }
     
-    predicted_text = annotate_text(article.text, annotations);
+    predicted_text = annotate_text(article.text, annotations, article.links);
     
     textfield_right.innerHTML = predicted_text;
 }
 
-function annotate_text(text, annotations) {
-    for (annotation of annotations.reverse()) {
-        before = text.substring(0, annotation.span[0]);
-        snippet = text.substring(annotation.span[0], annotation.span[1]);
-        after = text.substring(annotation.span[1]);
-        wikidata_url = "https://www.wikidata.org/wiki/" + annotation.entity_id;
-        entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.entity_id + "</a>";
-        if (annotation.entity_name != null) {
-            tooltip_text = annotation.entity_name + " (" + entity_link + ")";
+function copy(object) {
+    return JSON.parse(JSON.stringify(object));
+}
+
+function annotate_text(text, annotations, links) {
+    links = links.slice();
+    annotations = annotations.slice();
+    console.log("annotate text:");
+    console.log(links);
+    annotations_with_links = [];
+    while (annotations.length > 0 || links.length > 0) {
+        if (annotations.length == 0) {
+            link = links.shift();
+            link_span = link[0];
+            link_annotation = {
+                "link": link[1]
+            };
+            annotations_with_links.push([link_span, link_annotation]);
+        } else if (links.length == 0) {
+            annotation = annotations.shift();
+            annotations_with_links.push([annotation.span, annotation]);
         } else {
-            tooltip_text = entity_link;
+            annotation = annotations[0];
+            link = links[0];
+            link_span = link[0];
+            if (link_span[0] < annotation.span[0]) {
+                // add link
+                link_annotation = {
+                    "link": link[1]
+                };
+                link_end = Math.min(link_span[1], annotation.span[0]);
+                annotations_with_links.push([[link_span[0], link_end], link_annotation]);
+                if (link_end == link_span[1]) {
+                    links.shift();
+                } else {
+                    links[0][0][0] = link_end;
+                }
+            } else if (annotation.span[0] < link_span[0]) {
+                // add annotation
+                annotation_end = Math.min(annotation.span[1], link_span[0]);
+                annotations_with_links.push([[annotation.span[0], annotation_end], annotation]);
+                if (annotation_end == annotation.span[1]) {
+                    annotations.shift();
+                } else {
+                    annotation.span[0] = annotation_end;
+                }
+            } else {
+                // add both
+                annotation = copy(annotation);
+                annotation["link"] = link[1];
+                annotation_end = Math.min(annotation.span[1], link_span[1]);
+                annotations_with_links.push([[annotation.span[0], annotation_end], annotation]);
+                if (annotation_end == link_span[1]) {
+                    links.shift();
+                } else {
+                    links[0][0][0] = annotation_end;
+                }
+                if (annotation_end == annotation.span[1]) {
+                    annotations.shift();
+                } else {
+                    annotations[0].span[0] = annotation_end;
+                }
+            }
         }
-        replacement = "<div class=\"tooltip\" style=\"background-color:" + annotation.color + "\">";
-        replacement += snippet;
-        replacement += "<span class=\"tooltiptext\">" + tooltip_text + "</span>";
-        replacement += "</div>";
+    }
+    for (annotation of annotations_with_links.reverse()) {
+        span = annotation[0];
+        annotation = annotation[1];
+        before = text.substring(0, span[0]);
+        snippet = text.substring(span[0], span[1]);
+        after = text.substring(span[1]);
+        if (annotation.hasOwnProperty("link")) {
+            snippet = "<a href=\"https://en.wikipedia.org/wiki/" + annotation.link + "\" target=\"_blank\">" + snippet + "</a>";
+        }
+        if (annotation.hasOwnProperty("entity_id")) {
+            wikidata_url = "https://www.wikidata.org/wiki/" + annotation.entity_id;
+            entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.entity_id + "</a>";
+            if (annotation.entity_name != null) {
+                tooltip_text = annotation.entity_name + " (" + entity_link + ")";
+            } else {
+                tooltip_text = entity_link;
+            }
+            if (annotation.hasOwnProperty("predicted_by")) {
+                tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
+            }
+            replacement = "<div class=\"tooltip\" style=\"background-color:" + annotation.color + "\">";
+            replacement += snippet;
+            replacement += "<span class=\"tooltiptext\">" + tooltip_text + "</span>";
+            replacement += "</div>";
+        } else {
+            replacement = snippet;
+        }
         text = before + replacement + after;
     }
     annotations.reverse();
