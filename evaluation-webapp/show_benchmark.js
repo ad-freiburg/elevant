@@ -155,9 +155,17 @@ function copy(object) {
     return JSON.parse(JSON.stringify(object));
 }
 
+function deep_copy_array(array) {
+    copied_array = [];
+    for (element of array) {
+        copied_array.push(copy(element));
+    }
+    return copied_array;
+}
+
 function annotate_text(text, annotations, links) {
-    links = links.slice();
-    annotations = annotations.slice();
+    links = deep_copy_array(links);
+    annotations = deep_copy_array(annotations);
     annotations_with_links = [];
     while (annotations.length > 0 || links.length > 0) {
         if (annotations.length == 0) {
@@ -243,7 +251,6 @@ function annotate_text(text, annotations, links) {
         }
         text = before + replacement + after;
     }
-    annotations.reverse();
     text = text.replaceAll("\n", "<br>");
     return text;
 }
