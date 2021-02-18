@@ -38,6 +38,22 @@ def load_evaluation_entities():
     return entity_db
 
 
+def create_f1_dict(tp, fp, fn):
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    ground_truth = tp + fn
+    recall = tp / ground_truth if ground_truth > 0 else 0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+    return {
+        "true_positives": tp,
+        "false_positives": fp,
+        "false_negatives": fn,
+        "ground_truth": ground_truth,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1
+    }
+
+
 def get_evaluation_cases(predictions, ground_truth, coref_ground_truth, evaluation_span, entity_db):
     ground_truth_spans = set(span for span, _ in ground_truth)
 
@@ -207,7 +223,8 @@ def print_article_coref_evaluation(cases, text):
                       color=CASE_COLORS[case.coref_type]))
 
 
-def print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn):
+def print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn,
+                             output_file=None):
     n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
         n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = n_false_detection = \
         n_coref_total = n_coref_tp = n_coref_fp = 0
@@ -272,10 +289,11 @@ def print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn):
     print("Coreference evaluation:")
     print("\tprecision = %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_tp + n_coref_fp))
     print("\trecall =    %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_total))
-    precision = n_coref_tp / (n_coref_tp + n_coref_fp)
-    recall = n_coref_tp / n_coref_total
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-    print("\tf1 =        %.2f%%" % (f1*100))
+    coref_precision = n_coref_tp / (n_coref_tp + n_coref_fp)
+    coref_recall = n_coref_tp / n_coref_total
+    coref_f1 = 2 * coref_precision * coref_recall / (coref_precision + coref_recall)\
+        if (coref_precision + coref_recall) > 0 else 0
+    print("\tf1 =        %.2f%%" % (coref_f1*100))
 
     print("\nNER:")
     ner_precision, ner_prec_nominator, ner_prec_denominator = percentage(n_ner_tp, n_ner_tp + n_ner_fp)
@@ -299,6 +317,37 @@ def print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn):
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     print("f1 =        %.2f%%" % (f1 * 100))
 
+    if output_file is not None:
+        results_dict = {
+            "all": create_f1_dict(n_correct, n_false_positives, n_false_negatives),
+            "NER": create_f1_dict(n_ner_tp, n_ner_fp, n_ner_fn),
+            "coreference": create_f1_dict(n_coref_tp, n_coref_fp, n_coref_total - n_coref_tp),
+            "named": create_f1_dict(0, 0, 0),
+            "nominal": create_f1_dict(0, 0, 0),
+            "pronominal": create_f1_dict(0, 0, 0),
+            "cases": {
+                "correct": n_correct,
+                "known": n_contained,
+                "detected": n_detected,
+                "correct_candidate": n_is_candidate,
+                "multi_candidate": {
+                    "correct": n_correct_multiple_candidates,
+                    "wrong": n_true_in_multiple_candidates - n_correct_multiple_candidates
+                }
+            },
+            "errors": {
+                "non_entity_coreference": 0,
+                "rare": 0,
+                "specificity": 0,
+                "demonym": 0,
+                "partial_name": 0,
+                "abstraction": 0
+            }
+        }
+        results_json = json.dumps(results_dict)
+        with open(output_file, "w") as f:
+            f.write(results_json)
+
 
 def main(args):
     input_file = open(args.input_file, 'r', encoding='utf8')
@@ -315,6 +364,7 @@ def main(args):
         output_file = open(output_filename, 'w', encoding='utf8')
         print("load evaluation entities...")
         entity_db = load_evaluation_entities()
+    results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
 
     all_cases = []
     n_ner_tp = n_ner_fp = n_ner_fn = 0
@@ -350,7 +400,8 @@ def main(args):
 
         all_cases.extend(cases)
 
-    print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn)
+    print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn, output_file=results_file)
+    print("Wrote results to %s" % results_file)
 
     input_file.close()
     if args.input_case_file:
@@ -369,7 +420,7 @@ if __name__ == "__main__":
                         help="Input file. Linked articles with ground truth labels.")
     parser.add_argument("-out", "--output_file", type=str, default=None,
                         help="Output file for the evaluation results."
-                             "The input file with .cases extension if none is specified.")
+                             " The input file with .cases extension if none is specified.")
     parser.add_argument("-in", "--input_case_file", type=str, default=None,
                         help="Input file that contains the evaluation cases. Cases are not written to file.")
     parser.add_argument("--no_coreference", action="store_true",
