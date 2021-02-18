@@ -1,5 +1,5 @@
 import json
-from typing import Tuple
+from typing import Tuple, Dict
 
 from termcolor import colored
 from src.evaluation.case import CASE_COLORS, CaseType
@@ -29,6 +29,9 @@ def create_f1_dict(tp, fp, fn):
         "f1": f1
     }
 
+
+def create_f1_dict_from_counts(counts: Dict):
+    return create_f1_dict(counts["tp"], counts["fp"], counts["fn"])
 
 
 def print_colored_text(cases, text):
@@ -98,8 +101,7 @@ def print_article_coref_evaluation(cases, text):
                       color=CASE_COLORS[case.coref_type]))
 
 
-def print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn,
-                             output_file=None):
+def print_evaluation_summary(all_cases, counts, output_file=None):
     n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
         n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = n_false_detection = \
         n_coref_total = n_coref_tp = n_coref_fp = 0
@@ -171,9 +173,11 @@ def print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn,
     print("\tf1 =        %.2f%%" % (coref_f1*100))
 
     print("\nNER:")
-    ner_precision, ner_prec_nominator, ner_prec_denominator = percentage(n_ner_tp, n_ner_tp + n_ner_fp)
+    ner_precision, ner_prec_nominator, ner_prec_denominator = percentage(counts["ner"]["tp"],
+                                                                         counts["ner"]["tp"] + counts["ner"]["fp"])
     print("precision = %.2f%% (%i/%i)" % (ner_precision, ner_prec_nominator, ner_prec_denominator))
-    ner_recall, ner_rec_nominator, ner_rec_denominator = percentage(n_ner_tp, n_ner_tp + n_ner_fn)
+    ner_recall, ner_rec_nominator, ner_rec_denominator = percentage(counts["ner"]["tp"],
+                                                                    counts["ner"]["tp"] + counts["ner"]["fn"])
     print("recall =    %.2f%% (%i/%i)" % (ner_recall, ner_rec_nominator, ner_rec_denominator))
     ner_precision = ner_precision / 100
     ner_recall = ner_recall / 100
@@ -195,11 +199,11 @@ def print_evaluation_summary(all_cases, n_ner_tp, n_ner_fp, n_ner_fn,
     if output_file is not None:
         results_dict = {
             "all": create_f1_dict(n_correct, n_false_positives, n_false_negatives),
-            "NER": create_f1_dict(n_ner_tp, n_ner_fp, n_ner_fn),
+            "NER": create_f1_dict(counts["ner"]["tp"], counts["ner"]["fp"], counts["ner"]["fn"]),
             "coreference": create_f1_dict(n_coref_tp, n_coref_fp, n_coref_total - n_coref_tp),
-            "named": create_f1_dict(0, 0, 0),
-            "nominal": create_f1_dict(0, 0, 0),
-            "pronominal": create_f1_dict(0, 0, 0),
+            "named": create_f1_dict_from_counts(counts["named"]),
+            "nominal": create_f1_dict_from_counts(counts["nominal"]),
+            "pronominal": create_f1_dict_from_counts(counts["pronominal"]),
             "cases": {
                 "correct": n_correct,
                 "known": n_contained,

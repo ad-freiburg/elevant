@@ -8,11 +8,12 @@ from src.evaluation.print_methods import print_colored_text, print_article_nerd_
     print_article_coref_evaluation, print_evaluation_summary
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
+from src.evaluation.mention_type import get_mention_type
 
 
 def load_evaluation_entities():
     entity_db = EntityDatabase()
-    entity_db.load_entities_small()  # TODO big
+    entity_db.load_entities_big()
     entity_db.load_mapping()
     entity_db.load_redirects()
     return entity_db
@@ -27,10 +28,24 @@ class Evaluator:
             self.entity_db = load_evaluation_entities()
         self.data_loaded = load_data
         self.coreference = coreference
-        self.ner_tp = self.ner_fp = self.ner_fn = 0
+        self.counts = {}
+        for key in ("all", "ner", "coreference", "named", "nominal", "pronominal"):
+            self.counts[key] = {"tp": 0, "fp": 0, "fn": 0}
 
-    def add_cases(self, cases: List[Case]):
+    def add_cases(self, cases: List[Case], article: WikipediaArticle):
         self.all_cases.extend(cases)
+        for case in cases:
+            mention = article.text[case.span[0]:case.span[1]]
+            mention_type = get_mention_type(mention)
+            case.set_mention_type(mention_type)
+            key = mention_type.value.lower()
+            if case.is_correct():
+                subkey = "tp"
+            elif case.is_false_positive():
+                subkey = "fp"
+            else:
+                subkey = "fn"
+            self.counts[key][subkey] += 1
 
     def get_cases(self, article: WikipediaArticle):
         if not self.data_loaded:
@@ -49,9 +64,9 @@ class Evaluator:
     def eval_ner(self, article):
         ground_truth = get_ground_truth_from_labels(article.labels)
         ner_tp, ner_fp, ner_fn = evaluate_ner(article.entity_mentions, ground_truth, article.evaluation_span)
-        self.ner_tp += len(ner_tp)
-        self.ner_fp += len(ner_fp)
-        self.ner_fn += len(ner_fn)
+        self.counts["ner"]["tp"] += len(ner_tp)
+        self.counts["ner"]["fp"] += len(ner_fp)
+        self.counts["ner"]["fn"] += len(ner_fn)
 
     @staticmethod
     def print_article_evaluation(article: WikipediaArticle, cases: List[Case]):
@@ -60,4 +75,4 @@ class Evaluator:
         print_article_coref_evaluation(cases, article.text)
 
     def print_results(self, output_file: Optional[str] = None):
-        print_evaluation_summary(self.all_cases, self.ner_tp, self.ner_fp, self.ner_fn, output_file=output_file)
+        print_evaluation_summary(self.all_cases, self.counts, output_file=output_file)

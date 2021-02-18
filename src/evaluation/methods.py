@@ -46,7 +46,8 @@ def get_evaluation_cases(predictions, ground_truth, coref_ground_truth, evaluati
                         correct_span_referenced = True
                         break
 
-        case = Case(span, true_entity, detected, predicted_entity, candidates, predicted_by, contained=contained,
+        case = Case(span, true_entity, detected, predicted_entity, candidates, predicted_by,
+                    contained=contained,
                     is_true_coref=is_true_coref,
                     correct_span_referenced=correct_span_referenced,
                     referenced_span=referenced_span)
