@@ -108,7 +108,7 @@ class Case:
         if self.is_true_coreference():
             if not self.is_detected():
                 return CaseType.UNDETECTED
-            elif self.correct_span_referenced:
+            elif self.is_correct():
                 return CaseType.CORRECT
             else:
                 return CaseType.WRONG

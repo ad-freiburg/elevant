@@ -110,7 +110,7 @@ def print_evaluation_summary(all_cases, counts, output_file=None):
 
         if case.is_true_coreference():
             n_coref_total += 1
-            if case.correct_span_referenced:
+            if case.is_correct():
                 n_coref_tp += 1
             else:
                 n_coref_fp += 1
