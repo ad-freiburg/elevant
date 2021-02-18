@@ -7,18 +7,30 @@ RED = "#f1948a";
 BLUE = "#bb8fce";
 GREY = "lightgrey";
 
+statistics_titles = ["F-score", "Precision", "Recall"];
+
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
     textfield_left = document.getElementById("textfield_left");
     textfield_right = document.getElementById("textfield_right");
     article_select = document.getElementById("article");
-    file_select = document.getElementById("evaluation_file");
 
     // Read the article and ground truth information from the benchmark.
     parse_benchmark();
     
-    // Get all .case-files from the evaluation-results folder.
-    get_approaches("evaluation-results");
+    // Build an overview table over all .results-files from the evaluation-results folder.
+    build_overview_table("evaluation-results");
+
+    // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
+    $("input#result-filter").focus();
+    $("input#result-filter").keyup(function() {
+      var filter_keywords = $(this).val().split(/\s+/);
+      $("#evaluation tbody tr").each(function() {
+        var name = $(this).children(":first-child").text();
+        var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
+        if (show_row) $(this).show(); else $(this).hide();
+      });
+    });
 });
 
 function parse_benchmark() {
@@ -421,9 +433,13 @@ function show_article() {
     show_table();
 }
 
-function get_approaches(path) {
-    /* Get a list of all approaches from the evaluation results at the given path. */
+function build_overview_table(path) {
+    /*
+    Build the overview table from the .results files found at the given path.
+    */
     console.log(path);
+    var header_row = get_header_row();
+    $('#evaluation table thead').html(header_row);
     folders = [];
     
     promise = new Promise(function(request_done) {
@@ -433,92 +449,95 @@ function get_approaches(path) {
     });
     
     promise.then(function(data) {
-        // get all folders from the evaluation results directory
+        // Get all folders from the evaluation results directory
         $(data).find("a").each(function() {
             name = $(this).attr("href");
             name = name.substring(0, name.length - 1);
             folders.push(name);
         });
-        // get all .cases files from the folders
-        get_cases_files(path, folders);
+
+        // Add a row to the results table for each .results file in the folders
+        add_result_rows(path, folders);
     });
 }
 
-function get_cases_files(path, folders) {
+function add_result_rows(path, folders) {
     /*
-    Get all .cases files from the subfolders of the given path.
-    Sets the options for the approach selector element #evaluation_file.
+    Read all .result files in the given folders, generate a table row for each
+    and add them to the table body.
     */
+    result_rows = [];
     result_files = {};
     folders.forEach(function(folder) {
         $.get(path + "/" + folder, function(folder_data) {
-            console.log(path + "/" + folder);
             $(folder_data).find("a").each(function() {
                 file_name = $(this).attr("href");
-                if (file_name.endsWith(".cases")) {
-                    approach_name = file_name.substring(0, file_name.length - 6);
-                    result_files[approach_name] = path + "/" + folder + "/" + approach_name;
-                    
-                    option = document.createElement("option");
-                    option.text = approach_name;
-                    option.value = approach_name;
-                    file_select.add(option);
-                    
-                    // Set default to nothing.
-                    $("#evaluation_file").prop("selectedIndex", -1);
+                var file_extension = ".results";
+                if (file_name.endsWith(file_extension)) {
+                    var url = path + "/" + folder + "/" + file_name;
+                    $.getJSON(url, function(results) {
+                        approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - file_extension.length);
+                        result_files[approach_name] = path + "/" + folder + "/" + approach_name;
+                        var is_complete_result = true;
+                        for (var i = 0; i < statistics_titles.length; i++) {
+                            if (!(statistics_titles[i].toLowerCase() in results)) {
+                                is_complete_result = false;
+                                break;
+                            }
+                        }
+                        if (is_complete_result) {
+                            var row = get_table_row(approach_name, results);
+                            $('#evaluation table tbody').append(row);
+                        }
+                    });
                 }
             });
         });
     });
 }
 
-function run_evaluation(path) {
+
+function get_header_row() {
     /*
-    Update the results table.
-    
-    Gets called when the selected approach changes.
-    Reads the provided .cases file and counts true positives, false positives and false negatives.
-    Calls show_article() to update the ground truth textfield, predictions textfield and cases table.
+    Get html for the table header row.
     */
-    console.log(cases_path);
-    
+    var header_row = "<tr onclick='produce_latex()'>";
+    header_row += "<th>Approach</th>";
+    for (var i = 0; i < statistics_titles.length; i++) {
+        header_row += "<th>" + statistics_titles[i] + "</th>";
+    }
+    header_row += "</tr>";
+    return header_row;
+}
+
+
+function get_table_row(approach_name, result) {
+    /*
+    Get html for the table row with the given approach name and result values.
+    */
+    var row = "<tr onclick='on_row_click(this)'>";
+    row += "<td>" + approach_name + "</td>";
+    for (var i = 0; i < statistics_titles.length; i++) {
+        row += "<td>" + result[statistics_titles[i].toLowerCase()] + "</td>";
+    }
+    row += "</tr>";
+    return row;
+}
+
+function read_evaluation_cases(path) {
+    /*
+    Retrieve evaluation cases from the given file and show the linked currently selected article.
+    */
     evaluation_cases = [];
-    
-    n_tp = 0;
-    n_fp = 0;
-    n_fn = 0;
-    
+
     $.get(path, function(data) {
         lines = data.split("\n");
         for (line of lines) {
             if (line.length > 0) {
                 cases = JSON.parse(line);
                 evaluation_cases.push(cases);
-                
-                for (eval_case of cases) {
-                    if ("true_entity" in eval_case && "predicted_entity" in eval_case && eval_case.true_entity.entity_id == eval_case.predicted_entity.entity_id) {
-                        n_tp += 1;
-                    } else {
-                        if ("true_entity" in eval_case) {
-                            n_fn += 1;
-                        }
-                        if ("predicted_entity" in eval_case) {
-                            n_fp += 1;
-                        }
-                    }
-                }
             }
         }
-        precision = n_tp / (n_tp + n_fp);
-        recall = n_tp / (n_tp + n_fn);
-        f1 = 2 * precision * recall / (precision + recall);
-        $("#n_tp").html(n_tp);
-        $("#n_fp").html(n_fp);
-        $("#n_fn").html(n_fn);
-        $("#precision").html((precision * 100).toFixed(2) + " %");
-        $("#recall").html((recall * 100).toFixed(2) + " %");
-        $("#f_score").html((f1 * 100).toFixed(2) + " %");
-        $("#evaluation").show();
         show_article();
     }).fail(function() {
         $("#evaluation").html("ERROR: no file with cases found.");
@@ -549,18 +568,95 @@ function read_articles_data(path) {
     return promise;
 }
 
-function read_evaluation() {
+function on_row_click(el) {
     /*
-    Read the predictions and evaluation cases for the current approach for all articles,
-    then run the evaluation and update the results table.
+    This method is called when a table body row was clicked.
+    This marks the row as selected and reads the evaluation cases.
     */
-    approach = $("#evaluation_file").val();
+    $("#evaluation tbody tr").each(function() {
+        $(this).removeClass("selected");
+    });
+    $(el).addClass("selected");
+    var approach_name = $(el).find('td:first').text();
+    read_evaluation(approach_name);
+}
 
-    cases_path = result_files[approach] + ".cases";
-    articles_path = result_files[approach] + ".jsonl";
+function read_evaluation(approach_name) {
+    /*
+    Read the predictions and evaluation cases for the selected approach for all articles.
+    */
+    cases_path = result_files[approach_name] + ".cases";
+    articles_path = result_files[approach_name] + ".jsonl";
 
     reading_promise = read_articles_data(articles_path);
     reading_promise.then(function() {  // wait until the predictions from the .jsonl file are read, because run_evaluation updates the prediction textfield
-        run_evaluation(cases_path);
+        read_evaluation_cases(cases_path);
     });
+}
+
+function produce_latex() {
+    /*
+    Produce LaTeX source code for the overview table and copy it to the clipboard.
+    */
+    var cols = statistics_titles.length + 1; // Number of columns in the LaTex table.
+
+    var latex = [];
+    // Comment that clarifies the origin of this code.
+    latex.push("% Copied from " + window.location.href + " on " + new Date().toLocaleString());
+    latex.push("");
+
+    // Begin table.
+    latex.push(
+        ["\\begin{table*}",
+         "\\centering",
+         "\\begin{tabular}{l" + "c".repeat(cols - 1) + "}",
+         "\\hline"].join("\n"));
+
+    // Generate the header row of the table
+    var header_string = "";
+    statistics_titles.forEach(function(title) {
+        header_string += "& \\textbf{" + title + "} ";
+    });
+    header_string += "\\\\";
+    latex.push(header_string);
+
+    latex.push("\\hline");
+
+    // Generate the rows of the table body
+    $("#evaluation table tbody tr").each(function() {
+        var col_idx = 0;
+        var row_string = "";
+        $(this).find("td").each(function() {
+            if (col_idx == 0) {
+                row_string += $(this).text() + " ";
+            } else {
+                row_string += "& $" + $(this).text() + "$ ";
+            }
+            col_idx += 1;
+        });
+        row_string += "\\\\";
+        latex.push(row_string);
+    });
+
+    // End table
+    latex.push(
+        ["\\hline",
+         "\\end{tabular}",
+         "\\caption{\\label{results}Fancy caption.}",
+         "\\end{table*}",
+         ""].join("\n"));
+
+    // Join lines, copy to textarea and from there to the clipboard.
+    var latex_text = latex.join("\n");
+    console.log(latex_text);
+    $("div.latex").show();
+    $("div.latex textarea").val(latex_text);
+    $("div.latex textarea").show();
+    $("div.latex textarea").select();
+    document.execCommand("copy");
+    $("div.latex textarea").hide();
+
+    // Show the notification for the specified number of seconds
+    var show_duration_seconds = 5;
+    setTimeout(function() { $("div.latex").hide(); }, show_duration_seconds * 1000);
 }
