@@ -6,8 +6,8 @@ from termcolor import colored
 from evaluate_linked_entities import percentage
 from link_benchmark_entities import initialize_example_generator
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
-from src.models.case import Case, CASE_COLORS, CaseType, case_from_dict
-from src.helpers.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
+from src.evaluation.case import Case, CASE_COLORS, CaseType, case_from_dict
+from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.models.entity_database import EntityDatabase
 from src.linkers.hobbs_coref_linker import HobbsCorefLinker
