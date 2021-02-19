@@ -7,7 +7,7 @@ But you can also choose to annotate (groundtruth labels | linked entities | hype
 The format of entity annotations is [<QID>:<label>|<original>]
 
 To write articles in a format that is suitable as WEXEA input use options
---output_dir <path> --print_hyperlinks --print_entity_list
+--output_dir <path> --title_in_filename --print_hyperlinks --print_entity_list
 
 To write articles in a format that is suitable as Neural EL (Gupta) input use options
 --output_file <path> --one_article_per_line
@@ -172,7 +172,13 @@ def main(args):
                 text += "\nOTHER ENTITIES"
 
         if args.output_dir:
-            file_name = "article_%05d.txt" % article_num
+            file_name = "article_%05d" % article_num
+            if args.title_in_filename:
+                # WEXEA uses the filename as information about the file entity.
+                # The prepended article number is needed  for the prediction reader to keep the sorting.
+                # It is removed in the adjusted WEXEA code to properly extract the file name.
+                file_name += "_" + article.title.replace(" ", '_').replace('/', '_')
+            file_name += ".txt"
             output_file = open(os.path.join(args.output_dir, file_name), 'w', encoding='utf8')
 
         article_num += 1
@@ -181,8 +187,9 @@ def main(args):
         if args.one_article_per_line:
             separator = ""
             text = text.replace("\n", " ")
-            # Remove weird whitespaces such as no-break space U+00A0
-            text = re.sub(r"\s", " ", text)  # TODO: Consider doing this always, not only for one_article_per_line
+            # Replace weird whitespaces such as no-break space U+00A0
+            # TODO: Consider doing this always, not only for one_article_per_line
+            text = re.sub(r"\s", " ", text)
 
         if args.article_header:
             output_file.write("***** %s (%i) *****%s" % (article.title, article.id, separator))
@@ -219,6 +226,9 @@ if __name__ == "__main__":
 
     group_output.add_argument("--output_dir", type=str,
                               help="Each article is written to a separate file article_xxxxx in the output directory.")
+
+    parser.add_argument("--title_in_filename", action="store_true",
+                        help="Sets the title of the article as filename if output_dir is set.")
 
     parser.add_argument("--one_article_per_line", action="store_true",
                         help="An article is written to a single line.")
