@@ -5,10 +5,27 @@ from src.models.entity_database import EntityDatabase
 
 
 def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
+    label_specificity_errors(cases)
     label_demonym_errors(text, cases, entity_db)
     label_rare_entity_errors(text, cases, entity_db)
     label_partial_name_errors(text, cases, entity_db)
     label_nonentity_coreference_errors(text, cases)
+
+
+def is_subspan(span, subspan):
+    if span[0] == subspan[0] and span[1] == subspan[1]:
+        return False
+    return span[0] <= subspan[0] and span[1] >= subspan[1]
+
+
+def label_specificity_errors(cases: List[Case]):
+    false_negatives = [case for case in cases if case.predicted_entity is None and not case.is_true_coreference()]
+    false_positives = [case for case in cases if case.is_false_positive()]
+    for case in false_negatives:
+        for fp in false_positives:
+            if is_subspan(case.span, fp.span):
+                case.add_error_label(ErrorLabel.SPECIFICITY)
+                break
 
 
 def label_demonym_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
