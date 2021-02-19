@@ -20,9 +20,8 @@ import os
 
 from src.linkers.linking_system import LinkingSystem
 from src.models.entity_database import EntityDatabase
-from src.helpers.evaluation_examples_generator import ConllExampleReader, OwnBenchmarkExampleReader,\
+from src.evaluation.examples_generator import ConllExampleReader, OwnBenchmarkExampleReader,\
     WikipediaExampleReader, PseudoLinkConllExampleReader
-from src.models.neural_net import NeuralNet
 
 
 def initialize_example_generator(benchmark_name):

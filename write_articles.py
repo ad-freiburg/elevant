@@ -22,7 +22,7 @@ from enum import Enum
 
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.helpers.evaluation_examples_generator import OwnBenchmarkExampleReader
+from src.evaluation.examples_generator import OwnBenchmarkExampleReader
 from src.models.wikidata_entity import WikidataEntity
 from src.models.wikipedia_article import WikipediaArticle, article_from_json
 

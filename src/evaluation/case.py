@@ -4,6 +4,7 @@ import json
 
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
+from src.evaluation.mention_type import MentionType
 
 
 class CaseType(Enum):
@@ -26,6 +27,13 @@ CASE_COLORS = {
 }
 
 
+MENTION_TYPES = {
+    "NAMED": MentionType.NAMED,
+    "NOMINAL": MentionType.NOMINAL,
+    "PRONOMINAL": MentionType.PRONOMINAL
+}
+
+
 class Case:
     def __init__(self,
                  span: Tuple[int, int],
@@ -34,6 +42,7 @@ class Case:
                  predicted_entity: Optional[WikidataEntity],
                  candidates: Set[WikidataEntity],
                  predicted_by: str,
+                 mention_type: Optional[MentionType] = None,
                  contained: Optional[bool] = None,
                  is_true_coref: Optional[bool] = False,
                  correct_span_referenced: Optional[bool] = False,
@@ -45,6 +54,7 @@ class Case:
         self.candidates = candidates
         self.eval_type = self._type()
         self.predicted_by = predicted_by
+        self.mention_type = mention_type
         self.contained = contained
         self.is_true_coref = is_true_coref
         self.correct_span_referenced = correct_span_referenced
@@ -77,6 +87,9 @@ class Case:
     def is_true_coreference(self):
         return self.is_true_coref
 
+    def set_mention_type(self, mention_type: MentionType):
+        self.mention_type = mention_type
+
     def _type(self) -> CaseType:
         if not self.has_ground_truth():
             return CaseType.FALSE_DETECTION
@@ -95,7 +108,7 @@ class Case:
         if self.is_true_coreference():
             if not self.is_detected():
                 return CaseType.UNDETECTED
-            elif self.correct_span_referenced:
+            elif self.is_correct():
                 return CaseType.CORRECT
             else:
                 return CaseType.WRONG
@@ -126,6 +139,8 @@ class Case:
             data["coref_type"] = self.coref_type.value
         if self.contained is not None:
             data["contained"] = self.contained
+        if self.mention_type is not None:
+            data["mention_type"] = self.mention_type.value
         return data
 
     def to_json(self) -> str:
@@ -149,6 +164,7 @@ def case_from_dict(data) -> Case:
                 predicted_entity=pred_entity,
                 candidates=candidates,
                 predicted_by=data["predicted_by"],
+                mention_type=MENTION_TYPES[data["mention_type"]] if "mention_type" in data else None,
                 contained=data["contained"] if "contained" in data else None,
                 is_true_coref=data["is_true_coref"] if "is_true_coref" in data else None,
                 correct_span_referenced=data["correct_span_referenced"] if "correct_span_referenced" in data else None,
