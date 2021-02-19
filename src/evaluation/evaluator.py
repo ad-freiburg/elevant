@@ -9,7 +9,7 @@ from src.evaluation.print_methods import print_colored_text, print_article_nerd_
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.mention_type import get_mention_type
-from src.evaluation.errors import label_rare_entity_errors
+from src.evaluation.errors import label_errors
 
 
 def load_evaluation_entities():
@@ -18,6 +18,7 @@ def load_evaluation_entities():
     entity_db.load_mapping()
     entity_db.load_redirects()
     entity_db.load_sitelink_counts()
+    entity_db.load_demonyms()
     return entity_db
 
 
@@ -71,7 +72,7 @@ class Evaluator:
         cases = get_evaluation_cases(article.entity_mentions, ground_truth, coref_ground_truth, article.evaluation_span,
                                      self.entity_db)
 
-        label_rare_entity_errors(cases, self.entity_db)
+        label_errors(article.text, cases, self.entity_db)
 
         return cases
 

@@ -217,12 +217,12 @@ def print_evaluation_summary(all_cases, counts, error_counts, output_file=None):
                 }
             },
             "errors": {
-                "non_entity_coreference": 0,
+                "non_entity_coreference": error_counts[ErrorLabel.NON_ENTITY_COREFERENCE],
                 "rare": error_counts[ErrorLabel.RARE],
-                "specificity": 0,
-                "demonym": 0,
-                "partial_name": 0,
-                "abstraction": 0
+                "specificity": error_counts[ErrorLabel.SPECIFICITY],
+                "demonym": error_counts[ErrorLabel.DEMONYM],
+                "partial_name": error_counts[ErrorLabel.PARTIAL_NAME],
+                "abstraction": error_counts[ErrorLabel.ABSTRACTION]
             }
         }
         results_json = json.dumps(results_dict)

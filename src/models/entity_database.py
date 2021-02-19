@@ -37,6 +37,7 @@ class EntityDatabase:
         self.entity2types: Dict[str, List[str]]
         self.unigram_counts = {}
         self.sitelink_counts = {}
+        self.demonyms = {}
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -286,3 +287,14 @@ class EntityDatabase:
         if not self.has_sitelink_counts_loaded():
             print("Warning: tried to access sitelink counts of entity database, but sitelink counts were not loaded.")
         return self.sitelink_counts[entity_id] if entity_id in self.sitelink_counts else 0
+
+    def load_demonyms(self):
+        self.demonyms = EntityDatabaseReader.get_demonyms()
+
+    def has_demonyms_loaded(self):
+        return len(self.demonyms) > 0
+
+    def is_demonym(self, text):
+        if not self.has_demonyms_loaded():
+            print("Warning: asking entity database for demonyms but demonyms are not loaded.")
+        return text in self.demonyms

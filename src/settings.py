@@ -29,6 +29,8 @@ ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
 PERSON_NAMES_FILE = DATABASE_DIRECTORY + "wikidata-familyname.csv"
 ABSTRACTS_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia.tsv"
 WIKI_MAPPING_FILE = DATABASE_DIRECTORY + "wikidata-wikipedia-mapping.csv"
+DEMONYM_FILE = DATABASE_DIRECTORY + "wikidata-demonym.tsv"
+
 GENDER_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_gender.tsv"
 GIVEN_NAME_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_given_name.tsv"
 TYPE_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_categories_v9.txt"
