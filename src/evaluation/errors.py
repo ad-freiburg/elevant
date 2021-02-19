@@ -7,6 +7,7 @@ from src.models.entity_database import EntityDatabase
 def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
     label_demonym_errors(text, cases, entity_db)
     label_rare_entity_errors(text, cases, entity_db)
+    label_nonentity_coreference_errors(text, cases)
 
 
 def label_demonym_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
@@ -26,3 +27,14 @@ def label_rare_entity_errors(text: str, cases: List[Case], entity_db: EntityData
                 if entity_db.get_sitelink_count(case.true_entity.entity_id) \
                         < entity_db.get_sitelink_count(case.predicted_entity.entity_id):
                     case.add_error_label(ErrorLabel.RARE)
+
+
+NONENTITY_PRONOUNS = {"it", "this", "that"}
+
+
+def label_nonentity_coreference_errors(text: str, cases: List[Case]):
+    for case in cases:
+        if case.is_false_positive():
+            snippet = text[case.span[0]:case.span[1]]
+            if snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
+                case.add_error_label(ErrorLabel.NON_ENTITY_COREFERENCE)
