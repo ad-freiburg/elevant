@@ -7,7 +7,8 @@ RED = "#f1948a";
 BLUE = "#bb8fce";
 GREY = "lightgrey";
 
-statistics_titles = ["F-score", "Precision", "Recall"];
+
+ignore_second_header = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
@@ -438,8 +439,6 @@ function build_overview_table(path) {
     Build the overview table from the .results files found at the given path.
     */
     console.log(path);
-    var header_row = get_header_row();
-    $('#evaluation table thead').html(header_row);
     folders = [];
     
     promise = new Promise(function(request_done) {
@@ -478,17 +477,15 @@ function add_result_rows(path, folders) {
                     $.getJSON(url, function(results) {
                         approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - file_extension.length);
                         result_files[approach_name] = path + "/" + folder + "/" + approach_name;
-                        var is_complete_result = true;
-                        for (var i = 0; i < statistics_titles.length; i++) {
-                            if (!(statistics_titles[i].toLowerCase() in results)) {
-                                is_complete_result = false;
-                                break;
-                            }
+
+                        if (!$('#evaluation table thead').html()) {
+                            // Add table header if it has not yet been added
+                            var table_header = get_table_header(results);
+                            $('#evaluation table thead').html(table_header);
                         }
-                        if (is_complete_result) {
-                            var row = get_table_row(approach_name, results);
-                            $('#evaluation table tbody').append(row);
-                        }
+
+                        var row = get_table_row(approach_name, results);
+                        $('#evaluation table tbody').append(row);
                     });
                 }
             });
@@ -497,29 +494,75 @@ function add_result_rows(path, folders) {
 }
 
 
-function get_header_row() {
+function get_table_header(jsonObj) {
     /*
-    Get html for the table header row.
+    Get html for the table header.
     */
-    var header_row = "<tr onclick='produce_latex()'>";
-    header_row += "<th>Approach</th>";
-    for (var i = 0; i < statistics_titles.length; i++) {
-        header_row += "<th>" + statistics_titles[i] + "</th>";
-    }
-    header_row += "</tr>";
-    return header_row;
+    var num_first_cols = jsonObj.length;
+    var num_header_rows = 2;
+    var first_row = "<tr onclick='produce_latex()'>\n\t<td rowspan=\"" + num_header_rows + "\"></td>\n";
+    var second_row = "<tr>\n";
+    $.each(jsonObj, function(key) {
+        var colspan = 0;
+        $.each(jsonObj[key], function(subkey) {
+            if (!(ignore_second_header.includes(subkey))) {
+                second_row += "\t<th>" + get_title_from_key(subkey) + "</th>\n";
+                colspan += 1;
+            }
+        });
+        first_row += "\t<th colspan=\"" + colspan + "\">" + get_title_from_key(key) + "</th>\n";
+
+    });
+    first_row += "</tr>\n";
+    second_row += "</tr>\n";
+    return first_row + second_row;
 }
 
 
-function get_table_row(approach_name, result) {
+function get_title_from_key(key) {
+    return to_title_case(key.replace("_", " "));
+}
+
+
+function to_title_case(str) {
+    return str.replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1);
+    });
+}
+
+
+function get_table_row(approach_name, jsonObj) {
     /*
     Get html for the table row with the given approach name and result values.
     */
     var row = "<tr onclick='on_row_click(this)'>";
     row += "<td>" + approach_name + "</td>";
-    for (var i = 0; i < statistics_titles.length; i++) {
-        row += "<td>" + result[statistics_titles[i].toLowerCase()] + "</td>";
-    }
+    $.each(jsonObj, function(key) {
+        $.each(jsonObj[key], function(subkey) {
+            // Include only keys in the table, that are not on the ignore list
+            if (!(ignore_second_header.includes(subkey))) {
+                var value = jsonObj[key][subkey];
+                if (Object.keys(value).length > 0) {
+                    // Values that consist not of a single number but of multiple
+                    // key-value pairs are displayed in a single column.
+                    var composite_value = "";
+                    $.each(value, function(subsubkey) {
+                        var val = value[subsubkey];
+                        if (val % 1 != 0 && val < 1) {
+                            // Get rounded percentage but only if number is a decimal < 1
+                            val = (val * 100).toFixed(2) + "%";
+                        }
+                        composite_value += val + " / ";
+                    });
+                    value = composite_value.substring(0, composite_value.length - " / ".length);
+                } else if (value % 1 != 0 && value < 1) {
+                    // Get rounded percentage but only if number is a decimal < 1
+                    value = (value * 100).toFixed(2) + "%";
+                }
+                row += "<td>" + value + "</td>";
+            }
+        });
+    })
     row += "</tr>";
     return row;
 }
