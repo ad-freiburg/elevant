@@ -34,6 +34,25 @@ MENTION_TYPES = {
 }
 
 
+class ErrorLabel(Enum):
+    SPECIFICITY = "SPECIFICITY"
+    RARE = "RARE"
+    DEMONYM = "DEMONYM"
+    PARTIAL_NAME = "PARTIAL_NAME"
+    ABSTRACTION = "ABSTRACTION"
+    NON_ENTITY_COREFERENCE = "NON_ENTITY_COREFERENCE"
+
+
+ERROR_LABELS = {
+    "SPECIFICITY": ErrorLabel.SPECIFICITY,
+    "RARE": ErrorLabel.RARE,
+    "DEMONYM": ErrorLabel.DEMONYM,
+    "PARTIAL_NAME": ErrorLabel.PARTIAL_NAME,
+    "ABSTRACTION": ErrorLabel.ABSTRACTION,
+    "NON_ENTITY_COREFERENCE": ErrorLabel.NON_ENTITY_COREFERENCE
+}
+
+
 class Case:
     def __init__(self,
                  span: Tuple[int, int],
@@ -46,7 +65,8 @@ class Case:
                  contained: Optional[bool] = None,
                  is_true_coref: Optional[bool] = False,
                  correct_span_referenced: Optional[bool] = False,
-                 referenced_span: Optional[Tuple[int, int]] = None):
+                 referenced_span: Optional[Tuple[int, int]] = None,
+                 error_labels: Optional[Set[ErrorLabel]] = None):
         self.span = span
         self.true_entity = true_entity
         self.detected = detected
@@ -60,6 +80,7 @@ class Case:
         self.correct_span_referenced = correct_span_referenced
         self.referenced_span = referenced_span
         self.coref_type = self._coref_type()
+        self.error_labels = set() if error_labels is None else error_labels
 
     def has_ground_truth(self):
         return self.true_entity is not None
@@ -89,6 +110,9 @@ class Case:
 
     def set_mention_type(self, mention_type: MentionType):
         self.mention_type = mention_type
+
+    def add_error_label(self, error_label: ErrorLabel):
+        self.error_labels.add(error_label)
 
     def _type(self) -> CaseType:
         if not self.has_ground_truth():
@@ -123,7 +147,8 @@ class Case:
                 "detected": self.detected,
                 "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in sorted(self.candidates)],
                 "predicted_by": self.predicted_by,
-                "eval_type": self.eval_type.value}
+                "eval_type": self.eval_type.value,
+                "error_labels": [label.value for label in self.error_labels]}
         if self.true_entity is not None:
             data["true_entity"] = {"entity_id": self.true_entity.entity_id, "name": self.true_entity.name}
         if self.predicted_entity is not None:
@@ -158,6 +183,7 @@ def case_from_dict(data) -> Case:
     if "candidates" in data:
         candidates = set([WikidataEntity(cand["name"], 0, cand["entity_id"], [])
                           for cand in data["candidates"]])
+    error_labels = {ERROR_LABELS[label] for label in data["error_labels"]}
     return Case(span=data["span"],
                 true_entity=true_entity,
                 detected=data["detected"],

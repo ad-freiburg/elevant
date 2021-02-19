@@ -34,6 +34,7 @@ GIVEN_NAME_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_given_name.tsv"
 TYPE_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_categories_v9.txt"
 ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_classes.txt"
 RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_classes.txt"
+WIKIDATA_SITELINK_COUNTS_FILE = DATA_DIRECTORY + "wikidata_sitelink_counts.txt"
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"

@@ -36,6 +36,7 @@ class EntityDatabase:
         self.entity2types = {}
         self.entity2types: Dict[str, List[str]]
         self.unigram_counts = {}
+        self.sitelink_counts = {}
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -274,3 +275,14 @@ class EntityDatabase:
         if token not in self.unigram_counts:
             return 0
         return self.unigram_counts[token]
+
+    def load_sitelink_counts(self):
+        self.sitelink_counts = EntityDatabaseReader.get_sitelink_counts()
+
+    def has_sitelink_counts_loaded(self):
+        return len(self.sitelink_counts) > 0
+
+    def get_sitelink_count(self, entity_id):
+        if not self.has_sitelink_counts_loaded():
+            print("Warning: tried to access sitelink counts of entity database, but sitelink counts were not loaded.")
+        return self.sitelink_counts[entity_id] if entity_id in self.sitelink_counts else 0

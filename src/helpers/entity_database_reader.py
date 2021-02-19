@@ -144,3 +144,14 @@ class EntityDatabaseReader:
                 unigram, count = line.split()
                 counts[unigram] = int(count)
         return counts
+
+    @staticmethod
+    def get_sitelink_counts() -> Dict[str, int]:
+        counts = {}
+        with open(settings.WIKIDATA_SITELINK_COUNTS_FILE) as f:
+            for line in f:
+                entity_id, count = line.split()
+                count = int(count)
+                if count > 0:
+                    counts[entity_id] = count
+        return counts
