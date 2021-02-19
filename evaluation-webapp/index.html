@@ -12,61 +12,37 @@
 		</header>
 		<div class="content">
 			<h1>Evaluation</h1>
+			<span>Filter results by keywords: <input id="result-filter"></span>
 			<p>
-				Select approach: <select id="evaluation_file" onchange="read_evaluation()"></select> <br>
-			</p>
-			<p>
-				<div id="evaluation" style="display: none">
-				    <table>
-				        <thead>
-				            <tr>
-				                <th colspan="2">Results</th>
-				            </tr>
-				        </thead>
-				        <tbody>
-				            <tr>
-				                <td>True positives</td>
-				                <td id="n_tp"></td>
-				            </tr>
-				            <tr>
-				                <td>False positives</td>
-				                <td id="n_fp"></td>
-				            </tr>
-				            <tr>
-				                <td>False negatives</td>
-				                <td id="n_fn"></td>
-				            </tr>
-				            <tr>
-				                <td>Precision</td>
-				                <td id="precision"></td>
-				            </tr>
-				            <tr>
-				                <td>Recall</td>
-				                <td id="recall"></td>
-				            </tr>
-				            <tr>
-				                <td>F-Score</td>
-				                <td id="f_score"></td>
-				            </tr>
-				        </tbody>
-				    </table>
+				<div id="evaluation">
+					<div class="latex">
+						<p><b>The LaTeX code for this table was copied to your CLIPBOARD.</b></p>
+						<textarea></textarea>
+					</div>
+					<table>
+						<thead></thead>
+						<tbody></tbody>
+					</table>
 				</div>
 			</p>
-			<p>
-				Select article: <select id="article" onchange="show_article()"></select>
-				<span id="article_link"></span>
-			</p>
-			<div class="row">
-				<div class="column">
-					<h2>Ground truth</h2>
-					<p id="textfield_left"></p>
+			<div id="article-results">
+				<h3>Results per article</h3>
+				<p>
+					Select article: <select id="article" onchange="show_article()"></select>
+					<span id="article_link"></span>
+				</p>
+				<div class="row">
+					<div class="column">
+						<h3>Ground truth</h3>
+						<p id="textfield_left"></p>
+					</div>
+					<div class="column">
+						<h3>Predicted</h3>
+						<p id="textfield_right"></p>
+					</div>
 				</div>
-				<div class="column">
-					<h2>Predicted</h2>
-					<p id="textfield_right"></p>
-				</div>
+				<div id="table"></div>
 			</div>
-			<div id="table"></div>
 		</div>
 	</body>
 </html>
