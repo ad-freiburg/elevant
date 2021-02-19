@@ -26,8 +26,6 @@ class WexeaPredictionReader:
         for link_match in WexeaPredictionReader._link_re.finditer(linked_text):
             link_target = link_match.group(1)
             link_text = link_match.group(2)
-            print("link_target: %s" % link_target)
-            print("link_text: %s" % link_text)
             text += linked_text[text_position:link_match.start()]
             link_start_pos = len(text)
             text += link_text
@@ -38,7 +36,6 @@ class WexeaPredictionReader:
             candidates = {entity_id}
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         text += linked_text[text_position:]
-        print(text)
         return predictions
 
     def article_predictions_iterator(self, disambiguation_dir: str) \
