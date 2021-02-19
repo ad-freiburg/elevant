@@ -3,7 +3,7 @@ Wikipedia EXhaustive Entity Annotator (LREC 2020)
 
 WEXEA is an exhaustive Wikipedia entity annotation system, to create a text corpus based on Wikipedia with exhaustive annotations of entity mentions, i.e. linking all mentions of entities to their corresponding articles. 
 
-This code is a modified and dockered version of the [original repository](https://github.com/mjstrobl/WEXEA).
+This is a modified and dockered version of the [original code](https://github.com/mjstrobl/WEXEA).
 
 The original repository is based on our LREC 2020 paper: 
 
@@ -33,8 +33,14 @@ Annotations follow the Wikipedia conventions, just the type of the annotation is
     Per default, the system assumes the dump name is `enwiki-latest-pages-articles-multistream.xml`.
 
 * Within the docker container run `make help` for additional information.
-    To annotate benchmark entities you only need to run `make annotate_benchmark`.
 
+* To annotate benchmark entities you only need to run `make annotate_benchmark`.
+    This assumes benchmark articles are stored in the expected format in a subdirectory of `<output_directory>/original_articles_benchmark/`.
+    The resulting linked articles can be found in the subdirectories of `<output_directory>/final_articles_benchmark/`.
+
+To get benchmark articles into WEXEA's expected input format and location use wiki entity linker's `write_articles.py` with the following options:
+        
+        python3 write_articles.py --input_benchmark --output_dir <output_directory>/original_articles_benchmark/new/ --title_in_filename --print_hyperlinks --print_entity_list
 
 ## Server Visualization
 
