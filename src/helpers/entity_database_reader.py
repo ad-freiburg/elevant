@@ -144,3 +144,25 @@ class EntityDatabaseReader:
                 unigram, count = line.split()
                 counts[unigram] = int(count)
         return counts
+
+    @staticmethod
+    def get_sitelink_counts() -> Dict[str, int]:
+        counts = {}
+        with open(settings.WIKIDATA_SITELINK_COUNTS_FILE) as f:
+            for line in f:
+                entity_id, count = line.split()
+                count = int(count)
+                if count > 0:
+                    counts[entity_id] = count
+        return counts
+
+    @staticmethod
+    def get_demonyms() -> Dict[str, str]:
+        demonyms = {}
+        with open(settings.DEMONYM_FILE) as f:
+            for line in f:
+                entity_id, demonym = line.split("\t")
+                entity_id = entity_id[:-1].split("/")[-1]
+                demonym = demonym.split("\"")[1]
+                demonyms[demonym] = entity_id
+        return demonyms

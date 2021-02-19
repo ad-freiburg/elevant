@@ -2,7 +2,7 @@ import json
 from typing import Tuple, Dict
 
 from termcolor import colored
-from src.evaluation.case import CASE_COLORS, CaseType
+from src.evaluation.case import CASE_COLORS, CaseType, ErrorLabel
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 
 
@@ -69,12 +69,14 @@ def print_article_nerd_evaluation(cases, text):
                                             if case.predicted_entity else "Unknown",
                                             case.predicted_by, referenced_span) \
             if case.predicted_entity is not None else "None"
-        print(colored("  %s %s %s %s %i %s" % (str(case.span),
-                                               text[case.span[0]:case.span[1]],
-                                               true_str,
-                                               predicted_str,
-                                               case.n_candidates(),
-                                               case.eval_type.name),
+        error_labels = ",".join(label.value for label in case.error_labels)
+        print(colored("  %s %s %s %s %i %s %s" % (str(case.span),
+                                                  text[case.span[0]:case.span[1]],
+                                                  true_str,
+                                                  predicted_str,
+                                                  case.n_candidates(),
+                                                  case.eval_type.name,
+                                                  error_labels),
                       color=CASE_COLORS[case.eval_type]))
 
 
@@ -101,7 +103,7 @@ def print_article_coref_evaluation(cases, text):
                       color=CASE_COLORS[case.coref_type]))
 
 
-def print_evaluation_summary(all_cases, counts, output_file=None):
+def print_evaluation_summary(all_cases, counts, error_counts, output_file=None):
     n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
         n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = n_false_detection = \
         n_coref_total = n_coref_tp = n_coref_fp = 0
@@ -215,12 +217,12 @@ def print_evaluation_summary(all_cases, counts, output_file=None):
                 }
             },
             "errors": {
-                "non_entity_coreference": 0,
-                "rare": 0,
-                "specificity": 0,
-                "demonym": 0,
-                "partial_name": 0,
-                "abstraction": 0
+                "non_entity_coreference": error_counts[ErrorLabel.NON_ENTITY_COREFERENCE],
+                "rare": error_counts[ErrorLabel.RARE],
+                "specificity": error_counts[ErrorLabel.SPECIFICITY],
+                "demonym": error_counts[ErrorLabel.DEMONYM],
+                "partial_name": error_counts[ErrorLabel.PARTIAL_NAME],
+                "abstraction": error_counts[ErrorLabel.ABSTRACTION]
             }
         }
         results_json = json.dumps(results_dict)
