@@ -103,10 +103,9 @@ def print_article_coref_evaluation(cases, text):
                       color=CASE_COLORS[case.coref_type]))
 
 
-def print_evaluation_summary(all_cases: List[Case],
-                             counts: Dict,
-                             error_counts: Dict,
-                             output_file: Optional[str] = None):
+def print_evaluation_summary(evaluator):
+    all_cases = evaluator.all_cases
+    counts = evaluator.counts
     n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
         n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = n_false_detection = \
         n_coref_total = n_coref_tp = n_coref_fp = 0
@@ -178,11 +177,11 @@ def print_evaluation_summary(all_cases: List[Case],
     print("\tf1 =        %.2f%%" % (coref_f1*100))
 
     print("\nNER:")
-    ner_precision, ner_prec_nominator, ner_prec_denominator = percentage(counts["ner"]["tp"],
-                                                                         counts["ner"]["tp"] + counts["ner"]["fp"])
+    ner_precision, ner_prec_nominator, ner_prec_denominator = percentage(counts["NER"]["tp"],
+                                                                         counts["NER"]["tp"] + counts["NER"]["fp"])
     print("precision = %.2f%% (%i/%i)" % (ner_precision, ner_prec_nominator, ner_prec_denominator))
-    ner_recall, ner_rec_nominator, ner_rec_denominator = percentage(counts["ner"]["tp"],
-                                                                    counts["ner"]["tp"] + counts["ner"]["fn"])
+    ner_recall, ner_rec_nominator, ner_rec_denominator = percentage(counts["NER"]["tp"],
+                                                                    counts["NER"]["tp"] + counts["NER"]["fn"])
     print("recall =    %.2f%% (%i/%i)" % (ner_recall, ner_rec_nominator, ner_rec_denominator))
     ner_precision = ner_precision / 100
     ner_recall = ner_recall / 100
@@ -200,24 +199,3 @@ def print_evaluation_summary(all_cases: List[Case],
     recall = recall / 100
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     print("f1 =        %.2f%%" % (f1 * 100))
-
-    if output_file is not None:
-        results_dict = {
-            "all": create_f1_dict(n_correct, n_false_positives, n_false_negatives),
-            "NER": create_f1_dict(counts["ner"]["tp"], counts["ner"]["fp"], counts["ner"]["fn"]),
-            "coreference": create_f1_dict(n_coref_tp, n_coref_fp, n_coref_total - n_coref_tp),
-            "named": create_f1_dict_from_counts(counts["named"]),
-            "nominal": create_f1_dict_from_counts(counts["nominal"]),
-            "pronominal": create_f1_dict_from_counts(counts["pronominal"]),
-            "errors": {
-                error_label.value.lower(): error_counts[error_label] for error_label in ErrorLabel
-                if error_label != ErrorLabel.MULTI_CANDIDATES_WRONG and error_label != ErrorLabel.MULTI_CANDIDATES_CORRECT
-            }
-        }
-        results_dict["errors"]["multi_candidates"] = {
-            "wrong": error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
-            "total": error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG] + error_counts[ErrorLabel.MULTI_CANDIDATES_CORRECT]
-        }
-        results_json = json.dumps(results_dict)
-        with open(output_file, "w") as f:
-            f.write(results_json)

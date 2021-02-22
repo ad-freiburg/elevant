@@ -553,7 +553,9 @@ function get_table_row(approach_name, jsonObj) {
             // Include only keys in the table, that are not on the ignore list
             if (!(ignore_second_header.includes(subkey))) {
                 var value = jsonObj[key][subkey];
-                if (Object.keys(value).length > 0) {
+                if (value == null) {
+                    value = "-";
+                } else if (Object.keys(value).length > 0) {
                     // Values that consist not of a single number but of multiple
                     // key-value pairs are displayed in a single column.
                     var composite_value = "";
