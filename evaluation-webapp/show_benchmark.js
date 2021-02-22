@@ -117,7 +117,8 @@ function show_ground_truth_entities() {
                 "span": eval_case.span,
                 "color": color,
                 "entity_name": eval_case.true_entity.name,
-                "entity_id": eval_case.true_entity.entity_id
+                "entity_id": eval_case.true_entity.entity_id,
+                "error_labels": eval_case.error_labels
             };
             annotations.push(annotation);
         }
@@ -196,7 +197,8 @@ function show_linked_entities() {
             "color": color,
             "entity_id": entity_id,
             "entity_name": entity_name,
-            "predicted_by": predicted_by
+            "predicted_by": predicted_by,
+            "error_labels": mention.error_labels
         };
         annotations.push(annotation);
     }
@@ -323,6 +325,15 @@ function annotate_text(text, annotations, links) {
             }
             if (annotation.hasOwnProperty("predicted_by")) {
                 tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
+            }
+            if (annotation.hasOwnProperty("error_labels") && annotation.error_labels.length > 0) {
+                tooltip_text += "<br>error=";
+                for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
+                    if (e_i > 0) {
+                        tooltip_text += ",";
+                    }
+                    tooltip_text += annotation.error_labels[e_i];
+                }
             }
             replacement = "<div class=\"tooltip\" style=\"background-color:" + annotation.color + "\">";
             replacement += snippet;
