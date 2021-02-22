@@ -500,7 +500,7 @@ function get_table_header(jsonObj) {
     */
     var num_first_cols = jsonObj.length;
     var num_header_rows = 2;
-    var first_row = "<tr onclick='produce_latex()'>\n\t<td rowspan=\"" + num_header_rows + "\"></td>\n";
+    var first_row = "<tr onclick='produce_latex()'>\n\t<th rowspan=\"" + num_header_rows + "\"></th>\n";
     var second_row = "<tr>\n";
     $.each(jsonObj, function(key) {
         var colspan = 0;
@@ -641,28 +641,41 @@ function produce_latex() {
     /*
     Produce LaTeX source code for the overview table and copy it to the clipboard.
     */
-    var cols = statistics_titles.length + 1; // Number of columns in the LaTex table.
-
     var latex = [];
+
     // Comment that clarifies the origin of this code.
     latex.push("% Copied from " + window.location.href + " on " + new Date().toLocaleString());
     latex.push("");
+
+    // Generate the header row of the table and count columns
+    var num_cols = 0;
+    var row_count = 0;
+    var header_string = "";
+    $('#evaluation table thead tr').each(function(){
+        $(this).find('th').each(function(){
+            if (row_count > 0) num_cols += 1;
+            var title = $(this).text();
+            title = title.replace(/_/g, " ");  // Underscore not within $ yields error
+            var colspan = parseInt($(this).attr("colspan"), 10);
+            if (colspan) {
+                // First column header is empty and is skipped here, so starting with "&" works
+                header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
+            } else if (title) {
+                header_string += "& \\textbf{" + title + "} ";
+            }
+        })
+        header_string += "\\\\\n";
+        row_count += 1;
+    })
 
     // Begin table.
     latex.push(
         ["\\begin{table*}",
          "\\centering",
-         "\\begin{tabular}{l" + "c".repeat(cols - 1) + "}",
+         "\\begin{tabular}{l" + "c".repeat(num_cols) + "}",
          "\\hline"].join("\n"));
 
-    // Generate the header row of the table
-    var header_string = "";
-    statistics_titles.forEach(function(title) {
-        header_string += "& \\textbf{" + title + "} ";
-    });
-    header_string += "\\\\";
     latex.push(header_string);
-
     latex.push("\\hline");
 
     // Generate the rows of the table body
@@ -670,10 +683,12 @@ function produce_latex() {
         var col_idx = 0;
         var row_string = "";
         $(this).find("td").each(function() {
+            var text = $(this).text();
+            text = text.replace(/%/g, "\\%").replace(/_/g, " ");
             if (col_idx == 0) {
-                row_string += $(this).text() + " ";
+                row_string += text + " ";
             } else {
-                row_string += "& $" + $(this).text() + "$ ";
+                row_string += "& $" + text + "$ ";
             }
             col_idx += 1;
         });
