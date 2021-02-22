@@ -484,6 +484,11 @@ function add_result_rows(path, folders) {
                             $('#evaluation table thead').html(table_header);
                         }
 
+                        if (!$('#checkboxes').html()) {
+                            // Add checkboxes if they have not yet been added
+                            add_checkboxes(results);
+                        }
+
                         var row = get_table_row(approach_name, results);
                         $('#evaluation table tbody').append(row);
                     });
@@ -491,6 +496,34 @@ function add_result_rows(path, folders) {
             });
         });
     });
+}
+
+function add_checkboxes(jsonObj) {
+    /*
+    Add checkboxes for showing / hiding columns.
+    */
+    $.each(jsonObj, function(key) {
+        var class_name = get_class_name(key);
+        var title = get_title_from_key(key);
+        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_checkbox_change(this)\" checked>";
+        checkbox_html += "<label>" + title + "</label>";
+        $("#checkboxes").append(checkbox_html)
+    });
+}
+
+function on_checkbox_change(element) {
+    /*
+    This function should be called when the state of a checkbox is changed.
+    This can't be easily implemented in on document ready, because checkboxes are added dynamically.
+    */
+    var col_class = $(element).attr("class");
+    col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
+    var column = $("#evaluation ." + col_class);
+    if($(element).is(":checked")) {
+        column.show();
+    } else {
+        column.hide();
+    }
 }
 
 
@@ -504,13 +537,14 @@ function get_table_header(jsonObj) {
     var second_row = "<tr>\n";
     $.each(jsonObj, function(key) {
         var colspan = 0;
+        var class_name = get_class_name(key);
         $.each(jsonObj[key], function(subkey) {
             if (!(ignore_second_header.includes(subkey))) {
-                second_row += "\t<th>" + get_title_from_key(subkey) + "</th>\n";
+                second_row += "\t<th class='" + class_name + "'>" + get_title_from_key(subkey) + "</th>\n";
                 colspan += 1;
             }
         });
-        first_row += "\t<th colspan=\"" + colspan + "\">" + get_title_from_key(key) + "</th>\n";
+        first_row += "\t<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_title_from_key(key) + "</th>\n";
 
     });
     first_row += "</tr>\n";
@@ -518,6 +552,9 @@ function get_table_header(jsonObj) {
     return first_row + second_row;
 }
 
+function get_class_name(text) {
+    return text.toLowerCase().replace(/[ ,.#:]/g, "_");
+}
 
 function get_title_from_key(key) {
     return to_title_case(key.replace("_", " "));
@@ -538,6 +575,7 @@ function get_table_row(approach_name, jsonObj) {
     var row = "<tr onclick='on_row_click(this)'>";
     row += "<td>" + approach_name + "</td>";
     $.each(jsonObj, function(key) {
+        var class_name = get_class_name(key);
         $.each(jsonObj[key], function(subkey) {
             // Include only keys in the table, that are not on the ignore list
             if (!(ignore_second_header.includes(subkey))) {
@@ -559,7 +597,7 @@ function get_table_row(approach_name, jsonObj) {
                     // Get rounded percentage but only if number is a decimal < 1
                     value = (value * 100).toFixed(2) + "%";
                 }
-                row += "<td>" + value + "</td>";
+                row += "<td class='" + class_name + "'>" + value + "</td>";
             }
         });
     })
@@ -652,16 +690,19 @@ function produce_latex() {
     var row_count = 0;
     var header_string = "";
     $('#evaluation table thead tr').each(function(){
-        $(this).find('th').each(function(){
-            if (row_count > 0) num_cols += 1;
-            var title = $(this).text();
-            title = title.replace(/_/g, " ");  // Underscore not within $ yields error
-            var colspan = parseInt($(this).attr("colspan"), 10);
-            if (colspan) {
-                // First column header is empty and is skipped here, so starting with "&" works
-                header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
-            } else if (title) {
-                header_string += "& \\textbf{" + title + "} ";
+        $(this).find('th').each(function() {
+            if (!$(this).is(":hidden")) {
+                // Do not add hidden table columns
+                if (row_count > 0) num_cols += 1;
+                var title = $(this).text();
+                title = title.replace(/_/g, " ");  // Underscore not within $ yields error
+                var colspan = parseInt($(this).attr("colspan"), 10);
+                if (colspan) {
+                    // First column header is empty and is skipped here, so starting with "&" works
+                    header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
+                } else if (title) {
+                    header_string += "& \\textbf{" + title + "} ";
+                }
             }
         })
         header_string += "\\\\\n";
@@ -683,14 +724,17 @@ function produce_latex() {
         var col_idx = 0;
         var row_string = "";
         $(this).find("td").each(function() {
-            var text = $(this).text();
-            text = text.replace(/%/g, "\\%").replace(/_/g, " ");
-            if (col_idx == 0) {
-                row_string += text + " ";
-            } else {
-                row_string += "& $" + text + "$ ";
+            if (!$(this).is(":hidden")) {
+                // Do not add hidden table columns
+                var text = $(this).text();
+                text = text.replace(/%/g, "\\%").replace(/_/g, " ");
+                if (col_idx == 0) {
+                    row_string += text + " ";
+                } else {
+                    row_string += "& $" + text + "$ ";
+                }
+                col_idx += 1;
             }
-            col_idx += 1;
         });
         row_string += "\\\\";
         latex.push(row_string);

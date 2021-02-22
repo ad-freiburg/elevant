@@ -101,6 +101,11 @@ a {
     background-color: var(--row-selected-color);
 }
 
+/* Checkboxes for showing / hiding table columns */
+#checkboxes label {
+    padding-right: 1em;
+}
+
 /* Area containing the results per article */
 #article-results {
     padding-top: 2em;
