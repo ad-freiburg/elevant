@@ -2,13 +2,12 @@ from typing import List, Optional
 
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator, is_coreference
-from src.evaluation.methods import get_evaluation_cases, evaluate_ner
+from src.evaluation.methods import get_evaluation_cases
 from src.evaluation.examples_generator import get_ground_truth_from_labels
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
     print_article_coref_evaluation, print_evaluation_summary
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
-from src.evaluation.mention_type import get_mention_type
 from src.evaluation.errors import label_errors
 
 
@@ -36,16 +35,24 @@ class Evaluator:
             self.counts[key] = {"tp": 0, "fp": 0, "fn": 0}
         self.error_counts = {label: 0 for label in ErrorLabel}
 
-    def add_cases(self, cases: List[Case], article: WikipediaArticle):
+    def add_cases(self, cases: List[Case]):
         self.all_cases.extend(cases)
         for case in cases:
-            mention = article.text[case.span[0]:case.span[1]]
-            mention_type = get_mention_type(mention)
-            case.set_mention_type(mention_type)
+            self.count_ner_case(case)
             self.count_mention_type_case(case)
             self.count_error_labels(case)
 
-    def count_mention_type_case(self, case):
+    def count_ner_case(self, case: Case):
+        if not case.is_coreference():
+            if case.has_ground_truth():
+                if case.has_predicted_entity():
+                    self.counts["ner"]["tp"] += 1
+                else:
+                    self.counts["ner"]["fn"] += 1
+            else:
+                self.counts["ner"]["fp"] += 1
+
+    def count_mention_type_case(self, case: Case):
         key = case.mention_type.value.lower()
         if case.is_correct():
             subkey = "tp"
@@ -69,19 +76,11 @@ class Evaluator:
 
         coref_ground_truth = CoreferenceGroundtruthGenerator.get_groundtruth(article)
 
-        cases = get_evaluation_cases(article.entity_mentions, ground_truth, coref_ground_truth, article.evaluation_span,
-                                     self.entity_db)
+        cases = get_evaluation_cases(article, ground_truth, coref_ground_truth, self.entity_db)
 
         label_errors(article.text, cases, self.entity_db)
 
         return cases
-
-    def eval_ner(self, article):
-        ground_truth = get_ground_truth_from_labels(article.labels)
-        ner_tp, ner_fp, ner_fn = evaluate_ner(article.entity_mentions, ground_truth, article.evaluation_span)
-        self.counts["ner"]["tp"] += len(ner_tp)
-        self.counts["ner"]["fp"] += len(ner_fp)
-        self.counts["ner"]["fn"] += len(ner_fn)
 
     @staticmethod
     def print_article_evaluation(article: WikipediaArticle, cases: List[Case]):

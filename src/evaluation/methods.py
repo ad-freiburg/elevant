@@ -1,15 +1,23 @@
 from src.evaluation.case import Case
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
+from src.models.wikipedia_article import WikipediaArticle
 
 
-def get_evaluation_cases(predictions, ground_truth, coref_ground_truth, evaluation_span, entity_db):
+def get_evaluation_cases(article: WikipediaArticle,
+                         ground_truth,
+                         coref_ground_truth,
+                         entity_db):
+    predictions = article.entity_mentions
+    evaluation_span = article.evaluation_span
+
     ground_truth_spans = set(span for span, _ in ground_truth)
 
     cases = []
 
     # ground truth cases:
     for span, true_entity_id in sorted(ground_truth):
+        text = article.text[span[0]:span[1]]
         true_entity_name = entity_db.get_entity(true_entity_id).name \
             if entity_db.contains_entity(true_entity_id) else "Unknown"
         true_entity = WikidataEntity(true_entity_name, 0, true_entity_id, [])
@@ -46,7 +54,7 @@ def get_evaluation_cases(predictions, ground_truth, coref_ground_truth, evaluati
                         correct_span_referenced = True
                         break
 
-        case = Case(span, true_entity, detected, predicted_entity, candidates, predicted_by,
+        case = Case(span, text, true_entity, detected, predicted_entity, candidates, predicted_by,
                     contained=contained,
                     is_true_coref=is_true_coref,
                     correct_span_referenced=correct_span_referenced,
@@ -66,25 +74,11 @@ def get_evaluation_cases(predictions, ground_truth, coref_ground_truth, evaluati
         predicted_entity = WikidataEntity(predicted_entity_name, 0, predicted_mention.entity_id, [])
         if span not in ground_truth_spans and predicted_entity_id is not None and span[0] >= evaluation_span[0] \
                 and span[1] <= evaluation_span[1]:
+            text = article.text[span[0]:span[1]]
             predicted_by = predicted_mention.linked_by
             contained = predicted_mention.contained
-            case = Case(span, None, True, predicted_entity, contained=contained, candidates=candidates,
+            case = Case(span, text, None, True, predicted_entity, contained=contained, candidates=candidates,
                         predicted_by=predicted_by, referenced_span=predicted_mention.referenced_span)
             cases.append(case)
 
     return sorted(cases)
-
-
-def evaluate_ner(predictions, ground_truth, evaluation_span):
-    ground_truth_spans = set(span for span, _ in ground_truth)
-
-    # NER evaluation:
-    predicted_spans = set(predictions)
-    eval_begin, eval_end = evaluation_span
-    predicted_spans = {(begin, end) for begin, end in predicted_spans
-                       if begin >= eval_begin and end <= eval_end}
-    ner_tp = ground_truth_spans.intersection(predicted_spans)
-    ner_fp = predicted_spans.difference(ground_truth_spans)
-    ner_fn = ground_truth_spans.difference(predicted_spans)
-    return ner_tp, ner_fp, ner_fn
-

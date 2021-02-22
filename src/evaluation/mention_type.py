@@ -8,6 +8,9 @@ class MentionType(Enum):
     NOMINAL = "NOMINAL"
     PRONOMINAL = "PRONOMINAL"
 
+    def is_coreference(self):
+        return self != MentionType.NAMED
+
 
 def is_nominal(mention: str):
     return mention.startswith("the ") or mention.startswith("The ") and mention[4:].islower()
