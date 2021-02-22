@@ -57,12 +57,12 @@ def label_partial_name_errors(text: str, cases: List[Case], entity_db: EntityDat
                     case.add_error_label(ErrorLabel.PARTIAL_NAME)
 
 
-NONENTITY_PRONOUNS = {"it", "this", "that"}
+NONENTITY_PRONOUNS = {"it", "this", "that", "its"}
 
 
 def label_nonentity_coreference_errors(text: str, cases: List[Case]):
     for case in cases:
-        if case.is_false_positive():
+        if not case.has_ground_truth():
             snippet = text[case.span[0]:case.span[1]]
             if snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
                 case.add_error_label(ErrorLabel.NON_ENTITY_COREFERENCE)
