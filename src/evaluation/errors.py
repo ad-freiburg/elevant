@@ -5,6 +5,7 @@ from src.models.entity_database import EntityDatabase
 
 
 def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
+    cases = [case for case in cases if case.is_false_positive() or case.is_known_entity()]  # do not label unknowns
     label_specificity_errors(cases)
     label_demonym_errors(text, cases, entity_db)
     label_rare_entity_errors(text, cases, entity_db)
@@ -75,6 +76,8 @@ def label_detection_errors(cases: List[Case]):
     for case in cases:
         if not case.is_coreference() and not case.has_predicted_entity():
             case.add_error_label(ErrorLabel.UNDETECTED)
+            if case.text.islower():
+                case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
 
 
 def label_candidate_errors(cases: List[Case]):
