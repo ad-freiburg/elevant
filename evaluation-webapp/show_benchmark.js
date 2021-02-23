@@ -10,6 +10,7 @@ GREY = "lightgrey";
 
 ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 percentage_headers = ["precision", "recall", "f1"];
+copy_latex_text = "Copy LaTeX code for table";
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
@@ -545,22 +546,22 @@ function get_table_header(jsonObj) {
     */
     var num_first_cols = jsonObj.length;
     var num_header_rows = 2;
-    var first_row = "<tr onclick='produce_latex()'>\n\t<th rowspan=\"" + num_header_rows + "\"></th>\n";
-    var second_row = "<tr>\n";
+    var first_row = "<tr><th rowspan=\"" + num_header_rows + "\" onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
+    var second_row = "<tr>";
     $.each(jsonObj, function(key) {
         var colspan = 0;
         var class_name = get_class_name(key);
         $.each(jsonObj[key], function(subkey) {
             if (!(ignore_headers.includes(subkey))) {
-                second_row += "\t<th class='" + class_name + "'>" + get_title_from_key(subkey) + "</th>\n";
+                second_row += "<th class='" + class_name + "'>" + get_title_from_key(subkey) + "</th>";
                 colspan += 1;
             }
         });
-        first_row += "\t<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_title_from_key(key) + "</th>\n";
+        first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_title_from_key(key) + "</th>";
 
     });
-    first_row += "</tr>\n";
-    second_row += "</tr>\n";
+    first_row += "</tr>";
+    second_row += "</tr>";
     return first_row + second_row;
 }
 
@@ -722,10 +723,10 @@ function produce_latex() {
                 var title = $(this).text();
                 title = title.replace(/_/g, " ");  // Underscore not within $ yields error
                 var colspan = parseInt($(this).attr("colspan"), 10);
-                if (colspan) {
-                    // First column header is empty and is skipped here, so starting with "&" works
+                if (colspan && title != copy_latex_text) {
+                    // First column header is skipped here, so starting with "&" works
                     header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
-                } else if (title) {
+                } else if (title && title != copy_latex_text) {
                     header_string += "& \\textbf{" + title + "} ";
                 }
             }

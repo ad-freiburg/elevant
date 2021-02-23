@@ -77,12 +77,13 @@ a {
 }
 
 /* Evaluation overview area */
-#evaluation table tr {
-    cursor: pointer;
+#evaluation table {
+    cursor: default;
 }
 #evaluation table tbody tr {
     border: 2px solid black;
     text-align: right;
+    cursor: pointer;
 }
 #evaluation table td {
     width: 5em;
@@ -107,6 +108,17 @@ a {
     bottom: 140%;
     left: -20%;
     border: 2px solid white;
+}
+
+/* Table cell for copying latex code */
+.produce_latex {
+    cursor: pointer;
+    text-align: center;
+    color: transparent
+}
+.produce_latex:hover {
+    background-color: var(--row-hover-color);
+    color: white;
 }
 
 /* Checkboxes for showing / hiding table columns */
