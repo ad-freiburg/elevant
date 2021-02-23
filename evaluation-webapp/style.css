@@ -80,16 +80,13 @@ a {
 #evaluation table {
     cursor: default;
 }
+#evaluation table td {
+    width: 5em;
+}
 #evaluation table tbody tr {
     border: 2px solid black;
     text-align: right;
     cursor: pointer;
-}
-#evaluation table td {
-    width: 5em;
-}
-#evaluation table td:nth-child(1) {
-    width: 30em;
 }
 #evaluation table tbody tr td:nth-child(1) {
     text-align: left;

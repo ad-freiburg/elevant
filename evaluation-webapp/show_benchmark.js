@@ -570,7 +570,7 @@ function get_class_name(text) {
 }
 
 function get_title_from_key(key) {
-    return to_title_case(key.replace("_", " "));
+    return to_title_case(key.replace(/_/g, " "));
 }
 
 
