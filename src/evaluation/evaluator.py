@@ -1,25 +1,27 @@
-from typing import List, Optional
+from typing import List
 
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator, is_coreference
-from src.evaluation.methods import get_evaluation_cases, evaluate_ner
+from src.evaluation.methods import get_evaluation_cases
 from src.evaluation.examples_generator import get_ground_truth_from_labels
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
-    print_article_coref_evaluation, print_evaluation_summary
+    print_article_coref_evaluation, print_evaluation_summary, create_f1_dict, create_f1_dict_from_counts
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
-from src.evaluation.mention_type import get_mention_type
 from src.evaluation.errors import label_errors
 
 
 def load_evaluation_entities():
     entity_db = EntityDatabase()
-    entity_db.load_entities_big()  # TODO big
+    entity_db.load_entities_big()
     entity_db.load_mapping()
     entity_db.load_redirects()
     entity_db.load_sitelink_counts()
     entity_db.load_demonyms()
     return entity_db
+
+
+EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "pronominal")
 
 
 class Evaluator:
@@ -32,28 +34,42 @@ class Evaluator:
         self.data_loaded = load_data
         self.coreference = coreference
         self.counts = {}
-        for key in ("all", "ner", "coreference", "named", "nominal", "pronominal"):
+        for key in EVALUATION_CATEGORIES:
             self.counts[key] = {"tp": 0, "fp": 0, "fn": 0}
         self.error_counts = {label: 0 for label in ErrorLabel}
+        self.has_candidates = False
 
-    def add_cases(self, cases: List[Case], article: WikipediaArticle):
+    def add_cases(self, cases: List[Case]):
         self.all_cases.extend(cases)
         for case in cases:
-            mention = article.text[case.span[0]:case.span[1]]
-            mention_type = get_mention_type(mention)
-            case.set_mention_type(mention_type)
+            self.count_ner_case(case)
             self.count_mention_type_case(case)
             self.count_error_labels(case)
+            if len(case.candidates) > 1:
+                self.has_candidates = True
 
-    def count_mention_type_case(self, case):
-        key = case.mention_type.value.lower()
+    def count_ner_case(self, case: Case):
+        if not case.is_coreference():
+            if case.has_ground_truth():
+                if case.has_predicted_entity():
+                    self.counts["NER"]["tp"] += 1
+                else:
+                    self.counts["NER"]["fn"] += 1
+            else:
+                self.counts["NER"]["fp"] += 1
+
+    def count_mention_type_case(self, case: Case):
         if case.is_correct():
             subkey = "tp"
         elif case.is_false_positive():
             subkey = "fp"
         else:
             subkey = "fn"
+        key = case.mention_type.value.lower()
         self.counts[key][subkey] += 1
+        if case.is_coreference():
+            self.counts["coreference"][subkey] += 1
+        self.counts["all"][subkey] += 1
 
     def count_error_labels(self, case: Case):
         for label in case.error_labels:
@@ -69,19 +85,11 @@ class Evaluator:
 
         coref_ground_truth = CoreferenceGroundtruthGenerator.get_groundtruth(article)
 
-        cases = get_evaluation_cases(article.entity_mentions, ground_truth, coref_ground_truth, article.evaluation_span,
-                                     self.entity_db)
+        cases = get_evaluation_cases(article, ground_truth, coref_ground_truth, self.entity_db)
 
         label_errors(article.text, cases, self.entity_db)
 
         return cases
-
-    def eval_ner(self, article):
-        ground_truth = get_ground_truth_from_labels(article.labels)
-        ner_tp, ner_fp, ner_fn = evaluate_ner(article.entity_mentions, ground_truth, article.evaluation_span)
-        self.counts["ner"]["tp"] += len(ner_tp)
-        self.counts["ner"]["fp"] += len(ner_fp)
-        self.counts["ner"]["fn"] += len(ner_fn)
 
     @staticmethod
     def print_article_evaluation(article: WikipediaArticle, cases: List[Case]):
@@ -89,5 +97,27 @@ class Evaluator:
         print_article_nerd_evaluation(cases, article.text)
         print_article_coref_evaluation(cases, article.text)
 
-    def print_results(self, output_file: Optional[str] = None):
-        print_evaluation_summary(self.all_cases, self.counts, self.error_counts, output_file=output_file)
+    def print_results(self):
+        print_evaluation_summary(self)
+
+    def get_results_dict(self):
+        results_dict = {
+            category: create_f1_dict_from_counts(self.counts[category]) for category in EVALUATION_CATEGORIES
+        }
+        results_dict["errors"] = {
+                error_label.value.lower(): self.error_counts[error_label] for error_label in ErrorLabel
+                if
+                error_label != ErrorLabel.MULTI_CANDIDATES_WRONG and error_label != ErrorLabel.MULTI_CANDIDATES_CORRECT
+                and error_label != ErrorLabel.WRONG_CANDIDATES
+            }
+        if not self.has_candidates:
+            results_dict["errors"]["wrong_candidates"] = None
+            results_dict["errors"]["multi_candidates"] = None
+        else:
+            results_dict["errors"]["wrong_candidates"] = self.error_counts[ErrorLabel.WRONG_CANDIDATES]
+            results_dict["errors"]["multi_candidates"] = {
+                "wrong": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
+                "total": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG] +
+                         self.error_counts[ErrorLabel.MULTI_CANDIDATES_CORRECT]
+            }
+        return results_dict

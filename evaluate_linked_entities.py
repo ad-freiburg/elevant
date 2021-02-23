@@ -41,15 +41,17 @@ def main(args):
             cases = [case_from_dict(case_dict) for case_dict in dump]
         else:
             cases = evaluator.get_cases(article)
-        evaluator.add_cases(cases, article)
-        evaluator.eval_ner(article)
+        evaluator.add_cases(cases)
         evaluator.print_article_evaluation(article, cases)
 
         if not args.input_case_file:
             case_list = [case.to_dict() for case in cases]
             output_file.write(json.dumps(case_list) + "\n")
 
-    evaluator.print_results(output_file=results_file)
+    evaluator.print_results()
+
+    with open(results_file, "w") as f:
+        f.write(json.dumps(evaluator.get_results_dict()))
     print("\nWrote results to %s" % results_file)
 
     input_file.close()

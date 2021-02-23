@@ -165,4 +165,5 @@ class EntityDatabaseReader:
                 entity_id = entity_id[:-1].split("/")[-1]
                 demonym = demonym.split("\"")[1]
                 demonyms[demonym] = entity_id
+                demonyms[demonym + "s"] = entity_id
         return demonyms

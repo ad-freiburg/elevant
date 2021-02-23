@@ -4,7 +4,7 @@ import json
 
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
-from src.evaluation.mention_type import MentionType
+from src.evaluation.mention_type import MentionType, get_mention_type
 
 
 class CaseType(Enum):
@@ -27,14 +27,12 @@ CASE_COLORS = {
 }
 
 
-MENTION_TYPES = {
-    "NAMED": MentionType.NAMED,
-    "NOMINAL": MentionType.NOMINAL,
-    "PRONOMINAL": MentionType.PRONOMINAL
-}
-
-
 class ErrorLabel(Enum):
+    UNDETECTED = "UNDETECTED"
+    UNDETECTED_LOWERCASE = "UNDETECTED_LOWERCASE"
+    WRONG_CANDIDATES = "WRONG_CANDIDATES"
+    MULTI_CANDIDATES_CORRECT = "MULTI_CANDIDATES_CORRECT"
+    MULTI_CANDIDATES_WRONG = "MULTI_CANDIDATES_WRONG"
     SPECIFICITY = "SPECIFICITY"
     RARE = "RARE"
     DEMONYM = "DEMONYM"
@@ -44,46 +42,45 @@ class ErrorLabel(Enum):
 
 
 ERROR_LABELS = {
-    "SPECIFICITY": ErrorLabel.SPECIFICITY,
-    "RARE": ErrorLabel.RARE,
-    "DEMONYM": ErrorLabel.DEMONYM,
-    "PARTIAL_NAME": ErrorLabel.PARTIAL_NAME,
-    "ABSTRACTION": ErrorLabel.ABSTRACTION,
-    "NON_ENTITY_COREFERENCE": ErrorLabel.NON_ENTITY_COREFERENCE
+    error_label.value: error_label for error_label in ErrorLabel
 }
 
 
 class Case:
     def __init__(self,
                  span: Tuple[int, int],
+                 text: str,
                  true_entity: Optional[WikidataEntity],
                  detected: bool,
                  predicted_entity: Optional[WikidataEntity],
                  candidates: Set[WikidataEntity],
                  predicted_by: str,
-                 mention_type: Optional[MentionType] = None,
                  contained: Optional[bool] = None,
                  is_true_coref: Optional[bool] = False,
                  correct_span_referenced: Optional[bool] = False,
                  referenced_span: Optional[Tuple[int, int]] = None,
                  error_labels: Optional[Set[ErrorLabel]] = None):
         self.span = span
+        self.text = text
         self.true_entity = true_entity
         self.detected = detected
         self.predicted_entity = predicted_entity
         self.candidates = candidates
         self.eval_type = self._type()
         self.predicted_by = predicted_by
-        self.mention_type = mention_type
         self.contained = contained
         self.is_true_coref = is_true_coref
         self.correct_span_referenced = correct_span_referenced
         self.referenced_span = referenced_span
         self.coref_type = self._coref_type()
         self.error_labels = set() if error_labels is None else error_labels
+        self.mention_type = get_mention_type(text)
 
     def has_ground_truth(self):
         return self.true_entity is not None
+
+    def has_predicted_entity(self):
+        return self.predicted_entity is not None
 
     def is_known_entity(self):
         return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown")
@@ -102,14 +99,13 @@ class Case:
         return len(self.candidates)
 
     def is_false_positive(self):
-        return self.predicted_entity is not None and (self.true_entity is None or
-                                                      self.true_entity.entity_id != self.predicted_entity.entity_id)
+        return not self.is_correct() and self.has_predicted_entity()
+
+    def is_false_negative(self):
+        return not self.is_correct() and self.has_ground_truth()
 
     def is_true_coreference(self):
         return self.is_true_coref
-
-    def set_mention_type(self, mention_type: MentionType):
-        self.mention_type = mention_type
 
     def add_error_label(self, error_label: ErrorLabel):
         self.error_labels.add(error_label)
@@ -171,6 +167,9 @@ class Case:
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
+    def is_coreference(self):
+        return self.mention_type.is_coreference()
+
 
 def case_from_dict(data) -> Case:
     true_entity = None
@@ -185,16 +184,17 @@ def case_from_dict(data) -> Case:
                           for cand in data["candidates"]])
     error_labels = {ERROR_LABELS[label] for label in data["error_labels"]}
     return Case(span=data["span"],
+                text=data["text"],
                 true_entity=true_entity,
                 detected=data["detected"],
                 predicted_entity=pred_entity,
                 candidates=candidates,
                 predicted_by=data["predicted_by"],
-                mention_type=MENTION_TYPES[data["mention_type"]] if "mention_type" in data else None,
                 contained=data["contained"] if "contained" in data else None,
                 is_true_coref=data["is_true_coref"] if "is_true_coref" in data else None,
                 correct_span_referenced=data["correct_span_referenced"] if "correct_span_referenced" in data else None,
-                referenced_span=data["referenced_span"] if "referenced_span" in data else None)
+                referenced_span=data["referenced_span"] if "referenced_span" in data else None,
+                error_labels=error_labels)
 
 
 def case_from_json(dump) -> Case:
