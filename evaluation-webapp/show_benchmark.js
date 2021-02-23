@@ -582,7 +582,10 @@ function get_table_row(approach_name, jsonObj) {
             // Include only keys in the table, that are not on the ignore list
             if (!(ignore_headers.includes(subkey))) {
                 var value = jsonObj[key][subkey];
-                if (Object.keys(value).length > 0) {
+                if (!value) {
+                    // This means, the category does not apply to the given approach
+                    value = "-";
+                } else if (Object.keys(value).length > 0) {
                     // Values that consist not of a single number but of multiple
                     // key-value pairs are displayed in a single column.
                     var composite_value = "";
