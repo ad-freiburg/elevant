@@ -755,8 +755,10 @@ function produce_latex() {
                 col_idx += 1;
             }
         });
-        row_string += "\\\\";
-        latex.push(row_string);
+        if (row_string) {
+            row_string += "\\\\";
+            latex.push(row_string);
+        }
     });
 
     // End table
