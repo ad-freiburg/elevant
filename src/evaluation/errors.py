@@ -1,6 +1,7 @@
 from typing import List
 
 from src.evaluation.case import Case, ErrorLabel
+from src.evaluation.mention_type import MentionType
 from src.models.entity_database import EntityDatabase
 
 
@@ -14,6 +15,7 @@ def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
     label_detection_errors(cases)
     label_candidate_errors(cases)
     label_multi_candidates(cases)
+    label_abstraction_errors(cases)
 
 
 def is_subspan(span, subspan):
@@ -94,3 +96,20 @@ def label_multi_candidates(cases: List[Case]):
                 case.add_error_label(ErrorLabel.MULTI_CANDIDATES_CORRECT)
             else:
                 case.add_error_label(ErrorLabel.MULTI_CANDIDATES_WRONG)
+
+
+def overlaps(span1, span2):
+    return not (span1[0] >= span2[1] or span2[0] >= span1[1])
+
+
+def label_abstraction_errors(cases: List[Case]):
+    ground_truth_spans = [case.span for case in cases if case.has_ground_truth()]
+    for case in cases:
+        if case.is_false_positive() and case.mention_type == MentionType.NAMED:
+            overlap = False
+            for gt_span in ground_truth_spans:
+                if overlaps(case.span, gt_span):
+                    overlap = True
+                    break
+            if not overlap:
+                case.add_error_label(ErrorLabel.ABSTRACTION)
