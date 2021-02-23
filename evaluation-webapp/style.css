@@ -101,6 +101,14 @@ a {
     background-color: var(--row-selected-color);
 }
 
+/* Cell tooltip for precision / recall / F1 cells */
+#evaluation td .tooltiptext {
+    width: 4em;
+    bottom: 140%;
+    left: -20%;
+    border: 2px solid white;
+}
+
 /* Checkboxes for showing / hiding table columns */
 #checkboxes label {
     padding-right: 1em;

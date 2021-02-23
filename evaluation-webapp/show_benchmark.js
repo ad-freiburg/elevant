@@ -8,7 +8,8 @@ BLUE = "#bb8fce";
 GREY = "lightgrey";
 
 
-ignore_second_header = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
+ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
+percentage_headers = ["precision", "recall", "f1"];
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
@@ -507,7 +508,7 @@ function add_checkboxes(jsonObj) {
         var title = get_title_from_key(key);
         var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_checkbox_change(this)\" checked>";
         checkbox_html += "<label>" + title + "</label>";
-        $("#checkboxes").append(checkbox_html)
+        $("#checkboxes").append(checkbox_html);
     });
 }
 
@@ -539,7 +540,7 @@ function get_table_header(jsonObj) {
         var colspan = 0;
         var class_name = get_class_name(key);
         $.each(jsonObj[key], function(subkey) {
-            if (!(ignore_second_header.includes(subkey))) {
+            if (!(ignore_headers.includes(subkey))) {
                 second_row += "\t<th class='" + class_name + "'>" + get_title_from_key(subkey) + "</th>\n";
                 colspan += 1;
             }
@@ -576,9 +577,10 @@ function get_table_row(approach_name, jsonObj) {
     row += "<td>" + approach_name + "</td>";
     $.each(jsonObj, function(key) {
         var class_name = get_class_name(key);
+        var tooltip_text = "";
         $.each(jsonObj[key], function(subkey) {
             // Include only keys in the table, that are not on the ignore list
-            if (!(ignore_second_header.includes(subkey))) {
+            if (!(ignore_headers.includes(subkey))) {
                 var value = jsonObj[key][subkey];
                 if (Object.keys(value).length > 0) {
                     // Values that consist not of a single number but of multiple
@@ -586,23 +588,32 @@ function get_table_row(approach_name, jsonObj) {
                     var composite_value = "";
                     $.each(value, function(subsubkey) {
                         var val = value[subsubkey];
-                        if (val % 1 != 0 && val < 1) {
-                            // Get rounded percentage but only if number is a decimal < 1
-                            val = (val * 100).toFixed(2) + "%";
-                        }
                         composite_value += val + " / ";
                     });
                     value = composite_value.substring(0, composite_value.length - " / ".length);
-                } else if (value % 1 != 0 && value < 1) {
+                } else if (percentage_headers.includes(subkey)) {
                     // Get rounded percentage but only if number is a decimal < 1
-                    value = (value * 100).toFixed(2) + "%";
+                    processed_value = "<div class='" + class_name + " tooltip'>"
+                    processed_value += (value * 100).toFixed(2) + "%";
+                    // Create tooltip text
+                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(jsonObj[key]) + "</span></div>"
+                    value = processed_value;
                 }
                 row += "<td class='" + class_name + "'>" + value + "</td>";
             }
         });
+
     })
     row += "</tr>";
     return row;
+}
+
+function get_tooltip_text(jsonObj) {
+    tooltip_text = "TP: " + jsonObj["true_positives"] + "<br>";
+    tooltip_text += "FP: " + jsonObj["false_positives"] + "<br>";
+    tooltip_text += "FN: " + jsonObj["false_negatives"] + "<br>";
+    tooltip_text += "GT: " + jsonObj["ground_truth"];
+    return tooltip_text;
 }
 
 function read_evaluation_cases(path) {
@@ -726,7 +737,12 @@ function produce_latex() {
         $(this).find("td").each(function() {
             if (!$(this).is(":hidden")) {
                 // Do not add hidden table columns
-                var text = $(this).text();
+                var text = $(this).html();
+                // Filter out tooltip texts and html
+                var match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
+                if (match) {
+                    text = match[1];
+                }
                 text = text.replace(/%/g, "\\%").replace(/_/g, " ");
                 if (col_idx == 0) {
                     row_string += text + " ";
