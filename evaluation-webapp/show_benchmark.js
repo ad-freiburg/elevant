@@ -7,6 +7,7 @@ RED = "#f1948a";
 BLUE = "#bb8fce";
 GREY = "lightgrey";
 
+RESULTS_EXTENSION = ".results";
 
 ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 percentage_headers = ["precision", "recall", "f1"];
@@ -449,73 +450,71 @@ function show_article() {
 
 function build_overview_table(path) {
     /*
-    Build the overview table from the .results files found at the given path.
+    Build the overview table from the .results files found in the subdirectories of the given path.
     */
-    console.log(path);
     folders = [];
-    
-    promise = new Promise(function(request_done) {
-        $.get(path, function(data) {
-            request_done(data);
-        });    
-    });
-    
-    promise.then(function(data) {
+    result_files = {};
+    var urls = [];
+    $.get(path, function(data) {
         // Get all folders from the evaluation results directory
         $(data).find("a").each(function() {
             name = $(this).attr("href");
             name = name.substring(0, name.length - 1);
             folders.push(name);
         });
+    }).done(function() {
+        // Retrieve file path of .results files in each folder
+        $.when.apply($, folders.map(function(folder) {
+            return $.get(path + "/" + folder, function(folder_data) {
+                $(folder_data).find("a").each(function() {
+                    file_name = $(this).attr("href");
+                    if (file_name.endsWith(RESULTS_EXTENSION)) {
+                        var url = path + "/" + folder + "/" + file_name;
+                        urls.push(url);
+                    }
+                });
+            });
+        })).then(function() {
+            // Retrieve contents of each .results file and store it in an array
+            var result_array = [];
+            $.when.apply($, urls.map(function(url) {
+                return $.getJSON(url, function(results) {
+                    var approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
+                    result_files[approach_name] = url.substring(0, url.length - RESULTS_EXTENSION.length);
+                    result_array.push([approach_name, results]);
+                });
+            })).then(function() {
+                // Sort the array. This can be a custom sorting function later
+                result_array.sort();
+                // Add a row to the table for each item in the results array, add table header and checkboxes
+                result_array.forEach(function(result_tuple) {
+                    var approach_name = result_tuple[0];
+                    var results = result_tuple[1];
+                    if (!$('#evaluation table thead').html()) {
+                        // Add table header if it has not yet been added
+                        var table_header = get_table_header(results);
+                        $('#evaluation table thead').html(table_header);
+                    }
 
-        // Add a row to the results table for each .results file in the folders
-        add_result_rows(path, folders);
-    });
-}
+                    if (!$('#checkboxes').html()) {
+                        // Add checkboxes if they have not yet been added
+                        add_checkboxes(results);
+                    }
 
-function add_result_rows(path, folders) {
-    /*
-    Read all .result files in the given folders, generate a table row for each
-    and add them to the table body.
-    */
-    result_rows = [];
-    result_files = {};
-    folders.forEach(function(folder) {
-        $.get(path + "/" + folder, function(folder_data) {
-            $(folder_data).find("a").each(function() {
-                file_name = $(this).attr("href");
-                var file_extension = ".results";
-                if (file_name.endsWith(file_extension)) {
-                    var url = path + "/" + folder + "/" + file_name;
-                    $.getJSON(url, function(results) {
-                        approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - file_extension.length);
-                        result_files[approach_name] = path + "/" + folder + "/" + approach_name;
-
-                        if (!$('#evaluation table thead').html()) {
-                            // Add table header if it has not yet been added
-                            var table_header = get_table_header(results);
-                            $('#evaluation table thead').html(table_header);
-                        }
-
-                        if (!$('#checkboxes').html()) {
-                            // Add checkboxes if they have not yet been added
-                            add_checkboxes(results);
-                        }
-
-                        var row = get_table_row(approach_name, results);
-                        $('#evaluation table tbody').append(row);
-                    });
-                }
+                    // Add a table row
+                    var row = get_table_row(approach_name, results);
+                    $('#evaluation table tbody').append(row);
+                })
             });
         });
     });
 }
 
-function add_checkboxes(jsonObj) {
+function add_checkboxes(json_obj) {
     /*
     Add checkboxes for showing / hiding columns.
     */
-    $.each(jsonObj, function(key) {
+    $.each(json_obj, function(key) {
         var class_name = get_class_name(key);
         var title = get_title_from_key(key);
         var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_checkbox_change(this)\" checked>";
@@ -527,7 +526,7 @@ function add_checkboxes(jsonObj) {
 function on_checkbox_change(element) {
     /*
     This function should be called when the state of a checkbox is changed.
-    This can't be easily implemented in on document ready, because checkboxes are added dynamically.
+    This can't be simply added in on document ready, because checkboxes are added dynamically.
     */
     var col_class = $(element).attr("class");
     col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
@@ -539,19 +538,18 @@ function on_checkbox_change(element) {
     }
 }
 
-
-function get_table_header(jsonObj) {
+function get_table_header(json_obj) {
     /*
     Get html for the table header.
     */
-    var num_first_cols = jsonObj.length;
+    var num_first_cols = json_obj.length;
     var num_header_rows = 2;
     var first_row = "<tr><th rowspan=\"" + num_header_rows + "\" onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
     var second_row = "<tr>";
-    $.each(jsonObj, function(key) {
+    $.each(json_obj, function(key) {
         var colspan = 0;
         var class_name = get_class_name(key);
-        $.each(jsonObj[key], function(subkey) {
+        $.each(json_obj[key], function(subkey) {
             if (!(ignore_headers.includes(subkey))) {
                 second_row += "<th class='" + class_name + "'>" + get_title_from_key(subkey) + "</th>";
                 colspan += 1;
@@ -573,27 +571,25 @@ function get_title_from_key(key) {
     return to_title_case(key.replace(/_/g, " "));
 }
 
-
 function to_title_case(str) {
     return str.replace(/\w\S*/g, function(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1);
     });
 }
 
-
-function get_table_row(approach_name, jsonObj) {
+function get_table_row(approach_name, json_obj) {
     /*
     Get html for the table row with the given approach name and result values.
     */
     var row = "<tr onclick='on_row_click(this)'>";
     row += "<td>" + approach_name + "</td>";
-    $.each(jsonObj, function(key) {
+    $.each(json_obj, function(key) {
         var class_name = get_class_name(key);
         var tooltip_text = "";
-        $.each(jsonObj[key], function(subkey) {
+        $.each(json_obj[key], function(subkey) {
             // Include only keys in the table, that are not on the ignore list
             if (!(ignore_headers.includes(subkey))) {
-                var value = jsonObj[key][subkey];
+                var value = json_obj[key][subkey];
                 if (value == null) {
                     // This means, the category does not apply to the given approach
                     value = "-";
@@ -611,23 +607,22 @@ function get_table_row(approach_name, jsonObj) {
                     processed_value = "<div class='" + class_name + " tooltip'>"
                     processed_value += (value * 100).toFixed(2) + "%";
                     // Create tooltip text
-                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(jsonObj[key]) + "</span></div>"
+                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>"
                     value = processed_value;
                 }
                 row += "<td class='" + class_name + "'>" + value + "</td>";
             }
         });
-
     })
     row += "</tr>";
     return row;
 }
 
-function get_tooltip_text(jsonObj) {
-    tooltip_text = "TP: " + jsonObj["true_positives"] + "<br>";
-    tooltip_text += "FP: " + jsonObj["false_positives"] + "<br>";
-    tooltip_text += "FN: " + jsonObj["false_negatives"] + "<br>";
-    tooltip_text += "GT: " + jsonObj["ground_truth"];
+function get_tooltip_text(json_obj) {
+    tooltip_text = "TP: " + json_obj["true_positives"] + "<br>";
+    tooltip_text += "FP: " + json_obj["false_positives"] + "<br>";
+    tooltip_text += "FN: " + json_obj["false_negatives"] + "<br>";
+    tooltip_text += "GT: " + json_obj["ground_truth"];
     return tooltip_text;
 }
 
@@ -786,7 +781,7 @@ function produce_latex() {
     console.log(latex_text);
     $("div.latex").show();
     $("div.latex textarea").val(latex_text);
-    $("div.latex textarea").show();
+    $("div.latex textarea").show();  // Text is not selected or copied if it is hidden
     $("div.latex textarea").select();
     document.execCommand("copy");
     $("div.latex textarea").hide();
