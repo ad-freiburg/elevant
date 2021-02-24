@@ -485,7 +485,7 @@ function build_overview_table(path) {
                 });
             })).then(function() {
                 // Sort the array. This can be a custom sorting function later
-                result_array.sort();
+                result_array.sort(compare);
                 // Add a row to the table for each item in the results array, add table header and checkboxes
                 result_array.forEach(function(result_tuple) {
                     var approach_name = result_tuple[0];
@@ -508,6 +508,20 @@ function build_overview_table(path) {
             });
         });
     });
+}
+
+function compare(approach_1, approach_2) {
+    approach_name_1 = approach_1[0];
+    approach_name_2 = approach_2[0];
+    return linker_key(approach_name_1) - linker_key(approach_name_2) ||
+        approach_name_1 > approach_name_2;
+}
+
+function linker_key(approach_name) {
+    if (approach_name.startsWith("explosion")) return 1;
+    else if (approach_name.startsWith("neural_el")) return 2;
+    else if (approach_name.startsWith("wexea")) return 3;
+    else return 4;
 }
 
 function add_checkboxes(json_obj) {
