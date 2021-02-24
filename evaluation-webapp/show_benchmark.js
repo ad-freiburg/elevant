@@ -13,6 +13,8 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
+show_mentions = {"named": true, "nominal": true, "pronominal": true};
+
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
     textfield_left = document.getElementById("textfield_left");
@@ -34,6 +36,26 @@ $("document").ready(function() {
         var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
         if (show_row) $(this).show(); else $(this).hide();
       });
+    });
+
+    // Show/Hide certain mentions in linked articles
+    // Set flags according to current checkbox status
+    $.each(show_mentions, function(key) {
+        show_mentions[key] = $("#show_" + key).is(":checked");
+    });
+
+    // On checkbox change
+    $("#article_checkboxes input").change(function() {
+        var id = $(this).attr("id");
+        var suffix = id.substring(id.indexOf("_") + 1, id.length);
+        var checked = $(this).is(":checked");
+        $.each(show_mentions, function(key) {
+            if (key == suffix) {
+                show_mentions[key] = checked;
+            }
+        });
+        show_ground_truth_entities();
+        show_linked_entities();
     });
 });
 
@@ -103,6 +125,11 @@ function show_ground_truth_entities() {
     */
     annotations = [];
     for (eval_case of evaluation_cases[approach_index]) {
+        if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
+            if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
+                continue;
+            }
+        }
         if ("true_entity" in eval_case) {
             if ("predicted_entity" in eval_case) {
                 if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
@@ -173,6 +200,11 @@ function show_linked_entities() {
     annotations = []
     
     for (mention of mentions) {
+        if (mention.mention_type && mention.mention_type.toLowerCase() in show_mentions) {
+            if (!show_mentions[mention.mention_type.toLowerCase()]) {
+                continue;
+            }
+        }
         if ("true_entity" in mention || "predicted_entity" in mention) {  // mention is inside the evaluation span and therefore an evaluated case
             if ("true_entity" in mention) {
                 if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
