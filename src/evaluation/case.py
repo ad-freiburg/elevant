@@ -102,7 +102,7 @@ class Case:
         return not self.is_correct() and self.has_predicted_entity()
 
     def is_false_negative(self):
-        return not self.is_correct() and self.has_ground_truth()
+        return not self.is_correct() and self.has_ground_truth() and self.is_known_entity()
 
     def is_true_coreference(self):
         return self.is_true_coref
