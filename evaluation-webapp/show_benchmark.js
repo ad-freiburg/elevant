@@ -28,15 +28,15 @@ $("document").ready(function() {
     build_overview_table("evaluation-results");
 
     // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
+    // Filter on key up
     $("input#result-filter").focus();
     $("input#result-filter").keyup(function() {
-      var filter_keywords = $(this).val().split(/\s+/);
-      $("#evaluation tbody tr").each(function() {
-        var name = $(this).children(":first-child").text();
-        var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
-        if (show_row) $(this).show(); else $(this).hide();
-      });
+        filter_table_rows();
     });
+    // Filter on radio button change
+    $("input.match_type").change(function() {
+        filter_table_rows();
+    })
 
     // Show/Hide certain mentions in linked articles
     // Set flags according to current checkbox status
@@ -58,6 +58,21 @@ $("document").ready(function() {
         show_linked_entities();
     });
 });
+
+function filter_table_rows() {
+    var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
+    var match_type_and = $("#radio_and").is(":checked");
+    $("#evaluation tbody tr").each(function() {
+        var name = $(this).children(":first-child").text();
+        var show_row;
+        if (match_type_and) {
+            show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
+        } else {
+            show_row = filter_keywords.some(keyword => name.search(keyword) != -1);
+        }
+        if (show_row) $(this).show(); else $(this).hide();
+    });
+}
 
 function parse_benchmark() {
     /*
@@ -537,6 +552,9 @@ function build_overview_table(path) {
                     var row = get_table_row(approach_name, results);
                     $('#evaluation table tbody').append(row);
                 })
+            }).then(function() {
+                // Filter table rows after table is build (if anything is typed already)
+                filter_table_rows();
             });
         });
     });
