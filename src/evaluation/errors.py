@@ -25,7 +25,7 @@ def is_subspan(span, subspan):
 
 
 def label_specificity_errors(cases: List[Case]):
-    false_negatives = [case for case in cases if case.has_predicted_entity() and not case.is_true_coreference()]
+    false_negatives = [case for case in cases if not case.has_predicted_entity() and not case.is_true_coreference()]
     false_positives = [case for case in cases if case.is_false_positive()]
     for case in false_negatives:
         for fp in false_positives:
