@@ -59,17 +59,23 @@ class Evaluator:
                 self.counts["NER"]["fp"] += 1
 
     def count_mention_type_case(self, case: Case):
-        if case.is_correct():
-            subkey = "tp"
-        elif case.is_false_positive():
-            subkey = "fp"
-        else:
-            subkey = "fn"
         key = case.mention_type.value.lower()
-        self.counts[key][subkey] += 1
-        if case.is_coreference():
-            self.counts["coreference"][subkey] += 1
-        self.counts["all"][subkey] += 1
+        if case.is_correct():
+            self.counts["all"]["tp"] += 1
+            self.counts[key]["tp"] += 1
+            if case.is_coreference():
+                self.counts["coreference"]["tp"] += 1
+        else:
+            if case.is_false_positive():
+                self.counts["all"]["fp"] += 1
+                self.counts[key]["fp"] += 1
+                if case.is_coreference():
+                    self.counts["coreference"]["fp"] += 1
+            if case.is_false_negative():
+                self.counts["all"]["fn"] += 1
+                self.counts[key]["fn"] += 1
+                if case.is_coreference():
+                    self.counts["coreference"]["fn"] += 1
 
     def count_error_labels(self, case: Case):
         for label in case.error_labels:
