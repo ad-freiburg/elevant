@@ -577,18 +577,118 @@ function build_overview_table_body(result_list) {
     filter_table_rows();
 }
 
-function compare_approach_names(approach_1, approach_2) {
-    approach_name_1 = approach_1[0];
-    approach_name_2 = approach_2[0];
-    return linker_key(approach_name_1) - linker_key(approach_name_2) ||
-        approach_name_1 > approach_name_2;
+function add_checkboxes(json_obj) {
+    /*
+    Add checkboxes for showing / hiding columns.
+    */
+    $.each(json_obj, function(key) {
+        var class_name = get_class_name(key);
+        var title = get_title_from_key(key);
+        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" checked>";
+        checkbox_html += "<label>" + title + "</label>";
+        $("#checkboxes").append(checkbox_html);
+    });
 }
 
-function linker_key(approach_name) {
-    if (approach_name.startsWith("explosion")) return 1;
-    else if (approach_name.startsWith("neural_el")) return 2;
-    else if (approach_name.startsWith("wexea")) return 3;
-    else return 4;
+function show_hide_columns(element) {
+    /*
+    This function should be called when the state of a checkbox is changed.
+    This can't be simply added in on document ready, because checkboxes are added dynamically.
+    */
+    var col_class = $(element).attr("class");
+    col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
+    var column = $("#evaluation ." + col_class);
+    if($(element).is(":checked")) {
+        column.show();
+    } else {
+        column.hide();
+    }
+}
+
+function get_table_header(json_obj) {
+    /*
+    Get html for the table header.
+    */
+    var num_first_cols = json_obj.length;
+    var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
+    var second_row = "<tr><th onclick='sort_table(this)'>System<span>&#9660</span></th>";
+    $.each(json_obj, function(key) {
+        var colspan = 0;
+        var class_name = get_class_name(key);
+        $.each(json_obj[key], function(subkey) {
+            if (!(ignore_headers.includes(subkey))) {
+                second_row += "<th class='" + class_name + "' onclick='sort_table(this)'>" + get_title_from_key(subkey) + "<span>&#9660</span></th>";
+                colspan += 1;
+            }
+        });
+        first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_title_from_key(key) + "</th>";
+    });
+    first_row += "</tr>";
+    second_row += "</tr>";
+    return first_row + second_row;
+}
+
+function get_table_row(approach_name, json_obj) {
+    /*
+    Get html for the table row with the given approach name and result values.
+    */
+    var row = "<tr onclick='on_row_click(this)'>";
+    row += "<td>" + approach_name + "</td>";
+    $.each(json_obj, function(key) {
+        var class_name = get_class_name(key);
+        var tooltip_text = "";
+        $.each(json_obj[key], function(subkey) {
+            // Include only keys in the table, that are not on the ignore list
+            if (!(ignore_headers.includes(subkey))) {
+                var value = json_obj[key][subkey];
+                if (value == null) {
+                    // This means, the category does not apply to the given approach
+                    value = "-";
+                } else if (Object.keys(value).length > 0) {
+                    // Values that consist not of a single number but of multiple
+                    // key-value pairs are displayed in a single column.
+                    var composite_value = "";
+                    $.each(value, function(subsubkey) {
+                        var val = value[subsubkey];
+                        composite_value += val + " / ";
+                    });
+                    value = composite_value.substring(0, composite_value.length - " / ".length);
+                } else if (percentage_headers.includes(subkey)) {
+                    // Get rounded percentage but only if number is a decimal < 1
+                    processed_value = "<div class='" + class_name + " tooltip'>"
+                    processed_value += (value * 100).toFixed(2) + "%";
+                    // Create tooltip text
+                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>"
+                    value = processed_value;
+                }
+                row += "<td class='" + class_name + "'>" + value + "</td>";
+            }
+        });
+    })
+    row += "</tr>";
+    return row;
+}
+
+function get_tooltip_text(json_obj) {
+    tooltip_text = "TP: " + json_obj["true_positives"] + "<br>";
+    tooltip_text += "FP: " + json_obj["false_positives"] + "<br>";
+    tooltip_text += "FN: " + json_obj["false_negatives"] + "<br>";
+    tooltip_text += "GT: " + json_obj["ground_truth"];
+    return tooltip_text;
+}
+
+function get_class_name(text) {
+    return text.toLowerCase().replace(/[ ,.#:]/g, "_");
+}
+
+function get_title_from_key(key) {
+    return to_title_case(key.replace(/_/g, " "));
+}
+
+function to_title_case(str) {
+    return str.replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1);
+    });
 }
 
 function sort_table(column_header) {
@@ -651,118 +751,18 @@ function sort_table(column_header) {
     build_overview_table_body(result_array);
 }
 
-function add_checkboxes(json_obj) {
-    /*
-    Add checkboxes for showing / hiding columns.
-    */
-    $.each(json_obj, function(key) {
-        var class_name = get_class_name(key);
-        var title = get_title_from_key(key);
-        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" checked>";
-        checkbox_html += "<label>" + title + "</label>";
-        $("#checkboxes").append(checkbox_html);
-    });
+function compare_approach_names(approach_1, approach_2) {
+    approach_name_1 = approach_1[0];
+    approach_name_2 = approach_2[0];
+    return linker_key(approach_name_1) - linker_key(approach_name_2) ||
+        approach_name_1 > approach_name_2;
 }
 
-function show_hide_columns(element) {
-    /*
-    This function should be called when the state of a checkbox is changed.
-    This can't be simply added in on document ready, because checkboxes are added dynamically.
-    */
-    var col_class = $(element).attr("class");
-    col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
-    var column = $("#evaluation ." + col_class);
-    if($(element).is(":checked")) {
-        column.show();
-    } else {
-        column.hide();
-    }
-}
-
-function get_table_header(json_obj) {
-    /*
-    Get html for the table header.
-    */
-    var num_first_cols = json_obj.length;
-    var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr><th onclick='sort_table(this)'>System<span>&#9660</span></th>";
-    $.each(json_obj, function(key) {
-        var colspan = 0;
-        var class_name = get_class_name(key);
-        $.each(json_obj[key], function(subkey) {
-            if (!(ignore_headers.includes(subkey))) {
-                second_row += "<th class='" + class_name + "' onclick='sort_table(this)'>" + get_title_from_key(subkey) + "<span>&#9660</span></th>";
-                colspan += 1;
-            }
-        });
-        first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_title_from_key(key) + "</th>";
-    });
-    first_row += "</tr>";
-    second_row += "</tr>";
-    return first_row + second_row;
-}
-
-function get_class_name(text) {
-    return text.toLowerCase().replace(/[ ,.#:]/g, "_");
-}
-
-function get_title_from_key(key) {
-    return to_title_case(key.replace(/_/g, " "));
-}
-
-function to_title_case(str) {
-    return str.replace(/\w\S*/g, function(txt) {
-        return txt.charAt(0).toUpperCase() + txt.substr(1);
-    });
-}
-
-function get_table_row(approach_name, json_obj) {
-    /*
-    Get html for the table row with the given approach name and result values.
-    */
-    var row = "<tr onclick='on_row_click(this)'>";
-    row += "<td>" + approach_name + "</td>";
-    $.each(json_obj, function(key) {
-        var class_name = get_class_name(key);
-        var tooltip_text = "";
-        $.each(json_obj[key], function(subkey) {
-            // Include only keys in the table, that are not on the ignore list
-            if (!(ignore_headers.includes(subkey))) {
-                var value = json_obj[key][subkey];
-                if (value == null) {
-                    // This means, the category does not apply to the given approach
-                    value = "-";
-                } else if (Object.keys(value).length > 0) {
-                    // Values that consist not of a single number but of multiple
-                    // key-value pairs are displayed in a single column.
-                    var composite_value = "";
-                    $.each(value, function(subsubkey) {
-                        var val = value[subsubkey];
-                        composite_value += val + " / ";
-                    });
-                    value = composite_value.substring(0, composite_value.length - " / ".length);
-                } else if (percentage_headers.includes(subkey)) {
-                    // Get rounded percentage but only if number is a decimal < 1
-                    processed_value = "<div class='" + class_name + " tooltip'>"
-                    processed_value += (value * 100).toFixed(2) + "%";
-                    // Create tooltip text
-                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>"
-                    value = processed_value;
-                }
-                row += "<td class='" + class_name + "'>" + value + "</td>";
-            }
-        });
-    })
-    row += "</tr>";
-    return row;
-}
-
-function get_tooltip_text(json_obj) {
-    tooltip_text = "TP: " + json_obj["true_positives"] + "<br>";
-    tooltip_text += "FP: " + json_obj["false_positives"] + "<br>";
-    tooltip_text += "FN: " + json_obj["false_negatives"] + "<br>";
-    tooltip_text += "GT: " + json_obj["ground_truth"];
-    return tooltip_text;
+function linker_key(approach_name) {
+    if (approach_name.startsWith("explosion")) return 1;
+    else if (approach_name.startsWith("neural_el")) return 2;
+    else if (approach_name.startsWith("wexea")) return 3;
+    else return 4;
 }
 
 function read_evaluation_cases(path) {
