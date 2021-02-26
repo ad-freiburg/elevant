@@ -5,7 +5,7 @@ from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtr
 from src.evaluation.methods import get_evaluation_cases
 from src.evaluation.examples_generator import get_ground_truth_from_labels
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
-    print_article_coref_evaluation, print_evaluation_summary, create_f1_dict, create_f1_dict_from_counts
+    print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
@@ -112,10 +112,12 @@ class Evaluator:
         }
         results_dict["errors"] = {
                 error_label.value.lower(): self.error_counts[error_label] for error_label in ErrorLabel
-                if
-                error_label != ErrorLabel.MULTI_CANDIDATES_WRONG and error_label != ErrorLabel.MULTI_CANDIDATES_CORRECT
-                and error_label != ErrorLabel.WRONG_CANDIDATES
+                if "CANDIDATE" not in error_label.value and "COREFERENCE" not in error_label.value
             }
+        results_dict["coreference_errors"] = {
+            error_label.value.lower(): self.error_counts[error_label] for error_label in ErrorLabel
+            if "CANDIDATE" not in error_label.value and "COREFERENCE" in error_label.value
+        }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None
             results_dict["errors"]["multi_candidates"] = None

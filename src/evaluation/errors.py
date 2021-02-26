@@ -16,6 +16,7 @@ def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
     label_candidate_errors(cases)
     label_multi_candidates(cases)
     label_abstraction_errors(cases)
+    label_coreference_errors(cases)
 
 
 def is_subspan(span, subspan):
@@ -113,3 +114,23 @@ def label_abstraction_errors(cases: List[Case]):
                     break
             if not overlap:
                 case.add_error_label(ErrorLabel.ABSTRACTION)
+
+
+def label_coreference_errors(cases: List[Case]):
+    for i, case in enumerate(cases):
+        if case.is_coreference() and case.is_false_negative():
+            if not case.has_predicted_entity():
+                case.add_error_label(ErrorLabel.COREFERENCE_NO_REFERENCE)
+            else:
+                true_reference = None
+                for j in range(i - 1, -1, -1):
+                    if cases[j].mention_type == MentionType.NAMED and cases[j].has_ground_truth() and \
+                            cases[j].true_entity.entity_id == case.true_entity.entity_id:
+                        true_reference = cases[j]
+                        break
+                if true_reference is not None:
+                    if true_reference.has_predicted_entity() and \
+                            true_reference.predicted_entity.entity_id == case.predicted_entity.entity_id:
+                        case.add_error_label(ErrorLabel.COREFERENCE_REFERENCED_WRONG)
+                    else:
+                        case.add_error_label(ErrorLabel.COREFERENCE_WRONG_REFERENCE)
