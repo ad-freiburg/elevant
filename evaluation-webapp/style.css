@@ -80,6 +80,9 @@ a {
 #evaluation table {
     cursor: default;
 }
+#evaluation table thead tr:nth-child(2) {
+    cursor: pointer;
+}
 #evaluation table td {
     width: 5em;
 }
