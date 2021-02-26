@@ -532,7 +532,7 @@ function build_overview_table(path) {
                 });
             })).then(function() {
                 // Sort the result array
-                result_array.sort(compare);
+                result_array.sort(compare_approach_names);
                 // Add table header and checkboxes
                 result_array.forEach(function(result_tuple) {
                     var approach_name = result_tuple[0];
@@ -577,7 +577,7 @@ function build_overview_table_body(result_list) {
     filter_table_rows();
 }
 
-function compare(approach_1, approach_2) {
+function compare_approach_names(approach_1, approach_2) {
     approach_name_1 = approach_1[0];
     approach_name_2 = approach_2[0];
     return linker_key(approach_name_1) - linker_key(approach_name_2) ||
@@ -597,9 +597,8 @@ function sort_table(column_header) {
     This sorts the result_array, removes old table rows and adds them in the new ordering.
     */
     // Get list of values in the selected column
-    // + 2 because the first empty header cell is part of the first header row, not the second
-    // and nth-child indices are 1-based
-    var col_index = $(column_header).parent().children().index($(column_header)) + 2;
+    // + 1 because nth-child indices are 1-based
+    var col_index = $(column_header).parent().children().index($(column_header)) + 1;
     var col_values = [];
     $('#evaluation table tbody tr td:nth-child(' + col_index + ')').each(function() {
         var text = $(this).html();
@@ -607,21 +606,18 @@ function sort_table(column_header) {
         if (match) {
             text = match[1];
         }
-        var col_val = parseFloat(text);
-        col_values.push(col_val);
+        col_values.push(text);
     });
 
     // Check if sorting should be ascending or descending
     var descending = !$(column_header).hasClass("desc");
 
     // Get new sorting order of the row indices and create a new result array according to the new sorting
-    sort_function = function(a, b) {
-        if (descending) {
-            return (isNaN(a[0])) ? 1 - isNaN(b[0]) : b[0] - a[0];
-        } else {
-            return (isNaN(b[0])) ? 1 - isNaN(a[0]) : a[0] - b[0];
-        }
-    };
+    if (col_index == 1) {
+        sort_function = compare_approach_names;
+    } else {
+        sort_function = function(a, b) {a = parseFloat(a[0]); b = parseFloat(b[0]); return (isNaN(a)) ? 1 - isNaN(b) : b - a;};
+    }
     const decor = (v, i) => [v, i];          // set index to value
     const undecor = a => a[1];               // leave only index
     const argsort = arr => arr.map(decor).sort(sort_function).map(undecor);
@@ -634,13 +630,14 @@ function sort_table(column_header) {
         $(this).removeClass("asc");
     })
 
-    var sorted_result_array = result_array;
     if (descending) {
         // Show down-pointing triangle
         $(column_header).find("span").html("&#9660");
         // Add new class to indicate descending sorting order
         $(column_header).addClass("desc");
     } else {
+        // Reverse sorting order
+        result_array = result_array.reverse();
         // Show up-pointing triangle
         $(column_header).find("span").html("&#9650");
         // Add new class to indicate ascending sorting order
@@ -651,7 +648,7 @@ function sort_table(column_header) {
     $("#evaluation table tbody").empty();
 
     // Add table rows in new order to the table body
-    build_overview_table_body(sorted_result_array);
+    build_overview_table_body(result_array);
 }
 
 function add_checkboxes(json_obj) {
@@ -687,9 +684,8 @@ function get_table_header(json_obj) {
     Get html for the table header.
     */
     var num_first_cols = json_obj.length;
-    var num_header_rows = 2;
-    var first_row = "<tr><th rowspan=\"" + num_header_rows + "\" onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr>";
+    var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
+    var second_row = "<tr><th onclick='sort_table(this)'>System<span>&#9660</span></th>";
     $.each(json_obj, function(key) {
         var colspan = 0;
         var class_name = get_class_name(key);
@@ -700,7 +696,6 @@ function get_table_header(json_obj) {
             }
         });
         first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_title_from_key(key) + "</th>";
-
     });
     first_row += "</tr>";
     second_row += "</tr>";
@@ -859,17 +854,17 @@ function produce_latex() {
             if (!$(this).is(":hidden")) {
                 // Do not add hidden table columns
                 if (row_count > 0) num_cols += 1;
-                var title = $(this).text();
+                var title = $(this).html();
                 title = title.replace(/_/g, " ");  // Underscore not within $ yields error
                 // Filter out sorting order html
                 var match = title.match(/([^<>]*)<(span|div)/);
                 if (match) title = match[1];
                 // Get column span of the current header
                 var colspan = parseInt($(this).attr("colspan"), 10);
-                if (colspan && title != copy_latex_text) {
+                if (colspan) {
                     // First column header is skipped here, so starting with "&" works
                     header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
-                } else if (title && title != copy_latex_text) {
+                } else if (title && title != "System" && title != copy_latex_text) {
                     header_string += "& \\textbf{" + title + "} ";
                 }
             }
