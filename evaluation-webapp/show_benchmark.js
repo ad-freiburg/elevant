@@ -56,6 +56,7 @@ $("document").ready(function() {
         });
         show_ground_truth_entities();
         show_linked_entities();
+        show_table();
     });
 });
 
@@ -415,6 +416,12 @@ function show_table() {
     table += "</tr>";
     
     for (eval_case of evaluation_cases[approach_index]) {
+        if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
+            if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
+                continue;
+            }
+        }
+
         if ("true_entity" in eval_case) {
             has_true_entity = true;
             true_entity_id = eval_case.true_entity.entity_id;
