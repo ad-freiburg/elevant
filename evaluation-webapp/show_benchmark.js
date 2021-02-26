@@ -501,6 +501,7 @@ function build_overview_table(path) {
     */
     folders = [];
     result_files = {};
+    result_array = [];
     var urls = [];
     $.get(path, function(data) {
         // Get all folders from the evaluation results directory
@@ -523,7 +524,6 @@ function build_overview_table(path) {
             });
         })).then(function() {
             // Retrieve contents of each .results file and store it in an array
-            var result_array = [];
             $.when.apply($, urls.map(function(url) {
                 return $.getJSON(url, function(results) {
                     var approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
@@ -531,9 +531,9 @@ function build_overview_table(path) {
                     result_array.push([approach_name, results]);
                 });
             })).then(function() {
-                // Sort the array. This can be a custom sorting function later
+                // Sort the result array
                 result_array.sort(compare);
-                // Add a row to the table for each item in the results array, add table header and checkboxes
+                // Add table header and checkboxes
                 result_array.forEach(function(result_tuple) {
                     var approach_name = result_tuple[0];
                     var results = result_tuple[1];
@@ -547,17 +547,34 @@ function build_overview_table(path) {
                         // Add checkboxes if they have not yet been added
                         add_checkboxes(results);
                     }
-
-                    // Add a table row
-                    var row = get_table_row(approach_name, results);
-                    $('#evaluation table tbody').append(row);
-                })
-            }).then(function() {
-                // Filter table rows after table is build (if anything is typed already)
-                filter_table_rows();
+                });
+                // Add table body
+                build_overview_table_body(result_array);
             });
         });
     });
+}
+
+function build_overview_table_body(result_list) {
+    /*
+    Build the table body.
+    Show / Hide rows and columns according to checkbox state and filter-result input field.
+    */
+    // Add table rows in new sorting order
+    result_list.forEach(function(result_tuple) {
+        var approach_name = result_tuple[0];
+        var results = result_tuple[1];
+        var row = get_table_row(approach_name, results);
+        $('#evaluation table tbody').append(row);
+    });
+
+    // Show / Hide columns according to checkbox state
+    $("input[class^='checkbox_']").each(function() {
+        show_hide_columns(this);
+    })
+
+    // Show / Hide rows according to filter-result input field
+    filter_table_rows();
 }
 
 function compare(approach_1, approach_2) {
@@ -574,6 +591,69 @@ function linker_key(approach_name) {
     else return 4;
 }
 
+function sort_table(column_header) {
+    /*
+    Sort table rows with respect to the selected column.
+    This sorts the result_array, removes old table rows and adds them in the new ordering.
+    */
+    // Get list of values in the selected column
+    // + 2 because the first empty header cell is part of the first header row, not the second
+    // and nth-child indices are 1-based
+    var col_index = $(column_header).parent().children().index($(column_header)) + 2;
+    var col_values = [];
+    $('#evaluation table tbody tr td:nth-child(' + col_index + ')').each(function() {
+        var text = $(this).html();
+        var match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
+        if (match) {
+            text = match[1];
+        }
+        var col_val = parseFloat(text);
+        col_values.push(col_val);
+    });
+
+    // Check if sorting should be ascending or descending
+    var descending = !$(column_header).hasClass("desc");
+
+    // Get new sorting order of the row indices and create a new result array according to the new sorting
+    sort_function = function(a, b) {
+        if (descending) {
+            return (isNaN(a[0])) ? 1 - isNaN(b[0]) : b[0] - a[0];
+        } else {
+            return (isNaN(b[0])) ? 1 - isNaN(a[0]) : a[0] - b[0];
+        }
+    };
+    const decor = (v, i) => [v, i];          // set index to value
+    const undecor = a => a[1];               // leave only index
+    const argsort = arr => arr.map(decor).sort(sort_function).map(undecor);
+    var order = argsort(col_values);
+    result_array = order.map(i => result_array[i])
+
+    // Remove asc/desc classes from all columns
+    $("#evaluation table th").each(function() {
+        $(this).removeClass("desc");
+        $(this).removeClass("asc");
+    })
+
+    var sorted_result_array = result_array;
+    if (descending) {
+        // Show down-pointing triangle
+        $(column_header).find("span").html("&#9660");
+        // Add new class to indicate descending sorting order
+        $(column_header).addClass("desc");
+    } else {
+        // Show up-pointing triangle
+        $(column_header).find("span").html("&#9650");
+        // Add new class to indicate ascending sorting order
+        $(column_header).addClass("asc");
+    }
+
+    // Remove old table rows
+    $("#evaluation table tbody").empty();
+
+    // Add table rows in new order to the table body
+    build_overview_table_body(sorted_result_array);
+}
+
 function add_checkboxes(json_obj) {
     /*
     Add checkboxes for showing / hiding columns.
@@ -581,13 +661,13 @@ function add_checkboxes(json_obj) {
     $.each(json_obj, function(key) {
         var class_name = get_class_name(key);
         var title = get_title_from_key(key);
-        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_checkbox_change(this)\" checked>";
+        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" checked>";
         checkbox_html += "<label>" + title + "</label>";
         $("#checkboxes").append(checkbox_html);
     });
 }
 
-function on_checkbox_change(element) {
+function show_hide_columns(element) {
     /*
     This function should be called when the state of a checkbox is changed.
     This can't be simply added in on document ready, because checkboxes are added dynamically.
@@ -615,7 +695,7 @@ function get_table_header(json_obj) {
         var class_name = get_class_name(key);
         $.each(json_obj[key], function(subkey) {
             if (!(ignore_headers.includes(subkey))) {
-                second_row += "<th class='" + class_name + "'>" + get_title_from_key(subkey) + "</th>";
+                second_row += "<th class='" + class_name + "' onclick='sort_table(this)'>" + get_title_from_key(subkey) + "<span>&#9660</span></th>";
                 colspan += 1;
             }
         });
@@ -781,6 +861,10 @@ function produce_latex() {
                 if (row_count > 0) num_cols += 1;
                 var title = $(this).text();
                 title = title.replace(/_/g, " ");  // Underscore not within $ yields error
+                // Filter out sorting order html
+                var match = title.match(/([^<>]*)<(span|div)/);
+                if (match) title = match[1];
+                // Get column span of the current header
                 var colspan = parseInt($(this).attr("colspan"), 10);
                 if (colspan && title != copy_latex_text) {
                     // First column header is skipped here, so starting with "&" works
@@ -814,9 +898,7 @@ function produce_latex() {
                 var text = $(this).html();
                 // Filter out tooltip texts and html
                 var match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
-                if (match) {
-                    text = match[1];
-                }
+                if (match) text = match[1];
                 text = text.replace(/%/g, "\\%").replace(/_/g, " ");
                 if (col_idx == 0) {
                     row_string += text + " ";

@@ -98,6 +98,17 @@ a {
 #evaluation table tbody tr.selected {
     background-color: var(--row-selected-color);
 }
+/* Sorting indicator */
+#evaluation table thead span {
+    visibility: hidden;
+    font-size: 0.8em;
+}
+#evaluation table thead .asc span {
+    visibility: visible;
+}
+#evaluation table thead .desc span {
+    visibility: visible;
+}
 
 /* Cell tooltip for precision / recall / F1 cells */
 #evaluation td .tooltiptext {
