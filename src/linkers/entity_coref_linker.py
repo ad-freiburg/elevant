@@ -87,6 +87,30 @@ def get_direct_speeches(article: WikipediaArticle, doc: Doc):
     return direct_speeches
 
 
+def get_paragraphs(article: WikipediaArticle) -> List[Tuple[int, int]]:
+    paragraph_matches = re.finditer(r"\n\n", article.text)
+    paragraphs = []
+    start = 0
+    match = None
+    for match in paragraph_matches:
+        paragraphs.append((start, match.end()))
+        start = match.end() + 1
+    if match and match.end() < len(article.text):
+        paragraphs.append((start, len(article.text)))
+    return paragraphs
+
+
+def is_first_subj_in_paragraph(tok: Token, paragraphs: List[Tuple[int, int]], doc: Doc) -> bool:
+    if tok.dep_ not in ('nsubj', 'nsubjpass'):
+        return False
+    for start, end in paragraphs:
+        if start <= tok.idx < end:
+            sent = OffsetConverter.get_sentence(start, doc)
+            if sent.end_char > tok.idx:
+                return True
+    return False
+
+
 def get_containing_direct_speech(offset: int, direct_speeches: List[DirectSpeech]) -> DirectSpeech:
     for ds in direct_speeches:
         s, e = ds.span
@@ -106,6 +130,7 @@ class EntityCorefLinker(AbstractCorefLinker):
             self.model = model
         self.entity_db = entity_db
         self.sent_start_idxs = None
+        self.title_entity = None
         if not self.entity_db.is_gender_loaded():
             print("Load gender mapping...")
             self.entity_db.load_gender()
@@ -123,9 +148,12 @@ class EntityCorefLinker(AbstractCorefLinker):
                               doc: Optional[Doc] = None,
                               max_distance: Optional[int] = None,
                               type_reference: Optional[bool] = False,
-                              direct_speech: Optional[DirectSpeech] = None) -> ReferencedEntity:
+                              direct_speech: Optional[DirectSpeech] = None,
+                              neutral_paragraph_subject: Optional[bool] = False) -> ReferencedEntity:
         referenced_entity = None
         direct_speech_len = 0
+        if neutral_paragraph_subject and self.title_entity and self.title_entity.gender == Gender.NEUTRAL:
+            return self.title_entity
         for i, preceding_entity in enumerate(reversed(preceding_entities)):
             pre_span = preceding_entity.span
             if direct_speech and PronounFinder.is_first_person_singular(tok_text):
@@ -178,6 +206,7 @@ class EntityCorefLinker(AbstractCorefLinker):
         tok_idx = 0
         seen_types = set()
         direct_speeches = get_direct_speeches(article, doc)
+        paragraphs = get_paragraphs(article)
 
         for sent in doc.sents:
 
@@ -210,6 +239,8 @@ class EntityCorefLinker(AbstractCorefLinker):
                         seen_types.update(types)
                     referenced_entity = ReferencedEntity(span, entity_id, gender, types, deps, direct_speech)
                     recent_ents_per_sent[-1][(tok_idx, end_idx)] = referenced_entity
+                    if span[0] == 0:
+                        self.title_entity = referenced_entity
                     mention_idx += 1
                     clusters[entity_id].append(span)
 
@@ -235,9 +266,13 @@ class EntityCorefLinker(AbstractCorefLinker):
                     # Find referenced entity
                     if not problematic_pronoun and (p_gender != Gender.UNKNOWN or
                                                     PronounFinder.is_first_person_singular(tok.text)):
+                        # TODO: Consider linking the article entity for all first subject in paragraph pronouns
+                        neutral_paragraph_subj = is_first_subj_in_paragraph(tok, paragraphs, doc) and \
+                                p_gender == Gender.NEUTRAL
                         preceding_entities = self.get_preceding_entities(recent_ents_per_sent, gender=p_gender)
                         referenced_entity = self.get_referenced_entity(span, preceding_entities, tok.text, doc,
-                                                                       max_distance=200, direct_speech=direct_speech)
+                                                                       max_distance=200, direct_speech=direct_speech,
+                                                                       neutral_paragraph_subject=neutral_paragraph_subj)
 
                 # Find "the <type>" coreference
                 # TODO only works for single word types right now
