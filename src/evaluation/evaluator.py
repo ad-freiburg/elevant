@@ -5,7 +5,7 @@ from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtr
 from src.evaluation.methods import get_evaluation_cases
 from src.evaluation.examples_generator import get_ground_truth_from_labels
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
-    print_article_coref_evaluation, print_evaluation_summary, create_f1_dict, create_f1_dict_from_counts
+    print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
@@ -59,17 +59,23 @@ class Evaluator:
                 self.counts["NER"]["fp"] += 1
 
     def count_mention_type_case(self, case: Case):
-        if case.is_correct():
-            subkey = "tp"
-        elif case.is_false_positive():
-            subkey = "fp"
-        else:
-            subkey = "fn"
         key = case.mention_type.value.lower()
-        self.counts[key][subkey] += 1
-        if case.is_coreference():
-            self.counts["coreference"][subkey] += 1
-        self.counts["all"][subkey] += 1
+        if case.is_correct():
+            self.counts["all"]["tp"] += 1
+            self.counts[key]["tp"] += 1
+            if case.is_coreference():
+                self.counts["coreference"]["tp"] += 1
+        else:
+            if case.is_false_positive():
+                self.counts["all"]["fp"] += 1
+                self.counts[key]["fp"] += 1
+                if case.is_coreference():
+                    self.counts["coreference"]["fp"] += 1
+            if case.is_false_negative():
+                self.counts["all"]["fn"] += 1
+                self.counts[key]["fn"] += 1
+                if case.is_coreference():
+                    self.counts["coreference"]["fn"] += 1
 
     def count_error_labels(self, case: Case):
         for label in case.error_labels:
@@ -106,10 +112,12 @@ class Evaluator:
         }
         results_dict["errors"] = {
                 error_label.value.lower(): self.error_counts[error_label] for error_label in ErrorLabel
-                if
-                error_label != ErrorLabel.MULTI_CANDIDATES_WRONG and error_label != ErrorLabel.MULTI_CANDIDATES_CORRECT
-                and error_label != ErrorLabel.WRONG_CANDIDATES
+                if "CANDIDATE" not in error_label.value and "COREFERENCE" not in error_label.value
             }
+        results_dict["coreference_errors"] = {
+            error_label.value.lower(): self.error_counts[error_label] for error_label in ErrorLabel
+            if "CANDIDATE" not in error_label.value and "COREFERENCE" in error_label.value
+        }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None
             results_dict["errors"]["multi_candidates"] = None
