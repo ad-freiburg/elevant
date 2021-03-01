@@ -44,7 +44,7 @@ $("document").ready(function() {
         show_mentions[key] = $("#show_" + key).is(":checked");
     });
 
-    // On checkbox change
+    // On article results checkbox change
     $("#article_checkboxes input").change(function() {
         var id = $(this).attr("id");
         var suffix = id.substring(id.indexOf("_") + 1, id.length);
@@ -591,7 +591,8 @@ function add_checkboxes(json_obj) {
     $.each(json_obj, function(key) {
         var class_name = get_class_name(key);
         var title = get_title_from_key(key);
-        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" checked>";
+        var checked = (class_name == "all") ? "checked" : ""
+        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" " + checked + ">";
         checkbox_html += "<label>" + title + "</label>";
         $("#checkboxes").append(checkbox_html);
     });
