@@ -93,23 +93,30 @@ def get_linked_entity_text(article, text, offset, entities):
 
 
 def get_hyperlink_text(article, text, offset):
-    # Add the article entity as hyperlink in the first sentence of the article.
-    title_link = []
-    if offset == 0:
-        title_tokens = article.title.split()
-        sent_end = article.text.find(".")
-        first_sent = article.text[:sent_end]
-        start = first_sent.find(title_tokens[0])
-        end = first_sent.find(title_tokens[-1])
-        end = end + len(title_tokens[-1]) if end > -1 else -1
-        if start > -1 and end > -1:
-            title_link = [((start, end), article.title)]
+    # Add the bold title span in the first paragraph of an article as hyperlink
+    title_spans = []
+    for start, end in article.title_synonyms:
+        # Do not allow nested hyperlinks and title spans.
+        # Only add title span if it is not overlapping with a hyperlink (seems to be WEXEA convention)
+        skip = False
+        for span, target in sorted(article.links):
+            link_start = span[0]
+            link_end = span[1]
+            skip = False
+            if link_start <= start < link_end or start <= link_start < end:
+                skip = True
+                break
+            elif link_start > end:
+                break
+        if not skip:
+            title_spans.append(((start, end), article.title))
 
-    if article.links + title_link is None:
+    if article.links + title_spans is None:
         return text, []
 
+    # Annotate text with bold title spans and hyperlinks
     targets = set()
-    for span, target in sorted(article.links + title_link, reverse=True):
+    for span, target in sorted(article.links + title_spans, reverse=True):
         begin, end = span
         begin -= offset
         end -= offset
