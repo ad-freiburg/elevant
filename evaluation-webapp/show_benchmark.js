@@ -717,6 +717,10 @@ function sort_table(column_header) {
         col_values.push(text);
     });
 
+    // Store approach name of currently selected row
+    var selected_approach = $("#evaluation table tbody tr.selected");
+    var selected_approach_index = selected_approach.parent().children().index($(selected_approach));  // 0-based
+
     // Check if sorting should be ascending or descending
     var descending = !$(column_header).hasClass("desc");
 
@@ -757,6 +761,10 @@ function sort_table(column_header) {
 
     // Add table rows in new order to the table body
     build_overview_table_body(result_array);
+
+    // Re-add selected class to previously selected row
+    var new_selected_approach_index = order.indexOf(selected_approach_index) + 1;  // +1 because nth-child is 1-based
+    $("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
 }
 
 function compare_approach_names(approach_1, approach_2) {
