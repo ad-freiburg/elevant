@@ -762,15 +762,33 @@ function sort_table(column_header) {
 function compare_approach_names(approach_1, approach_2) {
     approach_name_1 = approach_1[0];
     approach_name_2 = approach_2[0];
-    return linker_key(approach_name_1) - linker_key(approach_name_2) ||
+    return link_linker_key(approach_name_1) - link_linker_key(approach_name_2) ||
+        linker_key(approach_name_1) - linker_key(approach_name_2) ||
+        coref_linker_key(approach_name_1) - coref_linker_key(approach_name_2) ||
         approach_name_1 > approach_name_2;
 }
 
-function linker_key(approach_name) {
-    if (approach_name.startsWith("explosion")) return 1;
-    else if (approach_name.startsWith("neural_el")) return 2;
+function link_linker_key(approach_name) {
+    if (approach_name.includes("ltl.entity")) return 1;
+    else if (approach_name.includes("ltl")) return 2;
     else if (approach_name.startsWith("wexea")) return 3;
-    else return 4;
+    else return 10;
+}
+
+function linker_key(approach_name) {
+    if (approach_name.startsWith("neural_el")) return 1;
+    else if (approach_name.startsWith("explosion")) return 2;
+    else if (approach_name.startsWith("none")) return 100;
+    else return 10;
+}
+
+function coref_linker_key(approach_name) {
+    var start_idx = approach_name.split(".", 2).join(".").length + 1;
+    var end_idx = approach_name.split(".", 3).join(".").length;
+    var coref_linker = approach_name.substring(start_idx, end_idx);
+    if (coref_linker == "entity") return 1;
+    else if (coref_linker == "none") return 100;
+    else return 10;
 }
 
 function read_evaluation_cases(path) {
