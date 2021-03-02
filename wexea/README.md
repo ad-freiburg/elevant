@@ -5,15 +5,9 @@ WEXEA is an exhaustive Wikipedia entity annotation system, to create a text corp
 
 This is a modified and dockered version of the [original code](https://github.com/mjstrobl/WEXEA).
 
-The original repository is based on our LREC 2020 paper: 
+The original repository is based on the LREC 2020 paper: 
+[WEXEA: Wikipedia EXhaustive Entity Annotation](https://www.aclweb.org/anthology/2020.lrec-1.240)
 
-"WEXEA: Wikipedia EXhaustive Entity Annotation"
-
-https://www.aclweb.org/anthology/2020.lrec-1.240
-
-WEXEA runs through several stages of article annotation and the final articles can be found in the 'final_articles' folder in the output directory.
-Articles are separately stored in a folder named after the first 3 letters of the title (lowercase) and sentences are split up leading to one sentence per line.
-Annotations follow the Wikipedia conventions, just the type of the annotation is added at the end.
 
 ## Run
 * Build the docker container with
@@ -50,6 +44,25 @@ The Webapp visualizes Wikipedia articles (not the benchmark articles) with Wikip
 ## Hardware requirements
 
 32GB of RAM are required (it may work with 16, but not tested) and it should take around 48 hours to finish with a full Wikipedia dump.
+
+## How does it work?
+In a preprocessing step, several dictionaries are created, such as a redirects dictionary, an alias dictionary and disambiguation page dictionaries.
+An article is linked in the following manner:
+1) Keep hyperlinks in the article if the corresponding article entity is mostly starting with a capital letter (considering most frequent anchor text of incoming links of an article).
+2) Link the bold title spans in the first paragraph of an article to the article entity.
+3) After a link is seen, search through the remaining article for the name or aliases (link anchor texts starting with a capital letter that appear more than once, redirects, first and last word of the entity if it's a person, ...) of the linked entity and annotate them with the corresponding entity.
+4) Search for acronyms in the article: For a string "Aaaaa Bbbbb Cccc (ABC)" if the matching string before the brackets was linked to an entity, the acronym is linked to that same entity.
+5) Search for mentions by looking for words starting with a capital letter (except for frequent sentence starter words). Combine pairs of mentions occuring next to each other or, if combined, are part of the alias dictionary or have one of the following words between the pair of mentions: ("de", "of", "von", "van").
+6) Such mentions are linked as follows:
+	- If a mention matches an alias of the article entity and does not exactly match any other entity, link to the article entity.
+	- If the mention matches the 10,000 most popular entities in Wikipedia, link to that entity
+	- If the mention matches a disambiguation page and one of the previously linked entities appears in this list, link to this entity
+	- If the mention matches an alias from the general alias dictionary, it is linked to the most frequently linked entity given the mention
+7) Resolve conflicts (more than one potential candidate for a mention using the previous rules) in the following manner:
+	- If all candidates correspond to persons, the person that was linked with the mention more often (within the article?) is linked.
+	- Exact name of a previously linked entity > alias of the article entity > alias of a previously linked entity
+	- Apply Gupta et al.'s Neural EL on the mention given the computed candidate set.
+8) If no entity can be found for a mention, annotate it with *unknown* or with a disambiguation page if one matches.
 
 ## Citation (bibtex)
 
