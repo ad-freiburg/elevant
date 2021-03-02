@@ -76,7 +76,16 @@ a {
     visibility: visible;
 }
 
+/* Benchmark selector*/
+#benchmark_selection {
+    padding-top: 1em;
+    padding-bottom: 2em;
+}
+
 /* Evaluation overview area */
+#evaluation {
+    padding-top: 1em;
+}
 #evaluation table {
     cursor: default;
 }
@@ -142,6 +151,13 @@ a {
     padding-top: 2em;
 }
 
+#article-results .row {
+    display: none;
+}
+#article-results #table {
+    display: none;
+}
+
 /* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */
 div.latex {
     display: none;
@@ -152,4 +168,10 @@ div.latex p {
 }
 div.latex textarea {
     display: none;
+}
+
+/* Class for warnings */
+.warning {
+    color: red;
+    font-site: 120%;
 }

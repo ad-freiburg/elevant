@@ -1,6 +1,3 @@
-// List of articles with ground truth information from the benchmark.
-var articles = [];
-
 // Colors for the tooltips.
 GREEN = "#7dcea0";
 RED = "#f1948a";
@@ -15,17 +12,16 @@ copy_latex_text = "Copy LaTeX code for table";
 
 show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
+benchmark_names = ["ours", "conll"];
+
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
     textfield_left = document.getElementById("textfield_left");
     textfield_right = document.getElementById("textfield_right");
+    benchmark_select = document.getElementById("benchmark");
     article_select = document.getElementById("article");
 
-    // Read the article and ground truth information from the benchmark.
-    parse_benchmark();
-    
-    // Build an overview table over all .results-files from the evaluation-results folder.
-    build_overview_table("evaluation-results");
+    set_benchmark_select_options();
 
     // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
     // Filter on key up
@@ -60,6 +56,59 @@ $("document").ready(function() {
     });
 });
 
+function set_benchmark_select_options() {
+    /* Set the options for the benchmark selector element to the names of the benchmarks in the given directory. */
+    // Retrieve file path of .results files in each folder
+    benchmarks = [];
+    $.get("benchmarks", function(folder_data) {
+        $(folder_data).find("a").each(function() {
+            file_name = $(this).attr("href");
+            if (file_name.startsWith("benchmark_labels")) {
+                benchmarks.push(file_name);
+            }
+        });
+    }).then(function() {
+        benchmarks.sort();
+        for (bi in benchmarks) {
+            benchmark = benchmarks[bi];
+            var option = document.createElement("option");
+            option.text = benchmark.split("_")[2].split(".")[0];
+            option.value = benchmark;
+            benchmark_select.add(option);
+        }
+        // Set default value to "ours".
+        $('#benchmark option:contains("ours")').prop('selected',true);
+        show_benchmark_results();
+    });
+}
+
+function show_benchmark_results() {
+    /*
+    Show overview table and set up the article selector for a selected benchmark.
+    */
+    benchmark_file = benchmark_select.value;
+    benchmark_name = $("#benchmark option:selected").text();
+
+    if (benchmark_file == "") {
+        return;
+    }
+
+    // Remove previous evaluation table content
+    $("#evaluation table thead").empty();
+    $("#evaluation table tbody").empty();
+
+    // Remove previous article evaluation content
+    $("#article-results .row").hide();
+    $("#article-results #table").hide();
+    evaluation_cases = [];
+
+    // Build an overview table over all .results-files from the evaluation-results folder.
+    build_overview_table("evaluation-results", benchmark_name);
+
+    // Read the article and ground truth information from the benchmark.
+    parse_benchmark(benchmark_file);
+}
+
 function filter_table_rows() {
     var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
     var match_type_and = $("#radio_and").is(":checked");
@@ -75,17 +124,19 @@ function filter_table_rows() {
     });
 }
 
-function parse_benchmark() {
+function parse_benchmark(benchmark_file) {
     /*
     Read the articles and ground truth labels from the benchmark.
     
-    Reads the file development_labels.jsonl and adds each article to the list 'articles'.
+    Reads the file benchmarks/<benchmark_file> and adds each article to the list 'articles'.
     Each article is an object indentical to the parsed JSON-object, with an additional property 'labelled_text',
     which is the article text with HTML-hyperlinks for the ground truth entity mentions.
     
     Calls set_article_select_options(), which sets the options for the article selector element.
     */
-    $.get("development_labels.jsonl",
+    // List of articles with ground truth information from the benchmark.
+    articles = [];
+    $.get("benchmarks/" + benchmark_file,
         function(data, status) {
             lines = data.split("\n");
             for (line of lines) {
@@ -118,10 +169,15 @@ function parse_benchmark() {
 
 function set_article_select_options() {
     /* Set the options for the article selector element to the names of the articles from the list 'articles'. */
+    // Empty previous options
+    $("#article").empty();
+
+    // Create new options
     for (ai in articles) {
         article = articles[ai];
         var option = document.createElement("option");
-        option.text = article.title;
+        // Conll articles don't have a title. In that case use the first 40 characters of the article
+        option.text = (article.title) ? article.title : article.text.substring(0, Math.min(40, article.text.length)) + "...";
         option.value = ai;
         article_select.add(option);
     }
@@ -487,12 +543,15 @@ function show_article() {
         return;
     }
     article = articles[approach_index];
-    
+
     show_article_link();
-    
+
+    $("#article-results .row").show();
+    $("#article-results #table").show();
+
     if (evaluation_cases.length == 0) {
         textfield_left.innerHTML = article.labelled_text;
-        textfield_right.innerHTML = "ERROR: no file with cases found.";
+        textfield_right.innerHTML = "<b class='warning'>No approach selected or no file with cases found.</b>";
         $("#table").html("");
         return;
     }
@@ -502,7 +561,7 @@ function show_article() {
     show_table();
 }
 
-function build_overview_table(path) {
+function build_overview_table(path, benchmark_name) {
     /*
     Build the overview table from the .results files found in the subdirectories of the given path.
     */
@@ -518,19 +577,23 @@ function build_overview_table(path) {
             folders.push(name);
         });
     }).done(function() {
-        // Retrieve file path of .results files in each folder
+        // Retrieve file path of .results files for the selected benchmark in each folder
         $.when.apply($, folders.map(function(folder) {
             return $.get(path + "/" + folder, function(folder_data) {
                 $(folder_data).find("a").each(function() {
                     file_name = $(this).attr("href");
-                    if (file_name.endsWith(RESULTS_EXTENSION)) {
+                    // This assumes the benchmark is specified in the last dot separated column before the
+                    // file extension if it is not our benchmark.
+                    benchmark = file_name.split(".").slice(-2)[0];
+                    benchmark_match = ((benchmark_name == "ours" && !benchmark_names.includes(benchmark)) || benchmark == benchmark_name);
+                    if (file_name.endsWith(RESULTS_EXTENSION) && benchmark_match) {
                         var url = path + "/" + folder + "/" + file_name;
                         urls.push(url);
                     }
                 });
             });
         })).then(function() {
-            // Retrieve contents of each .results file and store it in an array
+            // Retrieve contents of each .results file for the selected benchmark and store it in an array
             $.when.apply($, urls.map(function(url) {
                 return $.getJSON(url, function(results) {
                     var approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
