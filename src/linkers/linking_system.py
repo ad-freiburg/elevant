@@ -43,12 +43,13 @@ class LinkingSystem:
         self.linker = None
         self.prediction_iterator = None
         self.coreference_linker = None
+        self.coreference_prediction_iterator = None
         self.entity_db = None
 
         self._initialize_entity_db(linker_type, linker, link_linker, coreference_linker, minimum_score)
         self._initialize_link_linker(link_linker)
         self._initialize_linker(linker_type, linker, kb_name, longest_alias_ner)
-        self._initialize_coref_linker(coreference_linker)
+        self._initialize_coref_linker(coreference_linker, linker)
 
     def _initialize_entity_db(self, linker_type: str, linker: str, link_linker: str, coreference_linker: str,
                               minimum_score: int):
@@ -156,7 +157,7 @@ class LinkingSystem:
         elif linker_type == "link-linker":
             self.link_linker = LinkEntityLinker()
 
-    def _initialize_coref_linker(self, linker_type: str):
+    def _initialize_coref_linker(self, linker_type: str, linker_info):
         if linker_type == "neuralcoref":
             self.coreference_linker = NeuralcorefCorefLinker()
         elif linker_type == "entity":
@@ -167,6 +168,16 @@ class LinkingSystem:
             self.coreference_linker = XrennerCorefLinker()
         elif linker_type == "hobbs":
             self.coreference_linker = HobbsCorefLinker(entity_db=self.entity_db)
+        elif linker_type == "wexea":
+            result_dir = linker_info
+            if not self.entity_db.is_mapping_loaded():
+                print("Loading wikipedia-wikidata mapping...")
+                self.entity_db.load_mapping()
+            if not self.entity_db.is_redirects_loaded():
+                print("Loading redirects...")
+                self.entity_db.load_redirects()
+            self.coreference_prediction_iterator = WexeaPredictionReader(self.entity_db)\
+                .article_coref_predictions_iterator(result_dir)
 
     def link_entities(self,
                       article: WikipediaArticle,
@@ -194,3 +205,6 @@ class LinkingSystem:
             self.coreference_linker.link_entities(article,
                                                   only_pronouns=only_pronouns,
                                                   evaluation_span=coref_eval_span)
+        elif self.coreference_prediction_iterator:
+            predicted_coref_entities = next(self.coreference_prediction_iterator)
+            article.link_entities(predicted_coref_entities, "PREDICTION_READER_COREF", "PREDICTION_READER_COREF")

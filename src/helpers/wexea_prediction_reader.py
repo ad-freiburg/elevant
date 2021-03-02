@@ -8,12 +8,12 @@ import re
 
 
 class WexeaPredictionReader:
-    _link_re = re.compile(r"\[\[([^\[].*?)\|(.*?)\|.*?[^\]]\]\]")
+    _link_re = re.compile(r"\[\[([^\[].*?)\|(.*?)\|(.*?[^\]])\]\]")
 
     def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
 
-    def _get_prediction_from_file(self, file_path: str) -> Dict[Tuple[int, int], EntityPrediction]:
+    def _get_prediction_from_file(self, file_path: str, coref: bool) -> Dict[Tuple[int, int], EntityPrediction]:
         """
         Extract entity predictions from a file that is the output of the WEXEA
         entity annotator.
@@ -26,6 +26,7 @@ class WexeaPredictionReader:
         for link_match in WexeaPredictionReader._link_re.finditer(linked_text):
             link_target = link_match.group(1)
             link_text = link_match.group(2)
+            link_type = link_match.group(3)
             text += linked_text[text_position:link_match.start()]
             link_start_pos = len(text)
             text += link_text
@@ -34,7 +35,8 @@ class WexeaPredictionReader:
             text_position = link_match.end()
             entity_id = self.entity_db.link2id(link_target)
             candidates = {entity_id}
-            predictions[span] = EntityPrediction(span, entity_id, candidates)
+            if (coref and link_type == "COREF") or (not coref and link_type != "COREF"):
+                predictions[span] = EntityPrediction(span, entity_id, candidates)
         text += linked_text[text_position:]
         return predictions
 
@@ -42,9 +44,20 @@ class WexeaPredictionReader:
             -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """
         Yields predictions for each WEXEA disambiguation result file in the
-        given directory.
+        given directory without coreference predictions.
         """
         for file in sorted(os.listdir(disambiguation_dir)):
             file_path = os.path.join(disambiguation_dir, file)
-            predictions = self._get_prediction_from_file(file_path)
+            predictions = self._get_prediction_from_file(file_path, coref=False)
+            yield predictions
+
+    def article_coref_predictions_iterator(self, disambiguation_dir: str) \
+            -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
+        """
+        Yields coreference predictions for each WEXEA disambiguation result file
+        in the given directory.
+        """
+        for file in sorted(os.listdir(disambiguation_dir)):
+            file_path = os.path.join(disambiguation_dir, file)
+            predictions = self._get_prediction_from_file(file_path, coref=True)
             yield predictions

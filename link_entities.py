@@ -31,6 +31,9 @@ def main(args):
                                    args.kb_name,
                                    args.minimum_score,
                                    args.longest_alias_ner)
+    if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
+        print("Wexea can only be used as coreference linker in combination with the Wexea linker")
+        exit(1)
 
     input_file = open(args.input_file, 'r', encoding='utf8')
 
@@ -84,7 +87,7 @@ if __name__ == "__main__":
     parser.add_argument("-ll", "--link_linker", choices=["link-linker", "link-text-linker"], default=None,
                         help="Link linker to apply before spacy or explosion linker")
     parser.add_argument("-coref", "--coreference_linker",
-                        choices=["neuralcoref", "entity", "stanford", "xrenner", "hobbs"], default=None,
+                        choices=["neuralcoref", "entity", "stanford", "xrenner", "hobbs", "wexea"], default=None,
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
                         help="Only link coreferences that are pronouns.")
