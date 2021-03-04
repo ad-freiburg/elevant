@@ -5,10 +5,13 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.models.entity_database import EntityDatabase
 from src.models.conll_benchmark import conll_documents
 from src.models.wikipedia_article import article_from_json
+from src.helpers.xml_benchmark_reader import XMLBenchmarkParser
 from src import settings
 
 import operator
 import random
+
+
 random.seed(42)
 
 
@@ -83,6 +86,32 @@ class PseudoLinkConllExampleReader:
                 entity_name = self.entity_db.id2wikipedia_name(entity_id)
                 links.append(((span[0], span[1]), entity_name))
             article.links = links
+            yield article
+
+
+class AceExampleReader:
+    def __init__(self, entity_db: EntityDatabase):
+        self.entity_db = entity_db
+
+    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+        parser = XMLBenchmarkParser(self.entity_db)
+        for i, article in enumerate(parser.article_iterator(settings.ACE04_BENCHMARK_FILE,
+                                                            settings.ACE04_BENCHMARK_DIRECTORY + "RawText")):
+            if i == n:
+                break
+            yield article
+
+
+class MsnbcExampleReader:
+    def __init__(self, entity_db: EntityDatabase):
+        self.entity_db = entity_db
+
+    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+        parser = XMLBenchmarkParser(self.entity_db)
+        for i, article in enumerate(parser.article_iterator(settings.MSNBC_BENCHMARK_FILE,
+                                                            settings.MSNBC_BENCHMARK_DIRECTORY + "RawText")):
+            if i == n:
+                break
             yield article
 
 

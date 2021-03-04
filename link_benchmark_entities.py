@@ -21,26 +21,27 @@ import os
 from src.linkers.linking_system import LinkingSystem
 from src.models.entity_database import EntityDatabase
 from src.evaluation.examples_generator import ConllExampleReader, OwnBenchmarkExampleReader,\
-    WikipediaExampleReader, PseudoLinkConllExampleReader
+    WikipediaExampleReader, PseudoLinkConllExampleReader, AceExampleReader, MsnbcExampleReader
 
 
 def initialize_example_generator(benchmark_name):
     if benchmark_name == "conll":
         example_generator = ConllExampleReader()
-    elif benchmark_name == "conll-links":
-        print("load evaluation entities...")
-        entity_db = EntityDatabase()
-        entity_db.load_mapping()
-        example_generator = PseudoLinkConllExampleReader(entity_db)
     elif benchmark_name == "own":
         example_generator = OwnBenchmarkExampleReader()
     else:
         print("load evaluation entities...")
         entity_db = EntityDatabase()
-        entity_db.load_entities_big()
         entity_db.load_mapping()
         entity_db.load_redirects()
-        example_generator = WikipediaExampleReader(entity_db)
+        if benchmark_name == "ace":
+            example_generator = AceExampleReader(entity_db)
+        elif benchmark_name == "msnbc":
+            example_generator = MsnbcExampleReader(entity_db)
+        elif benchmark_name == "conll-links":
+            example_generator = PseudoLinkConllExampleReader(entity_db)
+        else:
+            example_generator = WikipediaExampleReader(entity_db)
     return example_generator
 
 
@@ -98,7 +99,8 @@ if __name__ == "__main__":
                         "EXPLOSION: Full path to the saved model.\n"
                         "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
                         "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
-    parser.add_argument("-b", "--benchmark", choices=["own", "wikipedia", "conll", "conll-links"], default="own",
+    parser.add_argument("-b", "--benchmark", choices=["own", "wikipedia", "conll", "conll-links", "ace", "msnbc"],
+                        default="own",
                         help="Benchmark over which to evaluate the linker.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")
