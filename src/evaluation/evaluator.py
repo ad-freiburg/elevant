@@ -50,7 +50,7 @@ class Evaluator:
 
     def count_ner_case(self, case: Case):
         if not case.is_coreference():
-            if case.has_ground_truth():
+            if case.has_ground_truth() and case.is_known_entity():
                 if case.has_predicted_entity():
                     self.counts["NER"]["tp"] += 1
                 else:
