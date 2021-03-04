@@ -37,7 +37,7 @@ def label_specificity_errors(cases: List[Case]):
 
 def label_demonym_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
     for case in cases:
-        if not case.is_correct() and case.true_entity is not None:
+        if not case.is_correct() and case.has_ground_truth():
             mention = text[case.span[0]:case.span[1]]
             if entity_db.is_demonym(mention):
                 case.add_error_label(ErrorLabel.DEMONYM)
