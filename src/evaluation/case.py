@@ -35,8 +35,10 @@ class ErrorLabel(Enum):
     MULTI_CANDIDATES_WRONG = "MULTI_CANDIDATES_WRONG"
     SPECIFICITY = "SPECIFICITY"
     RARE = "RARE"
-    DEMONYM = "DEMONYM"
-    PARTIAL_NAME = "PARTIAL_NAME"
+    DEMONYM_CORRECT = "DEMONYM_CORRECT"
+    DEMONYM_WRONG = "DEMONYM_WRONG"
+    PARTIAL_NAME_CORRECT = "PARTIAL_NAME_CORRECT"
+    PARTIAL_NAME_WRONG = "PARTIAL_NAME_WRONG"
     ABSTRACTION = "ABSTRACTION"
     NON_ENTITY_COREFERENCE = "NON_ENTITY_COREFERENCE"
     COREFERENCE_REFERENCED_WRONG = "COREFERENCE_REFERENCED_WRONG"
@@ -173,6 +175,9 @@ class Case:
 
     def is_coreference(self):
         return self.mention_type.is_coreference()
+
+    def is_named(self):
+        return not self.is_coreference()
 
 
 def case_from_dict(data) -> Case:
