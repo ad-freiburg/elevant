@@ -143,6 +143,7 @@ class Case:
 
     def to_dict(self) -> Dict:
         data = {"span": self.span,
+                "text": self.text,
                 "detected": self.detected,
                 "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in sorted(self.candidates)],
                 "predicted_by": self.predicted_by,
