@@ -1,5 +1,6 @@
 from typing import Iterator, Tuple, Set, List
 
+from src.evaluation.benchmark import Benchmark
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src.models.wikipedia_article import WikipediaArticle
 from src.models.entity_database import EntityDatabase
@@ -124,3 +125,26 @@ class OwnBenchmarkExampleReader:
                     break
                 article = article_from_json(json_line)
                 yield article
+
+
+def get_example_generator(benchmark_name):
+    if benchmark_name == Benchmark.CONLL.value:
+        example_generator = ConllExampleReader()
+    elif benchmark_name == Benchmark.OURS.value:
+        example_generator = OwnBenchmarkExampleReader()
+    else:
+        print("Load wikipedia to wikidata mapping for example generator...")
+        entity_db = EntityDatabase()
+        entity_db.load_mapping()
+        entity_db.load_redirects()
+        if benchmark_name == Benchmark.ACE.value:
+            example_generator = AceExampleReader(entity_db)
+        elif benchmark_name == Benchmark.MSNBC.value:
+            example_generator = MsnbcExampleReader(entity_db)
+        elif benchmark_name == Benchmark.CONLL_PSEUDO_LINKS.value:
+            example_generator = PseudoLinkConllExampleReader(entity_db)
+        else:
+            if benchmark_name != Benchmark.WIKIPEDIA.value:
+                print("WARNING: '%s' is not a known benchmark. Using Wikipedia as benchmark." % benchmark_name)
+            example_generator = WikipediaExampleReader(entity_db)
+    return example_generator

@@ -20,9 +20,10 @@ import re
 from typing import Dict, Optional
 from enum import Enum
 
+from src.evaluation.benchmark import Benchmark
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.evaluation.examples_generator import OwnBenchmarkExampleReader
+from src.evaluation.examples_generator import get_example_generator
 from src.models.wikidata_entity import WikidataEntity
 from src.models.wikipedia_article import WikipediaArticle, article_from_json
 
@@ -127,9 +128,9 @@ def get_hyperlink_text(article, text, offset):
     return text, list(targets)
 
 
-def input_file_iterator(filename, num_articles):
+def input_file_iterator(filename, n_articles):
     for i, line in enumerate(open(filename, 'r', encoding='utf8')):
-        if i == num_articles:
+        if i == n_articles:
             return
         article = article_from_json(line)
         yield article
@@ -143,11 +144,11 @@ def main(args):
         exit(1)
 
     if args.input_benchmark:
-        article_text_iterator = OwnBenchmarkExampleReader.iterate(args.num_articles)
+        article_text_iterator = get_example_generator(args.input_benchmark).iterate(args.n_articles)
     elif args.input_wiki_dump:
-        article_text_iterator = WikipediaDumpReader.article_iterator(args.num_articles)
+        article_text_iterator = WikipediaDumpReader.article_iterator(args.n_articles)
     else:
-        article_text_iterator = input_file_iterator(args.input_file, args.num_articles)
+        article_text_iterator = input_file_iterator(args.input_file, args.n_articles)
 
     annotation = None
     if args.print_labels:
@@ -220,8 +221,8 @@ if __name__ == "__main__":
     group_input.add_argument("-i", "--input_file", type=str,
                              help="Input file with one article per line in jsonl format.")
 
-    group_input.add_argument("--input_benchmark", default=False, action="store_true",
-                             help="Iterate over own benchmark articles.")
+    group_input.add_argument("--input_benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS,
+                             help="Iterate over benchmark articles of the given benchmark.")
 
     group_input.add_argument("--input_wiki_dump", default=False, action="store_true",
                              help="Iterate over raw Wikipedia dump articles.")
@@ -240,7 +241,7 @@ if __name__ == "__main__":
     parser.add_argument("--one_article_per_line", action="store_true",
                         help="An article is written to a single line.")
 
-    parser.add_argument("-n", "--num_articles", type=int, default=None,
+    parser.add_argument("-n", "--n_articles", type=int, default=None,
                         help="Maximum number of articles to process.")
 
     parser.add_argument("--evaluation_span", default=False, action="store_true",
