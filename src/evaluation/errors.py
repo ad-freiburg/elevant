@@ -3,9 +3,11 @@ from typing import List
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.mention_type import MentionType
 from src.models.entity_database import EntityDatabase
+from src.models.wikipedia_article import WikipediaArticle
 
 
-def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
+def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: EntityDatabase):
+    text = article.text
     cases = [case for case in cases if case.is_false_positive() or case.is_known_entity()]  # do not label unknowns
     label_specificity_errors(cases)
     label_demonym_errors(cases, entity_db)
@@ -16,6 +18,7 @@ def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
     label_candidate_errors(cases)
     label_multi_candidates(cases)
     label_abstraction_errors(cases)
+    label_hyperlink_errors(article, cases)
     label_coreference_errors(cases)
 
 
@@ -116,6 +119,16 @@ def label_abstraction_errors(cases: List[Case]):
                     break
             if not overlap:
                 case.add_error_label(ErrorLabel.ABSTRACTION)
+
+
+def label_hyperlink_errors(article: WikipediaArticle, cases: List[Case]):
+    hyperlink_spans = set(span for span, target in article.links)
+    for case in cases:
+        if case.span in hyperlink_spans and case.has_ground_truth() and case.is_known_entity():
+            if case.is_correct():
+                case.add_error_label(ErrorLabel.HYPERLINK_CORRECT)
+            else:
+                case.add_error_label(ErrorLabel.HYPERLINK_WRONG)
 
 
 def label_coreference_errors(cases: List[Case]):

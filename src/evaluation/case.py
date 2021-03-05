@@ -4,7 +4,7 @@ import json
 
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
-from src.evaluation.mention_type import MentionType, get_mention_type
+from src.evaluation.mention_type import get_mention_type
 
 
 class CaseType(Enum):
@@ -40,6 +40,8 @@ class ErrorLabel(Enum):
     PARTIAL_NAME_CORRECT = "PARTIAL_NAME_CORRECT"
     PARTIAL_NAME_WRONG = "PARTIAL_NAME_WRONG"
     ABSTRACTION = "ABSTRACTION"
+    HYPERLINK_CORRECT = "HYPERLINK_CORRECT"
+    HYPERLINK_WRONG = "HYPERLINK_WRONG"
     NON_ENTITY_COREFERENCE = "NON_ENTITY_COREFERENCE"
     COREFERENCE_REFERENCED_WRONG = "COREFERENCE_REFERENCED_WRONG"
     COREFERENCE_WRONG_REFERENCE = "COREFERENCE_WRONG_REFERENCE"

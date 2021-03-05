@@ -99,7 +99,7 @@ class Evaluator:
 
         cases = get_evaluation_cases(article, ground_truth, coref_ground_truth, self.entity_db)
 
-        label_errors(article.text, cases, self.entity_db)
+        label_errors(article, cases, self.entity_db)
 
         return cases
 
@@ -143,7 +143,12 @@ class Evaluator:
                 "total": self.error_counts[ErrorLabel.PARTIAL_NAME_CORRECT] +
                          self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG]
             },
-            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION]
+            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
+            "hyperlink": {
+                "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
+                "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
+                         self.error_counts[ErrorLabel.HYPERLINK_WRONG]
+            }
         }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None
