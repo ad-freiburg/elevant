@@ -38,6 +38,8 @@ class Evaluator:
             self.counts[key] = {"tp": 0, "fp": 0, "fn": 0}
         self.error_counts = {label: 0 for label in ErrorLabel}
         self.has_candidates = False
+        self.n_named_lowercase = 0
+        self.n_named_contains_space = 0
 
     def add_cases(self, cases: List[Case]):
         self.all_cases.extend(cases)
@@ -47,14 +49,18 @@ class Evaluator:
             self.count_error_labels(case)
             if len(case.candidates) > 1:
                 self.has_candidates = True
+            if case.is_named() and case.has_ground_truth() and ' ' in case.text:
+                self.n_named_contains_space += 1
 
     def count_ner_case(self, case: Case):
-        if not case.is_coreference():
-            if case.has_ground_truth():
+        if case.is_named():
+            if case.has_ground_truth() and case.is_known_entity():
                 if case.has_predicted_entity():
                     self.counts["NER"]["tp"] += 1
                 else:
                     self.counts["NER"]["fn"] += 1
+                if case.text.islower():
+                    self.n_named_lowercase += 1
             else:
                 self.counts["NER"]["fp"] += 1
 
@@ -93,7 +99,7 @@ class Evaluator:
 
         cases = get_evaluation_cases(article, ground_truth, coref_ground_truth, self.entity_db)
 
-        label_errors(article.text, cases, self.entity_db)
+        label_errors(article, cases, self.entity_db)
 
         return cases
 
@@ -111,21 +117,68 @@ class Evaluator:
             category: create_f1_dict_from_counts(self.counts[category]) for category in EVALUATION_CATEGORIES
         }
         results_dict["errors"] = {
-                error_label.value.lower(): self.error_counts[error_label] for error_label in ErrorLabel
-                if "CANDIDATE" not in error_label.value and "COREFERENCE" not in error_label.value
+            "undetected": {
+                "errors": self.error_counts[ErrorLabel.UNDETECTED],
+                "total": results_dict["NER"]["ground_truth"]
+            },
+            "undetected_lowercase": {
+                "errors": self.error_counts[ErrorLabel.UNDETECTED_LOWERCASE],
+                "total": self.n_named_lowercase
+            },
+            "specificity": {
+                "errors": self.error_counts[ErrorLabel.SPECIFICITY],
+                "total": self.n_named_contains_space
+            },
+            "rare": {
+                "errors": self.error_counts[ErrorLabel.RARE],
+                "total": self.counts["NER"]["tp"]
+            },
+            "demonym": {
+                "errors": self.error_counts[ErrorLabel.DEMONYM_WRONG],
+                "total": self.error_counts[ErrorLabel.DEMONYM_CORRECT] +
+                         self.error_counts[ErrorLabel.DEMONYM_WRONG]
+            },
+            "partial_name": {
+                "errors": self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG],
+                "total": self.error_counts[ErrorLabel.PARTIAL_NAME_CORRECT] +
+                         self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG]
+            },
+            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
+            "hyperlink": {
+                "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
+                "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
+                         self.error_counts[ErrorLabel.HYPERLINK_WRONG]
             }
-        results_dict["coreference_errors"] = {
-            error_label.value.lower(): self.error_counts[error_label] for error_label in ErrorLabel
-            if "CANDIDATE" not in error_label.value and "COREFERENCE" in error_label.value
         }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None
             results_dict["errors"]["multi_candidates"] = None
         else:
-            results_dict["errors"]["wrong_candidates"] = self.error_counts[ErrorLabel.WRONG_CANDIDATES]
+            results_dict["errors"]["wrong_candidates"] = {
+                "errors": self.error_counts[ErrorLabel.WRONG_CANDIDATES],
+                "total": self.counts["NER"]["tp"]
+            }
             results_dict["errors"]["multi_candidates"] = {
                 "wrong": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
                 "total": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG] +
                          self.error_counts[ErrorLabel.MULTI_CANDIDATES_CORRECT]
             }
+        results_dict["coreference_errors"] = {
+            "no_reference": {
+                "errors": self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE],
+                "total": results_dict["coreference"]["ground_truth"]
+            },
+            "wrong_reference": {
+                "errors": self.error_counts[ErrorLabel.COREFERENCE_WRONG_REFERENCE],
+                "total": results_dict["coreference"]["ground_truth"] -
+                         self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE]
+            },
+            "referenced_wrong": {
+                "errors": self.error_counts[ErrorLabel.COREFERENCE_REFERENCED_WRONG],
+                "total": results_dict["coreference"]["ground_truth"] -
+                         self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE] -
+                         self.error_counts[ErrorLabel.COREFERENCE_WRONG_REFERENCE]
+            },
+            "non_entity_coreference": self.error_counts[ErrorLabel.NON_ENTITY_COREFERENCE]
+        }
         return results_dict

@@ -4,7 +4,7 @@ import json
 
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
-from src.evaluation.mention_type import MentionType, get_mention_type
+from src.evaluation.mention_type import get_mention_type
 
 
 class CaseType(Enum):
@@ -35,9 +35,13 @@ class ErrorLabel(Enum):
     MULTI_CANDIDATES_WRONG = "MULTI_CANDIDATES_WRONG"
     SPECIFICITY = "SPECIFICITY"
     RARE = "RARE"
-    DEMONYM = "DEMONYM"
-    PARTIAL_NAME = "PARTIAL_NAME"
+    DEMONYM_CORRECT = "DEMONYM_CORRECT"
+    DEMONYM_WRONG = "DEMONYM_WRONG"
+    PARTIAL_NAME_CORRECT = "PARTIAL_NAME_CORRECT"
+    PARTIAL_NAME_WRONG = "PARTIAL_NAME_WRONG"
     ABSTRACTION = "ABSTRACTION"
+    HYPERLINK_CORRECT = "HYPERLINK_CORRECT"
+    HYPERLINK_WRONG = "HYPERLINK_WRONG"
     NON_ENTITY_COREFERENCE = "NON_ENTITY_COREFERENCE"
     COREFERENCE_REFERENCED_WRONG = "COREFERENCE_REFERENCED_WRONG"
     COREFERENCE_WRONG_REFERENCE = "COREFERENCE_WRONG_REFERENCE"
@@ -143,6 +147,7 @@ class Case:
 
     def to_dict(self) -> Dict:
         data = {"span": self.span,
+                "text": self.text,
                 "detected": self.detected,
                 "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in sorted(self.candidates)],
                 "predicted_by": self.predicted_by,
@@ -172,6 +177,9 @@ class Case:
 
     def is_coreference(self):
         return self.mention_type.is_coreference()
+
+    def is_named(self):
+        return not self.is_coreference()
 
 
 def case_from_dict(data) -> Case:

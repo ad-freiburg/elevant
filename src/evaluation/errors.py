@@ -3,12 +3,14 @@ from typing import List
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.mention_type import MentionType
 from src.models.entity_database import EntityDatabase
+from src.models.wikipedia_article import WikipediaArticle
 
 
-def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
+def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: EntityDatabase):
+    text = article.text
     cases = [case for case in cases if case.is_false_positive() or case.is_known_entity()]  # do not label unknowns
     label_specificity_errors(cases)
-    label_demonym_errors(text, cases, entity_db)
+    label_demonym_errors(cases, entity_db)
     label_rare_entity_errors(text, cases, entity_db)
     label_partial_name_errors(text, cases, entity_db)
     label_nonentity_coreference_errors(text, cases)
@@ -16,6 +18,7 @@ def label_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
     label_candidate_errors(cases)
     label_multi_candidates(cases)
     label_abstraction_errors(cases)
+    label_hyperlink_errors(article, cases)
     label_coreference_errors(cases)
 
 
@@ -35,12 +38,13 @@ def label_specificity_errors(cases: List[Case]):
                 break
 
 
-def label_demonym_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
+def label_demonym_errors(cases: List[Case], entity_db: EntityDatabase):
     for case in cases:
-        if not case.is_correct() and case.true_entity is not None:
-            mention = text[case.span[0]:case.span[1]]
-            if entity_db.is_demonym(mention):
-                case.add_error_label(ErrorLabel.DEMONYM)
+        if entity_db.is_demonym(case.text):
+            if case.is_correct():
+                case.add_error_label(ErrorLabel.DEMONYM_CORRECT)
+            else:
+                case.add_error_label(ErrorLabel.DEMONYM_WRONG)
 
 
 def label_rare_entity_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
@@ -56,12 +60,13 @@ def label_rare_entity_errors(text: str, cases: List[Case], entity_db: EntityData
 
 def label_partial_name_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
     for case in cases:
-        if not case.is_correct() and case.true_entity is not None and not case.is_true_coreference():
-            mention = text[case.span[0]:case.span[1]]
-            if not entity_db.is_demonym(mention):
-                name = case.true_entity.name
-                if len(mention) < len(name) and mention in name.split():
-                    case.add_error_label(ErrorLabel.PARTIAL_NAME)
+        if case.has_ground_truth() and case.is_named() and not entity_db.is_demonym(case.text):
+            name = case.true_entity.name
+            if " " in name and case.text in name.split():
+                if case.is_correct():
+                    case.add_error_label(ErrorLabel.PARTIAL_NAME_CORRECT)
+                else:
+                    case.add_error_label(ErrorLabel.PARTIAL_NAME_WRONG)
 
 
 NONENTITY_PRONOUNS = {"it", "this", "that", "its"}
@@ -114,6 +119,16 @@ def label_abstraction_errors(cases: List[Case]):
                     break
             if not overlap:
                 case.add_error_label(ErrorLabel.ABSTRACTION)
+
+
+def label_hyperlink_errors(article: WikipediaArticle, cases: List[Case]):
+    hyperlink_spans = set(span for span, target in article.links)
+    for case in cases:
+        if case.span in hyperlink_spans and case.has_ground_truth() and case.is_known_entity():
+            if case.is_correct():
+                case.add_error_label(ErrorLabel.HYPERLINK_CORRECT)
+            else:
+                case.add_error_label(ErrorLabel.HYPERLINK_WRONG)
 
 
 def label_coreference_errors(cases: List[Case]):
