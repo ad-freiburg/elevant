@@ -18,13 +18,15 @@ class XMLBenchmarkParser:
         Use the mention dictionary to create a WikipediaArticle from the given
         text.
         """
-        # There are 57 files for ACE, but only 36 documents in the xml file.
-        # But the number of non-NIL mentions in the xml file is 257 as it should be
-        # So assume we can skip the remaining documents
+        # At least Neural EL has a problem with articles starting with whitespace.
+        # Therefore left-strip whitespaces and adjust the label spans.
+        stripped_text = text.lstrip()
+        offset = len(text) - len(stripped_text)
         if filename in self.mention_dictionary:
             wiki_labels = self.mention_dictionary[filename]
             labels = []
             for span, wiki_name in wiki_labels:
+                span = span[0] - offset, span[1] - offset
                 # For now, simply ignore NIL-entities.
                 if wiki_name != "NIL" and wiki_name is not None:
                     entity_id = self.entity_db.link2id(wiki_name)
@@ -35,7 +37,7 @@ class XMLBenchmarkParser:
                         print("\nMapping not found for wiki title: %s" % wiki_name)
                     else:
                         labels.append((span, entity_id))
-            return WikipediaArticle(id=-1, title="", text=text, links=[], labels=labels)
+            return WikipediaArticle(id=-1, title="", text=stripped_text, links=[], labels=labels)
 
     def get_mention_dictionary(self, xml_file: str):
         """
@@ -64,5 +66,8 @@ class XMLBenchmarkParser:
             file_path = os.path.join(raw_text_dir, filename)
             text = ''.join(open(file_path, "r", encoding="utf8").readlines())
             article = self.to_article(filename, text)
+            # There are 57 files for ACE, but only 36 documents in the xml file.
+            # But the number of non-NIL mentions in the xml file is 257 as it should be
+            # So assume we can skip the remaining documents
             if article:
                 yield article
