@@ -23,7 +23,7 @@ class WikipediaArticle:
         self.title = title
         self.text = text
         self.links = links
-        self.title_synonyms = title_synonyms
+        self.title_synonyms = title_synonyms if title_synonyms else []
         self.url = url
         self.entity_mentions = None
         self.entity_coverage = None
