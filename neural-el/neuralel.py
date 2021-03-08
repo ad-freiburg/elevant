@@ -95,7 +95,13 @@ def main(_):
         for line_num, line in enumerate(f):
             print("*" * 80)
             print("Processing doc %d" % line_num)
-            reader.initialize_for_doc(line.strip())
+            # NER yields wrong results if line ends on an entity (without trailing punctuation).
+            # As a hack, append a dot if line ends on alphanumeric. This should not change the results.
+            line = line.strip()
+            if line and line[-1].isalnum():
+                print("Add punctuation to end of line.")
+                line += " ."
+            reader.initialize_for_doc(line)
             docta = reader.ccgdoc
 
             with tf.Graph().as_default():
@@ -164,7 +170,6 @@ def main(_):
                             print("Predicted Entity Types : {}".format(predTypes))
                             print("\n")
                             mentionnum += 1
-
                     elview = copy.deepcopy(docta.view_dictionary['NER_CONLL'])
                     elview.view_name = 'ENG_NEURAL_EL'
 
