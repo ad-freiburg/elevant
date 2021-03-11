@@ -35,6 +35,7 @@ class Annotation(Enum):
     LABELS = 0
     LINKS = 1
     HYPERLINKS = 2
+    NER = 3
 
 
 def get_entity_text(article: WikipediaArticle,
@@ -52,6 +53,8 @@ def get_entity_text(article: WikipediaArticle,
         return get_labeled_entity_text(article, text, offset, entities)
     elif annotation == Annotation.LINKS:
         return get_linked_entity_text(article, text, offset, entities)
+    elif annotation == Annotation.NER:
+        return get_ner_text(article, text, offset), []
     else:
         return get_hyperlink_text(article, text, offset)
 
@@ -71,6 +74,20 @@ def get_labeled_entity_text(article, text, offset, entities):
         text = text[:begin] + entity_string + text[end:]
         label_entities.add(entity_id)
     return text, list(label_entities)
+
+
+def get_ner_text(article, text, offset):
+    if article.labels is None:
+        return text
+
+    for span, _ in sorted(article.labels, reverse=True):
+        begin, end = span
+        begin -= offset
+        end -= offset
+        mention_text_snippet = text[begin:end]
+        mention_string = "[[%s]]" % mention_text_snippet
+        text = text[:begin] + mention_string + text[end:]
+    return text
 
 
 def get_linked_entity_text(article, text, offset, entities):
@@ -157,6 +174,8 @@ def main(args):
         annotation = Annotation.LINKS
     elif args.print_hyperlinks:
         annotation = Annotation.HYPERLINKS
+    elif args.print_ner_groundtruth:
+        annotation = Annotation.NER
 
     entities = None
     if annotation is not None:
@@ -252,13 +271,16 @@ if __name__ == "__main__":
 
     group_links = parser.add_mutually_exclusive_group()
     group_links.add_argument("--print_labels", default=False, action="store_true",
-                             help="Print groundtruth labels in the format [<QID>:<label>|<original>].")
+                             help="Print groundtruth labels as [<QID>:<label>|<original>].")
+
+    group_links.add_argument("--print_ner_groundtruth", default=False, action="store_true",
+                             help="Print NER groundtruth labels as [[<mention>]].")
 
     group_links.add_argument("--print_links", default=False, action="store_true",
-                             help="Print linked entities in the format [<QID>:<label>|<original>].")
+                             help="Print linked entities as [<QID>:<label>|<original>].")
 
     group_links.add_argument("--print_hyperlinks", default=False, action="store_true",
-                             help="Print hyperlinks in the format [[<target>|<original>]].")
+                             help="Print hyperlinks as [[<target>|<original>]].")
 
     parser.add_argument("--print_entity_list", action="store_true",
                         help="Print a list of entities at the end of the article")
