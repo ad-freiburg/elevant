@@ -77,7 +77,7 @@ if __name__ == "__main__":
                         "EXPLOSION: Full path to the saved model.\n"
                         "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
                         "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
-    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark],  default=Benchmark.OURS,
+    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark],  default=Benchmark.OURS.value,
                         help="Benchmark over which to evaluate the linker.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")
