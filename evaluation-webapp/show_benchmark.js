@@ -12,7 +12,7 @@ copy_latex_text = "Copy LaTeX code for table";
 
 show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
-benchmark_names = ["ours", "conll", "ace", "msnbc"];
+benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc"];
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.

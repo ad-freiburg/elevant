@@ -58,6 +58,39 @@ class ConllExampleReader:
             yield article
 
 
+class ConllDevExampleReader:
+    @staticmethod
+    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
+        articles_count = 0
+        for i, document in enumerate(conll_documents()):
+            if i < 946:
+                # Articles 1 to 946 belong to the training dataset
+                continue
+            if i >= 1162:
+                # Articles 1163 to 1393 belong to the test dataset
+                break
+            if articles_count == n:
+                break
+            article = document.to_article()
+            articles_count += 1
+            yield article
+
+
+class ConllTestExampleReader:
+    @staticmethod
+    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
+        articles_count = 0
+        for i, document in enumerate(conll_documents()):
+            if i < 1162:
+                # Articles < 1163 belong to the training and dev dataset
+                continue
+            if articles_count == n:
+                break
+            article = document.to_article()
+            articles_count += 1
+            yield article
+
+
 class PseudoLinkConllExampleReader:
     def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
@@ -130,6 +163,10 @@ class OwnBenchmarkExampleReader:
 def get_example_generator(benchmark_name):
     if benchmark_name == Benchmark.CONLL.value:
         example_generator = ConllExampleReader()
+    elif benchmark_name == Benchmark.CONLL_DEV.value:
+        example_generator = ConllDevExampleReader()
+    elif benchmark_name == Benchmark.CONLL_TEST.value:
+        example_generator = ConllTestExampleReader()
     elif benchmark_name == Benchmark.OURS.value:
         example_generator = OwnBenchmarkExampleReader()
     else:
