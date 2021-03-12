@@ -188,6 +188,7 @@ function set_article_select_options() {
 function show_article_link() {
     /* Link the currently selected article in the element #article_link. */
     $("#article_link").html("<a href=\"" + article.url + "\" target=\"_blank\">Wikipedia article</a>");
+    $("#article_link").show();
 }
 
 function show_ground_truth_entities() {
@@ -544,7 +545,11 @@ function show_article() {
     }
     article = articles[approach_index];
 
-    show_article_link();
+    if (article.url) {
+        show_article_link();
+    } else {
+        $("#article_link").hide();
+    }
 
     $("#article-results .row").show();
     $("#article-results #table").show();
