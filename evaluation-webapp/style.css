@@ -111,14 +111,30 @@ a {
     background-color: var(--row-selected-color);
 }
 /* Sorting indicator */
-#evaluation table thead span {
+#evaluation table thead .sort_symbol {
     visibility: hidden;
     font-size: 0.8em;
 }
-#evaluation table thead .asc span {
+#evaluation table thead .asc .sort_symbol {
     visibility: visible;
 }
-#evaluation table thead .desc span {
+#evaluation table thead .desc .sort_symbol {
+    visibility: visible;
+}
+
+
+/* Show the tooltip text when you mouse over a table header cell that comes with a description */
+#evaluation table thead .tooltip .tooltiptext {
+    width: 7em;
+    bottom: 140%;
+    left: 0%;
+    border: 2px solid white;
+    font-size: 0.8em;
+    font-weight: 300;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+#evaluation table thead .tooltip:hover .tooltiptext {
     visibility: visible;
 }
 

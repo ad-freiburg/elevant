@@ -10,9 +10,25 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
+header_descriptions = {"undetected": "The span of a GT mention was not linked (= NER FN) / Named GT mentions",
+                       "undetected_lowercase": "The span of a lowercase GT mention was not linked / Named lowercase GT mentions",
+                       "specificity": "FN and a part of the GT mention was linked to an arbitrary entity / Named GT mentions containing whitespace(s)",
+                       "rare": "Mention was linked to a popular entity instead of the true, less popular entity / Named detected",
+                       "demonym": "FN from a list of demonyms (German, Germans, ...) / All demonym GT mentions",
+                       "partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
+                       "abstraction": "Named FP that does not overlap with a GT mention",
+                       "hyperlink": "FN where the mention is identical to a hyperlink / GT mentions that are identical to a hyperlink",
+                       "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
+                       "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates",
+                       "non_entity_coreference": "FP mentions in {It, it, This, this, That, that, Its, its}",
+                       "coreference_referenced_wrong": "FN, the last named GT mention of the GT entity was linked to the same, wrong entity / Correct references",
+                       "coreference_wrong_reference": "FN, the last named GT mention of the GT entity was not linked or linked to a wrong entity / Linked GT coreference mentions",
+                       "coreference_no_reference": "FN, mention was not linked / GT coreference mentions"};
+
 show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
 benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc"];
+
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
@@ -687,13 +703,18 @@ function get_table_header(json_obj) {
     */
     var num_first_cols = json_obj.length;
     var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr><th onclick='sort_table(this)'>System<span>&#9660</span></th>";
+    var second_row = "<tr><th onclick='sort_table(this)'>System<span class='sort_symbol'>&#9660</span></th>";
     $.each(json_obj, function(key) {
         var colspan = 0;
         var class_name = get_class_name(key);
         $.each(json_obj[key], function(subkey) {
             if (!(ignore_headers.includes(subkey))) {
-                second_row += "<th class='" + class_name + "' onclick='sort_table(this)'>" + get_title_from_key(subkey) + "<span>&#9660</span></th>";
+                second_row += "<th class='" + class_name + "' onclick='sort_table(this)'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
+                var tooltip_text = get_header_tooltip_text(subkey);
+                if (tooltip_text) {
+                    second_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+                }
+                second_row += "</div></th>";
                 colspan += 1;
             }
         });
@@ -751,6 +772,13 @@ function get_tooltip_text(json_obj) {
     tooltip_text += "FN: " + json_obj["false_negatives"] + "<br>";
     tooltip_text += "GT: " + json_obj["ground_truth"];
     return tooltip_text;
+}
+
+function get_header_tooltip_text(header_title) {
+    if (header_title in header_descriptions) {
+        return header_descriptions[header_title];
+    }
+    return "";
 }
 
 function get_class_name(text) {
@@ -812,14 +840,14 @@ function sort_table(column_header) {
 
     if (descending) {
         // Show down-pointing triangle
-        $(column_header).find("span").html("&#9660");
+        $(column_header).find(".sort_symbol").html("&#9660");
         // Add new class to indicate descending sorting order
         $(column_header).addClass("desc");
     } else {
         // Reverse sorting order
         result_array = result_array.reverse();
         // Show up-pointing triangle
-        $(column_header).find("span").html("&#9650");
+        $(column_header).find(".sort_symbol").html("&#9650");
         // Add new class to indicate ascending sorting order
         $(column_header).addClass("asc");
     }
@@ -958,9 +986,9 @@ function produce_latex() {
                 if (row_count > 0) num_cols += 1;
                 var title = $(this).html();
                 title = title.replace(/_/g, " ");  // Underscore not within $ yields error
-                // Filter out sorting order html
-                var match = title.match(/([^<>]*)<(span|div)/);
-                if (match) title = match[1];
+                // Filter out sorting order and tooltip html
+                var match = title.match(/(<div [^<>]*>)?([^<>]*)<(span|div)/);
+                if (match) title = match[2];
                 // Get column span of the current header
                 var colspan = parseInt($(this).attr("colspan"), 10);
                 if (colspan) {
