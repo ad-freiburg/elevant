@@ -24,7 +24,9 @@ For example, the article *Viking program* is judged as correct for “Viking Lan
 
 **Paper:** [Local and Global Algorithms for Disambiguation to Wikipedia](https://www.aclweb.org/anthology/P11-1138.pdf)
 
-**Method:** Ratinov et al. took the ACE coreference dataset (Coreference is resolved and mentions and their types are given) and asked Amazon Mechanical Turk annotators to link the first nominal mention of each co-reference chain to Wikipedia if possible.
+**Volume:** 36 articles with 257 mentions.
+
+**Method:** Ratinov et al. took a subset of the ACE coreference dataset (Coreference is resolved and mentions and their types are given) and asked Amazon Mechanical Turk annotators to link the first nominal mention of each co-reference chain to Wikipedia if possible.
 They then manually corrected the annotations.
 
 **Inofficial Download** (data of [Ganea Paper](https://github.com/dalab/end2end_neural_el)): <https://drive.google.com/file/d/1OSKvIiXHVVaWUhQ1-fpvePTBQfgMT6Ps/view>
@@ -52,8 +54,11 @@ Each mention was disambiguated by two students and resolved by Hoffart et al. in
 
 **Official Download**: <http://resources.mpi-inf.mpg.de/yago-naga/aida/download/aida-yago2-dataset.zip>
 
-**Problems:**
+**Problems/Notes**
 - No coreference
+- Strong tendency towards sports articles.
+The dev set for example with 216 articles overall contains ca. 100 articles about sports.
+Certain kinds of entity linking problems occur more frequently in such articles, e.g. metonymy (*"Germany won against Brasil"* -> link the country or the team?).
 
 
 ## CWEB and WW
