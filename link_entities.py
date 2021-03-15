@@ -17,6 +17,7 @@ per line.
 import argparse
 import os
 
+from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
 from src.models.wikipedia_article import WikipediaArticle
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
@@ -68,8 +69,7 @@ if __name__ == "__main__":
                         help="Input file with articles in JSON format or raw text.")
     parser.add_argument("output_file", type=str, default=None,
                         help="Output file.")
-    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme",
-                                                "wexea", "neural_el", "trained_model", "none"],
+    parser.add_argument("linker_type", choices=[li.value for li in Linkers],
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"
@@ -84,10 +84,9 @@ if __name__ == "__main__":
                         help="Number of articles to link.")
     parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"], default=None,
                         help="Name of the knowledge base to use with a spacy linker.")
-    parser.add_argument("-ll", "--link_linker", choices=["link-linker", "link-text-linker"], default=None,
+    parser.add_argument("-ll", "--link_linker", choices=[ll.value for ll in LinkLinkers], default=None,
                         help="Link linker to apply before spacy or explosion linker")
-    parser.add_argument("-coref", "--coreference_linker",
-                        choices=["neuralcoref", "entity", "stanford", "xrenner", "hobbs", "wexea"], default=None,
+    parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers], default=None,
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
                         help="Only link coreferences that are pronouns.")

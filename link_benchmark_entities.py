@@ -19,6 +19,7 @@ import time
 import os
 
 from src.evaluation.benchmark import Benchmark
+from src.linkers.linkers import Linkers, CoreferenceLinkers, LinkLinkers
 from src.linkers.linking_system import LinkingSystem
 from src.evaluation.examples_generator import get_example_generator
 
@@ -66,26 +67,25 @@ if __name__ == "__main__":
 
     parser.add_argument("output_file", type=str, default=None,
                         help="Output file for the evaluation results")
-    parser.add_argument("linker_type", choices=["baseline", "spacy", "explosion", "ambiverse", "iob", "tagme",
-                                                "wexea", "neural_el", "trained_model", "none"],
+    parser.add_argument("linker_type", choices=[li.value for li in Linkers],
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"
-                        "BASELINE: Choose baseline from {scores, links, links-all, max-match-ner}.\n"
-                        "SPACY: Name of the linker.\n"
-                        "EXPLOSION: Full path to the saved model.\n"
-                        "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
-                        "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
-    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark],  default=Benchmark.OURS.value,
+                             "BASELINE: Choose baseline from {scores, links, links-all, max-match-ner}.\n"
+                             "SPACY: Name of the linker.\n"
+                             "EXPLOSION: Full path to the saved model.\n"
+                             "AMBIVERSE: Full path to the predictions directory.\n"
+                             "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
+    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,
                         help="Benchmark over which to evaluate the linker.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")
     parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"], default=None,
                         help="Name of the knowledge base to use with a spacy linker.")
-    parser.add_argument("-ll", "--link_linker", choices=["link-linker", "link-text-linker"], default=None,
+    parser.add_argument("-ll", "--link_linker", choices=[ll.value for ll in LinkLinkers], default=None,
                         help="Link linker to apply before spacy or explosion linker")
     parser.add_argument("-coref", "--coreference_linker",
-                        choices=["neuralcoref", "entity", "stanford", "xrenner", "hobbs", "wexea"], default=None,
+                        choices=[cl.value for cl in CoreferenceLinkers], default=None,
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
                         help="Only link coreferences that are pronouns.")

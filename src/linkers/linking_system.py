@@ -6,6 +6,7 @@ from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
 from src.helpers.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.linkers.entity_coref_linker import EntityCorefLinker
+from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.trained_entity_linker import TrainedEntityLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
@@ -55,17 +56,18 @@ class LinkingSystem:
                               minimum_score: int):
         print("load entities...")
         self.entity_db = EntityDatabase()
-        if not link_linker and not coreference_linker and ((linker_type == "baseline" and linker == "max-match-ner")
-                                                           or linker_type == "tagme" or linker_type == "ambiverse"
-                                                           or linker_type == "iob"):
+        if not link_linker and not coreference_linker and ((linker_type == Linkers.BASELINE.value and linker == "max-match-ner")
+                                                           or linker_type == Linkers.TAGME.value
+                                                           or linker_type == Linkers.AMBIVERSE.value
+                                                           or linker_type == Linkers.IOB.value):
             pass
-        elif linker_type == "baseline" and linker in ("scores", "links"):
+        elif linker_type == Linkers.BASELINE.value and linker in ("scores", "links"):
             self.entity_db.load_entities_small(minimum_score)
         else:
             self.entity_db.load_entities_big()
 
         print(self.entity_db.size_entities(), "entities")
-        if linker_type == "baseline":
+        if linker_type == Linkers.BASELINE.value:
             if linker == "max-match-ner":
                 pass
             elif linker in ("links", "links-all"):
@@ -84,22 +86,22 @@ class LinkingSystem:
 
     def _initialize_linker(self, linker_type: str, linker_info: str, kb_name: Optional[str] = None,
                            longest_alias_ner: Optional[bool] = False):
-        if linker_type == "spacy":
+        if linker_type == Linkers.SPACY.value:
             linker_name = linker_info
             self.linker = TrainedSpacyEntityLinker(linker_name, entity_db=self.entity_db, kb_name=kb_name)
-        elif linker_type == "explosion":
+        elif linker_type == Linkers.EXPLOSION.value:
             path = linker_info
             self.linker = ExplosionEntityLinker(path, entity_db=self.entity_db)
-        elif linker_type == "iob":
+        elif linker_type == Linkers.IOB.value:
             path = linker_info
             self.prediction_iterator = ConllIobPredictionReader.document_predictions_iterator(path)
-        elif linker_type == "ambiverse":
+        elif linker_type == Linkers.AMBIVERSE.value:
             result_dir = linker_info
             self.prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
-        elif linker_type == "tagme":
+        elif linker_type == Linkers.TAGME.value:
             rho_threshold = float(linker_info)
             self.linker = TagMeLinker(rho_threshold)
-        elif linker_type == "wexea":
+        elif linker_type == Linkers.WEXEA.value:
             result_dir = linker_info
             if not self.entity_db.is_mapping_loaded():
                 print("Loading wikipedia-wikidata mapping...")
@@ -108,7 +110,7 @@ class LinkingSystem:
                 print("Loading redirects...")
                 self.entity_db.load_redirects()
             self.prediction_iterator = WexeaPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
-        elif linker_type == "neural_el":
+        elif linker_type == Linkers.NEURAL_EL.value:
             result_file = linker_info
             if not self.entity_db.is_mapping_loaded():
                 print("Loading wikipedia-wikidata mapping...")
@@ -118,7 +120,7 @@ class LinkingSystem:
                 self.entity_db.load_redirects()
             self.prediction_iterator = NeuralELPredictionReader(self.entity_db).\
                 article_predictions_iterator(result_file)
-        elif linker_type == "baseline":
+        elif linker_type == Linkers.BASELINE.value:
             if linker_info == "max-match-ner":
                 self.linker = MaximumMatchingNER()
             else:
@@ -130,7 +132,7 @@ class LinkingSystem:
                     strategy = LinkingStrategy.ENTITY_SCORE
                 self.linker = AliasEntityLinker(self.entity_db, strategy, load_model=not longest_alias_ner,
                                                 longest_alias_ner=longest_alias_ner)
-        elif linker_type == "trained_model":
+        elif linker_type == Linkers.TRAINED_MODEL.value:
             print("loading trained entity linking model...")
             linker_model_path = linker_info
             model_dict = torch.load(linker_model_path)
@@ -146,7 +148,7 @@ class LinkingSystem:
             self.entity_db.load_mapping()
         if not self.entity_db.is_redirects_loaded():
             self.entity_db.load_redirects()
-        if linker_type == "link-text-linker":
+        if linker_type == LinkLinkers.LINK_TEXT_LINKER.value:
             print("add synonyms...")
             self.entity_db.add_synonym_aliases()
             print(self.entity_db.size_aliases(), "aliases")
@@ -154,21 +156,21 @@ class LinkingSystem:
             self.entity_db.add_name_aliases()
             print(self.entity_db.size_aliases(), "aliases")
             self.link_linker = LinkTextEntityLinker(entity_db=self.entity_db)
-        elif linker_type == "link-linker":
+        elif linker_type == LinkLinkers.LINK_LINKER.value:
             self.link_linker = LinkEntityLinker()
 
     def _initialize_coref_linker(self, linker_type: str, linker_info):
-        if linker_type == "neuralcoref":
+        if linker_type == CoreferenceLinkers.NEURALCOREF.value:
             self.coreference_linker = NeuralcorefCorefLinker()
-        elif linker_type == "entity":
+        elif linker_type == CoreferenceLinkers.ENTITY.value:
             self.coreference_linker = EntityCorefLinker(entity_db=self.entity_db)
-        elif linker_type == "stanford":
+        elif linker_type == CoreferenceLinkers.STANFORD.value:
             self.coreference_linker = StanfordCoreNLPCorefLinker()
-        elif linker_type == "xrenner":
+        elif linker_type == CoreferenceLinkers.XRENNER.value:
             self.coreference_linker = XrennerCorefLinker()
-        elif linker_type == "hobbs":
+        elif linker_type == CoreferenceLinkers.HOBBS.value:
             self.coreference_linker = HobbsCorefLinker(entity_db=self.entity_db)
-        elif linker_type == "wexea":
+        elif linker_type == CoreferenceLinkers.WEXEA.value:
             result_dir = linker_info
             if not self.entity_db.is_mapping_loaded():
                 print("Loading wikipedia-wikidata mapping...")
