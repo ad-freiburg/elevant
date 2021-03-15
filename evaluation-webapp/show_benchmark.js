@@ -867,8 +867,8 @@ function compare_approach_names(approach_1, approach_2) {
     approach_name_1 = approach_1[0];
     approach_name_2 = approach_2[0];
     return link_linker_key(approach_name_1) - link_linker_key(approach_name_2) ||
-        linker_key(approach_name_1) - linker_key(approach_name_2) ||
         coref_linker_key(approach_name_1) - coref_linker_key(approach_name_2) ||
+        linker_key(approach_name_1) - linker_key(approach_name_2) ||
         approach_name_1 > approach_name_2;
 }
 
@@ -882,6 +882,7 @@ function link_linker_key(approach_name) {
 function linker_key(approach_name) {
     if (approach_name.startsWith("neural_el")) return 1;
     else if (approach_name.startsWith("explosion")) return 2;
+    else if (approach_name.startsWith("baseline")) return 90;
     else if (approach_name.startsWith("none")) return 100;
     else return 10;
 }
