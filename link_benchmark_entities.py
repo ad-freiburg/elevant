@@ -25,9 +25,8 @@ from src.evaluation.examples_generator import get_example_generator
 
 def main(args):
     if args.link_linker:
-        if args.benchmark != "own" and args.benchmark != "conll-links":
-            print("Link linkers can only be evaluated over own benchmark.")
-            exit(1)
+        if args.benchmark != Benchmark.OURS.value and args.benchmark != Benchmark.CONLL_PSEUDO_LINKS.value:
+            print("WARNING: Using a link linker only makes sense over benchmarks that contain hyperlinks.")
     if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
         print("Wexea can only be used as coreference linker in combination with the Wexea linker")
         exit(1)
