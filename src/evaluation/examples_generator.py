@@ -129,8 +129,8 @@ class AceExampleReader:
 
     def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
         parser = XMLBenchmarkParser(self.entity_db)
-        for i, article in enumerate(parser.article_iterator(settings.ACE04_BENCHMARK_FILE,
-                                                            settings.ACE04_BENCHMARK_DIRECTORY + "RawText")):
+        for i, article in enumerate(parser.article_iterator(settings.ACE04_BENCHMARK_LABELS,
+                                                            settings.ACE04_BENCHMARK_TEXTS)):
             if i == n:
                 break
             yield article
@@ -142,8 +142,8 @@ class MsnbcExampleReader:
 
     def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
         parser = XMLBenchmarkParser(self.entity_db)
-        for i, article in enumerate(parser.article_iterator(settings.MSNBC_BENCHMARK_FILE,
-                                                            settings.MSNBC_BENCHMARK_DIRECTORY + "RawText")):
+        for i, article in enumerate(parser.article_iterator(settings.MSNBC_BENCHMARK_LABELS,
+                                                            settings.MSNBC_BENCHMARK_TEXTS)):
             if i == n:
                 break
             yield article
