@@ -5,39 +5,63 @@
 
 **Paper:** [Large-Scale Named Entity Disambiguation Based on Wikipedia Data](https://www.aclweb.org/anthology/D07-1074.pdf)
 
-**Volume:** 20 articles with 756 mentions (of which 127 were non-recallable (there was no appropriate Wikipedia article corresponding to the mention)).
-The dataset from the inofficial download has 739 mentions, 83 of which link to NIL -> 656 non-NIL mentions.
+**Volume:** \
+*Original Dataset:* 20 articles with 756 mentions (of which 127 were non-recallable, i.e. there was no appropriate Wikipedia article corresponding to the mention).
+This is the same as the dataset from the GERBIL download below. This dataset contains 747 non-NIL mentions.
+For 87 of these non-NIL mentions, the corresponding Wikipedia article can not be found (anymore).\
+*Updated Dataset:* A cleaned version of the MSNBC dataset with no-longer existing Wikipedia entities removed was released by [Guo & Barbosa](https://dl.acm.org/doi/pdf/10.1145/2661829.2661887) (according to [Ganea et al.](https://dl.acm.org/doi/pdf/10.1145/2872427.2882988)).
+This version contains 739 mentions in total and 656 non-NIL mentions.
 
 **Method:** They took the top 2 stories of the 10 MSNBC News categories (January 2, 2007), used them as input to their system and then perform a post-hoc evaluation of the disambiguations.
 From the paper: "We defined a disambiguation to be correct if it represented the best possible Wikipedia article that would satisfy a user’s need for information and incorrect otherwise.
 For example, the article *Viking program* is judged as correct for “Viking Landers”, for which there is no separate article in the Wikipedia collection".
 
-**Inofficial Download** (data of [Ganea Paper](https://github.com/dalab/end2end_neural_el)): <https://drive.google.com/file/d/1OSKvIiXHVVaWUhQ1-fpvePTBQfgMT6Ps/view>
+**Download:**\
+**Updated Version (recommended):** Cleaned version of the original dataset. The number of mentions and partly the text differs from the original version. <https://dataverse.library.ualberta.ca/file.xhtml?fileId=6884&version=1.0>
 
-**Official Download** (broken link): <http://research.microsoft.com/users/silviu/WebAssistant/TestData>
+**Gerbil Version:** UTF-8 and XML problems from the [Wikification dataset](cogcomp.org/Data/ACL2011WikificationData.zip) (assumed to be close to the original) fixed without additional adjustments. <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
 
-**Problems:**
+**Original Dataset:** Broken link. <http://research.microsoft.com/users/silviu/WebAssistant/TestData>
+
+**Problems/Notes:**
 - No coreference
+- For 87 non-NIL mentions, the corresponding Wikipedia article cannot be determined with our mapping.
+This is partly because no corresponding Wikipedia article exists (anymore?), e.g. "*Daniel Venegas*".
+Partly it's because of obvious spelling mistakes in the annotated entity names and urls, e.g. "*Los Angeles. California*"
+Most (all?) of these entities are linked to NIL in the updated dataset or not included in the list of mentions.
+- Some of the mentions in the original dataset overlap for no obvious reason.
+E.g. for "*Frank Blake*" the entire mention is annotated, as well as "*Blake*". Both link to the same entity.
+These overlapping mentions don't seem to be included in the updated version.
 
 ## ACE-2004
 *Ratinov et al., 2011*
 
 **Paper:** [Local and Global Algorithms for Disambiguation to Wikipedia](https://www.aclweb.org/anthology/P11-1138.pdf)
 
-**Volume:** 36 articles with 257 mentions.
+**Volume:**
+57 articles with 306 mentions and 257 non-NIL mentions . Only 36 articles contain any (non-NIL-)mentions at all.
 
 **Method:** Ratinov et al. took a subset of the ACE coreference dataset (Coreference is resolved and mentions and their types are given) and asked Amazon Mechanical Turk annotators to link the first nominal mention of each co-reference chain to Wikipedia if possible.
 They then manually corrected the annotations.
 
-**Inofficial Download** (data of [Ganea Paper](https://github.com/dalab/end2end_neural_el)): <https://drive.google.com/file/d/1OSKvIiXHVVaWUhQ1-fpvePTBQfgMT6Ps/view>
+**Download**\
+**Updated Version (recommended):** Cleaned version of the original dataset. <https://dataverse.library.ualberta.ca/file.xhtml?fileId=6884&version=1.0>
 
-**Official Download** (in a weird format): <https://cogcomp.seas.upenn.edu/page/resource_view/4>
+**Gerbil Version:** UTF-8 and XML problems fixed without additional adjustments: <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
 
-**Problems:**
+**Original Dataset** (with invalid XML files): <http://cogcomp.org/Data/ACL2011WikificationData.zip>
+
+**Problems/Notes:**
 - Only very few entities are annotated. Probably those, that form the first occurrence of an entity in a co-reference chain (and therefore only entities that are being referred to more than once).
 - Mention boundaries are sometimes chosen in a very unintuitive way: e.g. *"D.C."* instead of *"Washington, D.C."*, *"Ministry of Defense"* instead of *"Iranian Ministry of Defense"*, *"Green Party"* instead of *"Florida Green Party"*, and then *"Ocean Spray Cranberries"* instead of *"Ocean Spray"* (with link to Company *"Ocean Spray"*)
 - No coreference
-
+- The original dataset contains a couple of annotation problems/errors where the annotated Wikipedia title does not exist.
+These cases are: *Seattke* instead of *Seattle*, *USS COLE (DDG-67)* instead of *USS Cole (DDG-67)* and *Lujaizui* to which no Wikipedia article exists (anymore?).
+The first two problems have been fixed in the updated version of the dataset.
+Additionally, two other errors have been fixed in the updated version: The mention *Bloomberg News* was in the original dataset linked to *Bloomberg Television*.
+In the updated dataset this is linked to *Bloomberg News*.
+The Wiki-link for *Portland* is (now?) a disambiguation page. In the updated dataset this mention links to *Portland, Oregon*.
+These 4 adjustments are the only observed differences between the original dataset and the updated dataset.
 
 ## AIDA CoNLL
 
@@ -83,4 +107,3 @@ They group documents by their average prior-probability accuracy and picked 40 r
 **Problems:**
 - Only few entities are annotated on the WW dataset (only Wikipedia hyperlinks) and on the CWEB dataset, annotations are imperfect.
 - Other than having articles grouped by difficulty, their WW dataset does not seem to have any advantage over using Wikipedia with hyperlinks.
-
