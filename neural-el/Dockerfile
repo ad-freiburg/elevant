@@ -9,6 +9,7 @@ RUN python3 -m pip install --upgrade pip
 # Install python packages
 COPY ./ /home/
 RUN pip3 install -r /home/requirements.txt
+RUN python3 -m spacy download en_core_web_lg
 
 ENTRYPOINT /bin/bash
 WORKDIR /home/

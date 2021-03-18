@@ -1,6 +1,5 @@
 import os
 import sys
-import copy
 import pprint
 import numpy as np
 import tensorflow as tf
@@ -57,6 +56,8 @@ flags.DEFINE_string("test_out_fp", "", "Write Test Prediction Data")
 
 flags.DEFINE_string("out_file", "", "Write inference data to the specified file")
 flags.DEFINE_string("in_file", "", "Input file to be linked. With one document in a single line")
+flags.DEFINE_string("contains_ner", False, "Input comes with recognized mentions so don't perform NER.")
+
 FLAGS = flags.FLAGS
 
 
@@ -74,7 +75,7 @@ def main(_):
 
     config = Config(FLAGS.config, verbose=False)
     vocabloader = VocabLoader(config)
-    
+
     FLAGS.dropout_keep_prob = 1.0
     FLAGS.wordDropoutKeep = 1.0
     FLAGS.cohDropoutKeep = 1.0
@@ -101,105 +102,103 @@ def main(_):
             if line and line[-1].isalnum():
                 print("Add punctuation to end of line.")
                 line += " ."
-            reader.initialize_for_doc(line)
-            docta = reader.ccgdoc
+            reader.initialize_for_doc(line, FLAGS.contains_ner)
+            if len(reader.ner_cons_list) > 0:
+                with tf.Graph().as_default():
+                    config_proto = tf.ConfigProto()
+                    config_proto.allow_soft_placement = True
+                    config_proto.gpu_options.allow_growth = True
+                    sess = tf.Session(config=config_proto)
+                    with sess.as_default():
+                        model = ELModel(
+                            sess=sess, reader=reader, dataset=FLAGS.dataset,
+                            max_steps=FLAGS.max_steps,
+                            pretrain_max_steps=FLAGS.pretraining_steps,
+                            word_embed_dim=FLAGS.word_embed_dim,
+                            context_encoded_dim=FLAGS.context_encoded_dim,
+                            context_encoder_num_layers=FLAGS.context_encoder_num_layers,
+                            context_encoder_lstmsize=FLAGS.context_encoder_lstmsize,
+                            coherence_numlayers=FLAGS.coherence_numlayers,
+                            jointff_numlayers=FLAGS.jointff_numlayers,
+                            learning_rate=FLAGS.learning_rate,
+                            dropout_keep_prob=FLAGS.dropout_keep_prob,
+                            reg_constant=FLAGS.reg_constant,
+                            checkpoint_dir=FLAGS.checkpoint_dir,
+                            optimizer=FLAGS.optimizer,
+                            mode=model_mode,
+                            strict=FLAGS.strict_context,
+                            pretrain_word_embed=FLAGS.pretrain_wordembed,
+                            typing=FLAGS.typing,
+                            el=FLAGS.el,
+                            coherence=FLAGS.coherence,
+                            textcontext=FLAGS.textcontext,
+                            useCNN=FLAGS.useCNN,
+                            WDLength=FLAGS.WDLength,
+                            Fsize=FLAGS.Fsize,
+                            entyping=FLAGS.entyping)
 
-            with tf.Graph().as_default():
-                config_proto = tf.ConfigProto()
-                config_proto.allow_soft_placement = True
-                config_proto.gpu_options.allow_growth = True
-                sess = tf.Session(config=config_proto)
-                with sess.as_default():
-                    model = ELModel(
-                        sess=sess, reader=reader, dataset=FLAGS.dataset,
-                        max_steps=FLAGS.max_steps,
-                        pretrain_max_steps=FLAGS.pretraining_steps,
-                        word_embed_dim=FLAGS.word_embed_dim,
-                        context_encoded_dim=FLAGS.context_encoded_dim,
-                        context_encoder_num_layers=FLAGS.context_encoder_num_layers,
-                        context_encoder_lstmsize=FLAGS.context_encoder_lstmsize,
-                        coherence_numlayers=FLAGS.coherence_numlayers,
-                        jointff_numlayers=FLAGS.jointff_numlayers,
-                        learning_rate=FLAGS.learning_rate,
-                        dropout_keep_prob=FLAGS.dropout_keep_prob,
-                        reg_constant=FLAGS.reg_constant,
-                        checkpoint_dir=FLAGS.checkpoint_dir,
-                        optimizer=FLAGS.optimizer,
-                        mode=model_mode,
-                        strict=FLAGS.strict_context,
-                        pretrain_word_embed=FLAGS.pretrain_wordembed,
-                        typing=FLAGS.typing,
-                        el=FLAGS.el,
-                        coherence=FLAGS.coherence,
-                        textcontext=FLAGS.textcontext,
-                        useCNN=FLAGS.useCNN,
-                        WDLength=FLAGS.WDLength,
-                        Fsize=FLAGS.Fsize,
-                        entyping=FLAGS.entyping)
+                        (predTypScNPmat_list,
+                         widIdxs_list,
+                         priorProbs_list,
+                         textProbs_list,
+                         jointProbs_list,
+                         evWTs_list,
+                         pred_TypeSetsList) = model.inference(ckptpath=FLAGS.model_path)
 
-                    (predTypScNPmat_list,
-                     widIdxs_list,
-                     priorProbs_list,
-                     textProbs_list,
-                     jointProbs_list,
-                     evWTs_list,
-                     pred_TypeSetsList) = model.inference(ckptpath=FLAGS.model_path)
+                        numMentionsInference = len(widIdxs_list)
+                        numMentionsReader = 0
+                        for sent_idx in reader.sentidx2ners:
+                            numMentionsReader += len(reader.sentidx2ners[sent_idx])
+                        assert numMentionsInference == numMentionsReader
 
-                    numMentionsInference = len(widIdxs_list)
-                    numMentionsReader = 0
-                    for sent_idx in reader.sentidx2ners:
-                        numMentionsReader += len(reader.sentidx2ners[sent_idx])
-                    assert numMentionsInference == numMentionsReader
+                        mentionnum = 0
+                        entityTitleList = []
+                        sentenceList = []
+                        for sent_idx in reader.sentidx2ners:
+                            nerDicts = reader.sentidx2ners[sent_idx]
+                            sentence = ' '.join(reader.sentences_tokenized[sent_idx])
+                            for s, ner in nerDicts:
+                                [evWTs, evWIDS, evProbs] = evWTs_list[mentionnum]
+                                predTypes = pred_TypeSetsList[mentionnum]
+                                print(reader.bracketMentionInSentence(sentence, ner))
+                                print("Prior: {} {}, Context: {} {}, Joint: {} {}".format(
+                                    evWTs[0], evProbs[0], evWTs[1], evProbs[1],
+                                    evWTs[2], evProbs[2]))
 
-                    mentionnum = 0
-                    entityTitleList = []
-                    sentenceList = []
-                    for sent_idx in reader.sentidx2ners:
-                        nerDicts = reader.sentidx2ners[sent_idx]
-                        sentence = ' '.join(reader.sentences_tokenized[sent_idx])
-                        for s, ner in nerDicts:
-                            [evWTs, evWIDS, evProbs] = evWTs_list[mentionnum]
-                            predTypes = pred_TypeSetsList[mentionnum]
-                            print(reader.bracketMentionInSentence(sentence, ner))
-                            print("Prior: {} {}, Context: {} {}, Joint: {} {}".format(
-                                evWTs[0], evProbs[0], evWTs[1], evProbs[1],
-                                evWTs[2], evProbs[2]))
+                                entityTitleList.append(evWTs[2])
+                                sentenceList.append(sent_idx)
+                                print("Predicted Entity Types : {}".format(predTypes))
+                                print("\n")
+                                mentionnum += 1
+                        cons_list = reader.ner_cons_list
 
-                            entityTitleList.append(evWTs[2])
-                            sentenceList.append(sent_idx)
-                            print("Predicted Entity Types : {}".format(predTypes))
-                            print("\n")
-                            mentionnum += 1
-                    elview = copy.deepcopy(docta.view_dictionary['NER_CONLL'])
-                    elview.view_name = 'ENG_NEURAL_EL'
+                        # Compute the character start and end offset for each mention
+                        for i, cons in enumerate(cons_list):
+                            if i > len(entityTitleList):
+                                print("Length discrepancy")
+                                print(entityTitleList, cons_list)
+                            cons['label'] = entityTitleList[i]
+                            cons['start_char'] = reader.ner_offsets[i][0]
+                            cons['end_char'] = reader.ner_offsets[i][1]
+                        if len(cons_list) != len(reader.ner_offsets):
+                            print("LIST LENGTHS DIFFER!!!", "*"*80)
 
-                    # Compute the character start and end offset for each mention
-                    token_offsets = docta.as_json['tokenOffsets']
-                    sentence_end_positions = docta.as_json['sentences']['sentenceEndPositions']
-                    for i, cons in enumerate(elview.cons_list):
-                        cons['label'] = entityTitleList[i]
-                        sentence_idx = sentenceList[i]
-                        sentence_start_token_idx = sentence_end_positions[sentence_idx-1] if sentence_idx > 0 else 0
-                        start_token_idx = sentence_start_token_idx + cons['start']
-                        start_char = token_offsets[start_token_idx]['startCharOffset']
-                        end_token_idx = sentence_start_token_idx + cons['end']
-                        end_char = token_offsets[end_token_idx]['endCharOffset']
-                        cons['start_char'] = start_char
-                        cons['end_char'] = end_char
+                        predictions = {"predictions": cons_list}
 
-                    docta.view_dictionary['ENG_NEURAL_EL'] = elview
-                    predictions = {"predictions": elview.cons_list}
-
-                    if FLAGS.out_file:
-                        out_file.write(json.dumps(predictions) + "\n")
-                    else:
-                        print(json.dumps(predictions))
-                    del model
-            tf.reset_default_graph()
+                        if FLAGS.out_file:
+                            out_file.write(json.dumps(predictions) + "\n")
+                        else:
+                            print(json.dumps(predictions))
+                        del model
+                tf.reset_default_graph()
+            else:
+                # NER module didn't produce any mentions
+                out_file.write('{"predictions": []}\n')
 
     if FLAGS.out_file:
         out_file.close()
     sys.exit()
+
 
 if __name__ == '__main__':
     tf.app.run()

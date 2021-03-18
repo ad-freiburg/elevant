@@ -3,23 +3,7 @@
 
 # readers/inference_reader.py: 8
 ccg_nlpy == 1.10.0
-
-# evaluation/evaluate_inference.py: 3
-# evaluation/evaluate_types.py: 3
-# models/figer_model/coherence_model.py: 2
-# models/figer_model/coldStart.py: 4
-# models/figer_model/context_encoder.py: 3
-# models/figer_model/el_model.py: 3
-# models/figer_model/entity_posterior.py: 3
-# models/figer_model/joint_context.py: 3
-# models/figer_model/labeling_model.py: 3
-# models/figer_model/loss_optim.py: 2
-# models/figer_model/wiki_desc.py: 2
-# neuralel.py: 4
-# readers/inference_reader.py: 3
-# readers/utils.py: 11
-# readers/vocabloader.py: 13
-numpy == 1.11.3
+spacy==2.3.0
 
 # models/base.py: 3
 # models/batch_normalizer.py: 1,3
