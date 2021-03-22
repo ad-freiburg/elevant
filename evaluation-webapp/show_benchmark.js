@@ -224,12 +224,12 @@ function show_ground_truth_entities() {
         var ground_truth_texts = [];
         for (var i=0; i < articles.length; i++) {
             var annotations = get_ground_truth_annotations(i);
-            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links));
+            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span));
         }
-        var ground_truth_text = ground_truth_texts.join("\n\n");
+        var ground_truth_text = ground_truth_texts.join("<br>-----------------<br><br>");
     } else {
         var annotations = get_ground_truth_annotations(approach_index);
-        var ground_truth_text = annotate_text(article.text, annotations, article.links);
+        var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length]);
     }
     textfield_left.innerHTML = ground_truth_text;
 }
@@ -281,12 +281,12 @@ function show_linked_entities() {
         var predicted_texts = [];
         for (var i=0; i < articles.length; i++) {
             var annotations = get_predicted_annotations(i);
-            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links));
+            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span));
         }
-        var predicted_text = predicted_texts.join("\n\n");
+        var predicted_text = predicted_texts.join("<br>-----------------<br><br>");
     } else {
         var annotations = get_predicted_annotations(approach_index);
-        var predicted_text = annotate_text(article.text, annotations, article.links);
+        var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length]);
     }
     textfield_right.innerHTML = predicted_text;
 }
@@ -386,7 +386,7 @@ function deep_copy_array(array) {
     return copied_array;
 }
 
-function annotate_text(text, annotations, links) {
+function annotate_text(text, annotations, links, evaluation_span) {
     /*
     Generate tooltips for the given annotations and hyperlinks for the given links.
     Tooltips and hyperlinks can overlap.
@@ -467,9 +467,19 @@ function annotate_text(text, annotations, links) {
     }
     // STEP 2: Add the combined annotations and links to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
+    cutoff_done = false;
     for (annotation of annotations_with_links.reverse()) {
         // annotation is a tuple with (span, annotation_info)
         span = annotation[0];
+
+        if (span[1] > evaluation_span[1]) {
+            continue;
+        } else if (span[0] < evaluation_span[0]) {
+            break;
+        } else if (!cutoff_done){
+            cutoff_done = true;
+            text = text.substring(0, evaluation_span[1]);
+        }
         annotation = annotation[1];
         before = text.substring(0, span[0]);
         snippet = text.substring(span[0], span[1]);
@@ -509,6 +519,7 @@ function annotate_text(text, annotations, links) {
         }
         text = before + replacement + after;
     }
+    text = text.substring(evaluation_span[0], text.length);
     text = text.replaceAll("\n", "<br>");
     return text;
 }
@@ -976,10 +987,18 @@ function read_evaluation_cases(path) {
                 evaluation_cases.push(cases);
             }
         }
-        show_article();
+        if (show_all_articles_flag) {
+            show_all_articles();
+        } else {
+            show_article();
+        }
     }).fail(function() {
         $("#evaluation").html("ERROR: no file with cases found.");
-        show_article();
+        if (show_all_articles_flag) {
+            show_all_articles();
+        } else {
+            show_article();
+        }
     });
 }
 
