@@ -45,6 +45,8 @@ $("document").ready(function() {
     benchmark_select = document.getElementById("benchmark");
     article_select = document.getElementById("article");
 
+    show_all_articles_flag = false;
+
     set_benchmark_select_options();
 
     // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
@@ -76,7 +78,6 @@ $("document").ready(function() {
         });
         show_ground_truth_entities();
         show_linked_entities();
-        show_table();
     });
 });
 
@@ -123,7 +124,6 @@ function show_benchmark_results() {
 
     // Remove previous article evaluation content
     $("#article-results .row").hide();
-    $("#article-results #table").hide();
     evaluation_cases = [];
 
     // Build an overview table over all .results-files from the evaluation-results folder.
@@ -220,8 +220,27 @@ function show_ground_truth_entities() {
     Generate tooltips for the ground truth entities of the selected article
     and show them in the left textfield.
     */
-    annotations = [];
-    for (eval_case of evaluation_cases[approach_index]) {
+    if (show_all_articles_flag) {
+        var ground_truth_texts = [];
+        for (var i=0; i < articles.length; i++) {
+            var annotations = get_ground_truth_annotations(i);
+            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links));
+        }
+        var ground_truth_text = ground_truth_texts.join("\n\n");
+    } else {
+        var annotations = get_ground_truth_annotations(approach_index);
+        var ground_truth_text = annotate_text(article.text, annotations, article.links);
+    }
+    textfield_left.innerHTML = ground_truth_text;
+}
+
+function get_ground_truth_annotations(article_index) {
+    /*
+    Generate annotations for the ground truth entities of the selected article.
+    */
+    var annotations = [];
+
+    for (eval_case of evaluation_cases[article_index]) {
         if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
             if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
                 continue;
@@ -250,30 +269,46 @@ function show_ground_truth_entities() {
             annotations.push(annotation);
         }
     }
-    
-    ground_truth_text = annotate_text(article.text, annotations, article.links);
-    textfield_left.innerHTML = ground_truth_text;
+    return annotations
 }
 
 function show_linked_entities() {
     /*
     Generate tooltips for the predicted entities of the selected approach and article
     and show them in the right textfield.
-    
+    */
+    if (show_all_articles_flag) {
+        var predicted_texts = [];
+        for (var i=0; i < articles.length; i++) {
+            var annotations = get_predicted_annotations(i);
+            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links));
+        }
+        var predicted_text = predicted_texts.join("\n\n");
+    } else {
+        var annotations = get_predicted_annotations(approach_index);
+        var predicted_text = annotate_text(article.text, annotations, article.links);
+    }
+    textfield_right.innerHTML = predicted_text;
+}
+
+function get_predicted_annotations(article_index) {
+    /*
+    Generate annotations for the predicted entities of the selected approach and article.
+
     This method first combines the predictions outside the evaluation span (from the file <approach>.jsonl)
     with the evaluated predictions inside the evaluation span (from the file <approach>.cases),
-    and then generates tooltips for all of them.
+    and then generates annotations for all of them.
     */
-    article_cases = evaluation_cases[approach_index];  // information from the .cases file
-    article_data = articles_data[approach_index];  // information from the .jsonl file
-    
+    var article_cases = evaluation_cases[article_index];  // information from the .cases file
+    var article_data = articles_data[article_index];  // information from the .jsonl file
+
     // evaluation span
-    evaluation_begin = article_data.evaluation_span[0];
-    evaluation_end = article_data.evaluation_span[1];
-    
+    var evaluation_begin = article_data.evaluation_span[0];
+    var evaluation_end = article_data.evaluation_span[1];
+
     // list of all predicted mentions (inside and outside the evaluation span)
-    mentions = [];
-    
+    var mentions = [];
+
     // get the mentions before the evaluation span
     for (prediction of article_data.entity_mentions) {
         if (prediction.span[1] < evaluation_begin) {
@@ -292,10 +327,10 @@ function show_linked_entities() {
             mentions.push(prediction);
         }
     }
-    
+
     // list with tooltip information for each mention
-    annotations = []
-    
+    var annotations = []
+
     for (mention of mentions) {
         if (mention.mention_type && mention.mention_type.toLowerCase() in show_mentions) {
             if (!show_mentions[mention.mention_type.toLowerCase()]) {
@@ -334,10 +369,7 @@ function show_linked_entities() {
         };
         annotations.push(annotation);
     }
-    
-    // generate tooltips and visualise them in the right textfield
-    predicted_text = annotate_text(article.text, annotations, article.links);
-    textfield_right.innerHTML = predicted_text;
+    return annotations
 }
 
 function copy(object) {
@@ -562,6 +594,7 @@ function show_table() {
 
 function show_article() {
     /* Generate the ground truth textfield, predicted text field and cases table for the selected article and approach. */
+    show_all_articles_flag = false;
     approach_index = article_select.value;
     
     if (approach_index == "") {
@@ -576,7 +609,6 @@ function show_article() {
     }
 
     $("#article-results .row").show();
-    $("#article-results #table").show();
 
     if (evaluation_cases.length == 0) {
         textfield_left.innerHTML = article.labelled_text;
@@ -587,7 +619,6 @@ function show_article() {
     
     show_ground_truth_entities();
     show_linked_entities();
-    show_table();
 }
 
 function build_overview_table(path, benchmark_name) {
@@ -907,6 +938,28 @@ function coref_linker_key(approach_name) {
     if (coref_linker == "entity") return 1;
     else if (coref_linker == "none") return 100;
     else return 10;
+}
+
+function show_all_articles() {
+    /*
+    Generate the ground truth textfield and predicted text field for all
+    articles and the selected approach.
+    */
+    show_all_articles_flag = true;
+
+    $("#article_link").hide();
+
+    $("#article-results .row").show();
+
+    if (evaluation_cases.length == 0) {
+        textfield_left.innerHTML = article.labelled_text;
+        textfield_right.innerHTML = "<b class='warning'>No approach selected or no file with cases found.</b>";
+        $("#table").html("");
+        return;
+    }
+
+    show_ground_truth_entities();
+    show_linked_entities();
 }
 
 function read_evaluation_cases(path) {

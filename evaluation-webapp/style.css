@@ -170,9 +170,6 @@ a {
 #article-results .row {
     display: none;
 }
-#article-results #table {
-    display: none;
-}
 
 /* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */
 div.latex {
