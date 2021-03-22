@@ -17,13 +17,21 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "demonym": "FN from a list of demonyms (German, Germans, ...) / All demonym GT mentions",
                        "partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
                        "abstraction": "Named FP that does not overlap with a GT mention",
-                       "hyperlink": "FN where the mention is identical to a hyperlink / GT mentions that are identical to a hyperlink",
+                       "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks",
                        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
                        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates",
                        "non_entity_coreference": "FP mentions in {It, it, This, this, That, that, Its, its}",
-                       "coreference_referenced_wrong": "FN, the last named GT mention of the GT entity was linked to the same, wrong entity / Correct references",
-                       "coreference_wrong_reference": "FN, the last named GT mention of the GT entity was not linked or linked to a wrong entity / Linked GT coreference mentions",
-                       "coreference_no_reference": "FN, mention was not linked / GT coreference mentions"};
+                       "referenced_wrong": "FN, the last named GT mention of the GT entity was linked to the same, wrong entity / Correct references",
+                       "wrong_reference": "FN, the last named GT mention of the GT entity was not linked or linked to a wrong entity / Linked GT coreference mentions",
+                       "no_reference": "FN, mention was not linked / GT coreference mentions",
+                       "all": "All errors. TP: correct span, correct link; FP: incorrect span or correct span but wrong link; FN: GT span was not recognized or wrong link",
+                       "NER": "Mention span errors. TP: correct span; FP: predicted span does not match any GT span; FN: GT span does not match any predicted span",
+                       "coreference": "All coreference errors (the &lt;type&gt; and pronouns)",
+                       "named": "All errors excluding coreference",
+                       "nominal": "'the &lt;type&gt;' errors",
+                       "pronominal": "Pronoun errors",
+                       "errors": "Error categories",
+                       "coreference_errors": "Coreference error categories"};
 
 show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
@@ -718,7 +726,12 @@ function get_table_header(json_obj) {
                 colspan += 1;
             }
         });
-        first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_title_from_key(key) + "</th>";
+        first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'><div class='tooltip'>" + get_title_from_key(key);
+        var tooltip_text = get_header_tooltip_text(key);
+        if (tooltip_text) {
+            first_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+        }
+        first_row += "</div></th>";
     });
     first_row += "</tr>";
     second_row += "</tr>";
