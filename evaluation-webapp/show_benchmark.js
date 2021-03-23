@@ -564,7 +564,8 @@ function annotate_text(text, annotations, links, evaluation_span) {
             }
             // Only show selected error category
             var color = annotation.color[0];
-            if (show_selected_error && !annotation.error_labels.includes(show_selected_error)) {
+            if (show_selected_error && annotation.error_labels &&
+                    !annotation.error_labels.includes(show_selected_error)) {
                 // Use transparent version of the color, if an error category is selected
                 // And the current annotation does not have the corresponding error label
                 color = annotation.color[1];
