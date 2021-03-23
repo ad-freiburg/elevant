@@ -66,6 +66,8 @@ $("document").ready(function() {
     show_all_articles_flag = false;
     show_selected_error = null;
 
+    last_selected_cell = null;
+
     set_benchmark_select_options();
 
     // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
@@ -97,6 +99,34 @@ $("document").ready(function() {
         });
         show_ground_truth_entities();
         show_linked_entities();
+    });
+
+    // Highlight error category cells on hover
+    $("#evaluation").on("mouseenter", "td", function() {
+        if ($(this).attr('class')) {  // System column has no class attribute
+            var classes = $(this).attr('class').split(/\s+/);
+            if (classes.length > 1 && classes[1] in error_category_mapping) {
+                $(this).addClass("hovered");
+            }
+        }
+    });
+
+    $("#evaluation").on("mouseleave", "td", function() {
+        $(this).removeClass("hovered");
+    });
+
+    // Highlight error category cells on click and un-highlight previously clicked cell
+    $("#evaluation").on("click", "td", function() {
+        if (last_selected_cell) {
+            $(last_selected_cell).removeClass("selected");
+        }
+        if ($(this).attr('class')) {  // System column has no class attribute
+            var classes = $(this).attr('class').split(/\s+/);
+            if (classes.length > 1 && classes[1] in error_category_mapping) {
+                $(this).addClass("selected");
+                last_selected_cell = this;
+            }
+        }
     });
 });
 
@@ -917,6 +947,14 @@ function sort_table(column_header) {
     var selected_approach = $("#evaluation table tbody tr.selected");
     var selected_approach_index = selected_approach.parent().children().index($(selected_approach));  // 0-based
 
+    // Store class name of currently selected cell
+    var selected_cell_classes = $("#evaluation table tbody td.selected").attr("class");
+    if (selected_cell_classes) {
+        selected_cell_classes = selected_cell_classes.split(/\s+/);
+        selected_cell_classes.pop();  // We don't want the "selected" class
+        selected_cell_classes = "." + selected_cell_classes.join(".");
+    }
+
     // Check if sorting should be ascending or descending
     var descending = !$(column_header).hasClass("desc");
 
@@ -961,6 +999,10 @@ function sort_table(column_header) {
     // Re-add selected class to previously selected row
     var new_selected_approach_index = order.indexOf(selected_approach_index) + 1;  // +1 because nth-child is 1-based
     $("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
+
+    // Re-add selected class to previously selected cell
+    last_selected_cell = $("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
+    $(last_selected_cell).addClass("selected");
 }
 
 function compare_approach_names(approach_1, approach_2) {

@@ -1,6 +1,8 @@
 :root {
     --row-hover-color: #e1e0e0;
     --row-selected-color: #C8C7C7;
+    --cell-hover-color: #F9E29B;
+    --cell-selected-color: #F6CF59;
 }
 
 html, input, select {
@@ -105,7 +107,6 @@ a {
 }
 #evaluation table tbody tr:hover {
     background-color: var(--row-hover-color);
-    border: 2px solid white;
 }
 #evaluation table tbody tr.selected {
     background-color: var(--row-selected-color);
@@ -121,7 +122,12 @@ a {
 #evaluation table thead .desc .sort_symbol {
     visibility: visible;
 }
-
+#evaluation table tbody td.hovered {
+    background-color: var(--cell-hover-color);
+}
+#evaluation table tbody td.selected {
+    background-color: var(--cell-selected-color);
+}
 
 /* Show the tooltip text when you mouse over a table header cell that comes with a description */
 #evaluation table thead .tooltip .tooltiptext {
