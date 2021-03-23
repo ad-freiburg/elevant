@@ -968,7 +968,7 @@ function sort_table(column_header) {
     const undecor = a => a[1];               // leave only index
     const argsort = arr => arr.map(decor).sort(sort_function).map(undecor);
     var order = argsort(col_values);
-    result_array = order.map(i => result_array[i])
+    result_array = order.map(i => result_array[i]);
 
     // Remove asc/desc classes from all columns
     $("#evaluation table th").each(function() {
@@ -983,6 +983,7 @@ function sort_table(column_header) {
         $(column_header).addClass("desc");
     } else {
         // Reverse sorting order
+        order = order.reverse();
         result_array = result_array.reverse();
         // Show up-pointing triangle
         $(column_header).find(".sort_symbol").html("&#9650");
