@@ -1,8 +1,8 @@
 // Colors for the tooltips.
-GREEN = "#7dcea0";
-RED = "#f1948a";
-BLUE = "#bb8fce";
-GREY = "lightgrey";
+GREEN = ["rgb(125,206,160)", "rgba(125,206,160, 0.3)"]; // "#7dcea0";
+RED = ["rgb(241,148,138)", "rgba((241,148,138, 0.3)"];  // "#f1948a";
+BLUE = ["rgb(187,143,206)", "rgba(187,143,206, 0.3)"]; // "#bb8fce";
+GREY = ["rgb(211,211,211)", "rgba(211,211,211, 0.3)"]; // "lightgrey";
 
 RESULTS_EXTENSION = ".results";
 
@@ -37,6 +37,24 @@ show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
 benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc"];
 
+error_category_mapping = {"undetected": "UNDETECTED",
+    "undetected_lowercase": "UNDETECTED_LOWERCASE",
+    "wrong_candidates": "WRONG_CANDIDATES",
+    "": "MULTI_CANDIDATES_CORRECT",
+    "multi_candidates": "MULTI_CANDIDATES_WRONG",
+    "specificity": "SPECIFICITY",
+    "rare": "RARE",
+    "": "DEMONYM_CORRECT",
+    "demonym": "DEMONYM_WRONG",
+    "": "PARTIAL_NAME_CORRECT",
+    "partial_name": "PARTIAL_NAME_WRONG",
+    "abstraction": "ABSTRACTION",
+    "": "HYPERLINK_CORRECT",
+    "hyperlink": "HYPERLINK_WRONG",
+    "non_entity_coreference": "NON_ENTITY_COREFERENCE",
+    "referenced_wrong": "COREFERENCE_REFERENCED_WRONG",
+    "wrong_reference": "COREFERENCE_WRONG_REFERENCE",
+    "no_reference": "COREFERENCE_NO_REFERENCE"}
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
@@ -46,6 +64,7 @@ $("document").ready(function() {
     article_select = document.getElementById("article");
 
     show_all_articles_flag = false;
+    show_selected_error = null;
 
     set_benchmark_select_options();
 
@@ -509,7 +528,14 @@ function annotate_text(text, annotations, links, evaluation_span) {
                     tooltip_text += annotation.error_labels[e_i];
                 }
             }
-            replacement = "<div class=\"tooltip\" style=\"background-color:" + annotation.color + "\">";
+            // Only show selected error category
+            var color = annotation.color[0];
+            if (show_selected_error && !annotation.error_labels.includes(show_selected_error)) {
+                // Use transparent version of the color, if an error category is selected
+                // And the current annotation does not have the corresponding error label
+                color = annotation.color[1];
+            }
+            replacement = "<div class=\"tooltip\" style=\"background-color:" + color + "\">";
             replacement += snippet;
             replacement += "<span class=\"tooltiptext\">" + tooltip_text + "</span>";
             replacement += "</div>";
@@ -813,12 +839,27 @@ function get_table_row(approach_name, json_obj) {
                     processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>"
                     value = processed_value;
                 }
-                row += "<td class='" + class_name + "'>" + value + "</td>";
+                var subclass_name = get_class_name(subkey);
+                var onclick_string = "onclick=\"show_selected_errors('" + subclass_name + "')\"";
+                row += "<td class='" + class_name + " " + subclass_name + "' " + onclick_string + ">" + value + "</td>";
             }
         });
     })
     row += "</tr>";
     return row;
+}
+
+function show_selected_errors(error_category) {
+    if (error_category in error_category_mapping) {
+        show_selected_error = error_category_mapping[error_category];
+        if (show_all_articles_flag) {
+            show_all_articles();
+        } else {
+            show_article();
+        }
+    } else {
+        show_selected_error = null;
+    }
 }
 
 function get_tooltip_text(json_obj) {
