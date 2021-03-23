@@ -215,17 +215,21 @@ function set_article_select_options() {
     // Empty previous options
     $("#article").empty();
 
+    // Add default "All articles" option
+    var option = document.createElement("option");
+    option.text = "All articles (evaluated span only)";
+    option.value = -1;
+    article_select.add(option);
+
     // Create new options
     for (ai in articles) {
         article = articles[ai];
-        var option = document.createElement("option");
+        option = document.createElement("option");
         // Conll articles don't have a title. In that case use the first 40 characters of the article
         option.text = (article.title) ? article.title : article.text.substring(0, Math.min(40, article.text.length)) + "...";
         option.value = ai;
         article_select.add(option);
     }
-    // Set default value to nothing.
-    $("#article").prop("selectedIndex", -1);
 }
 
 function show_article_link() {
@@ -247,7 +251,7 @@ function show_ground_truth_entities() {
         }
         var ground_truth_text = ground_truth_texts.join("<br>-----------------<br><br>");
     } else {
-        var annotations = get_ground_truth_annotations(approach_index);
+        var annotations = get_ground_truth_annotations(selected_article_index);
         var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length]);
     }
     textfield_left.innerHTML = ground_truth_text;
@@ -304,7 +308,7 @@ function show_linked_entities() {
         }
         var predicted_text = predicted_texts.join("<br>-----------------<br><br>");
     } else {
-        var annotations = get_predicted_annotations(approach_index);
+        var annotations = get_predicted_annotations(selected_article_index);
         var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length]);
     }
     textfield_right.innerHTML = predicted_text;
@@ -565,7 +569,7 @@ function show_table() {
     table += "<th>case</th>";
     table += "</tr>";
     
-    for (eval_case of evaluation_cases[approach_index]) {
+    for (eval_case of evaluation_cases[selected_article_index]) {
         if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
             if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
                 continue;
@@ -630,19 +634,24 @@ function show_table() {
 }
 
 function show_article() {
-    /* Generate the ground truth textfield, predicted text field and cases table for the selected article and approach. */
-    show_all_articles_flag = false;
-    approach_index = article_select.value;
-    
-    if (approach_index == "") {
-        return;
-    }
-    article = articles[approach_index];
+    /*
+    Generate the ground truth textfield, predicted text field and cases table for the selected article
+    (or all articles if this option is selected) and approach.
+    */
+    selected_article_index = article_select.value;
 
-    if (article.url) {
-        show_article_link();
-    } else {
+    if (selected_article_index == -1) {
+        show_all_articles_flag = true;
         $("#article_link").hide();
+    } else {
+        show_all_articles_flag = false;
+        article = articles[selected_article_index];
+
+        if (article.url) {
+            show_article_link();
+        } else {
+            $("#article_link").hide();
+        }
     }
 
     $("#article-results .row").show();
@@ -650,10 +659,9 @@ function show_article() {
     if (evaluation_cases.length == 0) {
         textfield_left.innerHTML = article.labelled_text;
         textfield_right.innerHTML = "<b class='warning'>No approach selected or no file with cases found.</b>";
-        $("#table").html("");
         return;
     }
-    
+
     show_ground_truth_entities();
     show_linked_entities();
 }
@@ -811,7 +819,7 @@ function get_table_row(approach_name, json_obj) {
     Get html for the table row with the given approach name and result values.
     */
     var row = "<tr onclick='on_row_click(this)'>";
-    row += "<td>" + approach_name + "</td>";
+    row += "<td onclick=\"show_selected_errors('system')\">" + approach_name + "</td>";
     $.each(json_obj, function(key) {
         var class_name = get_class_name(key);
         var tooltip_text = "";
@@ -852,11 +860,7 @@ function get_table_row(approach_name, json_obj) {
 function show_selected_errors(error_category) {
     if (error_category in error_category_mapping) {
         show_selected_error = error_category_mapping[error_category];
-        if (show_all_articles_flag) {
-            show_all_articles();
-        } else {
-            show_article();
-        }
+        show_article();
     } else {
         show_selected_error = null;
     }
@@ -992,28 +996,6 @@ function coref_linker_key(approach_name) {
     else return 10;
 }
 
-function show_all_articles() {
-    /*
-    Generate the ground truth textfield and predicted text field for all
-    articles and the selected approach.
-    */
-    show_all_articles_flag = true;
-
-    $("#article_link").hide();
-
-    $("#article-results .row").show();
-
-    if (evaluation_cases.length == 0) {
-        textfield_left.innerHTML = article.labelled_text;
-        textfield_right.innerHTML = "<b class='warning'>No approach selected or no file with cases found.</b>";
-        $("#table").html("");
-        return;
-    }
-
-    show_ground_truth_entities();
-    show_linked_entities();
-}
-
 function read_evaluation_cases(path) {
     /*
     Retrieve evaluation cases from the given file and show the linked currently selected article.
@@ -1028,18 +1010,10 @@ function read_evaluation_cases(path) {
                 evaluation_cases.push(cases);
             }
         }
-        if (show_all_articles_flag) {
-            show_all_articles();
-        } else {
-            show_article();
-        }
+        show_article();
     }).fail(function() {
         $("#evaluation").html("ERROR: no file with cases found.");
-        if (show_all_articles_flag) {
-            show_all_articles();
-        } else {
-            show_article();
-        }
+        show_article();
     });
 }
 
