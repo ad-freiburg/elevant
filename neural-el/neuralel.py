@@ -99,7 +99,7 @@ def main(_):
             # NER yields wrong results if line ends on an entity (without trailing punctuation).
             # As a hack, append a dot if line ends on alphanumeric. This should not change the results.
             line = line.strip()
-            if line and line[-1].isalnum():
+            if line and (line[-1].isalnum() or line[-1] == "]"):
                 print("Add punctuation to end of line.")
                 line += " ."
             reader.initialize_for_doc(line, FLAGS.contains_ner)
