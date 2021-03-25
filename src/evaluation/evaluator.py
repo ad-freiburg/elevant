@@ -61,7 +61,10 @@ class Evaluator:
                     self.counts["NER"]["fn"] += 1
                 if case.text.islower():
                     self.n_named_lowercase += 1
-            else:
+            elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
+                # If case has no GT or if GT entity is unknown and the case has a predicted entity -> FP
+                # otherwise ignore the case (NIL-entities are not expected to be predicted and should not count towards
+                # errors)
                 self.counts["NER"]["fp"] += 1
 
     def count_mention_type_case(self, case: Case):
