@@ -170,8 +170,8 @@ def print_evaluation_summary(evaluator):
     print("Coreference evaluation:")
     print("\tprecision = %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_tp + n_coref_fp))
     print("\trecall =    %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_total))
-    coref_precision = n_coref_tp / (n_coref_tp + n_coref_fp)
-    coref_recall = n_coref_tp / n_coref_total
+    coref_precision = n_coref_tp / (n_coref_tp + n_coref_fp) if n_coref_tp + n_coref_fp > 0 else 0
+    coref_recall = n_coref_tp / n_coref_total if n_coref_total > 0 else 0
     coref_f1 = 2 * coref_precision * coref_recall / (coref_precision + coref_recall)\
         if (coref_precision + coref_recall) > 0 else 0
     print("\tf1 =        %.2f%%" % (coref_f1*100))
