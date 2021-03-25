@@ -550,6 +550,9 @@ function annotate_text(text, annotations, links, evaluation_span) {
             } else {
                 tooltip_text = entity_link;
             }
+            if (annotation.hasOwnProperty("span")) {
+                tooltip_text += "<br>span=(" + annotation.span[0] + ", " + annotation.span[1] + ")";
+            }
             if (annotation.hasOwnProperty("predicted_by")) {
                 tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
             }
