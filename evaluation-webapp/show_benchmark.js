@@ -25,7 +25,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "wrong_reference": "FN, the last named GT mention of the GT entity was not linked or linked to a wrong entity / Linked GT coreference mentions",
                        "no_reference": "FN, mention was not linked / GT coreference mentions",
                        "all": "All errors. TP: correct span, correct link; FP: incorrect span or correct span but wrong link; FN: GT span was not recognized or wrong link",
-                       "NER": "Mention span errors. TP: correct span; FP: predicted span does not match any GT span; FN: GT span does not match any predicted span",
+                       "NER": "Named mention span errors. TP: correct span; FP: predicted span does not match any GT span; FN: GT span does not match any predicted span",
                        "coreference": "All coreference errors (the &lt;type&gt; and pronouns)",
                        "named": "All errors excluding coreference",
                        "nominal": "'the &lt;type&gt;' errors",
