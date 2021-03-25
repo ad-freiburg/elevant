@@ -6,6 +6,9 @@ Per default, articles are written without any annotations.
 But you can also choose to annotate (groundtruth labels | linked entities | hyperlinks).
 The format of entity annotations is [<QID>:<label>|<original>]
 
+To write articles in a format that is suitable as Ambiverse (AIDA) input use options
+--output_dir <path>
+
 To write articles in a format that is suitable as WEXEA input use options
 --output_dir <path> --title_in_filename --print_hyperlinks --print_entity_list
 
@@ -80,7 +83,10 @@ def get_ner_text(article, text, offset):
     if article.labels is None:
         return text
 
-    for span, _ in sorted(article.labels, reverse=True):
+    for span, label in sorted(article.labels, reverse=True):
+        if label is None or label.startswith("Unknown"):
+            # Exclude unknown GT entities, since they cannot be correctly linked without predicting NIL
+            continue
         begin, end = span
         begin -= offset
         end -= offset
