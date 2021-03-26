@@ -56,7 +56,7 @@ def main(args):
         article.set_evaluation_time(time.time() - article_start_time)
         output_file.write(article.to_json() + '\n')
         print("\r%i articles" % (i + 1), end='')
-    print()
+    print("\nWrote linked articles to %s" % args.output_file)
 
     output_file.close()
 
