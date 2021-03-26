@@ -98,7 +98,7 @@ def process_file(linked_article, original_article, output_filename, verbose=Fals
         print()
 
     if plain_new_text != original_text:
-        print("*" * 10 + "Conversion failed for article %s" + "*" * 10 % linked_article)
+        print(("*" * 10 + "Conversion failed for article %s" + "*" * 10) % linked_article)
 
     out_file.write(new_text)
 
