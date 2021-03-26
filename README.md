@@ -20,7 +20,8 @@ Once the container is started, type `make help` to get some predefined evaluatio
        wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles-multistream.xml.bz2
 2. Extract articles in JSON format, keeping the link information:
 
-       python3 src/wiki_extractor/WikiExtractor.py --links --json --output_file json/wiki_extracted.json enwiki-latest-pages-articles-multistream.xml.bz2
+       python3 src/wiki_extractor/extract.sh enwiki-latest-pages-articles-multistream.xml.bz2 json/wiki_extracted.json
+
 ### 2. Get data for the Entity Linker
 
 (These steps can be skipped. The resulting files are already on `/nfs/students/matthias-hertel/wiki_entity_linker`.)
@@ -182,3 +183,10 @@ Link-Text-Linker + Explosion
 Link-Text-Linker + Explosion + Entity Coref
 
     python3 link_benchmark_entities.py <output_file> explosion /nfs/students/matthias-hertel/wiki_entity_linker/linker-1M/nlp --link_linker link-text-linker -coref entity
+
+
+## Notes
+
+If you want to be able to run coreference with the Stanford CoreNLP coreference resolution system, make sure to setup Stanford CoreNLP by running
+
+    ./setup_stanford_coref.sh

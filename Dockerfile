@@ -12,6 +12,7 @@ RUN python3 -m spacy download en_core_web_sm
 COPY src src
 COPY Makefile .
 COPY *.py ./
+COPY *.sh ./
 
 
 # Build the container:
