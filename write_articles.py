@@ -100,7 +100,8 @@ def get_linked_entity_text(article, text, offset, entities):
     if article.entity_mentions is None:
         return text, []
 
-    linked_entities = set()
+    linked_entities = dict()
+    counter = 0
     for span, entity_mention in sorted(article.entity_mentions.items(), reverse=True):
         begin, end = span
         begin -= offset
@@ -112,8 +113,10 @@ def get_linked_entity_text(article, text, offset, entities):
             entity_name = entities[entity_id].name if entity_id in entities else ""
             entity_string = "[%s:%s|%s]" % (entity_id, entity_name, entity_text_snippet)
             text = text[:begin] + entity_string + text[end:]
-            linked_entities.add(entity_id)
-    return text, list(linked_entities)
+            if entity_id not in linked_entities:
+                linked_entities[entity_id] = counter
+                counter += 1
+    return text, sorted(linked_entities, key=linked_entities.get)  # Sorts by value and returns only keys
 
 
 def get_hyperlink_text(article, text, offset):
