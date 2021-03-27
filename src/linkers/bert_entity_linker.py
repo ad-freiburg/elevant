@@ -12,11 +12,11 @@ from spacy.kb import KnowledgeBase, Candidate
 
 from src import settings
 from src.settings import NER_IGNORE_TAGS
-from src.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.models.entity_mention import EntityMention
-from src.models.entity_prediction import EntityPrediction
-from src.models.bert_model import BertClassifier
-from src.utils.dates import is_date
+from src.abstract_entity_linker import AbstractEntityLinker
+from src.entity_mention import EntityMention
+from src.entity_prediction import EntityPrediction
+from src.bert_model import BertClassifier
+from src.dates import is_date
 
 
 class BertEntityLinker(AbstractEntityLinker):
@@ -28,7 +28,7 @@ class BertEntityLinker(AbstractEntityLinker):
         wikipedia_abstracts_file = settings.ABSTRACTS_FILE
         self.wikipedia_abstracts = {}
         if not isfile(wikipedia_abstracts_file):
-            raise FileNotFoundError(f"Can't find wikipedia abstracts file at {wikipedia_abstracts_file}.")
+            raise FileNotFoundError(f"Can't find Wikipedia abstracts file at {wikipedia_abstracts_file}.")
         print("Loading Wikipedia abstracts ...")
         for line in open(wikipedia_abstracts_file):
             values = line[:-1].split('\t')
@@ -90,23 +90,20 @@ class BertEntityLinker(AbstractEntityLinker):
             if not candidates:
                 continue
 
-            # n_cand = len(all_candidates)
-            # If there is no wikipedia abstract for the candidate, pretend that it doesn't exist
-            # candidates = [c for c in all_candidates if c.entity_ in self.wikipedia_abstracts]
-            # if not (n_cand - len(candidates) == 0):
-            #     print(f"{snippet} has {n_cand - len(candidates)} candidates with no wiki abstract")
-
             input_ids, attention_mask, token_type_ids = self.get_model_input(token_span, candidates, doc)
 
             prediction = torch.empty([len(candidates), 1])
 
-            for i in range(len(candidates)):
-                pred = self.linker_model(input_ids=input_ids[i].unsqueeze(0),
-                                         attention_mask=attention_mask[i].unsqueeze(0),
-                                         token_type_ids=token_type_ids[i].unsqueeze(0))
-                prediction[i] = pred[0]
-            prediction = prediction.cpu()
+            i = 0
+            batch_size = 32
+            while i <= len(candidates):
+                pred = self.linker_model(input_ids=input_ids[i:i+batch_size],
+                                         attention_mask=attention_mask[i:i+batch_size],
+                                         token_type_ids=token_type_ids[i:i+batch_size])
+                prediction[i:i+batch_size] = pred.cpu()
+                i += batch_size
 
+            prediction = prediction
             # Top prediction is highest number
             top_pred = prediction.max(0)
             top_pred_val = top_pred[0].item()
@@ -120,6 +117,10 @@ class BertEntityLinker(AbstractEntityLinker):
             # The char span of the mention
             span = (ent.start_char, ent.end_char)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
+            # print(f"\n\tsnippet: {snippet}, \tspan: {span}, \ttop_pred: #{top_pred[1]} : {entity_id} : {top_pred[0]}")
+            # print(prediction.squeeze())
+            # print(candidates)
+            # print(f"{list(zip(candidates, [t.item() for t in prediction]))}")
         return predictions
 
     def get_model_input(self,
@@ -145,7 +146,6 @@ class BertEntityLinker(AbstractEntityLinker):
                 is_split_into_words=True,
                 verbose=False
             )
-
         for candidate in candidates:
             cand_id = candidate.entity_
             # Max number of tokens for the abstract context.
