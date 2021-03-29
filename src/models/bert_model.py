@@ -16,8 +16,6 @@ class BertClassifier(BertPreTrainedModel):
         # The BertClassifier with pooling layer depending on the use_cls parameter
         self.bert = BertModel(config, add_pooling_layer=False)
 
-        # self.dropout = nn.Dropout(config.hidden_dropout_prob)
-
         # Classifier depends on if we use the pooled output (CLS) or the sequence output.
         cls_layers = []
         # Input dimension depending on number of tokens encodings

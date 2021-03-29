@@ -12,18 +12,26 @@ from spacy.kb import KnowledgeBase, Candidate
 
 from src import settings
 from src.settings import NER_IGNORE_TAGS
-from src.abstract_entity_linker import AbstractEntityLinker
-from src.entity_mention import EntityMention
-from src.entity_prediction import EntityPrediction
-from src.bert_model import BertClassifier
-from src.dates import is_date
+from src.linkers.abstract_entity_linker import AbstractEntityLinker
+from src.models.entity_mention import EntityMention
+from src.models.entity_prediction import EntityPrediction
+from src.models.entity_database import EntityDatabase
+from src.models.bert_model import BertClassifier
+from src.ner.ner_postprocessing import NERPostprocessor
+from src.utils.dates import is_date
 
 
 class BertEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "BERT_LINKER"
 
-    def __init__(self, model_path: str):
+    def __init__(self,
+                 model_path: str,
+                 entity_db: EntityDatabase):
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
+
+        if not self.model.has_pipe("ner_postprocessor"):
+            ner_postprocessor = NERPostprocessor(entity_db)
+            self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
         wikipedia_abstracts_file = settings.ABSTRACTS_FILE
         self.wikipedia_abstracts = {}
@@ -64,14 +72,6 @@ class BertEntityLinker(AbstractEntityLinker):
                 text: str,
                 doc: Optional[Doc] = None,
                 uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
-        return self.predict_globally(text, doc, uppercase)
-
-    def predict_globally(self,
-                         text: str,
-                         doc: Optional[Doc] = None,
-                         uppercase: Optional[bool] = False,
-                         linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None) \
-            -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None:
             doc = self.model(text)
         predictions = {}
@@ -96,7 +96,7 @@ class BertEntityLinker(AbstractEntityLinker):
 
             i = 0
             batch_size = 32
-            while i <= len(candidates):
+            while i < len(candidates):
                 pred = self.linker_model(input_ids=input_ids[i:i+batch_size],
                                          attention_mask=attention_mask[i:i+batch_size],
                                          token_type_ids=token_type_ids[i:i+batch_size])
@@ -109,18 +109,16 @@ class BertEntityLinker(AbstractEntityLinker):
             top_pred_val = top_pred[0].item()
             top_pred_ind = top_pred[1].item()
 
-            entity_id = ''
             if top_pred_val > 0:
                 entity_id = candidates[top_pred_ind].entity_
+            else:
+                continue
 
             candidates = {cand.entity_ for cand in candidates}
             # The char span of the mention
             span = (ent.start_char, ent.end_char)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
-            # print(f"\n\tsnippet: {snippet}, \tspan: {span}, \ttop_pred: #{top_pred[1]} : {entity_id} : {top_pred[0]}")
-            # print(prediction.squeeze())
-            # print(candidates)
-            # print(f"{list(zip(candidates, [t.item() for t in prediction]))}")
+
         return predictions
 
     def get_model_input(self,
@@ -191,7 +189,6 @@ class BertEntityLinker(AbstractEntityLinker):
         all_input_ids = torch.cat(all_input_ids).to(self.device)
         all_attention_mask = torch.cat(all_attention_mask).to(self.device)
         all_token_type_ids = torch.cat(all_token_type_ids).to(self.device)
-
         return all_input_ids, all_attention_mask, all_token_type_ids
 
     def has_entity(self, entity_id: str) -> bool:

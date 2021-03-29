@@ -144,7 +144,7 @@ class LinkingSystem:
             self.linker = TrainedEntityLinker(linker_model, self.entity_db, prior=prior, global_model=global_model,
                                               rdf2vec=rdf2vec)
         elif linker_type == Linkers.BERT_MODEL.value:
-            self.linker = BertEntityLinker(linker_info)
+            self.linker = BertEntityLinker(linker_info, self.entity_db)
 
     def _initialize_link_linker(self, linker_type: str):
         if not self.entity_db.is_mapping_loaded():
