@@ -3,6 +3,7 @@ GREEN = ["rgb(125,206,160)", "rgba(125,206,160, 0.3)"]; // "#7dcea0";
 RED = ["rgb(241,148,138)", "rgba(241,148,138, 0.3)"];  // "#f1948a";
 BLUE = ["rgb(187,143,206)", "rgba(187,143,206, 0.3)"]; // "#bb8fce";
 GREY = ["rgb(211,211,211)", "rgba(211,211,211, 0.3)"]; // "lightgrey";
+YELLOW = ["rgb(241,200,138)", "rgba(241,200,138, 0.3)"];
 
 RESULTS_EXTENSION = ".results";
 
@@ -300,7 +301,10 @@ function get_ground_truth_annotations(article_index) {
             }
         }
         if ("true_entity" in eval_case) {
-            if ("predicted_entity" in eval_case) {
+            if (eval_case.true_entity.entity_id.startsWith("Unknown")) {
+                // GT entity is NIL
+                color = YELLOW;
+            } else if ("predicted_entity" in eval_case) {
                 if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
                     // predicted the true entity
                     color = GREEN;
@@ -391,7 +395,7 @@ function get_predicted_annotations(article_index) {
             }
         }
         if ("true_entity" in mention || "predicted_entity" in mention) {  // mention is inside the evaluation span and therefore an evaluated case
-            if ("true_entity" in mention) {
+            if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
                 if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
                     // predicted the true entity
                     color = GREEN;
