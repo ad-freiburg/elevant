@@ -11,6 +11,7 @@ class Linkers(Enum):
     WEXEA = "wexea"
     NEURAL_EL = "neural_el"
     TRAINED_MODEL = "trained_model"
+    BERT_MODEL = "bert_model"
     NONE = "none"
 
 
