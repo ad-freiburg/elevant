@@ -66,7 +66,6 @@ $("document").ready(function() {
 
     show_all_articles_flag = false;
     show_selected_error = null;
-
     last_selected_cell = null;
 
     set_benchmark_select_options();
@@ -126,6 +125,30 @@ $("document").ready(function() {
             if (classes.length > 1 && classes[1] in error_category_mapping) {
                 $(this).addClass("selected");
                 last_selected_cell = this;
+            }
+        }
+    });
+
+    // Show tooltips on both sides when the corresponding span on the other side is hovered
+    $("#textfield_left, #textfield_right").on("mouseenter", ".tooltip", function() {
+        var hovered_tooltiptext = $(this).find(".tooltiptext");
+        var hovered_tooltiptext_id = $(hovered_tooltiptext).attr("id");
+        $(hovered_tooltiptext).css("visibility", "visible");
+        // Get corresponding span(s) on the prediction side and show them too
+        if (hovered_tooltiptext_id in span_pairs) {
+            for (corresponding_span_id of span_pairs[hovered_tooltiptext_id]) {
+                $("#" + corresponding_span_id).css("visibility", "visible");
+            }
+        }
+    });
+
+    $("#textfield_left, #textfield_right").on("mouseleave", ".tooltip", function() {
+        var hovered_tooltiptext = $(this).find(".tooltiptext");
+        var hovered_tooltiptext_id = $(hovered_tooltiptext).attr("id");
+        $(hovered_tooltiptext).css("visibility", "hidden");
+        if (hovered_tooltiptext_id in span_pairs) {
+            for (corresponding_span_id of span_pairs[hovered_tooltiptext_id]) {
+                $("#" + corresponding_span_id).css("visibility", "hidden");
             }
         }
     });
@@ -278,12 +301,12 @@ function show_ground_truth_entities() {
         var ground_truth_texts = [];
         for (var i=0; i < articles.length; i++) {
             var annotations = get_ground_truth_annotations(i);
-            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span));
+            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, true, i));
         }
         var ground_truth_text = ground_truth_texts.join("<br>-----------------<br><br>");
     } else {
         var annotations = get_ground_truth_annotations(selected_article_index);
-        var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length]);
+        var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], true, 0);
     }
     textfield_left.innerHTML = ground_truth_text;
 }
@@ -338,12 +361,12 @@ function show_linked_entities() {
         var predicted_texts = [];
         for (var i=0; i < articles.length; i++) {
             var annotations = get_predicted_annotations(i);
-            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span));
+            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, false, i));
         }
         var predicted_text = predicted_texts.join("<br>-----------------<br><br>");
     } else {
         var annotations = get_predicted_annotations(selected_article_index);
-        var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length]);
+        var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], false, 0);
     }
     textfield_right.innerHTML = predicted_text;
 }
@@ -443,7 +466,7 @@ function deep_copy_array(array) {
     return copied_array;
 }
 
-function annotate_text(text, annotations, links, evaluation_span) {
+function annotate_text(text, annotations, links, evaluation_span, evaluation, article_num) {
     /*
     Generate tooltips for the given annotations and hyperlinks for the given links.
     Tooltips and hyperlinks can overlap.
@@ -525,6 +548,9 @@ function annotate_text(text, annotations, links, evaluation_span) {
     // STEP 2: Add the combined annotations and links to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
     cutoff_done = false;
+    id_counter = 0;
+    if (evaluation && annotation_spans[0].length - 1 < article_num) annotation_spans[0].push([]);
+    else if (prediction && annotation_spans[1].length - 1 < article_num) annotation_spans[1].push([]);
     for (annotation of annotations_with_links.reverse()) {
         // annotation is a tuple with (span, annotation_info)
         span = annotation[0];
@@ -579,14 +605,22 @@ function annotate_text(text, annotations, links, evaluation_span) {
             }
             replacement = "<div class=\"tooltip\" style=\"background-color:" + color + "\">";
             replacement += snippet;
-            replacement += "<span class=\"tooltiptext\">" + tooltip_text + "</span>";
+            tooltiptext_id = "tooltiptext_";
+            tooltiptext_id += evaluation ? "evaluation" : "prediction";
+            tooltiptext_id += "_" + article_num + "_" + id_counter;
+            replacement += "<span id=\"" + tooltiptext_id + "\" class=\"tooltiptext\">" + tooltip_text + "</span>";
             replacement += "</div>";
+            if (evaluation) annotation_spans[0][article_num].push([annotation.span, tooltiptext_id]);
+            else annotation_spans[1][article_num].push([annotation.span, tooltiptext_id]);
+            id_counter++;
         } else {
             // no tooltip (just a link)
             replacement = snippet;
         }
         text = before + replacement + after;
     }
+    if (evaluation) annotation_spans[0][article_num].reverse();  // Annotations are added in reverse order
+    else annotation_spans[1][article_num].reverse();
     text = text.substring(evaluation_span[0], text.length);
     text = text.replaceAll("\n", "<br>");
     return text;
@@ -700,8 +734,53 @@ function show_article() {
         return;
     }
 
+    // Reset / initialize span pair variables
+    annotation_spans = [[], []];
+    span_pairs = {};
+
     show_ground_truth_entities();
     show_linked_entities();
+
+    // Create annotation span pairs to be able to show the tooltips on both sides when hovering over one
+    for (var i = 0; i < annotation_spans[0].length; i++) {
+        prediction_span_index = 0;
+        evaluation_span_index = 0;
+        overlap_set = [[], []];
+        while (evaluation_span_index < annotation_spans[0][i].length && prediction_span_index < annotation_spans[1][i].length) {
+            var [evaluation_span, evaluation_span_id] = annotation_spans[0][i][evaluation_span_index];
+            var [prediction_span, prediction_span_id] = annotation_spans[1][i][prediction_span_index];
+            if (evaluation_span[1] <= prediction_span[0]) {
+                // evaluation span comes before prediction span, no overlap
+                evaluation_span_index++;
+                add_overlap_spans_to_mapping(overlap_set);
+                overlap_set = [[], []];
+            } else if (evaluation_span[0] >= prediction_span[1]) {
+                // evaluation span comes after prediction span, no overlap
+                prediction_span_index++;
+                add_overlap_spans_to_mapping(overlap_set);
+                overlap_set = [[], []];
+            } else {
+                // Overlap
+                overlap_set[0].push(evaluation_span_id);
+                overlap_set[1].push(prediction_span_id);
+                // A single span on one side can overlap with multiple on the other side
+                // Therefore only increase index of span that ends first
+                if (evaluation_span[1] > prediction_span[1]) prediction_span_index++;
+                else evaluation_span_index++;
+            }
+        }
+        add_overlap_spans_to_mapping(overlap_set);
+    }
+}
+
+function add_overlap_spans_to_mapping(overlap_set) {
+    // Add previous overlapping spans to mappings
+    for (evaluation_overlap_span_id of overlap_set[0]) {
+        if (overlap_set[1].length > 0) span_pairs[evaluation_overlap_span_id] = overlap_set[1];
+    }
+    for (prediction_overlap_span_id of overlap_set[1]) {
+        if (overlap_set[0].length > 0) span_pairs[prediction_overlap_span_id] = overlap_set[0];
+    }
 }
 
 function build_overview_table(path, benchmark_name) {
