@@ -5,6 +5,7 @@ from src.helpers.wexea_prediction_reader import WexeaPredictionReader
 from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
 from src.helpers.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
+from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.trained_entity_linker import TrainedEntityLinker
@@ -142,6 +143,8 @@ class LinkingSystem:
             linker_model = model_dict['model']
             self.linker = TrainedEntityLinker(linker_model, self.entity_db, prior=prior, global_model=global_model,
                                               rdf2vec=rdf2vec)
+        elif linker_type == Linkers.BERT_MODEL.value:
+            self.linker = BertEntityLinker(linker_info, self.entity_db)
 
     def _initialize_link_linker(self, linker_type: str):
         if not self.entity_db.is_mapping_loaded():

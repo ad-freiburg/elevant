@@ -1,5 +1,6 @@
-FROM ubuntu:20.04
+FROM pytorch/pytorch:1.6.0-cuda10.1-cudnn7-runtime
 MAINTAINER Matthias Hertel hertelm@login.informatik.uni-freiburg.de
+WORKDIR /
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip git
 RUN git clone https://github.com/huggingface/neuralcoref.git
