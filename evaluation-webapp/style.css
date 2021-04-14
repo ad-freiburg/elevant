@@ -73,6 +73,10 @@ a {
     left: 0;
 }
 
+td .tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
 /* Benchmark selector*/
 #benchmark_selection {
     padding-top: 1em;
