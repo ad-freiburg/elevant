@@ -1,3 +1,4 @@
+import argparse
 import glob
 import json
 import os
@@ -109,10 +110,18 @@ def process(linked_article, original_article, file_directory):
 
 
 def main():
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
+
+    parser.add_argument("--only_new", action="store_true",
+                        help="Process only articles in the article directory \"new\".")
+
+    args = parser.parse_args()
+
     config = json.load(open('config/config.json'))
 
     outputpath = config['outputpath']
-    original_articlepath = outputpath + 'original_articles_benchmark/'
+    original_articlepath = outputpath + 'fixed_link_articles_benchmark/'
     final_articlepath = outputpath + 'almost_final_articles_benchmark/'
     benchmark_articlepath = outputpath + 'final_articles_benchmark/'
 
@@ -130,9 +139,13 @@ def main():
     diff_acc = 0.0
     c = 0
     for article_directory in article_directories:
+        folder_name = article_directory.split('/')[-2]
+
+        if args.only_new and folder_name != "new":
+            continue
+
         articles = glob.glob(article_directory + "*.txt")
 
-        folder_name = article_directory.split('/')[-2]
         file_directory = benchmark_articlepath + folder_name + '/'
 
         if not os.path.isdir(file_directory):
