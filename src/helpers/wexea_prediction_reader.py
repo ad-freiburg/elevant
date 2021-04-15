@@ -35,6 +35,12 @@ class WexeaPredictionReader:
             text_position = link_match.end()
             entity_id = self.entity_db.link2id(link_target)
             candidates = {entity_id}
+            if link_type == "UNKNOWN":
+                # These should not be added as predictions, since WEXEA considers them unlinked
+                continue
+            if link_type.startswith("DISAMBIGUATION"):
+                # These should not be added as predictions, since they can never be a correct link
+                continue
             if (coref and link_type == "COREF") or (not coref and link_type != "COREF"):
                 predictions[span] = EntityPrediction(span, entity_id, candidates)
         text += linked_text[text_position:]
