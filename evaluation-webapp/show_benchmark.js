@@ -136,8 +136,16 @@ $("document").ready(function() {
         $(hovered_tooltiptext).css("visibility", "visible");
         // Get corresponding span(s) on the prediction side and show them too
         if (hovered_tooltiptext_id in span_pairs) {
+            var tooltip_num = 0;
             for (corresponding_span_id of span_pairs[hovered_tooltiptext_id]) {
                 $("#" + corresponding_span_id).css("visibility", "visible");
+                if (tooltip_num % 2 == 1) {
+                    // Try to avoid overlapping tooltips if a mention on one side corresponds
+                    // to multiple mentions on the other side.
+                    $("#" + corresponding_span_id).css("top", "100%");
+                    $("#" + corresponding_span_id).css("bottom", "auto");
+                }
+                tooltip_num++;
             }
         }
     });
@@ -745,7 +753,7 @@ function show_article() {
     for (var i = 0; i < annotation_spans[0].length; i++) {
         prediction_span_index = 0;
         evaluation_span_index = 0;
-        overlap_set = [[], []];
+        overlap_set = [new Set(), new Set()];
         while (evaluation_span_index < annotation_spans[0][i].length && prediction_span_index < annotation_spans[1][i].length) {
             var [evaluation_span, evaluation_span_id] = annotation_spans[0][i][evaluation_span_index];
             var [prediction_span, prediction_span_id] = annotation_spans[1][i][prediction_span_index];
@@ -753,16 +761,16 @@ function show_article() {
                 // evaluation span comes before prediction span, no overlap
                 evaluation_span_index++;
                 add_overlap_spans_to_mapping(overlap_set);
-                overlap_set = [[], []];
+                overlap_set = [new Set(), new Set()];
             } else if (evaluation_span[0] >= prediction_span[1]) {
                 // evaluation span comes after prediction span, no overlap
                 prediction_span_index++;
                 add_overlap_spans_to_mapping(overlap_set);
-                overlap_set = [[], []];
+                overlap_set = [new Set(), new Set()];
             } else {
                 // Overlap
-                overlap_set[0].push(evaluation_span_id);
-                overlap_set[1].push(prediction_span_id);
+                overlap_set[0].add(evaluation_span_id);
+                overlap_set[1].add(prediction_span_id);
                 // A single span on one side can overlap with multiple on the other side
                 // Therefore only increase index of span that ends first
                 if (evaluation_span[1] > prediction_span[1]) prediction_span_index++;
@@ -776,10 +784,10 @@ function show_article() {
 function add_overlap_spans_to_mapping(overlap_set) {
     // Add previous overlapping spans to mappings
     for (evaluation_overlap_span_id of overlap_set[0]) {
-        if (overlap_set[1].length > 0) span_pairs[evaluation_overlap_span_id] = overlap_set[1];
+        if (overlap_set[1].size > 0) span_pairs[evaluation_overlap_span_id] = overlap_set[1];
     }
     for (prediction_overlap_span_id of overlap_set[1]) {
-        if (overlap_set[0].length > 0) span_pairs[prediction_overlap_span_id] = overlap_set[0];
+        if (overlap_set[0].size > 0) span_pairs[prediction_overlap_span_id] = overlap_set[0];
     }
 }
 
