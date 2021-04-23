@@ -157,13 +157,28 @@ class EntityDatabaseReader:
         return counts
 
     @staticmethod
-    def get_demonyms() -> Dict[str, str]:
+    def get_demonyms() -> Dict[str, List[str]]:
         demonyms = {}
         with open(settings.DEMONYM_FILE) as f:
             for line in f:
                 entity_id, demonym = line.split("\t")
                 entity_id = entity_id[:-1].split("/")[-1]
                 demonym = demonym.split("\"")[1]
-                demonyms[demonym] = entity_id
-                demonyms[demonym + "s"] = entity_id
+                if demonym not in demonyms:
+                    demonyms[demonym] = []
+                if demonym + "s" not in demonyms:
+                    demonyms[demonym + "s"] = []
+                demonyms[demonym].append(entity_id)
+                demonyms[demonym + "s"].append(entity_id)
         return demonyms
+
+    @staticmethod
+    def get_languages() -> Dict[str, str]:
+        languages = {}
+        with open(settings.LANGUAGE_FILE) as f:
+            for line in f:
+                entity_id, language = line.split("\t")
+                entity_id = entity_id[:-1].split("/")[-1]
+                language = language.split("\"")[1]
+                languages[language] = entity_id
+        return languages

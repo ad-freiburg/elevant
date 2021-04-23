@@ -38,6 +38,7 @@ class EntityDatabase:
         self.unigram_counts = {}
         self.sitelink_counts = {}
         self.demonyms = {}
+        self.languages = {}
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -51,6 +52,9 @@ class EntityDatabase:
 
     def contains_entity_name(self, entity_name: str) -> bool:
         return entity_name in self.entities_by_name
+
+    def get_entities_by_name(self, entity_name: str) -> str:
+        return self.entities_by_name[entity_name]
 
     def get_entity(self, entity_id: str) -> WikidataEntity:
         return self.entities[entity_id]
@@ -298,3 +302,20 @@ class EntityDatabase:
         if not self.has_demonyms_loaded():
             print("Warning: asking entity database for demonyms but demonyms are not loaded.")
         return text in self.demonyms
+
+    def get_entities_for_demonym(self, demonym):
+        return self.demonyms[demonym]
+
+    def load_languages(self):
+        self.languages = EntityDatabaseReader.get_languages()
+
+    def has_languages_loaded(self):
+        return len(self.languages) > 0
+
+    def is_language(self, text):
+        if not self.has_languages_loaded():
+            print("Warning: tried to access languages of entity database, but languages were not loaded.")
+        return text in self.languages
+
+    def get_entity_for_language(self, language):
+        return self.languages[language]

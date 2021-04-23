@@ -12,6 +12,7 @@ class Linkers(Enum):
     NEURAL_EL = "neural_el"
     TRAINED_MODEL = "trained_model"
     BERT_MODEL = "bert_model"
+    POPULAR_ENTITIES = "popular_entities"
     NONE = "none"
 
 

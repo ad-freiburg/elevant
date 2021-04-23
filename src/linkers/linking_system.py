@@ -8,6 +8,7 @@ from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
+from src.linkers.popular_entities_linker import PopularEntitiesLinker
 from src.linkers.trained_entity_linker import TrainedEntityLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
@@ -145,6 +146,18 @@ class LinkingSystem:
                                               rdf2vec=rdf2vec)
         elif linker_type == Linkers.BERT_MODEL.value:
             self.linker = BertEntityLinker(linker_info, self.entity_db)
+        elif linker_type == Linkers.POPULAR_ENTITIES.value:
+            if not self.entity_db.has_languages_loaded():
+                print("Loading languages...")
+                self.entity_db.load_languages()
+            if not self.entity_db.has_demonyms_loaded():
+                print("Loading demonyms...")
+                self.entity_db.load_demonyms()
+            if not self.entity_db.has_sitelink_counts_loaded():
+                print("Loading sitelink counts...")
+                self.entity_db.load_sitelink_counts()
+            min_score = int(linker_info)
+            self.linker = PopularEntitiesLinker(min_score, self.entity_db, longest_alias_ner)
 
     def _initialize_link_linker(self, linker_type: str):
         if not self.entity_db.is_mapping_loaded():
