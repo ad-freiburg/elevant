@@ -48,6 +48,7 @@ class LinkingSystem:
         self.coreference_linker = None
         self.coreference_prediction_iterator = None
         self.entity_db = None
+        self.globally = False
 
         self._initialize_entity_db(linker_type, linker, link_linker, coreference_linker, minimum_score)
         self._initialize_link_linker(link_linker)
@@ -158,6 +159,7 @@ class LinkingSystem:
                 self.entity_db.load_sitelink_counts()
             min_score = int(linker_info)
             self.linker = PopularEntitiesLinker(min_score, self.entity_db, longest_alias_ner)
+            self.globally = True
 
     def _initialize_link_linker(self, linker_type: str):
         if not self.entity_db.is_mapping_loaded():
@@ -211,7 +213,7 @@ class LinkingSystem:
             self.link_linker.link_entities(article, doc)
 
         if self.linker:
-            self.linker.link_entities(article, doc, uppercase=uppercase)
+            self.linker.link_entities(article, doc, uppercase=uppercase, globally=self.globally)
         elif self.prediction_iterator:
             predicted_entities = next(self.prediction_iterator)
             if uppercase:

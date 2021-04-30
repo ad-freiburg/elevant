@@ -4,6 +4,7 @@ import spacy
 from spacy.tokens import Doc
 
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
+from src.models.entity_mention import EntityMention
 from src.models.entity_prediction import EntityPrediction
 from src.ner.maximum_matching_ner import MaximumMatchingNER
 from src.settings import NER_IGNORE_TAGS
@@ -11,6 +12,36 @@ from src.models.entity_database import EntityDatabase
 from src.ner.ner_postprocessing import NERPostprocessor
 from src.utils.dates import is_date
 from src import settings
+from src.utils.offset_converter import OffsetConverter
+
+
+def get_non_overlapping_span(span, linked_entities, text) -> Tuple[int, int]:
+    for linked_span in sorted(linked_entities):
+        if linked_span[0] > span[1]:
+            # linked spans are sorted so we can break the loop as soon as the start
+            # of a already linked span is greater than the end of the predicted span
+            break
+        if linked_span[0] <= span[0] and linked_span[1] >= span[1]:
+            # Return None if the already linked span completely covers the predicted span
+            return None
+        if span[0] < linked_span[0] < span[1]:
+            # span starts before the already linked span and overlaps with it
+            end = linked_span[0]
+            while not text[end - 1].isalpha():
+                end -= 1
+            for ending in ("'s", "'"):
+                # Trim possessive suffixes from span
+                if text[span[0]:end].endswith(ending):
+                    end = end - len(ending)
+            span = span[0], end
+        elif False and linked_span[0] <= span[0] < linked_span[1]:
+            # TODO: Not sure if this case ever occurs and makes sense
+            # span starts after the already linked span and overlaps with it
+            start = linked_span[1] + 1
+            while not text[start].isalpha():
+                start += 1
+            span = start, span[1]
+    return span
 
 
 class PopularEntitiesLinker(AbstractEntityLinker):
@@ -23,35 +54,49 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         self.min_score = min_score
         self.entity_db = entity_db
         self.longest_alias_ner = longest_alias_ner
-        self.ner = MaximumMatchingNER(entity_db)
+        self.ner = MaximumMatchingNER()
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
         ner_postprocessor = NERPostprocessor(self.entity_db)
         self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
     def entity_spans(self, text: str, doc: Optional[Doc]) -> List[Tuple[Tuple[int, int], bool]]:
+        spans = []
         if self.longest_alias_ner:
-            spans = self.ner.entity_mentions(text)
-            new_spans = []
-            for span in spans:
-                # TODO: Either implement this properly using a dependency parse or don't allow longest_alias_ner
-                span = (span, False)
-                new_spans.append(span)
+            original_spans = self.ner.entity_mentions(text)
+            print(original_spans)
+            for span in original_spans:
+                is_language = False
+                snippet = text[span[0]:span[1]]
+                token = OffsetConverter.get_token(span[0], doc)
+                if self.entity_db.is_language(snippet) and token.dep_ == "pobj" and span[0] >= 3 and text[span[0] - 3:span[0] - 1].lower() == "in":
+                    is_language = True
+                spans.append((span, is_language))
         else:
-            spans = []
             for ent in doc.ents:
                 if ent.label_ in NER_IGNORE_TAGS:
                     continue
                 spans.append(((ent.start_char, ent.end_char), ent.label_ == "LANGUAGE"))
-            return spans
+        return spans
 
     def predict(self,
                 text: str,
                 doc: Optional[Doc] = None,
                 uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
+        return self.predict_globally(text, doc, uppercase, None)
+
+    def predict_globally(self,
+                         text: str,
+                         doc: Optional[Doc] = None,
+                         uppercase: Optional[bool] = False,
+                         linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None) -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None:
             doc = self.model(text)
         predictions = {}
         for span, is_language in self.entity_spans(text, doc):
+            if linked_entities:
+                span = get_non_overlapping_span(span, linked_entities, text)
+                if span is None:
+                    continue
             snippet = text[span[0]:span[1]]
 
             if snippet.islower():
