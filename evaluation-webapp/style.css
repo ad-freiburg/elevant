@@ -65,12 +65,17 @@ a {
     text-align: left;
     padding: 5px;
     border-radius: 6px;
+    border: 2px solid white;
 
     /* Position of the tooltip text */
     position: absolute;
     z-index: 1;
     bottom: 100%;
     left: 0;
+}
+
+td .tooltip:hover .tooltiptext {
+    visibility: visible;
 }
 
 /* Benchmark selector*/

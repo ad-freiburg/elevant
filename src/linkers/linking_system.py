@@ -8,6 +8,7 @@ from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
+from src.linkers.popular_entities_linker import PopularEntitiesLinker
 from src.linkers.trained_entity_linker import TrainedEntityLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
@@ -48,6 +49,7 @@ class LinkingSystem:
         self.coreference_linker = None
         self.coreference_prediction_iterator = None
         self.entity_db = None
+        self.globally = False
 
         self._initialize_entity_db(linker_type, linker, link_linker, coreference_linker, minimum_score)
         self._initialize_link_linker(link_linker)
@@ -146,6 +148,19 @@ class LinkingSystem:
                                               rdf2vec=rdf2vec)
         elif linker_type == Linkers.BERT_MODEL.value:
             self.linker = BertEntityLinker(linker_info, self.entity_db)
+        elif linker_type == Linkers.POPULAR_ENTITIES.value:
+            if not self.entity_db.has_languages_loaded():
+                print("Loading languages...")
+                self.entity_db.load_languages()
+            if not self.entity_db.has_demonyms_loaded():
+                print("Loading demonyms...")
+                self.entity_db.load_demonyms()
+            if not self.entity_db.has_sitelink_counts_loaded():
+                print("Loading sitelink counts...")
+                self.entity_db.load_sitelink_counts()
+            min_score = int(linker_info)
+            self.linker = PopularEntitiesLinker(min_score, self.entity_db, longest_alias_ner)
+            self.globally = True
         elif linker_type == Linkers.PRIOR_LINKER.value:
             self.linker = PriorEntityLinker(self.entity_db)
 
@@ -201,7 +216,7 @@ class LinkingSystem:
             self.link_linker.link_entities(article, doc)
 
         if self.linker:
-            self.linker.link_entities(article, doc, uppercase=uppercase)
+            self.linker.link_entities(article, doc, uppercase=uppercase, globally=self.globally)
         elif self.prediction_iterator:
             predicted_entities = next(self.prediction_iterator)
             if uppercase:

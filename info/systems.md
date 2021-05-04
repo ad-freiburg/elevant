@@ -40,6 +40,9 @@ An article is then linked in the following manner:
 
 They additionally apply a rule based coreference resolution system (for both pronouns and "the" + entity type coreferences).
 They use the most recent entity that matches the coreference pronoun or type as referenced entity.
+Pronominal and nominal mentions are only linked if the mention does not start with a capital letter.
+"it", "this" or "that" are never linked.
+
 
 **Evaluation:**
 Corpora statistics compared to an unprocessed Wikipedia corpus with hyperlinks.
@@ -114,3 +117,51 @@ But interestingly with LTL + Entity better results than Explosion + LTL + Entity
 - **Partial Name:** 92 (vs. 85 for Explosion). This is the highest value for Partial Name over all our systems.
 - **Rare:** 75 (vs. 77 for Explosion). The other only-linker-systems perform better in this category.
 - Best results for **Demonym** (by a large margin), **Abstraction** (by a pretty big margin) and **Specificity**. 
+
+
+### TAGME: On-the-fly Annotation of Short Text Fragments(by Wikipedia Entities)
+*Ferragina & Scaiella, 2010*
+
+**Paper:** https://dl.acm.org/doi/pdf/10.1145/1871437.1871689
+
+**Code:** https://github.com/marcocor/tagme-python
+
+**Objective:**
+Entity disambiguation for very short texts like tweets, snippets of search engine results, items from a newsfeed, ...
+
+**Approach:**
+They use Wikipedia link anchor texts as mentions.
+In order to disambiguate a mention m, they compute a vote of each other mention m' in the text as the average relatedness between the candidate entity c that m might refer to and all candidate entities c' that m' might refer to.
+The relatedness is weighted with the prior probability of p(c'|m') (computed using Wikipedia link anchor frequencies, i.e. how often does this anchor link to the specific entity).
+The sum of the votes yields the total score rel_m(c) for a given mention and its candidate entity.
+They test two different ranking algorithms and settle on Disambiguation by Threshold (DT).
+DT computes the top-n best candidates for a mention according to their total score and then settles on the candidate that has the highest prior probability (commonness).
+To achieve a high disambiguation speed, candidate entities are pruned by discarding candidates with a prior probability smaller than a threshold t.
+Mentions are pruned using a scoring function that uses the link probability of an anchor (how often is the anchor text a link in Wikipedia) and the coherence of its disambiguation with respect to the other disambiguations in the text.
+The idea is to keep all mentions where the link probability is high or the linked entity is coherent with the other linked entities.
+They implement two different methods for this pruning, AVG (average of link probability and coherence) and LR (linear combination of the two scores trained via linear regression), each of which produce a score for the disambiguation.
+If the score is lower than a certain threshold, then the mention is linked to NIL.
+This threshold allows to balance recall and precision.
+
+**Noteworthy error categories:**
+- **Abstract:** with 206 abstraction errors, TAGME makes ten times more abstraction errors than almost all other base linker (xyz.none.none) approaches (except for the prior probability baseline with 29 abstraction errors).
+At the same time, TAGME does not make (significantly) less UNDETECTED errors than Ambiverse, Explosion or the baseline.
+Setting the rho-threshold to 0.3 reduces the abstraction errors to 78, but increases the UNDETECTED errors to 284 which is significantly more than all other base linker approaches.
+- **Demonym:** TAGME makes more demonym errors than Neural-EL, Ambiverse, Explosion and the baseline by a large margin.
+- ...
+
+
+### Ambiverse
+
+Ambiverse provides a system for NER, KnowNER, and a system for NEL, AIDA.
+KnowNER uses a linear chain CRF that is fed with features extracted from a knowledge base or corpus with annotated entities.
+They use four distinct features: 1) A binary indicator for each token that indicates whether the token is part of a sequence that occurs in a type-specific (?) gazetteer. 2) The probability of a token being linked to a Wikipedia article. 3) the probability of a token belonging to a given type. 4) The token type position (i.e. the position of a token within a mention, given its type?)
+(The referenced paper for the NER component introduces 4 different systems, but it seems most likely that the described "Knowledge-Base-Based Knowledge" system is meant with "KnowNER")
+AIDA performs entity disambiguation by combining information from three different sources:
+the prior probability of an entity being mentioned in a text, the similarity between the context of a mention and a candidate entity and the coherence among candidate entities of all mentions.
+AIDA is therefore a global entity linking system.
+
+**Notes:**
+
+**Noteworthy error categories:**
+-

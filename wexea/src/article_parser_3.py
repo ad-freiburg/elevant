@@ -54,6 +54,8 @@ def main():
 
     parser.add_argument("--benchmark", action="store_true",
                         help="Link benchmark articles instead of entire Wikipedia dump.")
+    parser.add_argument("--only_new", action="store_true",
+                        help="Process only articles in the article directory \"new\".")
 
     args = parser.parse_args()
 
@@ -83,9 +85,13 @@ def main():
     print("Processing articles at %s ..." % processed_articlepath)
     article_directories = glob.glob(processed_articlepath + "*/")
     for article_directory in article_directories:
+        folder_name = article_directory.split('/')[-2]
+
+        if args.only_new and folder_name != "new":
+            continue
+
         articles = glob.glob(article_directory + "*.txt")
 
-        folder_name = article_directory.split('/')[-2]
         file_directory = el_articlepath + folder_name + '/'
 
         if not os.path.isdir(file_directory):

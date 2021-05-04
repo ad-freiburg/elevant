@@ -18,6 +18,13 @@ help:
 	@echo "		/results/final_articles_benchmark/"
 	@echo "		time to run: ~ 5 min | required RAM: ~19GB${RESET}"
 	@echo ""
+	@echo "${BOLD}annotate_benchmark_only_new:${RESET}"
+	@echo "		Link all articles in"
+	@echo "		/results/original_articles_benchmark/new/"
+	@echo "		Resulting articles are written to"
+	@echo "		/results/final_articles_benchmark/new/"
+	@echo "		time to run: ~ 5 min | required RAM: ~19GB${RESET}"
+	@echo ""
 	@echo "${BOLD}annotate_wikipedia:${RESET}"
 	@echo "		Link all articles in subdirectories of the directory"
 	@echo "		/results/original_articles/"
@@ -37,10 +44,18 @@ extract_statistics:
 	python3 src/dicts_creator.py
 
 annotate_benchmark:
+	python3 src/article_parser_1_benchmark.py  # Fixes links and appends link entities to the file
 	python3 src/article_parser_2.py --benchmark
 	python3 src/article_parser_3.py --benchmark
 	python3 src/article_parser_4.py --benchmark
 	python3 src/article_parser_5_benchmark.py  # Puts linked articles into correct output format
+
+annotate_benchmark_only_new:
+	python3 src/article_parser_1_benchmark.py --only_new
+	python3 src/article_parser_2.py --benchmark --only_new
+	python3 src/article_parser_3.py --benchmark --only_new
+	python3 src/article_parser_4.py --benchmark --only_new
+	python3 src/article_parser_5_benchmark.py --only_new
 
 annotate_wikipedia:
 	python3 src/article_parser_2.py

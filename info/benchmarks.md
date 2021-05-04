@@ -6,7 +6,7 @@
 **Paper:** [Large-Scale Named Entity Disambiguation Based on Wikipedia Data](https://www.aclweb.org/anthology/D07-1074.pdf)
 
 **Volume:** \
-*Original Dataset:* 20 articles with 756 mentions (of which 127 were non-recallable, i.e. there was no appropriate Wikipedia article corresponding to the mention).
+*Original Dataset:* 20 articles with 756 mentions (of which 127 were linked to NIL since there was no appropriate Wikipedia article corresponding to the mention).
 This is the same as the dataset from the GERBIL download below. This dataset contains 747 non-NIL mentions.
 For 87 of these non-NIL mentions, the corresponding Wikipedia article can not be found (anymore).\
 *Updated Dataset:* A cleaned version of the MSNBC dataset with no-longer existing Wikipedia entities removed was released by [Guo & Barbosa](https://dl.acm.org/doi/pdf/10.1145/2661829.2661887) (according to [Ganea et al.](https://dl.acm.org/doi/pdf/10.1145/2872427.2882988)).
@@ -63,7 +63,7 @@ In the updated dataset this is linked to *Bloomberg News*.
 The Wiki-link for *Portland* is (now?) a disambiguation page. In the updated dataset this mention links to *Portland, Oregon*.
 These 4 adjustments are the only observed differences between the original dataset and the updated dataset.
 
-## AIDA CoNLL
+## CoNLL
 
 *Hoffart et al., 2011*
 
