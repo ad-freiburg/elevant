@@ -13,6 +13,7 @@ class Linkers(Enum):
     TRAINED_MODEL = "trained_model"
     BERT_MODEL = "bert_model"
     NONE = "none"
+    PRIOR_LINKER = "prior"
 
 
 class LinkLinkers(Enum):

@@ -22,6 +22,7 @@ from src.linkers.tagme_linker import TagMeLinker
 from src.linkers.trained_spacy_entity_linker import TrainedSpacyEntityLinker
 from src.models.wikipedia_article import WikipediaArticle
 from src.linkers.xrenner_coref_linker import XrennerCorefLinker
+from src.linkers.prior_entity_linker import PriorEntityLinker
 
 import torch
 
@@ -145,6 +146,8 @@ class LinkingSystem:
                                               rdf2vec=rdf2vec)
         elif linker_type == Linkers.BERT_MODEL.value:
             self.linker = BertEntityLinker(linker_info, self.entity_db)
+        elif linker_type == Linkers.PRIOR_LINKER.value:
+            self.linker = PriorEntityLinker(self.entity_db)
 
     def _initialize_link_linker(self, linker_type: str):
         if not self.entity_db.is_mapping_loaded():
