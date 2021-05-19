@@ -7,6 +7,8 @@ YELLOW = ["rgb(241,200,138)", "rgba(241,200,138, 0.3)"];
 
 RESULTS_EXTENSION = ".results";
 
+JOKER_LABELS = ["QUANTITY", "DATETIME"];
+
 ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
@@ -249,10 +251,15 @@ function parse_benchmark(benchmark_file) {
                     json = JSON.parse(line);
                     labelled_text = json.text;
                     for (label of json.labels.reverse()) {
-                        span = label[0];
+                        if ("span" in label) {
+                            span = label["span"];
+                            entity_id = label["entity_id"];
+                        } else {
+                            span = label[0];
+                            entity_id = label[1];
+                        }
                         begin = span[0];
                         end = span[1];
-                        entity_id = label[1];
                         wikidata_url = "https://www.wikidata.org/wiki/" + entity_id;
                         before = labelled_text.substring(0, begin);
                         after = labelled_text.substring(end);
@@ -311,7 +318,11 @@ function show_ground_truth_entities() {
             var annotations = get_ground_truth_annotations(i);
             ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, true, i));
         }
-        var ground_truth_text = ground_truth_texts.join("<br>-----------------<br><br>");
+        ground_truth_text = "";
+        for (var i=0; i < ground_truth_texts.length; i++) {
+            ground_truth_text += "<br><br>" + "********** " + articles[i].title + " **********<br>";
+            ground_truth_text += ground_truth_texts[i];
+        }
     } else {
         var annotations = get_ground_truth_annotations(selected_article_index);
         var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], true, 0);
@@ -331,10 +342,14 @@ function get_ground_truth_annotations(article_index) {
                 continue;
             }
         }
-        if ("true_entity" in eval_case) {
+        // Ensure backwards compatibility by allowing eval_case.factor to be null.
+        // If a factor is given it needs to be > 0 in order for the gt case to be displayed.
+        if ("true_entity" in eval_case && (eval_case.factor == null || eval_case.factor > 0)) {
             if (eval_case.true_entity.entity_id.startsWith("Unknown")) {
                 // GT entity is NIL
                 color = YELLOW;
+            } else if (JOKER_LABELS.includes(eval_case.true_entity.entity_id)) {
+                color = GREY;
             } else if ("predicted_entity" in eval_case) {
                 if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
                     // predicted the true entity
@@ -352,7 +367,8 @@ function get_ground_truth_annotations(article_index) {
                 "color": color,
                 "entity_name": eval_case.true_entity.name,
                 "entity_id": eval_case.true_entity.entity_id,
-                "error_labels": eval_case.error_labels
+                "error_labels": eval_case.error_labels,
+                "factor": eval_case.factor
             };
             annotations.push(annotation);
         }
@@ -371,7 +387,11 @@ function show_linked_entities() {
             var annotations = get_predicted_annotations(i);
             predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, false, i));
         }
-        var predicted_text = predicted_texts.join("<br>-----------------<br><br>");
+        predicted_text = "";
+        for (var i=0; i < predicted_texts.length; i++) {
+            predicted_text += "<br><br>" + "********** " + articles[i].title + " **********<br>";
+            predicted_text += predicted_texts[i];
+        }
     } else {
         var annotations = get_predicted_annotations(selected_article_index);
         var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], false, 0);
@@ -434,7 +454,10 @@ function get_predicted_annotations(article_index) {
                     // predicted the wrong entity
                     color = RED;
                 }
-            } else {
+            } else if ("part_of_joker" in mention && mention.part_of_joker) {
+                color = GREY;
+            }
+            else {
                 // wrong span
                 color = BLUE;
             }
@@ -453,7 +476,8 @@ function get_predicted_annotations(article_index) {
             "entity_id": entity_id,
             "entity_name": entity_name,
             "predicted_by": predicted_by,
-            "error_labels": mention.error_labels
+            "error_labels": mention.error_labels,
+            "factor": mention.factor
         };
         annotations.push(annotation);
     }
@@ -602,6 +626,9 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
                     }
                     tooltip_text += annotation.error_labels[e_i];
                 }
+            }
+            if (annotation.hasOwnProperty("factor") && annotation.factor != 1) {
+                tooltip_text += "<br>factor=" + annotation.factor;
             }
             // Only show selected error category
             var color = annotation.color[0];
@@ -960,7 +987,7 @@ function get_table_row(approach_name, json_obj) {
                     // key-value pairs are displayed in a single column.
                     var composite_value = "";
                     $.each(value, function(subsubkey) {
-                        var val = value[subsubkey];
+                        var val = Math.round(value[subsubkey] * 100) / 100;
                         composite_value += val + " / ";
                     });
                     value = composite_value.substring(0, composite_value.length - " / ".length);
@@ -971,6 +998,8 @@ function get_table_row(approach_name, json_obj) {
                     // Create tooltip text
                     processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>"
                     value = processed_value;
+                } else {
+                    Math.round(json_obj[key][subkey] * 100) / 100
                 }
                 var subclass_name = get_class_name(subkey);
                 var onclick_string = "onclick=\"show_selected_errors('" + subclass_name + "')\"";
@@ -992,10 +1021,10 @@ function show_selected_errors(error_category) {
 }
 
 function get_tooltip_text(json_obj) {
-    tooltip_text = "TP: " + json_obj["true_positives"] + "<br>";
-    tooltip_text += "FP: " + json_obj["false_positives"] + "<br>";
-    tooltip_text += "FN: " + json_obj["false_negatives"] + "<br>";
-    tooltip_text += "GT: " + json_obj["ground_truth"];
+    tooltip_text = "TP: " + Math.round(json_obj["true_positives"] * 100) / 100 + "<br>";
+    tooltip_text += "FP: " + Math.round(json_obj["false_positives"] * 100) / 100 + "<br>";
+    tooltip_text += "FN: " + Math.round(json_obj["false_negatives"] * 100) / 100 + "<br>";
+    tooltip_text += "GT: " + Math.round(json_obj["ground_truth"] * 100) / 100;
     return tooltip_text;
 }
 
