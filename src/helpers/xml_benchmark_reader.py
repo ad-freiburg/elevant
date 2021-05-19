@@ -2,6 +2,7 @@ import os
 
 from typing import Iterator
 
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
 
@@ -27,6 +28,7 @@ class XMLBenchmarkParser:
         else:
             wiki_labels = []
         labels = []
+        label_id_counter = 0
         for span, wiki_name in wiki_labels:
             span = span[0] - offset, span[1] - offset
             # For now, simply ignore NIL-entities.
@@ -38,7 +40,9 @@ class XMLBenchmarkParser:
                     # For MSNBC this is the case for 87 mentions.
                     print("\nMapping not found for wiki title: %s" % wiki_name)
                 else:
-                    labels.append((span, entity_id))
+                    gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None)
+                    labels.append(gt_label)
+                    label_id_counter += 1
         return WikipediaArticle(id=-1, title="", text=stripped_text, links=[], labels=labels)
 
     def get_mention_dictionary_from_file(self, xml_file: str):

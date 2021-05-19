@@ -1,6 +1,7 @@
 from typing import Iterator, Optional
 
 from src import settings
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.wikipedia_article import WikipediaArticle
 
 
@@ -63,10 +64,13 @@ class ConllDocument:
         entity_id = None
         mention_start = None
         labels = []
+        label_id_counter = 0
         for token in self.tokens:
             if inside and token.true_label != "I":
                 span = (mention_start, text_pos)
-                labels.append((span, entity_id))
+                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None)
+                labels.append(gt_label)
+                label_id_counter += 1
                 inside = False
             text_pos += 1  # space
             if token.true_label.startswith("Q") or token.true_label == "B":
@@ -76,7 +80,9 @@ class ConllDocument:
             text_pos += len(token.text)
         if inside:
             span = (mention_start, text_pos)
-            labels.append((span, entity_id))
+            gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None)
+            labels.append(gt_label)
+            label_id_counter += 1
         return WikipediaArticle(id=-1, title="", text=self.text(), links=[], labels=labels)
 
 

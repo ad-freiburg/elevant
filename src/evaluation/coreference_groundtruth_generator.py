@@ -24,7 +24,9 @@ class CoreferenceGroundtruthGenerator:
         referenced_entities = {}
         entity_to_pronouns = {}
         pronoun_ground_truth = []
-        for span, entity_id in article.labels:
+        for gt_label in article.labels:
+            span = gt_label.span
+            entity_id = gt_label.entity_id
             text = article.text[span[0]:span[1]]
             if is_coreference(text):
                 pronoun_ground_truth.append(((span[0], span[1]), entity_id))
@@ -33,14 +35,15 @@ class CoreferenceGroundtruthGenerator:
                 entity_to_pronouns[entity_id] = []
             entity_to_pronouns[entity_id].append(pronoun_span)
 
-        for span, entity_id in article.labels:
-            span = (span[0], span[1])
+        for gt_label in article.labels:
+            span = gt_label.span
             text = article.text[span[0]:span[1]]
             if is_coreference(text):
                 referenced_entities[span] = set()
 
-        for span, entity_id in article.labels:
-            span = (span[0], span[1])
+        for gt_label in article.labels:
+            span = gt_label.span
+            entity_id = gt_label.entity_id
             if entity_id in entity_to_pronouns:
                 for pronoun_span in entity_to_pronouns[entity_id]:
                     # Only add span as potential referenced span, if it precedes the pronoun in the text

@@ -10,7 +10,9 @@ The evaluation results are printed.
 import argparse
 import json
 
+from src.evaluation.benchmark import Benchmark
 from src.evaluation.case import case_from_dict
+from src.evaluation.examples_generator import get_example_generator
 from src.models.wikipedia_article import article_from_json
 from src.evaluation.evaluator import Evaluator
 
@@ -33,8 +35,17 @@ def main(args):
         evaluator = Evaluator(load_data=True)
     results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
 
+    example_iterator = None
+    if args.benchmark:
+        # If a benchmark is given, labels are retrieved from the benchmark
+        # and not from the given jsonl file. The user has to make sure the files match.
+        example_iterator = get_example_generator(args.benchmark).iterate()
+
     for line in input_file:
         article = article_from_json(line)
+        if example_iterator:
+            benchmark_article = next(example_iterator)
+            article.labels = benchmark_article.labels
 
         if args.input_case_file:
             dump = json.loads(case_file.readline())
@@ -75,5 +86,8 @@ if __name__ == "__main__":
                         help="Input file that contains the evaluation cases. Cases are not written to file.")
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evaluation.")
+    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=None,
+                        help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
+                             "retrieved from the given jsonl file")
 
     main(parser.parse_args())

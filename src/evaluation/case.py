@@ -14,6 +14,7 @@ class CaseType(Enum):
     CORRECT = 3
     WRONG = 4
     FALSE_DETECTION = 5
+    JOKER = 6
 
 
 CASE_COLORS = {
@@ -23,8 +24,11 @@ CASE_COLORS = {
     CaseType.CORRECT: "green",
     CaseType.WRONG: "red",
     CaseType.FALSE_DETECTION: "cyan",
+    CaseType.JOKER: "grey",
     "mixed": "magenta"
 }
+
+JOKER_LABELS = ("DATETIME", "QUANTITY")
 
 
 class ErrorLabel(Enum):
@@ -66,22 +70,26 @@ class Case:
                  is_true_coref: Optional[bool] = False,
                  correct_span_referenced: Optional[bool] = False,
                  referenced_span: Optional[Tuple[int, int]] = None,
-                 error_labels: Optional[Set[ErrorLabel]] = None):
+                 error_labels: Optional[Set[ErrorLabel]] = None,
+                 factor: Optional[float] = None,
+                 part_of_joker: Optional[bool] = False):
         self.span = span
         self.text = text
         self.true_entity = true_entity
         self.detected = detected
         self.predicted_entity = predicted_entity
         self.candidates = candidates
-        self.eval_type = self._type()
         self.predicted_by = predicted_by
         self.contained = contained
         self.is_true_coref = is_true_coref
         self.correct_span_referenced = correct_span_referenced
         self.referenced_span = referenced_span
-        self.coref_type = self._coref_type()
         self.error_labels = set() if error_labels is None else error_labels
         self.mention_type = get_mention_type(text)
+        self.factor = 1 if factor is None else factor
+        self.part_of_joker = part_of_joker
+        self.eval_type = self._type()
+        self.coref_type = self._coref_type()
 
     def has_ground_truth(self):
         return self.true_entity is not None
@@ -90,7 +98,12 @@ class Case:
         return self.predicted_entity is not None
 
     def is_known_entity(self):
-        return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown")
+        return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown")\
+               and self.true_entity.entity_id not in JOKER_LABELS
+
+    def is_joker(self):
+        return self.part_of_joker or (self.true_entity is not None
+                                      and self.true_entity.entity_id in JOKER_LABELS)
 
     def is_detected(self):
         return self.detected
@@ -118,6 +131,8 @@ class Case:
         self.error_labels.add(error_label)
 
     def _type(self) -> CaseType:
+        if self.is_joker():
+            return CaseType.JOKER
         if not self.has_ground_truth():
             return CaseType.FALSE_DETECTION
         if not self.is_known_entity():
@@ -152,7 +167,9 @@ class Case:
                 "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in sorted(self.candidates)],
                 "predicted_by": self.predicted_by,
                 "eval_type": self.eval_type.value,
-                "error_labels": [label.value for label in self.error_labels]}
+                "error_labels": sorted([label.value for label in self.error_labels]),
+                "factor": self.factor,
+                "part_of_joker": self.part_of_joker}
         if self.true_entity is not None:
             data["true_entity"] = {"entity_id": self.true_entity.entity_id, "name": self.true_entity.name}
         if self.predicted_entity is not None:
@@ -194,6 +211,7 @@ def case_from_dict(data) -> Case:
         candidates = set([WikidataEntity(cand["name"], 0, cand["entity_id"], [])
                           for cand in data["candidates"]])
     error_labels = {ERROR_LABELS[label] for label in data["error_labels"]}
+    factor = data["factor"] if "factor" in data else 1
     return Case(span=data["span"],
                 text=data["text"],
                 true_entity=true_entity,
@@ -205,7 +223,9 @@ def case_from_dict(data) -> Case:
                 is_true_coref=data["is_true_coref"] if "is_true_coref" in data else None,
                 correct_span_referenced=data["correct_span_referenced"] if "correct_span_referenced" in data else None,
                 referenced_span=data["referenced_span"] if "referenced_span" in data else None,
-                error_labels=error_labels)
+                error_labels=error_labels,
+                factor=factor if "factor" in data else 1,
+                part_of_joker=data["part_of_joker"] if "part_of_joker" in data else None)
 
 
 def case_from_json(dump) -> Case:

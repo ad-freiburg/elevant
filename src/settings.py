@@ -77,7 +77,7 @@ MSNBC_BENCHMARK_TEXTS = DATA_DIRECTORY + "msnbc.updated/RawText/"
 MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "msnbc.updated/msnbc.xml"
 
 OWN_BENCHMARK_DIRECOTRY = DATA_DIRECTORY + "benchmark/"
-OWN_BENCHMARK_FILE = OWN_BENCHMARK_DIRECOTRY + "development_labels_bold.jsonl"
+OWN_BENCHMARK_FILE = OWN_BENCHMARK_DIRECOTRY + "benchmark_labels_ours.jsonl"
 
 UNIGRAMS_FILE = DATA_DIRECTORY + "unigrams.txt"
 

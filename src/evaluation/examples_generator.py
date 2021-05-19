@@ -1,6 +1,7 @@
 from typing import Iterator, Tuple, Set, List
 
 from src.evaluation.benchmark import Benchmark
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src.models.wikipedia_article import WikipediaArticle
 from src.models.entity_database import EntityDatabase
@@ -25,10 +26,10 @@ def expand_span(text: str, span: Tuple[int, int]) -> Tuple[int, int]:
     return begin, end
 
 
-def get_ground_truth_from_labels(labels: List[Tuple[Tuple[int, int], str]]) -> Set[Tuple[Tuple[int, int], str]]:
+def get_ground_truth_from_labels(labels: List[GroundtruthLabel]) -> Set[Tuple[Tuple[int, int], str]]:
     ground_truth = set()
-    for span, entity_id in labels:
-        ground_truth.add(((span[0], span[1]), entity_id))
+    for gt_label in labels:
+        ground_truth.add((gt_label.span, gt_label.entity_id))
     return ground_truth
 
 
@@ -39,12 +40,15 @@ class WikipediaExampleReader:
     def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
         for article in WikipediaCorpus.development_articles(n):
             article.labels = []
+            label_id_counter = 0
             for span, target in article.links:
                 span = expand_span(article.text, span)
                 entity_id = self.entity_db.link2id(target)
                 if entity_id is None:
                     entity_id = "Unknown"
-                article.labels.append((span, entity_id))
+                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, parent=None, children=None)
+                article.labels.append(gt_label)
+                label_id_counter += 1
             yield article
 
 
@@ -103,7 +107,9 @@ class PseudoLinkConllExampleReader:
 
             # Store first occurrence of each entity in the article
             unique_labels = dict()
-            for span, label in article.labels:
+            for gt_label in article.labels:
+                label = gt_label.entity_id
+                span = gt_label.span
                 if label not in unique_labels:
                     unique_labels[label] = span
             unique_labels = sorted(unique_labels.items(), key=operator.itemgetter(1))

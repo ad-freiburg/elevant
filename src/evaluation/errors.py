@@ -8,7 +8,8 @@ from src.models.wikipedia_article import WikipediaArticle
 
 def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: EntityDatabase):
     text = article.text
-    cases = [case for case in cases if case.is_false_positive() or case.is_known_entity()]  # do not label unknowns
+    # do not label unknowns or jokers (e.g. QUANTITY or DATETIME)
+    cases = [case for case in cases if (case.is_false_positive() or case.is_known_entity()) and not case.is_joker()]
     label_specificity_errors(cases)
     label_demonym_errors(cases, entity_db)
     label_rare_entity_errors(text, cases, entity_db)

@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple, Optional
 import json
 import numpy as np
 
+from src.evaluation.groundtruth_label import GroundtruthLabel, groundtruth_label_from_dict
 from src.models.entity_mention import EntityMention, entity_mention_from_dict
 from src.models.entity_prediction import EntityPrediction
 
@@ -17,7 +18,7 @@ class WikipediaArticle:
                  url: Optional[str] = None,
                  entity_mentions: Optional[List[EntityMention]] = None,
                  evaluation_span: Optional[Tuple[int, int]] = None,
-                 labels: Optional[List[Tuple[Tuple[int, int], str]]] = None,
+                 labels: Optional[List[GroundtruthLabel]] = None,
                  evaluation_time: Optional[float] = None):
         self.id = id
         self.title = title
@@ -48,7 +49,7 @@ class WikipediaArticle:
         if self.evaluation_span is not None:
             data["evaluation_span"] = self.evaluation_span
         if self.labels is not None:
-            data["labels"] = self.labels
+            data["labels"] = [label.to_dict() for label in sorted(self.labels)]
         if self.evaluation_time is not None:
             data["evaluation_time"] = self.evaluation_time
         return data
@@ -126,6 +127,16 @@ class WikipediaArticle:
 def article_from_dict(data: Dict):
     links = [(tuple(span), target) for span, target in data["links"]]  # span is saved as list, but must be tuple
     title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
+    labels = None
+    if "labels" in data:
+        # Ensure backwards compatibility
+        if len(data["labels"]) > 0 and type(data["labels"][0]) is dict:
+            labels = [groundtruth_label_from_dict(groundtruth_label_dict) for groundtruth_label_dict in data["labels"]]
+        else:
+            labels = []
+            for span, entity_id in data["labels"]:
+                gt_label = GroundtruthLabel(0, span, entity_id, None, None)
+                labels.append(gt_label)
     return WikipediaArticle(id=int(data["id"]),
                             title=data["title"],
                             text=data["text"],
@@ -135,7 +146,7 @@ def article_from_dict(data: Dict):
                             entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
                                              data["entity_mentions"]] if "entity_mentions" in data else None,
                             evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
-                            labels=data["labels"] if "labels" in data else None,
+                            labels=labels,
                             evaluation_time=data["evaluation_time"] if "evaluation_time" in data else None)
 
 
