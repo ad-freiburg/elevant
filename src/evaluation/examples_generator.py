@@ -46,7 +46,8 @@ class WikipediaExampleReader:
                 entity_id = self.entity_db.link2id(target)
                 if entity_id is None:
                     entity_id = "Unknown"
-                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, parent=None, children=None)
+                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, parent=None, children=None,
+                                            optional=False)
                 article.labels.append(gt_label)
                 label_id_counter += 1
             yield article

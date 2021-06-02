@@ -1,5 +1,7 @@
 from typing import List, Optional, Set
 
+from src.evaluation.groundtruth_label import EntityType
+
 
 class WikidataEntity:
     def __init__(self,
@@ -8,13 +10,15 @@ class WikidataEntity:
                  entity_id: str,
                  synonyms: List[str],
                  title_synonyms: Optional[Set[str]] = None,
-                 akronyms: Optional[Set[str]] = None):
+                 akronyms: Optional[Set[str]] = None,
+                 type: Optional[EntityType] = EntityType.OTHER):
         self.name = name
         self.score = score
         self.entity_id = entity_id
         self.synonyms = synonyms
         self.title_synonyms = title_synonyms if title_synonyms else set()
         self.akronyms = akronyms if akronyms else set()
+        self.type = type
 
     def __lt__(self, other):
         return self.entity_id < other.entity_id

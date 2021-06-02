@@ -1,7 +1,9 @@
+import re
 from typing import List, Tuple
 
 from src import settings
-from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.evaluation.groundtruth_label import GroundtruthLabel, EntityType
+from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import article_from_json
 
 
@@ -66,12 +68,13 @@ def get_labels(labeled_text: str) -> List[Tuple[Tuple[int, int], str]]:
     return labels
 
 
-def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
+def get_nested_labels(labeled_text: str, entity_db: EntityDatabase) -> List[GroundtruthLabel]:
     """
     Labels can be nested.
     """
     pos = 0
     labels = []
+    optional_tags = []
     inside = 0  # Indicates current annotation nesting level
     article_labels = []
     original_texts = []  # Maps nesting levels to a list of original texts at this nesting level
@@ -103,6 +106,7 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
                 label_id_counter += 1
 
                 labels.append("")
+                optional_tags.append(False)
         elif inside > 0 and char == "|":
             # Inside of an annotation reaching the original text cell
             original_text_cell = True
@@ -116,8 +120,12 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
             #  this is enough though. Additionally, double nesting might not even occur.
             children = label_ids[inside] if inside < len(label_ids) else None
             label_id = label_ids[inside-1][-1]
+            label_type = EntityType(labels[-1]) if not labels[-1].startswith("Unknown") \
+                                                   and not re.match(r"Q[0-9]+", labels[-1]) else EntityType.OTHER
+            entity_name = entity_db.get_entity(labels[-1]).name if entity_db.contains_entity(labels[-1]) else "Unknown"
             groundtruth_label = GroundtruthLabel(label_id, (start_pos[-1], start_pos[-1] + end_pos), labels[-1],
-                                                 parent=parent, children=children)
+                                                 entity_name, parent=parent, children=children,
+                                                 optional=optional_tags[-1], type=label_type)
             article_labels.append(groundtruth_label)
             del labels[-1]
             del start_pos[-1]
@@ -131,14 +139,18 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
             # Inside of an annotation in the original text cell
             original_texts[inside-1][-1] += char
             # Also update all original texts of lower nesting levels
-            for i in range(0, inside-1):
-                for j in range(len(original_texts[i])):
-                    original_texts[i][j] += char
+            for k in range(0, inside-1):
+                for j in range(len(original_texts[k])):
+                    original_texts[k][j] += char
             pos += 1
         elif inside > 0:
             # Inside of an annotation in the label cell
             if char == ":":
-                entity_name_cell = True
+                if labels[-1] == "OPTIONAL":
+                    optional_tags[-1] = True
+                    labels[-1] = ""
+                else:
+                    entity_name_cell = True
             elif not entity_name_cell:
                 labels[-1] += char
         else:
@@ -152,7 +164,7 @@ if __name__ == "__main__":
     json_path = "/local/data/prangen/benchmark/development_labels.jsonl"
     json_path2 = "benchmark/development.bold.jsonl"
     curr_benchmark_file = settings.OWN_BENCHMARK_FILE
-    annotated_file = "benchmark/benchmark_ours_for_annotation.txt"
+    annotated_file = "benchmark/benchmark_ours_new_annotations.txt"
     # natalies_labels_path = "benchmark/development_annotated.txt"
     # matthias_labels_path = benchmark_dir + "development.txt"
 
@@ -161,6 +173,9 @@ if __name__ == "__main__":
     labels_texts = read_labeled_texts(annotated_file, N_ARTICLES)
 
     benchmark_articles = []
+
+    entity_db = EntityDatabase()
+    entity_db.load_entities_big()
 
     with open(curr_benchmark_file) as json_file:
         for i in range(N_ARTICLES):
@@ -173,7 +188,7 @@ if __name__ == "__main__":
                 else:
                     pass  #labels_text = matthias_labels_texts[i]
                 #print(labels_text)
-                labels = get_nested_labels(labels_text)
+                labels = get_nested_labels(labels_text, entity_db)
                 """for span, qid in labels:
                     begin, end = span
                     print(span, qid, article.text[begin:end])"""

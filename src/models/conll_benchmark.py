@@ -68,7 +68,7 @@ class ConllDocument:
         for token in self.tokens:
             if inside and token.true_label != "I":
                 span = (mention_start, text_pos)
-                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None)
+                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None, False)
                 labels.append(gt_label)
                 label_id_counter += 1
                 inside = False
@@ -80,7 +80,7 @@ class ConllDocument:
             text_pos += len(token.text)
         if inside:
             span = (mention_start, text_pos)
-            gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None)
+            gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None, False)
             labels.append(gt_label)
             label_id_counter += 1
         return WikipediaArticle(id=-1, title="", text=self.text(), links=[], labels=labels)

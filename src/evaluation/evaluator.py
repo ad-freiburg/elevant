@@ -18,6 +18,8 @@ def load_evaluation_entities():
     entity_db.load_redirects()
     entity_db.load_sitelink_counts()
     entity_db.load_demonyms()
+    entity_db.load_quantities()
+    entity_db.load_datetimes()
     return entity_db
 
 
@@ -54,46 +56,43 @@ class Evaluator:
 
     def count_ner_case(self, case: Case):
         if case.is_named():
-            if case.has_ground_truth() and case.is_known_entity():
-                if case.has_predicted_entity():
-                    self.counts["NER"]["tp"] += case.factor
+            if case.has_ground_truth() and case.is_known_entity() and not case.is_optional():
+                # TODO: Take factor 0 into account to not count all possibilities for one mention
+                if case.has_predicted_entity() and case.are_all_siblings_correct():
+                    self.counts["NER"]["tp"] += 1
                 else:
-                    self.counts["NER"]["fn"] += case.factor
+                    self.counts["NER"]["fn"] += 1
                 if case.text.islower():
-                    self.n_named_lowercase += case.factor
-            elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()
-                                                 and not case.is_joker()):
-                # If case has no GT or if GT entity is unknown and not a joker, the case has a predicted entity -> FP
+                    self.n_named_lowercase += 1
+            elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
+                # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
                 # otherwise ignore the case (NIL-entities are not expected to be predicted and should not count towards
                 # errors)
-                self.counts["NER"]["fp"] += case.factor
+                self.counts["NER"]["fp"] += 1
 
     def count_mention_type_case(self, case: Case):
-        if case.is_joker():
-            # Simply ignore joker cases (e.g. quantity or datetime)
-            return
-
         key = case.mention_type.value.lower()
-        if case.is_correct():
-            self.counts["all"]["tp"] += case.factor
-            self.counts[key]["tp"] += case.factor
+        if case.is_correct() and not case.is_optional() and case.are_all_siblings_correct():
+            self.counts["all"]["tp"] += 1
+            self.counts[key]["tp"] += 1
             if case.is_coreference():
-                self.counts["coreference"]["tp"] += case.factor
+                self.counts["coreference"]["tp"] += 1
         else:
-            if case.is_false_positive():
-                self.counts["all"]["fp"] += case.factor
-                self.counts[key]["fp"] += case.factor
+            if case.is_false_positive() and not case.is_true_quantity_or_datetime():
+                self.counts["all"]["fp"] += 1
+                self.counts[key]["fp"] += 1
                 if case.is_coreference():
-                    self.counts["coreference"]["fp"] += case.factor
-            if case.is_false_negative():
-                self.counts["all"]["fn"] += case.factor
-                self.counts[key]["fn"] += case.factor
+                    self.counts["coreference"]["fp"] += 1
+            if case.is_false_negative() and not case.is_optional():
+                self.counts["all"]["fn"] += 1
+                self.counts[key]["fn"] += 1
                 if case.is_coreference():
-                    self.counts["coreference"]["fn"] += case.factor
+                    self.counts["coreference"]["fn"] += 1
 
     def count_error_labels(self, case: Case):
         for label in case.error_labels:
-            self.error_counts[label] += case.factor
+            # TODO: Should this be case.factor?
+            self.error_counts[label] += 1
 
     def get_cases(self, article: WikipediaArticle):
         if not self.data_loaded:
@@ -156,6 +155,10 @@ class Evaluator:
                 "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
                 "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
                          self.error_counts[ErrorLabel.HYPERLINK_WRONG]
+            },
+            "ned_wrong": {
+                "errors": self.error_counts[ErrorLabel.NED_WRONG],
+                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
             }
         }
         if not self.has_candidates:

@@ -38,6 +38,8 @@ RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_classe
 WIKIDATA_SITELINK_COUNTS_FILE = DATA_DIRECTORY + "wikidata_mappings/wikidata_sitelink_counts.txt"
 DEMONYM_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_demonym.tsv"
 LANGUAGE_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_language.tsv"
+REAL_NUMBERS = DATA_DIRECTORY + "wikidata_mappings/real_numbers.tsv"
+POINTS_IN_TIME = DATA_DIRECTORY + "wikidata_mappings/point_in_time.tsv"
 
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"

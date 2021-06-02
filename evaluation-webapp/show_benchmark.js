@@ -21,6 +21,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
                        "abstraction": "Named FP that does not overlap with a GT mention",
                        "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks",
+                       "ned_wrong": "FP where no GT mention exists that overlaps with the predicted mention and has the same entity id / Predicted mentions",
                        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
                        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates",
                        "non_entity_coreference": "FP mentions in {It, it, This, this, That, that, Its, its}",
@@ -54,6 +55,7 @@ error_category_mapping = {"undetected": "UNDETECTED",
     "abstraction": "ABSTRACTION",
     "": "HYPERLINK_CORRECT",
     "hyperlink": "HYPERLINK_WRONG",
+    "ned_wrong": "NED_WRONG",
     "non_entity_coreference": "NON_ENTITY_COREFERENCE",
     "referenced_wrong": "COREFERENCE_REFERENCED_WRONG",
     "wrong_reference": "COREFERENCE_WRONG_REFERENCE",
@@ -445,7 +447,8 @@ function get_predicted_annotations(article_index) {
                 continue;
             }
         }
-        if ("true_entity" in mention || "predicted_entity" in mention) {  // mention is inside the evaluation span and therefore an evaluated case
+        if (("true_entity" in mention || "predicted_entity" in mention) && (mention.factor == null || mention.factor > 0)) {
+            // mention is inside the evaluation span and therefore an evaluated case
             if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
                 if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
                     // predicted the true entity

@@ -182,3 +182,23 @@ class EntityDatabaseReader:
                 language = language.split("\"")[1]
                 languages[language] = entity_id
         return languages
+
+    @staticmethod
+    def get_real_numbers() -> Set[str]:
+        real_numbers = set()
+        with open(settings.REAL_NUMBERS) as f:
+            for line in f:
+                entity_id = line.strip()
+                entity_id = entity_id[:-1].split("/")[-1]
+                real_numbers.add(entity_id)
+        return real_numbers
+
+    @staticmethod
+    def get_points_in_time() -> Set[str]:
+        points_in_time = set()
+        with open(settings.POINTS_IN_TIME) as f:
+            for line in f:
+                entity_id = line.strip()
+                entity_id = entity_id[:-1].split("/")[-1]
+                points_in_time.add(entity_id)
+        return points_in_time

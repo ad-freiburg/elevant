@@ -135,7 +135,7 @@ def article_from_dict(data: Dict):
         else:
             labels = []
             for span, entity_id in data["labels"]:
-                gt_label = GroundtruthLabel(0, span, entity_id, None, None)
+                gt_label = GroundtruthLabel(0, span, entity_id, None, None, False)
                 labels.append(gt_label)
     return WikipediaArticle(id=int(data["id"]),
                             title=data["title"],

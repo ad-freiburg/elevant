@@ -2,6 +2,7 @@ from typing import Optional, Tuple, Set, Dict
 from enum import Enum
 import json
 
+from src.evaluation.groundtruth_label import GroundtruthLabel, EntityType
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
 from src.evaluation.mention_type import get_mention_type
@@ -14,7 +15,6 @@ class CaseType(Enum):
     CORRECT = 3
     WRONG = 4
     FALSE_DETECTION = 5
-    JOKER = 6
 
 
 CASE_COLORS = {
@@ -24,7 +24,6 @@ CASE_COLORS = {
     CaseType.CORRECT: "green",
     CaseType.WRONG: "red",
     CaseType.FALSE_DETECTION: "cyan",
-    CaseType.JOKER: "grey",
     "mixed": "magenta"
 }
 
@@ -46,6 +45,7 @@ class ErrorLabel(Enum):
     ABSTRACTION = "ABSTRACTION"
     HYPERLINK_CORRECT = "HYPERLINK_CORRECT"
     HYPERLINK_WRONG = "HYPERLINK_WRONG"
+    NED_WRONG = "NED_WRONG"
     NON_ENTITY_COREFERENCE = "NON_ENTITY_COREFERENCE"
     COREFERENCE_REFERENCED_WRONG = "COREFERENCE_REFERENCED_WRONG"
     COREFERENCE_WRONG_REFERENCE = "COREFERENCE_WRONG_REFERENCE"
@@ -61,7 +61,7 @@ class Case:
     def __init__(self,
                  span: Tuple[int, int],
                  text: str,
-                 true_entity: Optional[WikidataEntity],
+                 true_entity: Optional[GroundtruthLabel],
                  detected: bool,
                  predicted_entity: Optional[WikidataEntity],
                  candidates: Set[WikidataEntity],
@@ -72,7 +72,7 @@ class Case:
                  referenced_span: Optional[Tuple[int, int]] = None,
                  error_labels: Optional[Set[ErrorLabel]] = None,
                  factor: Optional[float] = None,
-                 part_of_joker: Optional[bool] = False):
+                 all_siblings_correct: Optional[bool] = True):
         self.span = span
         self.text = text
         self.true_entity = true_entity
@@ -84,10 +84,11 @@ class Case:
         self.is_true_coref = is_true_coref
         self.correct_span_referenced = correct_span_referenced
         self.referenced_span = referenced_span
+        self.optional = true_entity.optional if true_entity else False
+        self.all_siblings_correct = all_siblings_correct
         self.error_labels = set() if error_labels is None else error_labels
         self.mention_type = get_mention_type(text)
         self.factor = 1 if factor is None else factor
-        self.part_of_joker = part_of_joker
         self.eval_type = self._type()
         self.coref_type = self._coref_type()
 
@@ -99,11 +100,7 @@ class Case:
 
     def is_known_entity(self):
         return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown")\
-               and self.true_entity.entity_id not in JOKER_LABELS
-
-    def is_joker(self):
-        return self.part_of_joker or (self.true_entity is not None
-                                      and self.true_entity.entity_id in JOKER_LABELS)
+               and self.true_entity.type not in (EntityType.DATETIME, EntityType.QUANTITY)
 
     def is_detected(self):
         return self.detected
@@ -119,20 +116,29 @@ class Case:
         return len(self.candidates)
 
     def is_false_positive(self):
-        return not self.is_correct() and self.has_predicted_entity()
+        return not self.is_correct() and self.has_predicted_entity() and not self.is_true_quantity_or_datetime()
 
     def is_false_negative(self):
-        return not self.is_correct() and self.has_ground_truth() and self.is_known_entity()
+        return not self.is_correct() and self.has_ground_truth() and self.is_known_entity() and not self.is_optional()
 
     def is_true_coreference(self):
         return self.is_true_coref
+
+    def is_true_quantity_or_datetime(self):
+        return self.true_entity and self.predicted_entity and \
+               ((self.true_entity.type == self.predicted_entity.type == EntityType.QUANTITY) or
+                (self.true_entity.type == self.predicted_entity.type == EntityType.DATETIME))
+
+    def is_optional(self):
+        return self.optional or self.true_entity and self.true_entity.type in (EntityType.QUANTITY, EntityType.DATETIME)
+
+    def are_all_siblings_correct(self):
+        return self.all_siblings_correct
 
     def add_error_label(self, error_label: ErrorLabel):
         self.error_labels.add(error_label)
 
     def _type(self) -> CaseType:
-        if self.is_joker():
-            return CaseType.JOKER
         if not self.has_ground_truth():
             return CaseType.FALSE_DETECTION
         if not self.is_known_entity():
@@ -169,7 +175,7 @@ class Case:
                 "eval_type": self.eval_type.value,
                 "error_labels": sorted([label.value for label in self.error_labels]),
                 "factor": self.factor,
-                "part_of_joker": self.part_of_joker}
+                "all_siblings_correct": self.all_siblings_correct}
         if self.true_entity is not None:
             data["true_entity"] = {"entity_id": self.true_entity.entity_id, "name": self.true_entity.name}
         if self.predicted_entity is not None:
@@ -225,7 +231,7 @@ def case_from_dict(data) -> Case:
                 referenced_span=data["referenced_span"] if "referenced_span" in data else None,
                 error_labels=error_labels,
                 factor=factor if "factor" in data else 1,
-                part_of_joker=data["part_of_joker"] if "part_of_joker" in data else None)
+                all_siblings_correct=data["all_siblings_correct"] if "all_siblings_correct" in data else False)
 
 
 def case_from_json(dump) -> Case:

@@ -39,6 +39,8 @@ class EntityDatabase:
         self.sitelink_counts = {}
         self.demonyms = {}
         self.languages = {}
+        self.quantities = set()
+        self.datetimes = set()
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -238,8 +240,7 @@ class EntityDatabase:
 
     def has_given_name(self, entity_id):
         if len(self.given_names) == 0:
-            print("Warning: Tried to access first names but first name mapping was not loaded.\n"
-                  "Use entity_database.load_names() to load the mapping")
+            print("Warning: Tried to access first names of entity database but first name mapping was not loaded.")
         if entity_id in self.given_names:
             return True
         return False
@@ -252,8 +253,7 @@ class EntityDatabase:
 
     def has_family_name(self, entity_id):
         if len(self.family_names) == 0:
-            print("Warning: Tried to access family names but family name mapping was not loaded.\n"
-                  "Use entity_database.load_names() to load the mapping")
+            print("Warning: Tried to access family names of entity database but family name mapping was not loaded.")
         if entity_id in self.family_names:
             return True
         return False
@@ -289,7 +289,7 @@ class EntityDatabase:
 
     def get_sitelink_count(self, entity_id):
         if not self.has_sitelink_counts_loaded():
-            print("Warning: tried to access sitelink counts of entity database, but sitelink counts were not loaded.")
+            print("Warning: Tried to access sitelink counts of entity database, but sitelink counts were not loaded.")
         return self.sitelink_counts[entity_id] if entity_id in self.sitelink_counts else 0
 
     def load_demonyms(self):
@@ -300,7 +300,7 @@ class EntityDatabase:
 
     def is_demonym(self, text):
         if not self.has_demonyms_loaded():
-            print("Warning: asking entity database for demonyms but demonyms are not loaded.")
+            print("Warning: Tried to access demonyms of entity database, but demonyms were not loaded.")
         return text in self.demonyms
 
     def get_entities_for_demonym(self, demonym):
@@ -314,8 +314,30 @@ class EntityDatabase:
 
     def is_language(self, text):
         if not self.has_languages_loaded():
-            print("Warning: tried to access languages of entity database, but languages were not loaded.")
+            print("Warning: Tried to access languages of entity database, but languages were not loaded.")
         return text in self.languages
 
     def get_entity_for_language(self, language):
         return self.languages[language]
+
+    def load_quantities(self):
+        self.quantities = EntityDatabaseReader.get_real_numbers()
+
+    def has_quantities_loaded(self):
+        return len(self.quantities) > 0
+
+    def is_quantity(self, entity_id):
+        if not self.has_quantities_loaded():
+            print("Warning: Tried to access quantities of entity database, but quantities were not loaded.")
+        return entity_id in self.quantities
+
+    def load_datetimes(self):
+        self.datetimes = EntityDatabaseReader.get_points_in_time()
+
+    def has_datetimes_loaded(self):
+        return len(self.datetimes) > 0
+
+    def is_datetime(self, entity_id):
+        if not self.has_datetimes_loaded():
+            print("Warning: Tried to access datetimes of entity database, but datetimes were not loaded.")
+        return entity_id in self.datetimes
