@@ -156,8 +156,8 @@ class Evaluator:
                 "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
                          self.error_counts[ErrorLabel.HYPERLINK_WRONG]
             },
-            "ned_wrong": {
-                "errors": self.error_counts[ErrorLabel.NED_WRONG],
+            "span_wrong": {
+                "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
                 "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
             }
         }

@@ -45,7 +45,7 @@ class ErrorLabel(Enum):
     ABSTRACTION = "ABSTRACTION"
     HYPERLINK_CORRECT = "HYPERLINK_CORRECT"
     HYPERLINK_WRONG = "HYPERLINK_WRONG"
-    NED_WRONG = "NED_WRONG"
+    SPAN_WRONG = "SPAN_WRONG"
     NON_ENTITY_COREFERENCE = "NON_ENTITY_COREFERENCE"
     COREFERENCE_REFERENCED_WRONG = "COREFERENCE_REFERENCED_WRONG"
     COREFERENCE_WRONG_REFERENCE = "COREFERENCE_WRONG_REFERENCE"
@@ -177,7 +177,7 @@ class Case:
                 "factor": self.factor,
                 "all_siblings_correct": self.all_siblings_correct}
         if self.true_entity is not None:
-            data["true_entity"] = {"entity_id": self.true_entity.entity_id, "name": self.true_entity.name}
+            data["true_entity"] = self.true_entity.to_dict()
         if self.predicted_entity is not None:
             data["predicted_entity"] = {"entity_id": self.predicted_entity.entity_id,
                                         "name": self.predicted_entity.name}
@@ -217,7 +217,6 @@ def case_from_dict(data) -> Case:
         candidates = set([WikidataEntity(cand["name"], 0, cand["entity_id"], [])
                           for cand in data["candidates"]])
     error_labels = {ERROR_LABELS[label] for label in data["error_labels"]}
-    factor = data["factor"] if "factor" in data else 1
     return Case(span=data["span"],
                 text=data["text"],
                 true_entity=true_entity,
@@ -230,7 +229,7 @@ def case_from_dict(data) -> Case:
                 correct_span_referenced=data["correct_span_referenced"] if "correct_span_referenced" in data else None,
                 referenced_span=data["referenced_span"] if "referenced_span" in data else None,
                 error_labels=error_labels,
-                factor=factor if "factor" in data else 1,
+                factor=data["factor"] if "factor" in data else 1,
                 all_siblings_correct=data["all_siblings_correct"] if "all_siblings_correct" in data else False)
 
 

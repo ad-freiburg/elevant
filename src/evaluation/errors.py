@@ -22,7 +22,7 @@ def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: Entity
     label_multi_candidates(cases)
     label_abstraction_errors(cases)
     label_hyperlink_errors(article, cases)
-    ned_errors(cases)
+    label_span_errors(cases)
     label_coreference_errors(cases)
 
 
@@ -168,22 +168,23 @@ def label_coreference_errors(cases: List[Case]):
                         case.add_error_label(ErrorLabel.COREFERENCE_WRONG_REFERENCE)
 
 
-def ned_errors(cases: List[Case]):
+def label_span_errors(cases: List[Case]):
     """
-    False positives, that do not overlap with a ground truth label with the same entity id.
+    False positives, that overlap with a ground truth mention with the same entity id.
     """
     ground_truth = {case.span: case.true_entity for case in cases if case.has_ground_truth()}
     for case in cases:
         if case.is_false_positive():
-            true_overlap = False
             for gt_span in ground_truth:
                 gt_label = ground_truth[gt_span]
+                if gt_span == case.span:
+                    # Span is correct -> no need to consider it
+                    continue
                 if overlaps(case.span, gt_span) and (case.predicted_entity.entity_id == gt_label.entity_id or
                                                      is_true_quantity_or_datetime(case.predicted_entity, gt_label)):
-                    true_overlap = True
+                    # Span is wrong and entity id is correct or it's a true quantity or datetime.
+                    case.add_error_label(ErrorLabel.SPAN_WRONG)
                     break
-            if not true_overlap:
-                case.add_error_label(ErrorLabel.NED_WRONG)
 
 
 def is_true_quantity_or_datetime(predicted_entity: WikidataEntity, gt_label: GroundtruthLabel) -> bool:
