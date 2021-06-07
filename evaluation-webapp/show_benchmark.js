@@ -21,7 +21,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
                        "abstraction": "Named FP that does not overlap with a GT mention",
                        "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks",
-                       "ned_wrong": "FP where no GT mention exists that overlaps with the predicted mention and has the same entity id / Predicted mentions",
+                       "span_wrong": "FP where the predicted span overlaps with a GT mention with the same entity id / Predicted mentions",
                        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
                        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates",
                        "non_entity_coreference": "FP mentions in {It, it, This, this, That, that, Its, its}",
@@ -55,7 +55,7 @@ error_category_mapping = {"undetected": "UNDETECTED",
     "abstraction": "ABSTRACTION",
     "": "HYPERLINK_CORRECT",
     "hyperlink": "HYPERLINK_WRONG",
-    "ned_wrong": "NED_WRONG",
+    "span_wrong": "SPAN_WRONG",
     "non_entity_coreference": "NON_ENTITY_COREFERENCE",
     "referenced_wrong": "COREFERENCE_REFERENCED_WRONG",
     "wrong_reference": "COREFERENCE_WRONG_REFERENCE",
@@ -332,6 +332,29 @@ function show_ground_truth_entities() {
     textfield_left.innerHTML = ground_truth_text;
 }
 
+function is_correct_optional_case(eval_case) {
+    if ("true_entity" in eval_case) {
+        if ("optional" in eval_case.true_entity && eval_case.true_entity.optional) {
+            if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
+                // Optional TP are correct
+                return true;
+            } else if (!("predicted_entity" in eval_case)) {
+                // Optional FN are correct
+                return true;
+            }
+        } else if ("type" in eval_case.true_entity && eval_case.true_entity.type != "OTHER") {
+            if ("predicted_entity" in eval_case && "type" in eval_case.predicted_entity && eval_case.true_entity.type == eval_case.predicted_entity.type) {
+                // True entity is of type QUANTITY or DATETIME and predicted entity is of the same type -> correct TP
+                return true;
+            } else if (!("predicted_entity" in eval_case)) {
+                // True entity is of type QUANTITY or DATETIME and no entity was predicted -> correct FN
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function get_ground_truth_annotations(article_index) {
     /*
     Generate annotations for the ground truth entities of the selected article.
@@ -350,7 +373,7 @@ function get_ground_truth_annotations(article_index) {
             if (eval_case.true_entity.entity_id.startsWith("Unknown")) {
                 // GT entity is NIL
                 color = YELLOW;
-            } else if (JOKER_LABELS.includes(eval_case.true_entity.entity_id)) {
+            } else if (is_correct_optional_case(eval_case)) {
                 color = GREY;
             } else if ("predicted_entity" in eval_case) {
                 if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
@@ -369,8 +392,7 @@ function get_ground_truth_annotations(article_index) {
                 "color": color,
                 "entity_name": eval_case.true_entity.name,
                 "entity_id": eval_case.true_entity.entity_id,
-                "error_labels": eval_case.error_labels,
-                "factor": eval_case.factor
+                "error_labels": eval_case.error_labels
             };
             annotations.push(annotation);
         }
@@ -449,16 +471,16 @@ function get_predicted_annotations(article_index) {
         }
         if (("true_entity" in mention || "predicted_entity" in mention) && (mention.factor == null || mention.factor > 0)) {
             // mention is inside the evaluation span and therefore an evaluated case
-            if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
-                if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
+            if (is_correct_optional_case(mention)) {
+                color = GREY;
+            } else if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
+                 if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
                     // predicted the true entity
                     color = GREEN;
                 } else {
                     // predicted the wrong entity
                     color = RED;
                 }
-            } else if ("part_of_joker" in mention && mention.part_of_joker) {
-                color = GREY;
             }
             else {
                 // wrong span
@@ -479,8 +501,7 @@ function get_predicted_annotations(article_index) {
             "entity_id": entity_id,
             "entity_name": entity_name,
             "predicted_by": predicted_by,
-            "error_labels": mention.error_labels,
-            "factor": mention.factor
+            "error_labels": mention.error_labels
         };
         annotations.push(annotation);
     }
@@ -629,9 +650,6 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
                     }
                     tooltip_text += annotation.error_labels[e_i];
                 }
-            }
-            if (annotation.hasOwnProperty("factor") && annotation.factor != 1) {
-                tooltip_text += "<br>factor=" + annotation.factor;
             }
             // Only show selected error category
             var color = annotation.color[0];
