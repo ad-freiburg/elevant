@@ -72,7 +72,8 @@ class Case:
                  referenced_span: Optional[Tuple[int, int]] = None,
                  error_labels: Optional[Set[ErrorLabel]] = None,
                  factor: Optional[float] = None,
-                 all_siblings_correct: Optional[bool] = True):
+                 children_correctly_linked: Optional[bool] = None,
+                 children_correctly_detected: Optional[bool] = None):
         self.span = span
         self.text = text
         self.true_entity = true_entity
@@ -85,7 +86,8 @@ class Case:
         self.correct_span_referenced = correct_span_referenced
         self.referenced_span = referenced_span
         self.optional = true_entity.optional if true_entity else False
-        self.all_siblings_correct = all_siblings_correct
+        self.children_correctly_linked = children_correctly_linked
+        self.children_correctly_detected = children_correctly_detected
         self.error_labels = set() if error_labels is None else error_labels
         self.mention_type = get_mention_type(text)
         self.factor = 1 if factor is None else factor
@@ -99,7 +101,7 @@ class Case:
         return self.predicted_entity is not None
 
     def is_known_entity(self):
-        return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown")\
+        return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown") \
                and self.true_entity.type not in (EntityType.DATETIME, EntityType.QUANTITY)
 
     def is_detected(self):
@@ -107,7 +109,8 @@ class Case:
 
     def is_correct(self):
         return self.predicted_entity is not None and self.true_entity \
-               and self.true_entity.entity_id == self.predicted_entity.entity_id
+               and self.true_entity.entity_id == self.predicted_entity.entity_id \
+               or self.children_correctly_linked is True
 
     def true_entity_is_candidate(self):
         return self.true_entity.entity_id in set([cand.entity_id for cand in self.candidates])
@@ -119,7 +122,8 @@ class Case:
         return not self.is_correct() and self.has_predicted_entity() and not self.is_true_quantity_or_datetime()
 
     def is_false_negative(self):
-        return not self.is_correct() and self.has_ground_truth() and self.is_known_entity() and not self.is_optional()
+        return not self.is_correct() and self.has_ground_truth() and self.is_known_entity() and not self.is_optional() \
+               and self.children_correctly_linked is True
 
     def is_true_coreference(self):
         return self.is_true_coref
@@ -131,9 +135,6 @@ class Case:
 
     def is_optional(self):
         return self.optional or self.true_entity and self.true_entity.type in (EntityType.QUANTITY, EntityType.DATETIME)
-
-    def are_all_siblings_correct(self):
-        return self.all_siblings_correct
 
     def add_error_label(self, error_label: ErrorLabel):
         self.error_labels.add(error_label)
@@ -175,7 +176,8 @@ class Case:
                 "eval_type": self.eval_type.value,
                 "error_labels": sorted([label.value for label in self.error_labels]),
                 "factor": self.factor,
-                "all_siblings_correct": self.all_siblings_correct}
+                "children_correctly_linked": self.children_correctly_linked,
+                "children_correctly_detected": self.children_correctly_detected}
         if self.true_entity is not None:
             data["true_entity"] = self.true_entity.to_dict()
         if self.predicted_entity is not None:
@@ -230,7 +232,8 @@ def case_from_dict(data) -> Case:
                 referenced_span=data["referenced_span"] if "referenced_span" in data else None,
                 error_labels=error_labels,
                 factor=data["factor"] if "factor" in data else 1,
-                all_siblings_correct=data["all_siblings_correct"] if "all_siblings_correct" in data else False)
+                children_correctly_linked=data["children_correctly_linked"] if "children_correctly_linked" in data else False,
+                children_correctly_detected=data["children_correctly_detected"] if "children_correctly_detected" in data else False)
 
 
 def case_from_json(dump) -> Case:

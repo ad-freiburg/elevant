@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple, Set, List
+from typing import Iterator, Tuple
 
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.groundtruth_label import GroundtruthLabel
@@ -24,13 +24,6 @@ def expand_span(text: str, span: Tuple[int, int]) -> Tuple[int, int]:
     while end < len(text) and text[end].isalpha():
         end = end + 1
     return begin, end
-
-
-def get_ground_truth_from_labels(labels: List[GroundtruthLabel]) -> Set[Tuple[Tuple[int, int], str]]:
-    ground_truth = set()
-    for gt_label in labels:
-        ground_truth.add((gt_label.span, gt_label.entity_id))
-    return ground_truth
 
 
 class WikipediaExampleReader:

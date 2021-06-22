@@ -1,9 +1,8 @@
 from typing import List
 
 from src.evaluation.case import Case, ErrorLabel
-from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator, is_coreference
-from src.evaluation.methods import get_evaluation_cases
-from src.evaluation.examples_generator import get_ground_truth_from_labels
+from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
+from src.evaluation.case_generator import CaseGenerator
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
     print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
 from src.models.entity_database import EntityDatabase
@@ -33,6 +32,7 @@ class Evaluator:
         self.all_cases = []
         if load_data:
             self.entity_db = load_evaluation_entities()
+        self.case_generator = CaseGenerator(self.entity_db)
         self.data_loaded = load_data
         self.coreference = coreference
         self.counts = {}
@@ -57,12 +57,12 @@ class Evaluator:
     def count_ner_case(self, case: Case):
         if case.is_named():
             if case.has_ground_truth() and case.is_known_entity() and not case.is_optional():
-                # TODO: Take factor 0 into account to not count all possibilities for one mention
-                if case.has_predicted_entity() and case.are_all_siblings_correct():
+                # Disregard child labels for TP and FN
+                if case.has_predicted_entity() and case.children_correctly_detected is True:  # is None for child label
                     self.counts["NER"]["tp"] += 1
-                else:
+                elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
-                if case.text.islower():
+                if case.text.islower() and case.children_correctly_detected is not None:
                     self.n_named_lowercase += 1
             elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
@@ -72,7 +72,7 @@ class Evaluator:
 
     def count_mention_type_case(self, case: Case):
         key = case.mention_type.value.lower()
-        if case.is_correct() and not case.is_optional() and case.are_all_siblings_correct():
+        if case.is_correct() and not case.is_optional():
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
             if case.is_coreference():
@@ -97,14 +97,9 @@ class Evaluator:
     def get_cases(self, article: WikipediaArticle):
         if not self.data_loaded:
             raise Exception("Cannot call Evaluator.get_cases() when the evaluator was created with load_data=False.")
-        ground_truth = get_ground_truth_from_labels(article.labels)
-        if not self.coreference:
-            ground_truth = [(span, entity_id) for span, entity_id in ground_truth
-                            if not is_coreference(article.text[span[0]:span[1]])]
-
         coref_ground_truth = CoreferenceGroundtruthGenerator.get_groundtruth(article)
 
-        cases = get_evaluation_cases(article, ground_truth, coref_ground_truth, self.entity_db)
+        cases = self.case_generator.get_evaluation_cases(article, coref_ground_truth)
 
         label_errors(article, cases, self.entity_db)
 
