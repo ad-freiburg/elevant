@@ -1,3 +1,4 @@
+import argparse
 import re
 from typing import List, Tuple
 
@@ -48,7 +49,6 @@ def get_labels(labeled_text: str) -> List[Tuple[Tuple[int, int], str]]:
             inside = True
             start_pos = pos
         elif inside and char == "]":
-            #print(text_inside)
             if "|" in text_inside:
                 qid, snippet = text_inside.split("|")
                 if ":" in qid:
@@ -116,12 +116,10 @@ def get_nested_labels(labeled_text: str, entity_db: EntityDatabase) -> List[Grou
             original_text = original_texts[inside-1][-1]
             end_pos = len(original_text)
             parent = label_ids[inside-2][-1] if inside-2 >= 0 else None
-            # TODO: This only adds direct children and not children of children. Depending on further implementation
-            #  this is enough though. Additionally, double nesting might not even occur.
             children = label_ids[inside] if inside < len(label_ids) else None
             label_id = label_ids[inside-1][-1]
             label_type = EntityType(labels[-1]) if not labels[-1].startswith("Unknown") \
-                                                   and not re.match(r"Q[0-9]+", labels[-1]) else EntityType.OTHER
+                and not re.match(r"Q[0-9]+", labels[-1]) else EntityType.OTHER
             entity_name = entity_db.get_entity(labels[-1]).name if entity_db.contains_entity(labels[-1]) else "Unknown"
             groundtruth_label = GroundtruthLabel(label_id, (start_pos[-1], start_pos[-1] + end_pos), labels[-1],
                                                  entity_name, parent=parent, children=children,
@@ -159,39 +157,46 @@ def get_nested_labels(labeled_text: str, entity_db: EntityDatabase) -> List[Grou
     return article_labels
 
 
-if __name__ == "__main__":
-    benchmark_dir = "benchmark/"
-    json_path = "/local/data/prangen/benchmark/development_labels.jsonl"
-    json_path2 = "benchmark/development.bold.jsonl"
-    curr_benchmark_file = settings.OWN_BENCHMARK_FILE
-    annotated_file = "benchmark/benchmark_ours_new_annotations.txt"
-    # natalies_labels_path = "benchmark/development_annotated.txt"
-    # matthias_labels_path = benchmark_dir + "development.txt"
-
-    # natalies_labels_texts = read_labeled_texts(natalies_labels_path, N_ARTICLES)
-    # matthias_labels_texts = read_labeled_texts(matthias_labels_path, N_ARTICLES)
-    labels_texts = read_labeled_texts(annotated_file, N_ARTICLES)
-
+def main(args):
+    labels_texts = read_labeled_texts(args.input_file, N_ARTICLES)
     benchmark_articles = []
 
     entity_db = EntityDatabase()
     entity_db.load_entities_big()
 
-    with open(curr_benchmark_file) as json_file:
+    output_file = None
+    if args.output_file:
+        output_file = open(args.output_file, "w", encoding="utf8")
+
+    with open(settings.OWN_BENCHMARK_FILE) as json_file:
         for i in range(N_ARTICLES):
             if i not in SKIP_ARTICLES:
                 json = next(json_file)
                 article = article_from_json(json)
-                #print("*** " + article.title + " ***")
                 if len(benchmark_articles) < ARTICLES_SPLIT:
                     labels_text = labels_texts[i]
-                else:
-                    pass  #labels_text = matthias_labels_texts[i]
-                #print(labels_text)
                 labels = get_nested_labels(labels_text, entity_db)
-                """for span, qid in labels:
-                    begin, end = span
-                    print(span, qid, article.text[begin:end])"""
+
                 article.labels = labels
                 benchmark_articles.append(article)
-                print(article.to_json())
+
+                if output_file:
+                    output_file.write(article.to_json() + "\n")
+                else:
+                    print(article.to_json())
+
+    if output_file:
+        output_file.close()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
+
+    parser.add_argument("input_file", type=str,
+                        help="Input benchmark with annotations in the format [<QID>|<original_text>].")
+
+    parser.add_argument("-out", "--output_file", type=str, default=None,
+                        help="File to write the labeled benchmark to (one json article per line).")
+
+    main(parser.parse_args())
