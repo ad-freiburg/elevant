@@ -331,6 +331,19 @@ class CaseGenerator:
         0
         >>> sorted(cg.factor_dict.items())
         [(1, 0), (2, 0), (3, 1), (5, 0), (6, 0), (7, 1), (8, 1)]
+        >>> cg = CaseGenerator(EntityDatabase())
+        >>> text = "aa, bb, cc"
+        >>> article = WikipediaArticle(0, "", text, [])
+        >>> cg.article = article
+        >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, None)
+        >>> labels = [l1]
+        >>> cg.label_dict = {label.id: label for label in labels}
+        >>> cg.all_predictions = dict()
+        >>> cg.factor_dict = dict()
+        >>> cg.recursively_determine_factor(1)
+        1
+        >>> sorted(cg.factor_dict.items())
+        [(1, 1)]
         """
         label = self.label_dict[label_id]
         expanded_label_span = word_boundary(label.span, self.article.text)
@@ -357,22 +370,18 @@ class CaseGenerator:
             for child_id in label.children:
                 biggest_child_factor = max(biggest_child_factor,  self.recursively_determine_factor(child_id))
 
-        factor = 0
-        if biggest_child_factor == 0 and not label.parent:
-            # If none of the children were detected, show the root parent
-            factor = 1
-        elif label.parent:
+        if not label.parent:
+            # We are at the root node. Iff none of the children were detected, show the root node
+            factor = 1 if biggest_child_factor == 0 else 0
+            self.factor_dict[label_id] = factor
+            return factor
+        else:
+            factor = 0
             parent_span = self.label_dict[label.parent].span
             if pred_entity_id and biggest_child_factor == 0 and \
                     word_boundary(parent_span, self.article.text) != word_boundary(label.span, self.article.text):
                 # If the mention was detected, no child was correct and the label has no parent or parent
                 # span is not the same as the label span
                 factor = 1
-        else:
-            # Biggest child factor is 1 and label has no parent --> we are at the root node
-            factor = 0
             self.factor_dict[label_id] = factor
-            return factor
-
-        self.factor_dict[label_id] = factor
-        return biggest_child_factor
+            return max(biggest_child_factor, factor)
