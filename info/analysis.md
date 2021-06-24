@@ -5,6 +5,8 @@
 
 **Paper:** <https://www.aclweb.org/anthology/D19-1066.pdf>
 
+(**More detailed paper:** <http://aidanhogan.com/docs/fine-grained-el.pdf>)
+
 **Objective:**
 Fair comparison of different Entity Linking systems considering the lack of a common definition of the Entity Linking task.
 
@@ -14,7 +16,7 @@ The questionaire aims to investigate 6 different aspects of linking decisions:
 2) Overlapping mentions: Should mentions inside other mentions be annotated, e.g. "Michael Jackson" in "Living with Michael Jackson"? 3/4 of respondents allow overlapping mentions.
 3) Common entities: Should common nouns be annotated, e.g. "documentary"? Most respondents do not link common entities (> 2/3).
 4) Parts of Speech: Should only nouns be annotated or also other parts of speech? The consensus is, that EL should focus on nouns, however pronouns were also considered for linking by 40% of respondents.
-5) Mention types: Should complex types of mentions sch as pronouns or descriptive noun phrases like "he and his four siblings" be annotated? No agreement between respondents.
+5) Mention types: Should complex types of mentions such as pronouns or descriptive noun phrases like "he and his four siblings" be annotated? No agreement between respondents.
 6) Link types: Should mentions link to the explicitly named entity, e.g. in metonomy cases such as "Moscow" for the "government of Russia"? Most agree to link demonyms to the country and "Moscow" to the "government of Russia".
 
 Rosales-Mendez et al. introduce a fine-grained categorization scheme for annotations.
@@ -29,9 +31,12 @@ They also label some mentions with multiple alternatives (e.g. metonymy or demon
 
 They then perform a fine-grained evaluation of 6 different systems (Babelfy, TagMe, DBpedia Spotlight, AIDA and FREME), computing precision, recall and f1 score for each leaf-node for each system.
 They conclude that this might be a too fine-grained evaluation to compare different systems and introduce a fuzzy recall and F1 metric.
-For this they define a membership function µ which assigns each ground truth mention a membership value between 0 and 1 where a higher value places more importance on achieving the annotations.
+For this they define a membership function µ which assigns each ground truth annotation a membership degree between 0 and 1 where a higher value places more importance on achieving the annotations.
+Annotations with consensus > 0.9 in their questionaire are assigned a membership degree of 1 (Proper Forms, Noun Phrases, No Overlap and Direct Reference).
+All other annotations get a constant membership degree of alpha.
 For a set of ground truth annotations G and a set of predicted links S, fuzzy recall is then defined as R* = sum_{a in S} µ(a) / sum_{a in G} µ(a). 
-
+They find that the results distinguish the systems that link common entities (Babelfy (relaxed) and TagME) from those that do not.
+The systems that link common entities outperform other systems when the definition of EL annotations is relaxed and perform worse for stricter definitions of EL annotations.
 
 ### Evaluating Entity Linking with Wikipedia
 *Hachey et al., 2013*
