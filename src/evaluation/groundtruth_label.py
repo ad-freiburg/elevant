@@ -1,14 +1,11 @@
-from enum import Enum
 from typing import Tuple, Optional, List, Dict
 
 
-class EntityType(Enum):
-    OTHER = "OTHER"
+class GroundtruthLabel:
     QUANTITY = "QUANTITY"
     DATETIME = "DATETIME"
+    OTHER = "OTHER"
 
-
-class GroundtruthLabel:
     def __init__(self,
                  label_id: int,
                  span: Tuple[int, int],
@@ -17,7 +14,7 @@ class GroundtruthLabel:
                  parent: int = None,
                  children: Optional[List[int]] = None,
                  optional: Optional[bool] = False,
-                 type: Optional[EntityType] = EntityType.OTHER):
+                 type: Optional[str] = OTHER):
         self.id = label_id
         self.span = span
         self.entity_id = entity_id
@@ -28,7 +25,13 @@ class GroundtruthLabel:
         self.type = type
 
     def is_optional(self) -> bool:
-        return self.optional or self.type in (EntityType.QUANTITY, EntityType.DATETIME)
+        return self.optional or self.is_quantity() or self.is_datetime()
+
+    def is_quantity(self) -> bool:
+        return self.type == self.QUANTITY
+
+    def is_datetime(self) -> bool:
+        return self.type == self.DATETIME
 
     def to_dict(self) -> Dict:
         d = {"id": self.id,
@@ -38,7 +41,7 @@ class GroundtruthLabel:
              "parent": self.parent,
              "children": self.children,
              "optional": self.optional,
-             "type": self.type.value}
+             "type": self.type}
         return d
 
     def __lt__(self, other):
@@ -53,4 +56,4 @@ def groundtruth_label_from_dict(data: Dict) -> GroundtruthLabel:
                             parent=data["parent"] if "parent" in data else None,
                             children=data["children"] if "children" in data else None,
                             optional=data["optional"] if "optional" in data else False,
-                            type=EntityType(data["type"]) if "type" in data else None)
+                            type=data["type"] if "type" in data else GroundtruthLabel.OTHER)

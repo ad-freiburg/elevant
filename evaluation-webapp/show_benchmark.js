@@ -342,7 +342,7 @@ function is_correct_optional_case(eval_case) {
                 // Optional FN are correct
                 return true;
             }
-        } else if ("type" in eval_case.true_entity && eval_case.true_entity.type != "OTHER") {
+        } else if ("type" in eval_case.true_entity && ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type)) {
             if ("predicted_entity" in eval_case && "type" in eval_case.predicted_entity && eval_case.true_entity.type == eval_case.predicted_entity.type) {
                 // True entity is of type QUANTITY or DATETIME and predicted entity is of the same type -> correct TP
                 return true;

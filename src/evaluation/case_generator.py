@@ -1,7 +1,7 @@
 from typing import Tuple, List
 
 from src.evaluation.case import Case
-from src.evaluation.groundtruth_label import EntityType, GroundtruthLabel
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_mention import EntityMention
@@ -96,11 +96,11 @@ class CaseGenerator:
                     if self.entity_db.contains_entity(predicted_entity_id) else "Unknown"
 
                 # Determine entity type
-                entity_type = EntityType.OTHER
+                entity_type = GroundtruthLabel.OTHER
                 if self.entity_db.is_quantity(predicted_entity_id):
-                    entity_type = EntityType.QUANTITY
+                    entity_type = GroundtruthLabel.QUANTITY
                 if self.entity_db.is_datetime(predicted_entity_id):
-                    entity_type = EntityType.DATETIME
+                    entity_type = GroundtruthLabel.DATETIME
 
                 predicted_entity = WikidataEntity(predicted_entity_name, 0, predicted_mention.entity_id, [],
                                                   type=entity_type)

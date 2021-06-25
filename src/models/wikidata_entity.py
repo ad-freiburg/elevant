@@ -1,6 +1,6 @@
 from typing import List, Optional, Set
 
-from src.evaluation.groundtruth_label import EntityType
+from src.evaluation.groundtruth_label import GroundtruthLabel
 
 
 class WikidataEntity:
@@ -11,7 +11,7 @@ class WikidataEntity:
                  synonyms: List[str],
                  title_synonyms: Optional[Set[str]] = None,
                  akronyms: Optional[Set[str]] = None,
-                 type: Optional[EntityType] = EntityType.OTHER):
+                 type: Optional[str] = GroundtruthLabel.OTHER):
         self.name = name
         self.score = score
         self.entity_id = entity_id

@@ -3,7 +3,7 @@ import re
 from typing import List, Tuple
 
 from src import settings
-from src.evaluation.groundtruth_label import GroundtruthLabel, EntityType
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import article_from_json
 
@@ -118,8 +118,8 @@ def get_nested_labels(labeled_text: str, entity_db: EntityDatabase) -> List[Grou
             parent = label_ids[inside-2][-1] if inside-2 >= 0 else None
             children = label_ids[inside] if inside < len(label_ids) else None
             label_id = label_ids[inside-1][-1]
-            label_type = EntityType(labels[-1]) if not labels[-1].startswith("Unknown") \
-                and not re.match(r"Q[0-9]+", labels[-1]) else EntityType.OTHER
+            label_type = labels[-1] if not labels[-1].startswith("Unknown") \
+                and not re.match(r"Q[0-9]+", labels[-1]) else GroundtruthLabel.OTHER
             entity_name = entity_db.get_entity(labels[-1]).name if entity_db.contains_entity(labels[-1]) else "Unknown"
             groundtruth_label = GroundtruthLabel(label_id, (start_pos[-1], start_pos[-1] + end_pos), labels[-1],
                                                  entity_name, parent=parent, children=children,

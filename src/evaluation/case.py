@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Set, Dict
 from enum import Enum
 import json
 
-from src.evaluation.groundtruth_label import GroundtruthLabel, EntityType
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
 from src.evaluation.mention_type import get_mention_type
@@ -102,7 +102,7 @@ class Case:
 
     def is_known_entity(self):
         return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown") \
-               and self.true_entity.type not in (EntityType.DATETIME, EntityType.QUANTITY)
+               and not self.true_entity.is_datetime() and not self.true_entity.is_quantity()
 
     def is_detected(self):
         return self.detected
@@ -129,11 +129,11 @@ class Case:
 
     def is_true_quantity_or_datetime(self):
         return self.true_entity and self.predicted_entity and \
-               ((self.true_entity.type == self.predicted_entity.type == EntityType.QUANTITY) or
-                (self.true_entity.type == self.predicted_entity.type == EntityType.DATETIME))
+               ((self.true_entity.is_quantity() and self.true_entity.type == self.predicted_entity.type) or
+                (self.true_entity.is_datetime() and self.true_entity.type == self.predicted_entity.type))
 
     def is_optional(self):
-        return self.optional or self.true_entity and self.true_entity.type in (EntityType.QUANTITY, EntityType.DATETIME)
+        return self.optional or self.true_entity and (self.true_entity.is_quantity() or self.true_entity.is_datetime())
 
     def add_error_label(self, error_label: ErrorLabel):
         self.error_labels.add(error_label)

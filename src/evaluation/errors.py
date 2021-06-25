@@ -1,7 +1,7 @@
 from typing import List
 
 from src.evaluation.case import Case, ErrorLabel
-from src.evaluation.groundtruth_label import GroundtruthLabel, EntityType
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.evaluation.mention_type import MentionType
 from src.models.entity_database import EntityDatabase
 from src.models.wikidata_entity import WikidataEntity
@@ -188,5 +188,4 @@ def label_span_errors(cases: List[Case]):
 
 
 def is_true_quantity_or_datetime(predicted_entity: WikidataEntity, gt_label: GroundtruthLabel) -> bool:
-    return gt_label.type == predicted_entity.type == EntityType.QUANTITY or \
-           gt_label.type == predicted_entity.type == EntityType.DATETIME
+    return gt_label.type == predicted_entity.type and (gt_label.is_datetime() or gt_label.is_quantity())
