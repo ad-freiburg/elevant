@@ -80,6 +80,9 @@ MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "msnbc.updated/msnbc.xml"
 
 OWN_BENCHMARK_FILE = "benchmark/our_benchmark_annotations.jsonl"
 
+WHITELIST_FILE = "benchmark/whitelist.txt"
+WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/qid_to_whitelist_type.tsv"
+
 UNIGRAMS_FILE = DATA_DIRECTORY + "unigrams.txt"
 
 LINKER_MODEL_PATH = "/nfs/students/natalie-prange/wiki-entity-linker_data/linker_models/"

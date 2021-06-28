@@ -1,8 +1,10 @@
 from typing import List
 
+from src import settings
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation.case_generator import CaseGenerator
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
     print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
 from src.models.entity_database import EntityDatabase
@@ -27,8 +29,11 @@ EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "prono
 
 class Evaluator:
     def __init__(self,
+                 id_to_type_dict,
                  load_data: bool = True,
                  coreference: bool = True):
+        self.id_to_type = id_to_type_dict
+        self.type_id_to_label = self.get_whitelist_label_dict()
         self.all_cases = []
         if load_data:
             self.entity_db = load_evaluation_entities()
@@ -39,9 +44,22 @@ class Evaluator:
         for key in EVALUATION_CATEGORIES:
             self.counts[key] = {"tp": 0, "fp": 0, "fn": 0}
         self.error_counts = {label: 0 for label in ErrorLabel}
+        self.type_counts = {GroundtruthLabel.OTHER: {"tp": 0, "fp": 0, "fn": 0}}
+        for type_id in self.type_id_to_label:
+            type_key = self.get_type_keys([type_id])[0]
+            self.type_counts[type_key] = {"tp": 0, "fp": 0, "fn": 0}
         self.has_candidates = False
         self.n_named_lowercase = 0
         self.n_named_contains_space = 0
+
+    @staticmethod
+    def get_whitelist_label_dict():
+        type_id_to_label = dict()
+        with open(settings.WHITELIST_FILE, "r", encoding="utf8") as file:
+            for line in file:
+                type_id, type_label = line.split(":")
+                type_id_to_label[type_id] = type_label
+        return type_id_to_label
 
     def add_cases(self, cases: List[Case]):
         self.all_cases.extend(cases)
@@ -75,24 +93,57 @@ class Evaluator:
         if case.is_correct() and not case.is_optional():
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
+
+            type_ids = case.true_entity.type
+            type_ids = type_ids.split("|")
+            type_keys = self.get_type_keys(type_ids)
+            for tk in type_keys:
+                self.type_counts[tk]["tp"] += 1
+
             if case.is_coreference():
                 self.counts["coreference"]["tp"] += 1
         else:
             if case.is_false_positive() and not case.is_true_quantity_or_datetime():
                 self.counts["all"]["fp"] += 1
                 self.counts[key]["fp"] += 1
+
+                pred_entity_id = case.predicted_entity.entity_id
+                if pred_entity_id in self.id_to_type:
+                    type_ids = self.id_to_type[pred_entity_id]
+                    type_keys = self.get_type_keys(type_ids)
+                else:
+                    type_keys = [GroundtruthLabel.OTHER]
+                for tk in type_keys:
+                    self.type_counts[tk]["fp"] += 1
+
                 if case.is_coreference():
                     self.counts["coreference"]["fp"] += 1
             if case.is_false_negative() and not case.is_optional():
                 self.counts["all"]["fn"] += 1
                 self.counts[key]["fn"] += 1
+
+                type_ids = case.true_entity.type
+                type_ids = type_ids.split("|")
+                type_keys = self.get_type_keys(type_ids)
+                for tk in type_keys:
+                    self.type_counts[tk]["fn"] += 1
+
                 if case.is_coreference():
                     self.counts["coreference"]["fn"] += 1
 
+    def get_type_keys(self, type_ids):
+        type_keys = []
+        for type_id in type_ids:
+            if type_id in self.type_id_to_label:
+                type_label = self.type_id_to_label[type_id]
+                type_keys.append(type_id + ":" + type_label)
+            else:
+                type_keys.append(type_id)
+        return type_keys
+
     def count_error_labels(self, case: Case):
         for label in case.error_labels:
-            # TODO: Should this be case.factor?
-            self.error_counts[label] += 1
+            self.error_counts[label] += case.factor  # factor is 0 or 1
 
     def get_cases(self, article: WikipediaArticle):
         if not self.data_loaded:
@@ -187,4 +238,7 @@ class Evaluator:
             },
             "non_entity_coreference": self.error_counts[ErrorLabel.NON_ENTITY_COREFERENCE]
         }
+        results_dict["by_type"] = {}
+        for type_key in self.type_counts:
+            results_dict["by_type"][type_key] = create_f1_dict_from_counts(self.type_counts[type_key])
         return results_dict

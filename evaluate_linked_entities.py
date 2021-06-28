@@ -15,6 +15,7 @@ from src.evaluation.case import case_from_dict
 from src.evaluation.examples_generator import get_example_generator
 from src.models.wikipedia_article import article_from_json
 from src.evaluation.evaluator import Evaluator
+from src import settings
 
 
 def main(args):
@@ -24,15 +25,35 @@ def main(args):
     output_file = None
     case_file = None
     output_filename = None
+
+    # Get a dictionary with whitelist types for all predicted entities (ground truth labels already have a type)
+    print("Get whitelist-types for all predicted entities...")
+    predicted_entity_ids = set()
+    for line in input_file:
+        article = article_from_json(line)
+        predicted_entity_ids.update([em.entity_id for em in article.entity_mentions.values()])
+    # Go through the entity to type mapping
+    id_to_type = dict()
+    with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
+        for line in file:
+            lst = line.strip().split("\t")
+            entity_id = lst[0][:-1].split("/")[-1]
+            # name = lst[1][1:-3]
+            whitelist_type = lst[2][:-1].split("/")[-1]
+            if entity_id in predicted_entity_ids:
+                if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
+                    id_to_type[entity_id] = []
+                id_to_type[entity_id].append(whitelist_type)
+
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
-        evaluator = Evaluator(load_data=False,
+        evaluator = Evaluator(id_to_type, load_data=False,
                               coreference=not args.no_coreference)
     else:
         output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
         output_file = open(output_filename, 'w', encoding='utf8')
         print("load evaluation entities...")
-        evaluator = Evaluator(load_data=True)
+        evaluator = Evaluator(id_to_type, load_data=True)
     results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
 
     example_iterator = None
@@ -41,6 +62,7 @@ def main(args):
         # and not from the given jsonl file. The user has to make sure the files match.
         example_iterator = get_example_generator(args.benchmark).iterate()
 
+    input_file.seek(0)
     for line in input_file:
         article = article_from_json(line)
         if example_iterator:
