@@ -221,7 +221,7 @@ function show_benchmark_results() {
 function filter_table_rows() {
     var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
     var match_type_and = $("#radio_and").is(":checked");
-    $("#evaluation tbody tr").each(function() {
+    $("#evaluation_tables tbody tr").each(function() {
         var name = $(this).children(":first-child").text();
         var show_row;
         if (match_type_and) {
@@ -887,23 +887,33 @@ function build_overview_table(path, benchmark_name) {
                     var results = result_tuple[1];
                     if (!$('#evaluation table thead').html()) {
                         // Add table header if it has not yet been added
-                        var table_header = get_table_header(results);
+                        var table_header = get_table_header(results, "evaluation");
                         $('#evaluation table thead').html(table_header);
                     }
+                    if (!$('#type_evaluation table thead').html()) {
+                        // Add table header for type evaluation table if it has not yet been added
+                        var table_header = get_table_header(results["by_type"], "type_evaluation");
+                        $('#type_evaluation table thead').html(table_header);
+                    }
 
-                    if (!$('#checkboxes').html()) {
+                    if (!$('#evaluation .checkboxes').html()) {
                         // Add checkboxes if they have not yet been added
-                        add_checkboxes(results);
+                        add_checkboxes(results, "evaluation");
+                    }
+                    if (!$('#type_evaluation .checkboxes').html()) {
+                        // Add checkboxes if they have not yet been added
+                        add_checkboxes(results["by_type"], "type_evaluation");
                     }
                 });
                 // Add table body
-                build_overview_table_body(result_array);
+                build_evaluation_table_body(result_array, "evaluation");
+                build_evaluation_table_body(result_array, "type_evaluation");
             });
         });
     });
 }
 
-function build_overview_table_body(result_list) {
+function build_evaluation_table_body(result_list, div_id) {
     /*
     Build the table body.
     Show / Hide rows and columns according to checkbox state and filter-result input field.
@@ -912,41 +922,44 @@ function build_overview_table_body(result_list) {
     result_list.forEach(function(result_tuple) {
         var approach_name = result_tuple[0];
         var results = result_tuple[1];
+        if (div_id == "type_evaluation") results = results["by_type"];
         var row = get_table_row(approach_name, results);
-        $('#evaluation table tbody').append(row);
+        $('#' + div_id + ' table tbody').append(row);
     });
 
     // Show / Hide columns according to checkbox state
     $("input[class^='checkbox_']").each(function() {
-        show_hide_columns(this);
+        show_hide_columns(this, div_id);
     })
 
     // Show / Hide rows according to filter-result input field
     filter_table_rows();
 }
 
-function add_checkboxes(json_obj) {
+function add_checkboxes(json_obj, div_id) {
     /*
     Add checkboxes for showing / hiding columns.
     */
     $.each(json_obj, function(key) {
         var class_name = get_class_name(key);
-        var title = get_title_from_key(key);
-        var checked = (class_name == "all") ? "checked" : ""
-        var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" " + checked + ">";
-        checkbox_html += "<label>" + title + "</label>";
-        $("#checkboxes").append(checkbox_html);
+        if (key != "by_type") {
+            var title = get_title_from_key(key);
+            var checked = (class_name == "all") ? "checked" : ""
+            var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, '" + div_id + "')\" " + checked + ">";
+            checkbox_html += "<label>" + title + "</label>";
+            $("#" + div_id + " .checkboxes").append(checkbox_html);
+        }
     });
 }
 
-function show_hide_columns(element) {
+function show_hide_columns(element, div_id) {
     /*
     This function should be called when the state of a checkbox is changed.
     This can't be simply added in on document ready, because checkboxes are added dynamically.
     */
     var col_class = $(element).attr("class");
     col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
-    var column = $("#evaluation ." + col_class);
+    var column = $("#" + div_id + " ." + col_class);
     if($(element).is(":checked")) {
         column.show();
     } else {
@@ -954,19 +967,20 @@ function show_hide_columns(element) {
     }
 }
 
-function get_table_header(json_obj) {
+function get_table_header(json_obj, div_id) {
     /*
     Get html for the table header.
     */
     var num_first_cols = json_obj.length;
-    var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr><th onclick='sort_table(this)'>System<span class='sort_symbol'>&#9660</span></th>";
+    var first_row = "<tr><th onclick='produce_latex(\"" + div_id + "\")' class='produce_latex'>" + copy_latex_text + "</th>";
+    var second_row = "<tr><th onclick='sort_table(this, \"" + div_id + "\")'>System<span class='sort_symbol'>&#9660</span></th>";
     $.each(json_obj, function(key) {
+        if (key == "by_type") return;
         var colspan = 0;
         var class_name = get_class_name(key);
         $.each(json_obj[key], function(subkey) {
             if (!(ignore_headers.includes(subkey))) {
-                second_row += "<th class='" + class_name + "' onclick='sort_table(this)'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
+                second_row += "<th class='" + class_name + "' onclick='sort_table(this, \"" + div_id + "\")'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
                 var tooltip_text = get_header_tooltip_text(subkey);
                 if (tooltip_text) {
                     second_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
@@ -994,6 +1008,7 @@ function get_table_row(approach_name, json_obj) {
     var row = "<tr onclick='on_row_click(this)'>";
     row += "<td onclick=\"show_selected_errors('system')\">" + approach_name + "</td>";
     $.each(json_obj, function(key) {
+        if (key == "by_type") return;
         var class_name = get_class_name(key);
         var tooltip_text = "";
         $.each(json_obj[key], function(subkey) {
@@ -1061,6 +1076,7 @@ function get_class_name(text) {
 }
 
 function get_title_from_key(key) {
+    key = key.replace(/Q[0-9]+:/g, "");
     return to_title_case(key.replace(/_/g, " "));
 }
 
@@ -1070,7 +1086,7 @@ function to_title_case(str) {
     });
 }
 
-function sort_table(column_header) {
+function sort_table(column_header, div_id) {
     /*
     Sort table rows with respect to the selected column.
     This sorts the result_array, removes old table rows and adds them in the new ordering.
@@ -1079,7 +1095,7 @@ function sort_table(column_header) {
     // + 1 because nth-child indices are 1-based
     var col_index = $(column_header).parent().children().index($(column_header)) + 1;
     var col_values = [];
-    $('#evaluation table tbody tr td:nth-child(' + col_index + ')').each(function() {
+    $('#' + div_id + ' table tbody tr td:nth-child(' + col_index + ')').each(function() {
         var text = $(this).html();
         var match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
         if (match) {
@@ -1089,11 +1105,11 @@ function sort_table(column_header) {
     });
 
     // Store approach name of currently selected row
-    var selected_approach = $("#evaluation table tbody tr.selected");
+    var selected_approach = $("#" + div_id + " table tbody tr.selected");
     var selected_approach_index = selected_approach.parent().children().index($(selected_approach));  // 0-based
 
     // Store class name of currently selected cell
-    var selected_cell_classes = $("#evaluation table tbody td.selected").attr("class");
+    var selected_cell_classes = $("#" + div_id + " table tbody td.selected").attr("class");
     if (selected_cell_classes) {
         selected_cell_classes = selected_cell_classes.split(/\s+/);
         selected_cell_classes.pop();  // We don't want the "selected" class
@@ -1116,7 +1132,7 @@ function sort_table(column_header) {
     result_array = order.map(i => result_array[i]);
 
     // Remove asc/desc classes from all columns
-    $("#evaluation table th").each(function() {
+    $("#" + div_id + " table th").each(function() {
         $(this).removeClass("desc");
         $(this).removeClass("asc");
     })
@@ -1137,17 +1153,17 @@ function sort_table(column_header) {
     }
 
     // Remove old table rows
-    $("#evaluation table tbody").empty();
+    $("#" + div_id + " table tbody").empty();
 
     // Add table rows in new order to the table body
-    build_overview_table_body(result_array);
+    build_evaluation_table_body(result_array, div_id);
 
     // Re-add selected class to previously selected row
     var new_selected_approach_index = order.indexOf(selected_approach_index) + 1;  // +1 because nth-child is 1-based
-    $("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
+    $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
 
     // Re-add selected class to previously selected cell
-    last_selected_cell = $("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
+    last_selected_cell = $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
     $(last_selected_cell).addClass("selected");
 }
 
@@ -1233,7 +1249,7 @@ function on_row_click(el) {
     This method is called when a table body row was clicked.
     This marks the row as selected and reads the evaluation cases.
     */
-    $("#evaluation tbody tr").each(function() {
+    $("#evaluation_tables tbody tr").each(function() {
         $(this).removeClass("selected");
     });
     $(el).addClass("selected");
@@ -1254,7 +1270,7 @@ function read_evaluation(approach_name) {
     });
 }
 
-function produce_latex() {
+function produce_latex(div_id) {
     /*
     Produce LaTeX source code for the overview table and copy it to the clipboard.
     */
@@ -1268,7 +1284,7 @@ function produce_latex() {
     var num_cols = 0;
     var row_count = 0;
     var header_string = "";
-    $('#evaluation table thead tr').each(function(){
+    $('#' + div_id + ' table thead tr').each(function(){
         $(this).find('th').each(function() {
             if (!$(this).is(":hidden")) {
                 // Do not add hidden table columns
@@ -1303,7 +1319,7 @@ function produce_latex() {
     latex.push("\\hline");
 
     // Generate the rows of the table body
-    $("#evaluation table tbody tr").each(function() {
+    $("#" + div_id + " table tbody tr").each(function() {
         var col_idx = 0;
         var row_string = "";
         $(this).find("td").each(function() {

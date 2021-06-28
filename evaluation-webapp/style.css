@@ -85,52 +85,52 @@ td .tooltip:hover .tooltiptext {
 }
 
 /* Evaluation overview area */
-#evaluation {
+#evaluation_tables {
     padding-top: 1em;
 }
-#evaluation table {
+#evaluation_tables table {
     cursor: default;
 }
-#evaluation table thead tr:nth-child(2) {
+#evaluation_tables table thead tr:nth-child(2) {
     cursor: pointer;
 }
-#evaluation table td {
+#evaluation_tables table td {
     width: 5em;
 }
-#evaluation table tbody tr {
+#evaluation_tables table tbody tr {
     border: 2px solid black;
     text-align: right;
     cursor: pointer;
 }
-#evaluation table tbody tr td:nth-child(1) {
+#evaluation_tables table tbody tr td:nth-child(1) {
     text-align: left;
 }
-#evaluation table tbody tr:hover {
+#evaluation_tables table tbody tr:hover {
     background-color: var(--row-hover-color);
 }
-#evaluation table tbody tr.selected {
+#evaluation_tables table tbody tr.selected {
     background-color: var(--row-selected-color);
 }
 /* Sorting indicator */
-#evaluation table thead .sort_symbol {
+#evaluation_tables table thead .sort_symbol {
     visibility: hidden;
     font-size: 0.8em;
 }
-#evaluation table thead .asc .sort_symbol {
+#evaluation_tables table thead .asc .sort_symbol {
     visibility: visible;
 }
-#evaluation table thead .desc .sort_symbol {
+#evaluation_tables table thead .desc .sort_symbol {
     visibility: visible;
 }
-#evaluation table tbody td.hovered {
+#evaluation_tables table tbody td.hovered {
     background-color: var(--cell-hover-color);
 }
-#evaluation table tbody td.selected {
+#evaluation_tables table tbody td.selected {
     background-color: var(--cell-selected-color);
 }
 
 /* Show the tooltip text when you mouse over a table header cell that comes with a description */
-#evaluation table thead .tooltip .tooltiptext {
+#evaluation_tables table thead .tooltip .tooltiptext {
     width: 7em;
     bottom: 140%;
     left: 0%;
@@ -140,12 +140,12 @@ td .tooltip:hover .tooltiptext {
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
-#evaluation table thead .tooltip:hover .tooltiptext {
+#evaluation_tables table thead .tooltip:hover .tooltiptext {
     visibility: visible;
 }
 
 /* Cell tooltip for precision / recall / F1 cells */
-#evaluation td .tooltiptext {
+#evaluation_tables td .tooltiptext {
     width: 4em;
     bottom: 140%;
     left: -20%;
@@ -164,7 +164,7 @@ td .tooltip:hover .tooltiptext {
 }
 
 /* Checkboxes for showing / hiding table columns */
-#checkboxes label {
+.checkboxes label {
     padding-right: 1em;
 }
 
