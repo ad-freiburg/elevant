@@ -26,3 +26,5 @@ Q373899:record chart
 Q194465:annexation
 Q381072:crisis
 Q22222786:government program
+Q41710:ethnic group
+Q18603729:dissolution of an administrative territorial entity
