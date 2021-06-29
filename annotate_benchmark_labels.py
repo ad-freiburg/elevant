@@ -78,8 +78,8 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--level", action="store_true",
                         help="Annotate benchmark labels with level (level 1 or not level 1).")
     parser.add_argument("--type_file", type=str, default=settings.WHITELIST_TYPE_MAPPING,
-                        help="The entity-to-type-mapping file")
+                        help="The entity-to-type-mapping file. Default: settings.WHITELIST_TYPE_MAPPING")
     parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,
-                        help="Benchmark in which to annotate the labels.")
+                        help="Benchmark in which to annotate the labels. Default: Our benchmark.")
 
     main(parser.parse_args())

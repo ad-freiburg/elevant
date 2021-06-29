@@ -41,8 +41,9 @@ if __name__ == "__main__":
                                      description=__doc__)
 
     parser.add_argument("-out", "--output_file", type=str, default=settings.WHITELIST_TYPE_MAPPING,
-                        help="Output tsv file with the resulting entity-whitelist-type mapping")
+                        help="Output tsv file with the resulting entity-whitelist-type mapping."
+                             "Default: settings.WHITELIST_TYPE_MAPPING")
     parser.add_argument("-w", "--whitelist_file", type=str, default=settings.WHITELIST_FILE,
-                        help="Input whitelist file")
+                        help="Input whitelist file. Default: settings.WHITELIST_FILE")
 
     main(parser.parse_args())
