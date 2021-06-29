@@ -75,8 +75,8 @@ class Evaluator:
     def count_ner_case(self, case: Case):
         if case.is_named():
             if case.has_ground_truth() and case.is_known_entity() and not case.is_optional():
-                # Disregard child labels for TP and FN
-                if case.has_predicted_entity() and case.children_correctly_detected is True:  # is None for child label
+                # Disregard child labels for TP and FN (children correctly detected is None only for child labels)
+                if case.has_predicted_entity() and case.children_correctly_detected is True:
                     self.counts["NER"]["tp"] += 1
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
@@ -90,7 +90,8 @@ class Evaluator:
 
     def count_mention_type_case(self, case: Case):
         key = case.mention_type.value.lower()
-        if case.is_correct() and not case.is_optional():
+        # Disregard child labels for TP and FN
+        if case.is_correct() and not case.is_optional() and not case.true_entity.parent:
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
 
@@ -118,7 +119,7 @@ class Evaluator:
 
                 if case.is_coreference():
                     self.counts["coreference"]["fp"] += 1
-            if case.is_false_negative() and not case.is_optional():
+            if case.is_false_negative() and not case.is_optional() and not case.true_entity.parent:
                 self.counts["all"]["fn"] += 1
                 self.counts[key]["fn"] += 1
 
