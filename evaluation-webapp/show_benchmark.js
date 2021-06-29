@@ -70,6 +70,7 @@ $("document").ready(function() {
 
     show_all_articles_flag = false;
     show_selected_error = null;
+    show_selected_type = null;
     last_selected_cell = null;
 
     set_benchmark_select_options();
@@ -392,6 +393,7 @@ function get_ground_truth_annotations(article_index) {
                 "color": color,
                 "entity_name": eval_case.true_entity.name,
                 "entity_id": eval_case.true_entity.entity_id,
+                "entity_type": eval_case.true_entity.type,
                 "error_labels": eval_case.error_labels
             };
             annotations.push(annotation);
@@ -469,7 +471,7 @@ function get_predicted_annotations(article_index) {
                 continue;
             }
         }
-        if (("true_entity" in mention || "predicted_entity" in mention) && (mention.factor == null || mention.factor > 0)) {
+        if ("predicted_entity" in mention && (mention.factor == null || mention.factor > 0)) {
             // mention is inside the evaluation span and therefore an evaluated case
             if (is_correct_optional_case(mention)) {
                 color = GREY;
@@ -488,11 +490,13 @@ function get_predicted_annotations(article_index) {
             }
             entity_id = mention.predicted_entity.entity_id;
             entity_name = mention.predicted_entity.name;
+            entity_type = mention.predicted_entity.type;
             predicted_by = mention.predicted_by;
         } else {  // mention is outside the evaluation span
             color = GREY;
             entity_id = mention.id;
             entity_name = null;
+            entity_type = null;
             predicted_by = mention.linked_by;
         }
         var annotation = {
@@ -500,6 +504,7 @@ function get_predicted_annotations(article_index) {
             "color": color,
             "entity_id": entity_id,
             "entity_name": entity_name,
+            "entity_type": entity_type,
             "predicted_by": predicted_by,
             "error_labels": mention.error_labels
         };
@@ -657,6 +662,9 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
                     !annotation.error_labels.includes(show_selected_error)) {
                 // Use transparent version of the color, if an error category is selected
                 // And the current annotation does not have the corresponding error label
+                color = annotation.color[1];
+            } else if (show_selected_type && annotation.entity_type &&
+                       !annotation.entity_type.split("|").includes(show_selected_type)) {
                 color = annotation.color[1];
             }
             replacement = "<div class=\"tooltip\" style=\"background-color:" + color + "\">";
@@ -923,7 +931,7 @@ function build_evaluation_table_body(result_list, div_id) {
         var approach_name = result_tuple[0];
         var results = result_tuple[1];
         if (div_id == "type_evaluation") results = results["by_type"];
-        var row = get_table_row(approach_name, results);
+        var row = get_table_row(approach_name, results, div_id);
         $('#' + div_id + ' table tbody').append(row);
     });
 
@@ -1001,7 +1009,7 @@ function get_table_header(json_obj, div_id) {
     return first_row + second_row;
 }
 
-function get_table_row(approach_name, json_obj) {
+function get_table_row(approach_name, json_obj, div_id) {
     /*
     Get html for the table row with the given approach name and result values.
     */
@@ -1038,7 +1046,11 @@ function get_table_row(approach_name, json_obj) {
                     Math.round(json_obj[key][subkey] * 100) / 100
                 }
                 var subclass_name = get_class_name(subkey);
-                var onclick_string = "onclick=\"show_selected_errors('" + subclass_name + "')\"";
+                if (div_id == "type_evaluation") {
+                    var onclick_string = "onclick=\"show_selected_errors('" + key + "')\"";
+                } else {
+                    var onclick_string = "onclick=\"show_selected_errors('" + subclass_name + "')\"";
+                }
                 row += "<td class='" + class_name + " " + subclass_name + "' " + onclick_string + ">" + value + "</td>";
             }
         });
@@ -1048,11 +1060,18 @@ function get_table_row(approach_name, json_obj) {
 }
 
 function show_selected_errors(error_category) {
+    var match = error_category.match(/Q[0-9]+:.*/);
     if (error_category in error_category_mapping) {
+        show_selected_type = null;
         show_selected_error = error_category_mapping[error_category];
+        show_article();
+    } else if (match || error_category == "OTHER") {
+        show_selected_error = null;
+        show_selected_type = error_category.replace(/(Q[0-9]+):.*/g, "$1");
         show_article();
     } else {
         show_selected_error = null;
+        show_selected_type = null;
     }
 }
 

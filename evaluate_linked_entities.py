@@ -47,8 +47,7 @@ def main(args):
 
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
-        evaluator = Evaluator(id_to_type, load_data=False,
-                              coreference=not args.no_coreference)
+        evaluator = Evaluator(id_to_type, load_data=False, coreference=not args.no_coreference)
     else:
         output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
         output_file = open(output_filename, 'w', encoding='utf8')

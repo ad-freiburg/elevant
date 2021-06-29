@@ -181,7 +181,8 @@ class Case:
             data["true_entity"] = self.true_entity.to_dict()
         if self.predicted_entity is not None:
             data["predicted_entity"] = {"entity_id": self.predicted_entity.entity_id,
-                                        "name": self.predicted_entity.name}
+                                        "name": self.predicted_entity.name,
+                                        "type": self.predicted_entity.type}
         if self.is_true_coref is not None:
             data["is_true_coref"] = self.is_true_coref
         if self.correct_span_referenced is not None:

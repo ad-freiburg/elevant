@@ -29,15 +29,15 @@ EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "prono
 
 class Evaluator:
     def __init__(self,
-                 id_to_type_dict,
+                 id_to_type,
                  load_data: bool = True,
                  coreference: bool = True):
-        self.id_to_type = id_to_type_dict
+        self.id_to_type = id_to_type
         self.type_id_to_label = self.get_whitelist_label_dict()
         self.all_cases = []
         if load_data:
             self.entity_db = load_evaluation_entities()
-        self.case_generator = CaseGenerator(self.entity_db)
+        self.case_generator = CaseGenerator(self.entity_db, id_to_type)
         self.data_loaded = load_data
         self.coreference = coreference
         self.counts = {}
@@ -57,7 +57,7 @@ class Evaluator:
         type_id_to_label = dict()
         with open(settings.WHITELIST_FILE, "r", encoding="utf8") as file:
             for line in file:
-                type_id, type_label = line.split(":")
+                type_id, type_label = line.strip().split(":")
                 type_id_to_label[type_id] = type_label
         return type_id_to_label
 
@@ -110,9 +110,9 @@ class Evaluator:
                 pred_entity_id = case.predicted_entity.entity_id
                 if pred_entity_id in self.id_to_type:
                     type_ids = self.id_to_type[pred_entity_id]
-                    type_keys = self.get_type_keys(type_ids)
                 else:
-                    type_keys = [GroundtruthLabel.OTHER]
+                    type_ids = [GroundtruthLabel.OTHER]
+                type_keys = self.get_type_keys(type_ids)
                 for tk in type_keys:
                     self.type_counts[tk]["fp"] += 1
 

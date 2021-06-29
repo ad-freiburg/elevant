@@ -37,13 +37,29 @@ def word_boundary(span: Tuple[int, int], text: str) -> Tuple[int, int]:
 
 
 class CaseGenerator:
-    def __init__(self, entity_db: EntityDatabase):
+    def __init__(self, entity_db: EntityDatabase, id_to_type):
         self.entity_db = entity_db
+        self.id_to_type = id_to_type
         self.article = None
         self.coref_ground_truth = None
         self.label_dict = None
         self.all_predictions = None
         self.factor_dict = None
+
+    def determine_entity_type(self, entity_id):
+        """
+        Determine the type of an entity.
+        Either a type from the whitelist or QUANTITY, DATETIME, OTHER.
+        """
+        entity_type = GroundtruthLabel.OTHER
+        if self.entity_db.is_quantity(entity_id):
+            entity_type = GroundtruthLabel.QUANTITY
+        elif self.entity_db.is_datetime(entity_id):
+            entity_type = GroundtruthLabel.DATETIME
+        elif entity_id in self.id_to_type:
+            type_ids = self.id_to_type[entity_id]
+            entity_type = "|".join(type_ids)
+        return entity_type
 
     def get_evaluation_cases(self, article: WikipediaArticle, coref_ground_truth) -> List[Case]:
         self.article = article
@@ -95,15 +111,10 @@ class CaseGenerator:
                 predicted_entity_name = self.entity_db.get_entity(predicted_entity_id).name \
                     if self.entity_db.contains_entity(predicted_entity_id) else "Unknown"
 
-                # Determine entity type
-                entity_type = GroundtruthLabel.OTHER
-                if self.entity_db.is_quantity(predicted_entity_id):
-                    entity_type = GroundtruthLabel.QUANTITY
-                if self.entity_db.is_datetime(predicted_entity_id):
-                    entity_type = GroundtruthLabel.DATETIME
+                predicted_entity_type = self.determine_entity_type(predicted_entity_id)
 
                 predicted_entity = WikidataEntity(predicted_entity_name, 0, predicted_mention.entity_id, [],
-                                                  type=entity_type)
+                                                  type=predicted_entity_type)
                 contained = predicted_mention.contained
             else:
                 predicted_by = None
@@ -158,7 +169,9 @@ class CaseGenerator:
             predicted_entity_id = predicted_mention.entity_id
             predicted_entity_name = self.entity_db.get_entity(predicted_entity_id).name \
                 if self.entity_db.contains_entity(predicted_entity_id) else "Unknown"
-            predicted_entity = WikidataEntity(predicted_entity_name, 0, predicted_mention.entity_id, [])
+            predicted_entity_type = self.determine_entity_type(predicted_entity_id)
+            predicted_entity = WikidataEntity(predicted_entity_name, 0, predicted_mention.entity_id, [],
+                                              type=predicted_entity_type)
 
             if (span not in ground_truth_spans and expanded_span not in ground_truth_spans) and \
                     predicted_entity_id is not None and span[0] >= evaluation_span[0] and span[1] <= evaluation_span[1]:
