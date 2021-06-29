@@ -123,7 +123,12 @@ $("document").ready(function() {
     // Highlight error category cells on click and un-highlight previously clicked cell
     $("#evaluation").on("click", "td", function() {
         if (last_selected_cell) {
-            $(last_selected_cell).removeClass("selected");
+            var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
+            // last_selected_cell could be in type_evaluation table as well
+            // where multiple cells need to be deselected
+            $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
+                $(this).removeClass("selected");
+            });
         }
         if ($(this).attr('class')) {  // System column has no class attribute
             var classes = $(this).attr('class').split(/\s+/);
@@ -133,6 +138,44 @@ $("document").ready(function() {
             }
         }
     });
+
+    // Highlight all cells in a row belonging to the same type on hover
+    $("#type_evaluation").on("mouseenter", "td", function() {
+        if ($(this).attr('class')) {  // System column has no class attribute
+            var cls = $(this).attr('class').split(/\s+/)[0];
+            // Mark all cells in the corresponding row with the corresponding class
+            $(this).closest('tr').find('.' + cls).each(function(index) {
+                $(this).addClass("hovered");
+            });
+        }
+    });
+
+    $("#type_evaluation").on("mouseleave", "td", function() {
+        if ($(this).attr('class')) {  // System column has no class attribute
+            var cls = $(this).attr('class').split(/\s+/)[0];
+            $(this).closest('tr').find('.' + cls).each(function(index) {
+                $(this).removeClass("hovered");
+            });
+        }
+    });
+
+    // Highlight type cells on click and un-highlight previously clicked cells
+    $("#type_evaluation").on("click", "td", function() {
+        if (last_selected_cell) {
+            var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
+            $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
+                $(this).removeClass("selected");
+            });
+        }
+        if ($(this).attr('class')) {  // System column has no class attribute
+            var cls = $(this).attr('class').split(/\s+/)[0];
+            $(this).closest('tr').find('.' + cls).each(function(index) {
+                $(this).addClass("selected");
+                last_selected_cell = this;
+            });
+        }
+    });
+
 
     // Show tooltips on both sides when the corresponding span on the other side is hovered
     $("#textfield_left, #textfield_right").on("mouseenter", ".tooltip", function() {
