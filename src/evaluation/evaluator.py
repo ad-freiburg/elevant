@@ -24,15 +24,17 @@ def load_evaluation_entities():
     return entity_db
 
 
-EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "pronominal")
+EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "pronominal", "level_1")
 
 
 class Evaluator:
     def __init__(self,
                  id_to_type,
+                 id_to_name,
                  load_data: bool = True,
                  coreference: bool = True):
         self.id_to_type = id_to_type
+        self.id_to_name = id_to_name
         self.type_id_to_label = self.get_whitelist_label_dict()
         self.all_cases = []
         if load_data:
@@ -101,6 +103,9 @@ class Evaluator:
             for tk in type_keys:
                 self.type_counts[tk]["tp"] += 1
 
+            if case.true_entity.level1:
+                self.counts["level_1"]["tp"] += 1
+
             if case.is_coreference():
                 self.counts["coreference"]["tp"] += 1
         else:
@@ -117,6 +122,14 @@ class Evaluator:
                 for tk in type_keys:
                     self.type_counts[tk]["fp"] += 1
 
+                if pred_entity_id in self.id_to_name:
+                    name = self.id_to_name[pred_entity_id]
+                    if name[0].isupper():
+                        self.counts["level_1"]["fp"] += 1
+                elif case.predicted_entity.name and not case.predicted_entity.name.startswith("Unknown"):
+                    if case.predicted_entity.name[0].isupper():
+                        self.counts["level_1"]["fp"] += 1
+
                 if case.is_coreference():
                     self.counts["coreference"]["fp"] += 1
             if case.is_false_negative() and not case.is_optional() and not case.true_entity.parent:
@@ -128,6 +141,9 @@ class Evaluator:
                 type_keys = self.get_type_keys(type_ids)
                 for tk in type_keys:
                     self.type_counts[tk]["fn"] += 1
+
+                if case.true_entity.level1:
+                    self.counts["level_1"]["fn"] += 1
 
                 if case.is_coreference():
                     self.counts["coreference"]["fn"] += 1

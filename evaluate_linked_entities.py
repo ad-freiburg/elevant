@@ -34,25 +34,27 @@ def main(args):
         predicted_entity_ids.update([em.entity_id for em in article.entity_mentions.values()])
     # Go through the entity to type mapping
     id_to_type = dict()
+    id_to_name = dict()
     with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
         for line in file:
             lst = line.strip().split("\t")
             entity_id = lst[0][:-1].split("/")[-1]
-            # name = lst[1][1:-3]
+            name = lst[1][1:-3]
             whitelist_type = lst[2][:-1].split("/")[-1]
             if entity_id in predicted_entity_ids:
                 if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
                     id_to_type[entity_id] = []
                 id_to_type[entity_id].append(whitelist_type)
+                id_to_name[entity_id] = name
 
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
-        evaluator = Evaluator(id_to_type, load_data=False, coreference=not args.no_coreference)
+        evaluator = Evaluator(id_to_type, id_to_name, load_data=False, coreference=not args.no_coreference)
     else:
         output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
         output_file = open(output_filename, 'w', encoding='utf8')
         print("load evaluation entities...")
-        evaluator = Evaluator(id_to_type, load_data=True)
+        evaluator = Evaluator(id_to_type, id_to_name, load_data=True)
     results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
 
     example_iterator = None
