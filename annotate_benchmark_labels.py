@@ -3,6 +3,7 @@ import sys
 
 from src import settings
 from src.evaluation.benchmark import Benchmark
+from src.evaluation.evaluator import prediction_is_level_one
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel
 
@@ -52,14 +53,9 @@ def main(args):
                     print("Entity %s:%s was not found in entity-type mapping." %
                           (label.entity_id, label.name))
             if args.level:
-                if label.entity_id in id_to_name:
-                    name = id_to_name[label.entity_id]
-                    label.level1 = True if name[0].isupper() else False
-                elif label.name and not label.name.startswith("Unknown"):
-                    label.level1 = True if label.name[0].isupper() else False
-                else:
-                    print("No label found for entity %s:%s." %
-                          (label.entity_id, label.name))
+                label.level1 = False
+                if prediction_is_level_one(id_to_name, label.entity_id, label.name):
+                    label.level1 = True
 
         output_file.write(article.to_json() + '\n')
 
