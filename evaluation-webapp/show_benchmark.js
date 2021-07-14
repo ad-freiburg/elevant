@@ -1222,13 +1222,22 @@ function sort_table(column_header, div_id) {
     // Add table rows in new order to the table body
     build_evaluation_table_body(result_array, div_id);
 
-    // Re-add selected class to previously selected row
-    var new_selected_approach_index = order.indexOf(selected_approach_index) + 1;  // +1 because nth-child is 1-based
-    $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
+    // Re-add selected class if row or cell was previously selected
+    if (selected_approach_index > -1) {
+        // Re-add selected class to previously selected row
+        var new_selected_approach_index = order.indexOf(selected_approach_index) + 1;  // +1 because nth-child is 1-based
+        $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
 
-    // Re-add selected class to previously selected cell
-    last_selected_cell = $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
-    $(last_selected_cell).addClass("selected");
+        // Re-add selected class to previously selected cell
+        last_selected_cell = $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
+        $(last_selected_cell).addClass("selected");
+        if (div_id == "type_evaluation") {
+            var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
+            $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
+                $(this).addClass("selected");
+            });
+        }
+    }
 }
 
 function compare_approach_names(approach_1, approach_2) {
