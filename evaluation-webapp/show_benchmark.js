@@ -248,8 +248,8 @@ function show_benchmark_results() {
     }
 
     // Remove previous evaluation table content
-    $("#evaluation table thead").empty();
-    $("#evaluation table tbody").empty();
+    $("#evaluation_tables table thead").empty();
+    $("#evaluation_tables table tbody").empty();
 
     // Remove previous article evaluation content
     $("#article-results .row").hide();
@@ -941,7 +941,7 @@ function build_overview_table(path, benchmark_name) {
                         var table_header = get_table_header(results, "evaluation");
                         $('#evaluation table thead').html(table_header);
                     }
-                    if (!$('#type_evaluation table thead').html()) {
+                    if (!$('#type_evaluation table thead').html() && results["by_type"]) {
                         // Add table header for type evaluation table if it has not yet been added
                         var table_header = get_table_header(results["by_type"], "type_evaluation");
                         $('#type_evaluation table thead').html(table_header);
@@ -951,7 +951,7 @@ function build_overview_table(path, benchmark_name) {
                         // Add checkboxes if they have not yet been added
                         add_checkboxes(results, "evaluation");
                     }
-                    if (!$('#type_evaluation .checkboxes').html()) {
+                    if (!$('#type_evaluation .checkboxes').html() && results["by_type"]) {
                         // Add checkboxes if they have not yet been added
                         add_checkboxes(results["by_type"], "type_evaluation");
                     }
@@ -974,8 +974,10 @@ function build_evaluation_table_body(result_list, div_id) {
         var approach_name = result_tuple[0];
         var results = result_tuple[1];
         if (div_id == "type_evaluation") results = results["by_type"];
-        var row = get_table_row(approach_name, results, div_id);
-        $('#' + div_id + ' table tbody').append(row);
+        if (results) {
+            var row = get_table_row(approach_name, results, div_id);
+            $('#' + div_id + ' table tbody').append(row);
+        }
     });
 
     // Show / Hide columns according to checkbox state
