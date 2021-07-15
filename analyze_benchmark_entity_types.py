@@ -1,12 +1,12 @@
 import json
 
 from src.models.wikipedia_article import article_from_json
-from src.settings import WHITELIST_FILE
+from src.settings import WHITELIST_FILE, WHITELIST_TYPE_MAPPING
 
 
 if __name__ == "__main__":
-    in_file = "benchmark/ours_annotated.txt"
-    type_file = "benchmark/qid_to_whitelist_type.tsv"
+    in_file = "benchmark/conll_annotated.txt"
+    type_file = WHITELIST_TYPE_MAPPING
 
     # read whitelist
     whitelist = {}
@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 if type not in type_counts:
                     type_counts[type] = {True: 0, False : 0}
                 type_counts[type][bool(label.level1)] += 1
-                total_counts[bool(label.level1)] += 1
+            total_counts[bool(label.level1)] += 1
 
     labels_tsv_file.close()
 
