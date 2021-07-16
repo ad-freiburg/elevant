@@ -168,6 +168,10 @@ td .tooltip:hover .tooltiptext {
     padding-right: 1em;
 }
 
+.checkboxes {
+    margin-bottom: 1em;
+}
+
 /* Area containing the results per article */
 #article-results {
     padding-top: 2em;
