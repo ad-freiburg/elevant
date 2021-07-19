@@ -130,6 +130,7 @@ $("document").ready(function() {
                 $(this).removeClass("selected");
             });
         }
+        last_selected_cell = null;
         if ($(this).attr('class')) {  // System column has no class attribute
             var classes = $(this).attr('class').split(/\s+/);
             if (classes.length > 1 && classes[1] in error_category_mapping) {
@@ -167,6 +168,7 @@ $("document").ready(function() {
                 $(this).removeClass("selected");
             });
         }
+        last_selected_cell = null;
         if ($(this).attr('class')) {  // System column has no class attribute
             var cls = $(this).attr('class').split(/\s+/)[0];
             $(this).closest('tr').find('.' + cls).each(function(index) {
@@ -1228,14 +1230,16 @@ function sort_table(column_header, div_id) {
         var new_selected_approach_index = order.indexOf(selected_approach_index) + 1;  // +1 because nth-child is 1-based
         $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
 
-        // Re-add selected class to previously selected cell
-        last_selected_cell = $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
-        $(last_selected_cell).addClass("selected");
-        if (div_id == "type_evaluation") {
-            var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
-            $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
-                $(this).addClass("selected");
-            });
+        if (last_selected_cell) {
+            // Re-add selected class to previously selected cell
+            last_selected_cell = $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
+            $(last_selected_cell).addClass("selected");
+            if (div_id == "type_evaluation") {
+                var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
+                $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
+                    $(this).addClass("selected");
+                });
+            }
         }
     }
 }
