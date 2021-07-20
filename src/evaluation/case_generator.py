@@ -300,7 +300,7 @@ class CaseGenerator:
             return result
         return False
 
-    def recursively_determine_factor(self, label_id: int) -> int:
+    def recursively_determine_factor(self, label_id: int, ignore_siblings=False) -> int:
         """
         Returns factor for given label_id and saves factors in the factors dictionary.
 
@@ -372,16 +372,15 @@ class CaseGenerator:
         if pred_entity_id and label.entity_id == pred_entity_id:
             # Factor is certainly 1 if the mention was correctly detected and linked. All child labels have factor 0.
             # Return is only ok if child labels not occurring in the factor dictionary are assigned factor 0.
-            # Otherwise we need to go through all child labels anyhow.
+            # Otherwise we need to go through all child labels.
             factor = 1
             self.factor_dict[label_id] = factor
             return factor
 
         biggest_child_factor = 0
         if label.children:
-            biggest_child_factor = 0
             for child_id in label.children:
-                biggest_child_factor = max(biggest_child_factor,  self.recursively_determine_factor(child_id))
+                biggest_child_factor = max(biggest_child_factor, self.recursively_determine_factor(child_id))
 
         if not label.parent:
             # We are at the root node. Iff none of the children were detected, show the root node
@@ -393,8 +392,19 @@ class CaseGenerator:
             parent_span = self.label_dict[label.parent].span
             if pred_entity_id and biggest_child_factor == 0 and \
                     word_boundary(parent_span, self.article.text) != word_boundary(label.span, self.article.text):
-                # If the mention was detected, no child was correct and the label has no parent or parent
-                # span is not the same as the label span
+                # If the mention was detected, no child was correct and the parent span is not the same as the label
+                # span
                 factor = 1
+            elif not pred_entity_id and not ignore_siblings and biggest_child_factor == 0:
+                # If the mention was not detected, but siblings were, factor is 1.
+                # If parent span is the same as label span, the label can not have any siblings, so the factor is 0
+                siblings = self.label_dict[label.parent].children[:]
+                siblings.remove(label_id)
+                for sibling_id in siblings:
+                    sibling_factor = self.recursively_determine_factor(sibling_id, ignore_siblings=True)
+                    if sibling_factor > 0:
+                        factor = 1
+                        break
+
             self.factor_dict[label_id] = factor
             return max(biggest_child_factor, factor)
