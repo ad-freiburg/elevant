@@ -9,7 +9,6 @@ from src.models.wikipedia_article import WikipediaArticle
 
 
 def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: EntityDatabase):
-    # TODO: Right now, all gt labels are counted, also overlapping ones
     text = article.text
     cases = [case for case in cases if (case.is_false_positive() or case.is_known_entity())]
     label_specificity_errors(cases)
@@ -47,11 +46,14 @@ def label_specificity_errors(cases: List[Case]):
 
 def label_demonym_errors(cases: List[Case], entity_db: EntityDatabase):
     for case in cases:
-        if entity_db.is_demonym(case.text):
-            if case.is_correct():
-                case.add_error_label(ErrorLabel.DEMONYM_CORRECT)
-            else:
-                case.add_error_label(ErrorLabel.DEMONYM_WRONG)
+        if entity_db.is_demonym(case.text) and case.true_entity:
+            types = set(case.true_entity.type.split("|"))
+            demonym_types = {"Q27096213", "Q41710", "Q17376908"}
+            if types.intersection(demonym_types):
+                if case.is_correct():
+                    case.add_error_label(ErrorLabel.DEMONYM_CORRECT)
+                else:
+                    case.add_error_label(ErrorLabel.DEMONYM_WRONG)
 
 
 def label_rare_entity_errors(text: str, cases: List[Case], entity_db: EntityDatabase):
