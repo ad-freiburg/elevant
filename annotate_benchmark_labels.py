@@ -54,7 +54,7 @@ def main(args):
                           (label.entity_id, label.name))
             if args.level:
                 label.level1 = False
-                if prediction_is_level_one(id_to_name, label.entity_id, label.name):
+                if prediction_is_level_one(id_to_name, label.entity_id):
                     label.level1 = True
 
         output_file.write(article.to_json() + '\n')
