@@ -24,15 +24,12 @@ def load_evaluation_entities():
     return entity_db
 
 
-def prediction_is_level_one(id_to_name, entity_id):
-    name = ""
-    if entity_id in id_to_name:
-        name = id_to_name[entity_id]
-
-    alpha_chars = [char for char in name if char.isalpha()]
-    # Check if first alphabetic character exists and is uppercase
-    if len(alpha_chars) > 0 and alpha_chars[0].isupper():
-        return True
+def prediction_is_level_one(entity_name):
+    if entity_name != "Unknown":
+        alpha_chars = [char for char in entity_name if char.isalpha()]
+        # Check if first alphabetic character exists and is uppercase
+        if len(alpha_chars) > 0 and alpha_chars[0].isupper():
+            return True
     return False
 
 
@@ -104,7 +101,7 @@ class Evaluator:
 
     def count_mention_type_case(self, case: Case):
         key = case.mention_type.value.lower()
-        # Disregard child labels for TP and FN
+        # Disregard child labels for TP and FN (case.is_correct() is also true if all child labels are linked correctly)
         if case.is_correct() and not case.is_optional() and not case.true_entity.parent:
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
@@ -134,7 +131,7 @@ class Evaluator:
                 for tk in type_keys:
                     self.type_counts[tk]["fp"] += 1
 
-                if prediction_is_level_one(self.id_to_name, pred_entity_id):
+                if prediction_is_level_one(case.predicted_entity.name):
                     self.counts["level_1"]["fp"] += 1
 
                 if case.is_coreference():

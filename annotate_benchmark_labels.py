@@ -6,6 +6,7 @@ from src.evaluation.benchmark import Benchmark
 from src.evaluation.evaluator import prediction_is_level_one
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.helpers.entity_database_reader import EntityDatabaseReader
 
 
 def main(args):
@@ -21,20 +22,8 @@ def main(args):
         for label in article.labels:
             label_entity_ids.add(label.entity_id)
 
-    id_to_type = dict()
-    id_to_name = dict()
     print("Read whitelist type mapping file..")
-    with open(args.type_file, "r", encoding="utf8") as file:
-        for line in file:
-            lst = line.strip().split("\t")
-            entity_id = lst[0][:-1].split("/")[-1]
-            name = lst[1][1:-3]
-            whitelist_type = lst[2][:-1].split("/")[-1]
-            if entity_id in label_entity_ids:
-                if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
-                    id_to_type[entity_id] = []
-                id_to_type[entity_id].append(whitelist_type)
-                id_to_name[entity_id] = name
+    entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids)
 
     for article in example_iterator.iterate():
         for label in article.labels:
@@ -43,19 +32,13 @@ def main(args):
             if args.type:
                 if label.type in (GroundtruthLabel.QUANTITY, GroundtruthLabel.DATETIME):
                     continue
-                if label.entity_id in id_to_type:
-                    type_list = id_to_type[label.entity_id]
-                    label.type = "|".join(type_list)
-                    if len(type_list) > 1:
-                        print("More than one whitelist type found for entity %s:%s. Types: %s" %
-                              (label.entity_id, label.name, type_list))
+                if label.entity_id in entities:
+                    label.type = entities[label.entity_id].type
                 else:
                     print("Entity %s:%s was not found in entity-type mapping." %
                           (label.entity_id, label.name))
             if args.level:
-                label.level1 = False
-                if prediction_is_level_one(id_to_name, label.entity_id):
-                    label.level1 = True
+                label.level1 = prediction_is_level_one(entities[label.entity_id].name)
 
         output_file.write(article.to_json() + '\n')
 

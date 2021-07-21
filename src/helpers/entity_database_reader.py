@@ -103,6 +103,33 @@ class EntityDatabaseReader:
         return mapping
 
     @staticmethod
+    def get_wikidata_entities_with_types(relevant_entities: Set[str]) -> Dict[str, WikidataEntity]:
+        entities = dict()
+        id_to_type = dict()
+        id_to_name = dict()
+        with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
+            for line in file:
+                lst = line.strip().split("\t")
+                entity_id = lst[0][:-1].split("/")[-1]
+                name = lst[1][1:-4]
+                whitelist_type = lst[2][:-1].split("/")[-1]
+                if entity_id in relevant_entities:
+                    if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
+                        id_to_type[entity_id] = []
+                    id_to_type[entity_id].append(whitelist_type)
+                    id_to_name[entity_id] = name
+
+        for entity_id in relevant_entities:
+            if entity_id in id_to_type:
+                types = "|".join(id_to_type[entity_id])
+                name = id_to_name[entity_id]
+                entity = WikidataEntity(name, 0, entity_id, [], type=types)
+            else:
+                entity = WikidataEntity("Unknown", 0, entity_id, [])
+            entities[entity_id] = entity
+        return entities
+
+    @staticmethod
     def get_gender_mapping(mappings_file: str = settings.GENDER_MAPPING_FILE):
         mapping = {}
         for i, line in enumerate(open(mappings_file)):

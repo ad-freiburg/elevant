@@ -73,9 +73,12 @@ class EntityDatabase:
 
     def load_entities_big(self):
         mapping = EntityDatabaseReader.get_mapping()
-        for entity_name in mapping:
-            entity_id = mapping[entity_name]
-            entity = WikidataEntity(entity_name, 0, entity_id, [])
+        # The mapping contains Wikipedia titles. Load an additional mapping for Wikidata names.
+        # Don't save the mapping because it is huge and we only need the names of entities that
+        # are in the Wikipedia-Wikidata mapping.
+        entity_ids = set(mapping.values())
+        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids)
+        for entity in entities.values():
             self.add_entity(entity)
 
     def size_entities(self) -> int:
