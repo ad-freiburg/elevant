@@ -11,7 +11,7 @@ class GroundtruthLabel:
                  span: Tuple[int, int],
                  entity_id: str,
                  name: str,
-                 parent: int = None,
+                 parent: Optional[int] = None,
                  children: Optional[List[int]] = None,
                  optional: Optional[bool] = False,
                  type: Optional[str] = OTHER,

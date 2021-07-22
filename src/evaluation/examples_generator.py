@@ -39,8 +39,7 @@ class WikipediaExampleReader:
                 entity_id = self.entity_db.link2id(target)
                 if entity_id is None:
                     entity_id = "Unknown"
-                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, parent=None, children=None,
-                                            optional=False)
+                gt_label = GroundtruthLabel(label_id_counter, span, entity_id, "Unknown")
                 article.labels.append(gt_label)
                 label_id_counter += 1
             yield article
@@ -160,28 +159,59 @@ class OwnBenchmarkExampleReader:
                 yield article
 
 
-def get_example_generator(benchmark_name):
-    if benchmark_name == Benchmark.CONLL.value:
-        example_generator = ConllExampleReader()
-    elif benchmark_name == Benchmark.CONLL_DEV.value:
-        example_generator = ConllDevExampleReader()
-    elif benchmark_name == Benchmark.CONLL_TEST.value:
-        example_generator = ConllTestExampleReader()
-    elif benchmark_name == Benchmark.OURS.value:
-        example_generator = OwnBenchmarkExampleReader()
-    else:
-        print("Load wikipedia to wikidata mapping for example generator...")
-        entity_db = EntityDatabase()
-        entity_db.load_mapping()
-        entity_db.load_redirects()
-        if benchmark_name == Benchmark.ACE.value:
-            example_generator = AceExampleReader(entity_db)
+class JsonBenchmarkExampleReader:
+    def __init__(self, benchmark_filename: str):
+        self.benchmark_filename = benchmark_filename
+
+    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+        with open(self.benchmark_filename, "r") as benchmark_file:
+            for i, json_line in enumerate(benchmark_file):
+                if i == n:
+                    break
+                article = article_from_json(json_line)
+                yield article
+
+
+def get_example_generator(benchmark_name, from_json_file=True):
+    if from_json_file:
+        path = "benchmarks/"
+        if benchmark_name == Benchmark.OURS.value:
+            benchmark_filename = path + "benchmark_labels_ours.jsonl"
+        elif benchmark_name == Benchmark.CONLL_DEV.value:
+            benchmark_filename = path + "benchmark_labels_conll-dev.jsonl"
+        elif benchmark_name == Benchmark.CONLL_TEST.value:
+            benchmark_filename = path + "benchmark_labels_conll-test.jsonl"
+        elif benchmark_name == Benchmark.CONLL.value:
+            benchmark_filename = path + "benchmark_labels_conll.jsonl"
+        elif benchmark_name == Benchmark.ACE.value:
+            benchmark_filename = path + "benchmark_labels_ace.jsonl"
         elif benchmark_name == Benchmark.MSNBC.value:
-            example_generator = MsnbcExampleReader(entity_db)
-        elif benchmark_name == Benchmark.CONLL_PSEUDO_LINKS.value:
-            example_generator = PseudoLinkConllExampleReader(entity_db)
+            benchmark_filename = path + "benchmark_labels_msnbc.jsonl"
         else:
-            if benchmark_name != Benchmark.WIKIPEDIA.value:
-                print("WARNING: '%s' is not a known benchmark. Using Wikipedia as benchmark." % benchmark_name)
-            example_generator = WikipediaExampleReader(entity_db)
+            raise ValueError("%s is not a known benchmark." % benchmark_name)
+        example_generator = JsonBenchmarkExampleReader(benchmark_filename)
+    else:
+        if benchmark_name == Benchmark.CONLL.value:
+            example_generator = ConllExampleReader()
+        elif benchmark_name == Benchmark.CONLL_DEV.value:
+            example_generator = ConllDevExampleReader()
+        elif benchmark_name == Benchmark.CONLL_TEST.value:
+            example_generator = ConllTestExampleReader()
+        elif benchmark_name == Benchmark.OURS.value:
+            example_generator = OwnBenchmarkExampleReader()
+        else:
+            print("Load wikipedia to wikidata mapping for example generator...")
+            entity_db = EntityDatabase()
+            entity_db.load_mapping()
+            entity_db.load_redirects()
+            if benchmark_name == Benchmark.ACE.value:
+                example_generator = AceExampleReader(entity_db)
+            elif benchmark_name == Benchmark.MSNBC.value:
+                example_generator = MsnbcExampleReader(entity_db)
+            elif benchmark_name == Benchmark.CONLL_PSEUDO_LINKS.value:
+                example_generator = PseudoLinkConllExampleReader(entity_db)
+            elif benchmark_name == Benchmark.WIKIPEDIA.value:
+                example_generator = WikipediaExampleReader(entity_db)
+            else:
+                raise ValueError("%s is not a known benchmark." % benchmark_name)
     return example_generator

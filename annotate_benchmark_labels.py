@@ -16,7 +16,7 @@ def main(args):
 
     output_file = open(args.output_file, "w", encoding="utf8")
 
-    example_iterator = get_example_generator(args.benchmark)
+    example_iterator = get_example_generator(args.benchmark, from_json_file=False)
     label_entity_ids = set()
     for article in example_iterator.iterate():
         for label in article.labels:
@@ -38,7 +38,12 @@ def main(args):
                     print("Entity %s:%s was not found in entity-type mapping." %
                           (label.entity_id, label.name))
             if args.level:
-                label.level1 = prediction_is_level_one(entities[label.entity_id].name)
+                if label.entity_id in entities:
+                    label.level1 = prediction_is_level_one(entities[label.entity_id].name)
+                else:
+                    label.level1 = False
+            if args.name:
+                label.name = entities[label.entity_id].name if label.entity_id in entities else "Unknown"
 
         output_file.write(article.to_json() + '\n')
 
@@ -53,9 +58,11 @@ if __name__ == "__main__":
     parser.add_argument("-out", "--output_file", type=str, required=True,
                         help="Output file with one benchmark article in json format per line.")
     parser.add_argument("-t", "--type", action="store_true",
-                        help="Annotate benchmark labels with type.")
+                        help="Annotate benchmark labels with their Wikidata whitelist type(s).")
     parser.add_argument("-l", "--level", action="store_true",
                         help="Annotate benchmark labels with level (level 1 or not level 1).")
+    parser.add_argument("-n", "--name", action="store_true",
+                        help="Annotate benchmark labels with their Wikidata name.")
     parser.add_argument("--type_file", type=str, default=settings.WHITELIST_TYPE_MAPPING,
                         help="The entity-to-type-mapping file. Default: settings.WHITELIST_TYPE_MAPPING")
     parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,

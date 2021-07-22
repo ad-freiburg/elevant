@@ -40,7 +40,7 @@ class XMLBenchmarkParser:
                     # For MSNBC this is the case for 87 mentions.
                     print("\nMapping not found for wiki title: %s" % wiki_name)
                 else:
-                    gt_label = GroundtruthLabel(label_id_counter, span, entity_id, None, None, False)
+                    gt_label = GroundtruthLabel(label_id_counter, span, entity_id, "Unknown")
                     labels.append(gt_label)
                     label_id_counter += 1
         return WikipediaArticle(id=-1, title="", text=stripped_text, links=[], labels=labels)
