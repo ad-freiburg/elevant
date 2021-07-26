@@ -61,7 +61,7 @@ def label_rare_entity_errors(text: str, cases: List[Case], entity_db: EntityData
     Mention was linked to a popular entity instead of the true, less popular entity.
     """
     for case in cases:
-        if not case.is_correct() and case.true_entity is not None and case.predicted_entity is not None\
+        if not case.is_correct() and case.is_known_entity() and case.predicted_entity is not None\
                 and not case.is_true_coreference() and not case.is_true_quantity_or_datetime():
             mention = text[case.span[0]:case.span[1]]
             if not entity_db.is_demonym(mention):
