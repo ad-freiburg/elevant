@@ -3,9 +3,8 @@ import sys
 
 from src import settings
 from src.evaluation.benchmark import Benchmark
-from src.evaluation.evaluator import is_level_one
 from src.evaluation.examples_generator import get_example_generator
-from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
 from src.helpers.entity_database_reader import EntityDatabaseReader
 
 

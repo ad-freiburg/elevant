@@ -4,7 +4,7 @@ from src import settings
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation.case_generator import CaseGenerator
-from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
     print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
 from src.models.entity_database import EntityDatabase
@@ -22,15 +22,6 @@ def load_evaluation_entities():
     entity_db.load_quantities()
     entity_db.load_datetimes()
     return entity_db
-
-
-def is_level_one(entity_name):
-    if entity_name != "Unknown":
-        alpha_chars = [char for char in entity_name if char.isalpha()]
-        # Check if first alphabetic character exists and is uppercase
-        if len(alpha_chars) > 0 and alpha_chars[0].isupper():
-            return True
-    return False
 
 
 EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "pronominal", "level_1")

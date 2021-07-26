@@ -1,8 +1,7 @@
 from typing import List
 
 from src.evaluation.case import Case, ErrorLabel
-from src.evaluation.evaluator import is_level_one
-from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
 from src.evaluation.mention_type import MentionType
 from src.models.entity_database import EntityDatabase
 from src.models.wikidata_entity import WikidataEntity
