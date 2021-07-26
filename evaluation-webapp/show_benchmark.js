@@ -1163,8 +1163,16 @@ function sort_table(column_header, div_id) {
     var key = $(column_header).data("array-key");
     var subkey = $(column_header).data("array-subkey");
     var col_values = [];
+    var index = 0;
+    var selected_approach_index = -1;
+    var selected_approach_name = $('#' + div_id + ' table tbody tr.selected td:nth-child(1)').text();
     result_array.forEach(function(result_tuple) {
         var approach_name = result_tuple[0];
+        if (approach_name == selected_approach_name) {
+            // Store the index in the result_array of the currently selected row
+            selected_approach_index = index;
+        }
+        index += 1;
         var results = result_tuple[1];
         if (!key) {
             // System column has no attribute data-array-key. Sort by approach name.
@@ -1186,10 +1194,6 @@ function sort_table(column_header, div_id) {
         }
         col_values.push(value);
      });
-
-    // Store approach name of currently selected row
-    var selected_approach = $("#" + div_id + " table tbody tr.selected");
-    var selected_approach_index = selected_approach.parent().children().index($(selected_approach));  // 0-based
 
     // Store class name of currently selected cell
     var selected_cell_classes = $("#" + div_id + " table tbody td.selected").attr("class");
