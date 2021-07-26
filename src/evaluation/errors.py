@@ -1,6 +1,7 @@
 from typing import List
 
 from src.evaluation.case import Case, ErrorLabel
+from src.evaluation.evaluator import is_level_one
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.evaluation.mention_type import MentionType
 from src.models.entity_database import EntityDatabase
@@ -101,7 +102,7 @@ def label_detection_errors(cases: List[Case]):
     for case in cases:
         if not case.is_coreference() and not case.has_predicted_entity() and not case.is_optional():
             case.add_error_label(ErrorLabel.UNDETECTED)
-            if case.text.islower():
+            if not is_level_one(case.text):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
 
 

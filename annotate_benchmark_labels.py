@@ -3,7 +3,7 @@ import sys
 
 from src import settings
 from src.evaluation.benchmark import Benchmark
-from src.evaluation.evaluator import prediction_is_level_one
+from src.evaluation.evaluator import is_level_one
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.entity_database_reader import EntityDatabaseReader
@@ -39,7 +39,7 @@ def main(args):
                           (label.entity_id, label.name))
             if args.level:
                 if label.entity_id in entities:
-                    label.level1 = prediction_is_level_one(entities[label.entity_id].name)
+                    label.level1 = is_level_one(entities[label.entity_id].name)
                 else:
                     label.level1 = False
             if args.name:

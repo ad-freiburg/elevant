@@ -24,7 +24,7 @@ def load_evaluation_entities():
     return entity_db
 
 
-def prediction_is_level_one(entity_name):
+def is_level_one(entity_name):
     if entity_name != "Unknown":
         alpha_chars = [char for char in entity_name if char.isalpha()]
         # Check if first alphabetic character exists and is uppercase
@@ -131,7 +131,7 @@ class Evaluator:
                 for tk in type_keys:
                     self.type_counts[tk]["fp"] += 1
 
-                if prediction_is_level_one(case.predicted_entity.name):
+                if is_level_one(case.predicted_entity.name):
                     self.counts["level_1"]["fp"] += 1
 
                 if case.is_coreference():
