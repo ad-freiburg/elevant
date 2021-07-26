@@ -164,7 +164,7 @@ class Evaluator:
 
         cases = self.case_generator.get_evaluation_cases(article, coref_ground_truth)
 
-        label_errors(article, cases, self.entity_db)
+        label_errors(article, cases, self.entity_db, self.id_to_type)
 
         return cases
 
@@ -217,7 +217,9 @@ class Evaluator:
             "span_wrong": {
                 "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
                 "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
-            }
+            },
+            "metonymy": self.error_counts[ErrorLabel.METONYMY],
+            "unknown_person": self.error_counts[ErrorLabel.UNKNOWN_PERSON]
         }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
@@ -8,7 +8,8 @@ from src.models.wikidata_entity import WikidataEntity
 from src.models.wikipedia_article import WikipediaArticle
 
 
-def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: EntityDatabase):
+def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: EntityDatabase,
+                 id_to_type: Dict[str, List[str]]):
     text = article.text
     cases = [case for case in cases if (case.is_false_positive() or case.is_known_entity())]
     label_specificity_errors(cases)
@@ -22,6 +23,8 @@ def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: Entity
     label_abstraction_errors(cases)
     label_hyperlink_errors(article, cases)
     label_span_errors(cases)
+    label_unknown_person_errors(cases, id_to_type)
+    label_metonymy_errors(cases, id_to_type)
     label_coreference_errors(cases)
 
 
@@ -187,6 +190,36 @@ def label_span_errors(cases: List[Case]):
                     # Span is wrong and entity id is correct or it's a true quantity or datetime.
                     case.add_error_label(ErrorLabel.SPAN_WRONG)
                     break
+
+
+PERSON_TYPE_QID = "Q18336849"
+
+
+def label_unknown_person_errors(cases: List[Case], id_to_type: Dict[str, List[str]]):
+    for case in cases:
+        if case.is_false_positive() and \
+                (ErrorLabel.ABSTRACTION in case.error_labels or
+                 case.true_entity is not None and case.true_entity.entity_id.startswith("Unknown")) \
+                and PERSON_TYPE_QID in id_to_type.get(case.predicted_entity.entity_id, []):
+            case.add_error_label(ErrorLabel.UNKNOWN_PERSON)
+
+
+LOCATION_TYPE_ID = "Q27096213"
+
+
+def label_metonymy_errors(cases: List[Case], id_to_type: Dict[str, List[str]]):
+    for case in cases:
+        if case.is_false_negative() and case.is_false_positive() and \
+                not case.true_entity.entity_id.startswith("Unknown"):
+            n_locations = 0
+            true_types = id_to_type.get(case.true_entity.entity_id, [])
+            predicted_types = id_to_type.get(case.predicted_entity.entity_id, [])
+            if LOCATION_TYPE_ID in true_types:
+                n_locations += 1
+            if LOCATION_TYPE_ID in predicted_types:
+                n_locations += 1
+            if n_locations == 1 and PERSON_TYPE_QID not in true_types and PERSON_TYPE_QID not in predicted_types:
+                case.add_error_label(ErrorLabel.METONYMY)
 
 
 def is_true_quantity_or_datetime(predicted_entity: WikidataEntity, gt_label: GroundtruthLabel) -> bool:
