@@ -205,6 +205,7 @@ def label_unknown_person_errors(cases: List[Case], id_to_type: Dict[str, List[st
 
 
 LOCATION_TYPE_ID = "Q27096213"
+ETHNICITY_TYPE_ID = "Q41710"
 
 
 def label_metonymy_errors(cases: List[Case], id_to_type: Dict[str, List[str]]):
@@ -212,13 +213,15 @@ def label_metonymy_errors(cases: List[Case], id_to_type: Dict[str, List[str]]):
         if case.is_false_negative() and case.is_false_positive() and \
                 not case.true_entity.entity_id.startswith("Unknown"):
             n_locations = 0
-            true_types = id_to_type.get(case.true_entity.entity_id, [])
+            true_types = case.true_entity.type.split("|")
             predicted_types = id_to_type.get(case.predicted_entity.entity_id, [])
             if LOCATION_TYPE_ID in true_types:
                 n_locations += 1
             if LOCATION_TYPE_ID in predicted_types:
                 n_locations += 1
-            if n_locations == 1 and PERSON_TYPE_QID not in true_types and PERSON_TYPE_QID not in predicted_types:
+            print(case.text, true_types, predicted_types, n_locations)
+            if n_locations == 1 and PERSON_TYPE_QID not in true_types and PERSON_TYPE_QID not in predicted_types \
+                    and ETHNICITY_TYPE_ID not in true_types and ETHNICITY_TYPE_ID not in predicted_types:
                 case.add_error_label(ErrorLabel.METONYMY)
 
 

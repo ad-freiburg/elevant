@@ -22,7 +22,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "abstraction": "Named FP that does not overlap with a GT mention",
                        "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks",
                        "span_wrong": "FP where the predicted span overlaps with a GT mention with the same entity id / Predicted mentions",
-                       "metonymy": "A location is confused with a non-location which is not a person",
+                       "metonymy": "A location is confused with a non-location which is neither a person nor an ethnic group",
                        "unknown_person": "FP with type person where the ground truth is Unknown or the span does not overlap with any ground truth mention",
                        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
                        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates",
