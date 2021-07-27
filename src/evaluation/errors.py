@@ -1,7 +1,7 @@
 from typing import List, Dict
 
 from src.evaluation.case import Case, ErrorLabel
-from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
 from src.evaluation.mention_type import MentionType
 from src.models.entity_database import EntityDatabase
 from src.models.wikidata_entity import WikidataEntity
@@ -64,7 +64,7 @@ def label_rare_entity_errors(text: str, cases: List[Case], entity_db: EntityData
     Mention was linked to a popular entity instead of the true, less popular entity.
     """
     for case in cases:
-        if not case.is_correct() and case.true_entity is not None and case.predicted_entity is not None\
+        if not case.is_correct() and case.is_known_entity() and case.predicted_entity is not None\
                 and not case.is_true_coreference() and not case.is_true_quantity_or_datetime():
             mention = text[case.span[0]:case.span[1]]
             if not entity_db.is_demonym(mention):
@@ -104,7 +104,7 @@ def label_detection_errors(cases: List[Case]):
     for case in cases:
         if not case.is_coreference() and not case.has_predicted_entity() and not case.is_optional():
             case.add_error_label(ErrorLabel.UNDETECTED)
-            if case.text.islower():
+            if not is_level_one(case.text):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
 
 

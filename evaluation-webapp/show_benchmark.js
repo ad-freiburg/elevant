@@ -1039,7 +1039,7 @@ function get_table_header(json_obj, div_id) {
         var class_name = get_class_name(key);
         $.each(json_obj[key], function(subkey) {
             if (!(ignore_headers.includes(subkey))) {
-                second_row += "<th class='" + class_name + "' onclick='sort_table(this, \"" + div_id + "\")'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
+                second_row += "<th class='" + class_name + "' onclick='sort_table(this, \"" + div_id + "\")' data-array-key='" + key + "' data-array-subkey='" + subkey + "'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
                 var tooltip_text = get_header_tooltip_text(subkey);
                 if (tooltip_text) {
                     second_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
@@ -1164,19 +1164,40 @@ function sort_table(column_header, div_id) {
     // Get list of values in the selected column
     // + 1 because nth-child indices are 1-based
     var col_index = $(column_header).parent().children().index($(column_header)) + 1;
+    var key = $(column_header).data("array-key");
+    var subkey = $(column_header).data("array-subkey");
     var col_values = [];
-    $('#' + div_id + ' table tbody tr td:nth-child(' + col_index + ')').each(function() {
-        var text = $(this).html();
-        var match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
-        if (match) {
-            text = match[1];
+    var index = 0;
+    var selected_approach_index = -1;
+    var selected_approach_name = $('#' + div_id + ' table tbody tr.selected td:nth-child(1)').text();
+    result_array.forEach(function(result_tuple) {
+        var approach_name = result_tuple[0];
+        if (approach_name == selected_approach_name) {
+            // Store the index in the result_array of the currently selected row
+            selected_approach_index = index;
         }
-        col_values.push(text);
-    });
-
-    // Store approach name of currently selected row
-    var selected_approach = $("#" + div_id + " table tbody tr.selected");
-    var selected_approach_index = selected_approach.parent().children().index($(selected_approach));  // 0-based
+        index += 1;
+        var results = result_tuple[1];
+        if (!key) {
+            // System column has no attribute data-array-key. Sort by approach name.
+            col_values.push(approach_name);
+            return;
+        }
+        if (div_id == "type_evaluation") {
+            results = results["by_type"];
+        }
+        var value = results[key][subkey]
+        if (Object.keys(results[key][subkey]).length > 0) {
+            // A column (e.g. error categories) can contain multiple keys (error/wrong/... and total)
+            var composite_value = "";
+            $.each(value, function(subsubkey) {
+                var val = Math.round(value[subsubkey] * 100) / 100;
+                composite_value += val + " / ";
+            });
+            value = composite_value;
+        }
+        col_values.push(value);
+     });
 
     // Store class name of currently selected cell
     var selected_cell_classes = $("#" + div_id + " table tbody td.selected").attr("class");

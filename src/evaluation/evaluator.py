@@ -4,7 +4,7 @@ from src import settings
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation.case_generator import CaseGenerator
-from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
     print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
 from src.models.entity_database import EntityDatabase
@@ -22,15 +22,6 @@ def load_evaluation_entities():
     entity_db.load_quantities()
     entity_db.load_datetimes()
     return entity_db
-
-
-def prediction_is_level_one(entity_name):
-    if entity_name != "Unknown":
-        alpha_chars = [char for char in entity_name if char.isalpha()]
-        # Check if first alphabetic character exists and is uppercase
-        if len(alpha_chars) > 0 and alpha_chars[0].isupper():
-            return True
-    return False
 
 
 EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "pronominal", "level_1")
@@ -91,7 +82,7 @@ class Evaluator:
                     self.counts["NER"]["tp"] += 1
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
-                if case.text.islower() and case.children_correctly_detected is not None:
+                if is_level_one(case.text) and case.children_correctly_detected is not None:
                     self.n_named_lowercase += 1
             elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
@@ -131,7 +122,7 @@ class Evaluator:
                 for tk in type_keys:
                     self.type_counts[tk]["fp"] += 1
 
-                if prediction_is_level_one(case.predicted_entity.name):
+                if is_level_one(case.predicted_entity.name):
                     self.counts["level_1"]["fp"] += 1
 
                 if case.is_coreference():
