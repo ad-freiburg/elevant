@@ -455,13 +455,20 @@ function get_ground_truth_annotations(article_index) {
                 curr_label_id = child_label_to_parent[curr_label_id];
             }
             var entity_type = label_id_to_label[curr_label_id].type;
+            // Get text of parent span
+            var parent_text = null;
+            if (curr_label_id != eval_case.true_entity.id) {
+                parent_span = label_id_to_label[curr_label_id].span;
+                parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
+            }
             var annotation = {
                 "span": eval_case.span,
                 "color": color,
                 "entity_name": eval_case.true_entity.name,
                 "entity_id": eval_case.true_entity.entity_id,
                 "entity_type": entity_type,
-                "error_labels": eval_case.error_labels
+                "error_labels": eval_case.error_labels,
+                "parent_text": parent_text
             };
             annotations.push(annotation);
         }
@@ -733,6 +740,9 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
             }
             if (annotation.hasOwnProperty("predicted_by")) {
                 tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
+            }
+            if (annotation.hasOwnProperty("parent_text") && annotation.parent_text != null) {
+                tooltip_text += "<br>parent=\"" + annotation.parent_text + "\"";
             }
             if (annotation.hasOwnProperty("error_labels") && annotation.error_labels.length > 0) {
                 tooltip_text += "<br>error=";
