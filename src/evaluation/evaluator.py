@@ -82,7 +82,7 @@ class Evaluator:
                     self.counts["NER"]["tp"] += 1
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
-                if is_level_one(case.text) and case.children_correctly_detected is not None:
+                if not is_level_one(case.text) and case.children_correctly_detected is not None:
                     self.n_named_lowercase += 1
             elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
