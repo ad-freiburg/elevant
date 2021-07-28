@@ -1,5 +1,7 @@
 include /local/data/qlever/qlever-proxy/ac-queries.Makefile
 
+.PHONY: index
+
 DB = wikidata-types
 API = https://qlever.cs.uni-freiburg.de/api/wikidata-types
 DOCKER_IMAGE = qlever.master
@@ -24,7 +26,7 @@ config:
 	@for VAR in BATCH_SIZE MAX_RESULT_SIZE \
 	  ;do printf "%-30s = %'15d\n" "$$VAR" "$${!VAR}"; done
 
-all:
+qlever-instance:
 	@echo "The following steps will be taken:"
 	@echo
 	@echo "1. Get each of $(PREDICATES) from $(API_WIKIDATA)"
@@ -41,7 +43,7 @@ all:
 	$(MAKE) -s start   # STEP 4
 
 index:
-	time ( docker run -it --rm -v $(shell pwd):/index --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "IndexBuilderMain -f /index/$(DB).ttl -i /index/$(DB) -s /index/qlever.settings.json"; rm -f $(DB)*tmp* )
+	time ( docker run -it --rm -v $(shell pwd):/pwd --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "IndexBuilderMain -f /pwd/$(DB).ttl -i /pwd/index/$(DB) -s /pwd/qlever.settings.json"; rm -f $(DB)*tmp* )
 
 
 # Build TTL with $(PREFIXES) from TTL files obtained via getdata: target.
