@@ -13,7 +13,7 @@ class MentionType(Enum):
 
 
 def is_nominal(mention: str):
-    return mention.startswith("the ") or mention.startswith("The ") and mention[4:].islower()
+    return (mention.startswith("the ") or mention.startswith("The ")) and mention[4:].islower()
 
 
 def get_mention_type(mention: str):
