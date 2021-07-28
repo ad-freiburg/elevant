@@ -4,6 +4,7 @@ from urllib.parse import unquote
 import pickle
 
 from src import settings
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.gender import Gender
 from src.models.wikidata_entity import WikidataEntity
 
@@ -106,28 +107,45 @@ class EntityDatabaseReader:
     def get_wikidata_entities_with_types(relevant_entities: Set[str]) -> Dict[str, WikidataEntity]:
         entities = dict()
         id_to_type = dict()
+        for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator():
+            if entity_id in relevant_entities:
+                if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
+                    id_to_type[entity_id] = []
+                id_to_type[entity_id].append(whitelist_type)
+
         id_to_name = dict()
-        with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
+        for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
+            if entity_id in relevant_entities:
+                id_to_name[entity_id] = name
+
+        for entity_id in relevant_entities:
+            types = GroundtruthLabel.OTHER
+            name = "Unknown"
+            if entity_id in id_to_type:
+                types = "|".join(id_to_type[entity_id])
+            if entity_id in id_to_name:
+                name = id_to_name[entity_id]
+            entity = WikidataEntity(name, 0, entity_id, [], type=types)
+            entities[entity_id] = entity
+        return entities
+
+    @staticmethod
+    def entity_to_label_iterator():
+        with open(settings.LABEL_MAPPING, "r", encoding="utf8") as file:
             for line in file:
                 lst = line.strip().split("\t")
                 entity_id = lst[0][:-1].split("/")[-1]
                 name = lst[1][1:-4]
-                whitelist_type = lst[2][:-1].split("/")[-1]
-                if entity_id in relevant_entities:
-                    if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
-                        id_to_type[entity_id] = []
-                    id_to_type[entity_id].append(whitelist_type)
-                    id_to_name[entity_id] = name
+                yield entity_id, name
 
-        for entity_id in relevant_entities:
-            if entity_id in id_to_type:
-                types = "|".join(id_to_type[entity_id])
-                name = id_to_name[entity_id]
-                entity = WikidataEntity(name, 0, entity_id, [], type=types)
-            else:
-                entity = WikidataEntity("Unknown", 0, entity_id, [])
-            entities[entity_id] = entity
-        return entities
+    @staticmethod
+    def entity_to_whitelist_type_iterator():
+        with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
+            for line in file:
+                lst = line.strip().split("\t")
+                entity_id = lst[0][:-1].split("/")[-1]
+                whitelist_type = lst[1][:-1].split("/")[-1]
+                yield entity_id, whitelist_type
 
     @staticmethod
     def get_gender_mapping(mappings_file: str = settings.GENDER_MAPPING_FILE):

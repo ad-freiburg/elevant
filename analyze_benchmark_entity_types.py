@@ -1,12 +1,12 @@
 import json
 
+from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.wikipedia_article import article_from_json
-from src.settings import WHITELIST_FILE, WHITELIST_TYPE_MAPPING
+from src.settings import WHITELIST_FILE
 
 
 if __name__ == "__main__":
     in_file = "benchmark/conll_annotated.txt"
-    type_file = WHITELIST_TYPE_MAPPING
 
     # read whitelist
     whitelist = {}
@@ -30,13 +30,9 @@ if __name__ == "__main__":
 
     # read entity names from whitelist-to-type mapping
     entity_names = {}
-    with open(type_file, "r", encoding="utf8") as file:
-        for line in file:
-            lst = line.strip().split("\t")
-            entity_id = lst[0][:-1].split("/")[-1]
-            name = lst[1][1:-4]
-            if entity_id in entity_ids:
-                entity_names[entity_id] = name
+    for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
+        if entity_id in entity_ids:
+            entity_names[entity_id] = name
 
     labels_tsv_file = in_file.split("_")[0] + ".labels.tsv"
     types_json_file = in_file.split("_")[0] + ".types.json"
