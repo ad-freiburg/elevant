@@ -73,6 +73,7 @@ getdata:
 
 # Get result for $(QUERY) in batches of size $(BATCH_SIZE), using query: target
 query.batched:
+	$(info $(API))
 	$(info $(PREFIXES))
 	$(info $($(QUERY_VARIABLE)))
 	@true > $(OUTFILE)
@@ -107,8 +108,8 @@ clearcache:
 
 # Get the types for all entities as TTL
 entity-types:
-	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$*.ttl query.batched
-	wc -l $*.ttl | numfmt --grouping
+	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$@.ttl query.batched
+	wc -l $@.ttl | numfmt --grouping
 
 
 
