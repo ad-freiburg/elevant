@@ -1,11 +1,12 @@
-include /local/data/qlever/qlever-proxy/ac-queries.Makefile
+SHELL = /bin/bash
 
 .PHONY: index
 
 DB = wikidata-types
-API = https://qlever.cs.uni-freiburg.de/api/wikidata-types
+API_WIKIDATA_TYPES = http://localhost:$(PORT)
 DOCKER_IMAGE = qlever.master
-MEMORY_FOR_QUERIES = 30
+DOCKER_CONTAINER = qlever.$(DB)
+MEMORY_FOR_QUERIES = 20
 CACHE_MAX_SIZE_GB = 10
 CACHE_MAX_SIZE_GB_SINGLE_ENTRY = 5
 CACHE_MAX_NUM_ENTRIES = 100
@@ -16,13 +17,16 @@ CORRECTIONS_FILE = corrections.txt
 TYPES_WHITELIST = $(shell cat types.txt | sed 's/\s*\#.*$$//g')
 PREDICATES = wdt:P279 wdt:P31 @en@rdfs:label
 # PREDICATES = wdt:P279
-BATCH_SIZE = 5000000
+BATCH_SIZE = 10000000
 MAX_RESULT_SIZE = $(shell echo "200 * $(BATCH_SIZE)" | bc)
 
 
 config:
-	@for VAR in API_WIKIDATA \
+	@for VAR in API_WIKIDATA API_WIKIDATA_TYPES \
+	  MEMORY_FOR_QUERIES CACHE_MAX_SIZE_GB \
+	  CACHE_MAX_SIZE_GB_SINGLE_ENTRY CACHE_MAX_NUM_ENTRIES \
 	  ;do printf "%-30s = %s\n" "$$VAR" "$${!VAR}"; done
+	@echo
 	@for VAR in BATCH_SIZE MAX_RESULT_SIZE \
 	  ;do printf "%-30s = %'15d\n" "$$VAR" "$${!VAR}"; done
 
@@ -45,6 +49,12 @@ qlever-instance:
 index:
 	time ( docker run -it --rm -v $(shell pwd):/pwd --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "IndexBuilderMain -f /pwd/$(DB).ttl -i /pwd/index/$(DB) -s /pwd/qlever.settings.json"; rm -f $(DB)*tmp* )
 
+start:
+	-docker rm -f qlever.$(DB)
+	docker run -d --restart=unless-stopped -v $(shell pwd)/index:/index -p $(PORT):7001 -e INDEX_PREFIX=$(DB) -e MEMORY_FOR_QUERIES=$(MEMORY_FOR_QUERIES) -e CACHE_MAX_SIZE_GB=${CACHE_MAX_SIZE_GB} -e CACHE_MAX_SIZE_GB_SINGLE_ENTRY=${CACHE_MAX_SIZE_GB_SINGLE_ENTRY} -e CACHE_MAX_NUM_ENTRIES=${CACHE_MAX_NUM_ENTRIES} --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE)
+
+log:
+	docker logs -f qlever.$(DB)
 
 # Build TTL with $(PREFIXES) from TTL files obtained via getdata: target.
 ttl:
@@ -59,7 +69,7 @@ ttl:
 # Get data for $(PREDICATES) via $(API_WIKIDATA) and write to ttl files.
 getdata:
 	for PREDICATE in $(PREDICATES); do \
-	  $(MAKE) -sB PREDICATE=$$PREDICATE QUERY_VARIABLE=PREDICATE_QUERY OUTFILE=$$PREDICATE.ttl query.batched; done
+	  $(MAKE) -sB API=$$API_WIKIDATA PREDICATE=$$PREDICATE QUERY_VARIABLE=PREDICATE_QUERY OUTFILE=$$PREDICATE.ttl query.batched; done
 
 # Get result for $(QUERY) in batches of size $(BATCH_SIZE), using query: target
 query.batched:
@@ -74,7 +84,7 @@ query.batched:
 
 # Get results for $(QUERY), convert to ttl (without prefixes), and append to $(OUTFILE)
 query:
-	curl -Gs $(API_WIKIDATA) \
+	curl -Gs $(API) \
 	    --data-urlencode "query=$$PREFIXES $(QUERY)" \
 	    --data-urlencode "action=tsv_export" \
 	    | sed 's/http:\/\/www.wikidata.org\///g;' \
@@ -86,14 +96,19 @@ query:
 
 # Get result size for $(QUERY), without downloading anything of the result yet
 count:
-	curl -Gs $(API_WIKIDATA) \
+	curl -Gs $(API) \
 	    --data-urlencode "query=$$PREFIXES $(QUERY) LIMIT 0" \
 	    --data-urlencode "send=0" \
-	    | head -10 | grep resultsize | sed 's/[^0-9]//g'
+	    | grep resultsize | head -1 | sed 's/[^0-9]//g'
+
+clearcache:
+	curl -Gs $(API_WIKIDATA_TYPES) --data-urlencode "cmd=clearcachecomplete" > /dev/null
+
 
 # Get the types for all entities as TTL
 entity-types:
-	  $(MAKE) -s QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=entity-types.ttl query.batched
+	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$*.ttl query.batched
+	wc -l $*.ttl | numfmt --grouping
 
 
 

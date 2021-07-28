@@ -1,23 +1,21 @@
 # Wikidata types for all entities, with corrections
 
-## Preparation
+## Prerequisites
 
-On many of our machines, the following two steps are already done. Just check
-whether the respective directories exist.
+1. A running Qlever instance for Wikidata under the URL specified by the
+   variable `API_WIKIDATA` in the `Makefile` (by default, this is set to
+   https://qlever.cs.uni-freiburg.de/api/wikidata).
 
-1. In directory `/local/data/qlever/qlever-code`, clone the repository
-   https://github.com/ad-freiburg/qlever and build a docker image with `docker
-   build -t qlever.master .` If you choose a different directory, that's no
-   problem, we just need the docker image.
+2. A docker image `qlever.master` of the current QLever code. If there is no
+   such image on your machine, `git clone https://github.com/ad-freiburg/qlever
+   && cd qlever` and build the image with `docker build -t qlever.master .`.
 
-2. In directory `/local/data/qlever/qlever-indices/qlever-proxy`, clone the
-   repository https://github.com/ad-freiburg/qlever-proxy . On many of our
-   machines, that directory already exists. If you choose a different directory,
-   change the "include" in the first line of the `Makefile` accordingly.
+2. You require about 25 GB of RAM and 100 GB of disk space.
 
 ## Build a QLever instance and query it
 
-This directory contains a `Makefile` with the following functionality:
+This directory contains a `Makefile` with the following functionality (which can
+be invoked via simple Makefile targets, see below).
 
 1. Download the predicates wdt:P31, wdt:P279, and @en@rdfs:label from a Qlever
    Wikidata instance (Makefile variable `API_WIKIDATA`)
@@ -30,7 +28,9 @@ This directory contains a `Makefile` with the following functionality:
    from a given whiteliste of types as listed in `types.txt`; the result for
    that query is written to a file `entity-types.ttl`
 
-Steps 1 - 4 can be executed with `make qlever-instance`.
+Steps 1 - 4 can be executed with `make qlever-instance`. These steps take about
+one hour, most of it used for Step 3.
 
 For Step 5, wait until the QLever instance is ready (check with `make log`, this
 shows the tail of the log, you can exit with Ctrl+C). Then do `make entity-types`.
+This step takes about 5 minutes.
