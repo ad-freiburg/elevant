@@ -745,7 +745,7 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
                 tooltip_text += "<br>parent=\"" + annotation.parent_text + "\"";
             }
             if (annotation.hasOwnProperty("error_labels") && annotation.error_labels.length > 0) {
-                tooltip_text += "<br>error=";
+                tooltip_text += "<br>category=";
                 for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
                     if (e_i > 0) {
                         tooltip_text += ",";
