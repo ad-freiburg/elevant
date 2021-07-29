@@ -1,11 +1,12 @@
 import json
+import sys
 
 from src.models.wikipedia_article import article_from_json
 from src.settings import WHITELIST_FILE, WHITELIST_TYPE_MAPPING
 
 
 if __name__ == "__main__":
-    in_file = "benchmark/conll_annotated.txt"
+    in_file = "benchmark/%s_annotated.txt" % sys.argv[1]
     type_file = WHITELIST_TYPE_MAPPING
 
     # read whitelist
@@ -46,6 +47,11 @@ if __name__ == "__main__":
     type_counts = {}
     total_counts = {True: 0, False: 0}
     num_labels = 0
+    traditional_entity_types = {"Q18336849",  # person
+                                "Q27096213",  # location
+                                "Q43229"}  # organization
+    known_labels = 0
+    n_traditional_entities = 0
     for article in articles:
         num_labels += len(article.labels)
         for label in article.labels:
@@ -62,10 +68,17 @@ if __name__ == "__main__":
                                              ", ".join(types),
                                              str(bool(label.level1))))
                                   + "\n")
-            for type in types:
-                if type not in type_counts:
-                    type_counts[type] = {True: 0, False : 0}
-                type_counts[type][bool(label.level1)] += 1
+            if "UNKNOWN" not in types:
+                known_labels += 1
+                is_traditional_entity_type = False
+                for type in types:
+                    if type not in type_counts:
+                        type_counts[type] = {True: 0, False : 0}
+                    type_counts[type][bool(label.level1)] += 1
+                    if type in traditional_entity_types:
+                        is_traditional_entity_type = True
+                if is_traditional_entity_type:
+                    n_traditional_entities += 1
             total_counts[bool(label.level1)] += 1
 
     labels_tsv_file.close()
@@ -84,3 +97,6 @@ if __name__ == "__main__":
     with open(types_json_file, "w", encoding="utf8") as f:
         f.write(json.dumps({"total": [total_counts[True], total_counts[False]],
                             "types": type_name_counts}))
+
+    print(f"{n_traditional_entities / known_labels * 100}% of the known mentions are covered by "
+          f"{traditional_entity_types}")
