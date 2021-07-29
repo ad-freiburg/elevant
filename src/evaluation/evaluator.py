@@ -1,12 +1,12 @@
 from typing import List
 
-from src import settings
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation.case_generator import CaseGenerator
 from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
     print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
+from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
@@ -35,7 +35,7 @@ class Evaluator:
                  coreference: bool = True):
         self.id_to_type = id_to_type
         self.id_to_name = id_to_name
-        self.type_id_to_label = self.get_whitelist_label_dict()
+        self.type_id_to_label = EntityDatabaseReader.read_whitelist_types()
         self.all_cases = []
         if load_data:
             self.entity_db = load_evaluation_entities()
@@ -53,15 +53,6 @@ class Evaluator:
         self.has_candidates = False
         self.n_named_lowercase = 0
         self.n_named_contains_space = 0
-
-    @staticmethod
-    def get_whitelist_label_dict():
-        type_id_to_label = dict()
-        with open(settings.WHITELIST_FILE, "r", encoding="utf8") as file:
-            for line in file:
-                type_id, type_label = line.strip().split(":")
-                type_id_to_label[type_id] = type_label
-        return type_id_to_label
 
     def add_cases(self, cases: List[Case]):
         self.all_cases.extend(cases)

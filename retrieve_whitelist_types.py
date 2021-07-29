@@ -1,7 +1,7 @@
 import requests
 import argparse
 from src import settings
-
+from src.helpers.entity_database_reader import EntityDatabaseReader
 
 QUERY = "PREFIX wdt: <http://www.wikidata.org/prop/direct/> " \
         "PREFIX wd: <http://www.wikidata.org/entity/> " \
@@ -30,18 +30,16 @@ QUERY_REPAIR_DATA_ERROR = "PREFIX wdt: <http://www.wikidata.org/prop/direct/> " 
         "} }"
 
 
-def get_whitelist(whitelist_file):
+def get_whitelist():
     whitelist_str = ""
-    with open(whitelist_file, "r", encoding="utf8") as file:
-        for line in file:
-            line = line.strip()
-            whitelist_type = line.split(":")[0]
-            whitelist_str += "wd:" + whitelist_type + " "
+    types = EntityDatabaseReader.read_whitelist_types()
+    for typ in types:
+        whitelist_str += "wd:" + typ + " "
     return whitelist_str
 
 
 def main(args):
-    whitelist = get_whitelist(args.whitelist_file)
+    whitelist = get_whitelist()
     # query = QUERY % (whitelist, whitelist)
     query = QUERY_REPAIR_DATA_ERROR % (whitelist, whitelist, whitelist)
     url = 'http://galera.informatik.privat:7001/'  # Using the proxy can cause Timeout/MaxRetryError
@@ -59,7 +57,5 @@ if __name__ == "__main__":
     parser.add_argument("-out", "--output_file", type=str, default=settings.WHITELIST_TYPE_MAPPING,
                         help="Output tsv file with the resulting entity-whitelist-type mapping."
                              "Default: settings.WHITELIST_TYPE_MAPPING")
-    parser.add_argument("-w", "--whitelist_file", type=str, default=settings.WHITELIST_FILE,
-                        help="Input whitelist file. Default: settings.WHITELIST_FILE")
 
     main(parser.parse_args())

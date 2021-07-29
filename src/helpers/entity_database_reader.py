@@ -148,6 +148,19 @@ class EntityDatabaseReader:
                 yield entity_id, whitelist_type
 
     @staticmethod
+    def read_whitelist_types() -> Dict[str, str]:
+        types = dict()
+        with open(settings.WHITELIST_FILE, "r", encoding="utf8") as file:
+            for line in file:
+                line = line.strip()
+                if line:
+                    lst = line.split("#")
+                    entity_id = lst[0].strip()[3:]
+                    name = lst[1].strip()
+                    types[entity_id] = name
+        return types
+
+    @staticmethod
     def get_gender_mapping(mappings_file: str = settings.GENDER_MAPPING_FILE):
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
