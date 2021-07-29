@@ -36,3 +36,5 @@ ADD wd:Q39825 wdt:P279 wd:Q1656682  # census - event
 REMOVE wd:Q14897293 wdt:P279 wd:Q17537576  # fictional entity - creative work
 REMOVE wd:Q7397 wdt:P279 wd:Q17537576  # software - creative work
 REMOVE wd:Q376799 wdt:P279 wd:Q618123  # transport infrastructure - geographic feature
+ADD wd:Q4057633 wdt:P279 wd:Q6671777  # hierarchy of administrative territorial entities - structure
+REMOVE wd:Q4057633 wdt:P279 wd:Q1531349  # hierarchy of administrative territorial entities - outline (to break the path Bratislava - creative work)
