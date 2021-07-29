@@ -9,8 +9,8 @@ from src.helpers.entity_database_reader import EntityDatabaseReader
 
 
 def main(args):
-    if not (args.level or args.type):
-        print("Specify at least one type of annotation: -t for type or -l for level")
+    if not (args.level or args.type or args.name):
+        print("Specify at least one type of annotation: -t for type or -l for level or -n for name")
         sys.exit()
 
     output_file = open(args.output_file, "w", encoding="utf8")
@@ -62,8 +62,6 @@ if __name__ == "__main__":
                         help="Annotate benchmark labels with level (level 1 or not level 1).")
     parser.add_argument("-n", "--name", action="store_true",
                         help="Annotate benchmark labels with their Wikidata name.")
-    parser.add_argument("--type_file", type=str, default=settings.WHITELIST_TYPE_MAPPING,
-                        help="The entity-to-type-mapping file. Default: settings.WHITELIST_TYPE_MAPPING")
     parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,
                         help="Benchmark in which to annotate the labels. Default: Our benchmark.")
 

@@ -6,33 +6,29 @@ from src import settings
 QUERY = "PREFIX wdt: <http://www.wikidata.org/prop/direct/> " \
         "PREFIX wd: <http://www.wikidata.org/entity/> " \
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>" \
-        "SELECT DISTINCT ?item ?label ?type WHERE " \
+        "SELECT DISTINCT ?item ?type WHERE " \
         "{ { ?item wdt:P31 ?type . " \
-        "?item @en@rdfs:label ?label ." \
         "VALUES ?type { %s } } " \
         "UNION " \
         "{ ?item wdt:P31 ?m . ?m wdt:P279+ ?type . " \
-        "?item @en@rdfs:label ?label ." \
         "VALUES ?type { %s } } }"
 
 QUERY_REPAIR_DATA_ERROR = "PREFIX wdt: <http://www.wikidata.org/prop/direct/> " \
         "PREFIX wd: <http://www.wikidata.org/entity/> " \
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>" \
-        "SELECT DISTINCT ?item ?label ?type WHERE " \
+        "SELECT DISTINCT ?item ?type WHERE " \
         "{ { { ?item wdt:P31 ?type . " \
-        "?item @en@rdfs:label ?label . " \
         "VALUES ?type { %s } } " \
         "UNION " \
         "{ ?item wdt:P31 ?m . ?m wdt:P279+ ?m2 . ?m2 wdt:P279 ?type . " \
-        "?item @en@rdfs:label ?label . " \
         "VALUES ?type { %s } " \
         "MINUS { VALUES (?m2 ?type) {(wd:Q24229398 wd:Q12737077)} } " \
         "} } UNION { " \
         "?item wdt:P31 ?m . ?m wdt:P279 ?type . " \
-        "?item @en@rdfs:label ?label . " \
-        "VALUES ?type { %s }" \
+        "VALUES ?type { %s } " \
         "MINUS { VALUES (?m ?type) {(wd:Q24229398 wd:Q12737077)} }" \
         "} }"
+
 
 def get_whitelist(whitelist_file):
     whitelist_str = ""
@@ -51,11 +47,9 @@ def main(args):
     url = 'http://galera.informatik.privat:7001/'  # Using the proxy can cause Timeout/MaxRetryError
     data = {"query": query, "action": "tsv_export"}
     r = requests.get(url, params=data)
-    if args.output_file:
-        with open(args.output_file, "w", encoding="utf8") as file:
-            file.write(r.text)
-    else:
-        print(r.text.strip())
+    with open(args.output_file, "w", encoding="latin1") as file:
+        file.write(r.text)
+        print("#lines: %d" % (len(r.text.split("\n"))))
 
 
 if __name__ == "__main__":

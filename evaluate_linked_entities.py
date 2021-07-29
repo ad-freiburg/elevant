@@ -13,9 +13,9 @@ import json
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.case import case_from_dict
 from src.evaluation.examples_generator import get_example_generator
+from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.wikipedia_article import article_from_json
 from src.evaluation.evaluator import Evaluator
-from src import settings
 
 
 def main(args):
@@ -32,20 +32,17 @@ def main(args):
     for line in input_file:
         article = article_from_json(line)
         predicted_entity_ids.update([em.entity_id for em in article.entity_mentions.values()])
+
     # Go through the entity to type mapping
     id_to_type = dict()
+    for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator():
+        if entity_id in predicted_entity_ids:
+            if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
+                id_to_type[entity_id] = []
+            id_to_type[entity_id].append(whitelist_type)
     id_to_name = dict()
-    with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
-        for line in file:
-            lst = line.strip().split("\t")
-            entity_id = lst[0][:-1].split("/")[-1]
-            name = lst[1][1:-3]
-            whitelist_type = lst[2][:-1].split("/")[-1]
-            if entity_id in predicted_entity_ids:
-                if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
-                    id_to_type[entity_id] = []
-                id_to_type[entity_id].append(whitelist_type)
-                id_to_name[entity_id] = name
+    for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
+        id_to_name[entity_id] = name
 
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
@@ -76,7 +73,7 @@ def main(args):
         else:
             cases = evaluator.get_cases(article)
         evaluator.add_cases(cases)
-        evaluator.print_article_evaluation(article, cases)
+        # evaluator.print_article_evaluation(article, cases)
 
         if not args.input_case_file:
             case_list = [case.to_dict() for case in cases]

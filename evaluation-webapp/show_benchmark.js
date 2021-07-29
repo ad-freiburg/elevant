@@ -411,6 +411,18 @@ function get_ground_truth_annotations(article_index) {
     */
     var annotations = [];
 
+    var child_label_to_parent = {};
+    var label_id_to_label = {};
+    for (eval_case of evaluation_cases[article_index]) {
+        // Build the parent mapping
+        if ("true_entity" in eval_case && eval_case.true_entity.children) {
+            label_id_to_label[eval_case.true_entity.id] = eval_case.true_entity;
+            for (child_id of eval_case.true_entity.children) {
+                child_label_to_parent[child_id] = eval_case.true_entity.id;
+            }
+        }
+    }
+
     for (eval_case of evaluation_cases[article_index]) {
         if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
             if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
@@ -437,13 +449,26 @@ function get_ground_truth_annotations(article_index) {
                 // wrong span
                 color = BLUE;
             }
+            // Use the type of the parent entity because this is the type that counts in the evaluation.
+            var curr_label_id = eval_case.true_entity.id;
+            while (curr_label_id in child_label_to_parent) {
+                curr_label_id = child_label_to_parent[curr_label_id];
+            }
+            var entity_type = label_id_to_label[curr_label_id].type;
+            // Get text of parent span
+            var parent_text = null;
+            if (curr_label_id != eval_case.true_entity.id) {
+                parent_span = label_id_to_label[curr_label_id].span;
+                parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
+            }
             var annotation = {
                 "span": eval_case.span,
                 "color": color,
                 "entity_name": eval_case.true_entity.name,
                 "entity_id": eval_case.true_entity.entity_id,
-                "entity_type": eval_case.true_entity.type,
-                "error_labels": eval_case.error_labels
+                "entity_type": entity_type,
+                "error_labels": eval_case.error_labels,
+                "parent_text": parent_text
             };
             annotations.push(annotation);
         }
@@ -484,6 +509,18 @@ function get_predicted_annotations(article_index) {
     */
     var article_cases = evaluation_cases[article_index];  // information from the .cases file
     var article_data = articles_data[article_index];  // information from the .jsonl file
+
+    var child_label_to_parent = {};
+    var label_id_to_label = {};
+    for (eval_case of article_cases) {
+        // Build the parent mapping
+        if ("true_entity" in eval_case && eval_case.true_entity.children) {
+            label_id_to_label[eval_case.true_entity.id] = eval_case.true_entity;
+            for (child_id of eval_case.true_entity.children) {
+                child_label_to_parent[child_id] = eval_case.true_entity.id;
+            }
+        }
+    }
 
     // evaluation span
     var evaluation_begin = article_data.evaluation_span[0];
@@ -541,6 +578,14 @@ function get_predicted_annotations(article_index) {
             entity_name = mention.predicted_entity.name;
             entity_type = mention.predicted_entity.type;
             predicted_by = mention.predicted_by;
+            if (color == GREEN) {
+                // Use the type of the parent entity because this is the type that counts in the evaluation.
+                var curr_label_id = mention.true_entity.id;
+                while (curr_label_id in child_label_to_parent) {
+                    curr_label_id = child_label_to_parent[curr_label_id];
+                }
+                entity_type = label_id_to_label[curr_label_id].type;
+            }
         } else {  // mention is outside the evaluation span
             color = GREY;
             entity_id = mention.id;
@@ -695,6 +740,9 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
             }
             if (annotation.hasOwnProperty("predicted_by")) {
                 tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
+            }
+            if (annotation.hasOwnProperty("parent_text") && annotation.parent_text != null) {
+                tooltip_text += "<br>parent=\"" + annotation.parent_text + "\"";
             }
             if (annotation.hasOwnProperty("error_labels") && annotation.error_labels.length > 0) {
                 tooltip_text += "<br>error=";

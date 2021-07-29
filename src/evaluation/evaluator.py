@@ -82,7 +82,7 @@ class Evaluator:
                     self.counts["NER"]["tp"] += 1
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
-                if is_level_one(case.text) and case.children_correctly_detected is not None:
+                if not is_level_one(case.text) and case.children_correctly_detected is not None:
                     self.n_named_lowercase += 1
             elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
@@ -97,51 +97,53 @@ class Evaluator:
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
 
-            type_ids = case.true_entity.type
-            type_ids = type_ids.split("|")
-            type_keys = self.get_type_keys(type_ids)
-            for tk in type_keys:
-                self.type_counts[tk]["tp"] += 1
-
             if case.true_entity.level1:
                 self.counts["level_1"]["tp"] += 1
 
             if case.is_coreference():
                 self.counts["coreference"]["tp"] += 1
+            else:
+                type_ids = case.true_entity.type
+                type_ids = type_ids.split("|")
+                type_keys = self.get_type_keys(type_ids)
+                for tk in type_keys:
+                    self.type_counts[tk]["tp"] += 1
+
         else:
             if case.is_false_positive() and not case.is_true_quantity_or_datetime():
                 self.counts["all"]["fp"] += 1
                 self.counts[key]["fp"] += 1
-
-                pred_entity_id = case.predicted_entity.entity_id
-                if pred_entity_id in self.id_to_type:
-                    type_ids = self.id_to_type[pred_entity_id]
-                else:
-                    type_ids = [GroundtruthLabel.OTHER]
-                type_keys = self.get_type_keys(type_ids)
-                for tk in type_keys:
-                    self.type_counts[tk]["fp"] += 1
 
                 if is_level_one(case.predicted_entity.name):
                     self.counts["level_1"]["fp"] += 1
 
                 if case.is_coreference():
                     self.counts["coreference"]["fp"] += 1
+                else:
+                    pred_entity_id = case.predicted_entity.entity_id
+                    if pred_entity_id in self.id_to_type:
+                        type_ids = self.id_to_type[pred_entity_id]
+                    else:
+                        type_ids = [GroundtruthLabel.OTHER]
+                    type_keys = self.get_type_keys(type_ids)
+                    for tk in type_keys:
+                        self.type_counts[tk]["fp"] += 1
+
             if case.is_false_negative() and not case.is_optional() and not case.true_entity.parent:
                 self.counts["all"]["fn"] += 1
                 self.counts[key]["fn"] += 1
-
-                type_ids = case.true_entity.type
-                type_ids = type_ids.split("|")
-                type_keys = self.get_type_keys(type_ids)
-                for tk in type_keys:
-                    self.type_counts[tk]["fn"] += 1
 
                 if case.true_entity.level1:
                     self.counts["level_1"]["fn"] += 1
 
                 if case.is_coreference():
                     self.counts["coreference"]["fn"] += 1
+                else:
+                    type_ids = case.true_entity.type
+                    type_ids = type_ids.split("|")
+                    type_keys = self.get_type_keys(type_ids)
+                    for tk in type_keys:
+                        self.type_counts[tk]["fn"] += 1
 
     def get_type_keys(self, type_ids):
         type_keys = []
