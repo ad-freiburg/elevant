@@ -81,7 +81,7 @@ MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "msnbc.updated/msnbc.xml"
 OWN_BENCHMARK_FILE = "benchmarks/benchmark_labels_ours.jsonl"
 
 WHITELIST_FILE = "benchmarks/whitelist.txt"
-WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity_to_whitelist_type.tsv"
+WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.ttl"
 LABEL_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity_to_label.tsv"
 
 UNIGRAMS_FILE = DATA_DIRECTORY + "unigrams.txt"

@@ -142,9 +142,9 @@ class EntityDatabaseReader:
     def entity_to_whitelist_type_iterator():
         with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
             for line in file:
-                lst = line.strip().split("\t")
-                entity_id = lst[0][:-1].split("/")[-1]
-                whitelist_type = lst[1][:-1].split("/")[-1]
+                lst = line.strip().split()
+                entity_id = lst[0][3:]
+                whitelist_type = lst[1][3:]
                 yield entity_id, whitelist_type
 
     @staticmethod
