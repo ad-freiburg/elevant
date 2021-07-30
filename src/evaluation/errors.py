@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Set, Tuple
+
+from itertools import chain
 
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
@@ -10,16 +12,19 @@ from src.models.wikipedia_article import WikipediaArticle
 
 def label_errors(article: WikipediaArticle, cases: List[Case], entity_db: EntityDatabase):
     text = article.text
+    unknown_ground_truth_spans = {case.span for case in cases if case.has_ground_truth()
+                                  and not case.is_known_entity()}
     cases = [case for case in cases if (case.is_false_positive() or case.is_known_entity())]
     label_specificity_errors(cases)
     label_demonym_errors(cases, entity_db)
     label_rare_entity_errors(text, cases, entity_db)
+    label_new_rare_entity_errors(cases, entity_db)
     label_partial_name_errors(cases, entity_db)
     label_nonentity_coreference_errors(text, cases)
     label_detection_errors(cases)
     label_candidate_errors(cases)
     label_multi_candidates(cases)
-    label_abstraction_errors(cases)
+    label_abstraction_and_unknown_entity_errors(cases, unknown_ground_truth_spans)
     label_hyperlink_errors(article, cases)
     label_span_errors(cases)
     label_unknown_person_errors(cases, entity_db)
@@ -70,6 +75,24 @@ def label_rare_entity_errors(text: str, cases: List[Case], entity_db: EntityData
                 if entity_db.get_sitelink_count(case.true_entity.entity_id) \
                         < entity_db.get_sitelink_count(case.predicted_entity.entity_id):
                     case.add_error_label(ErrorLabel.RARE)
+
+
+def label_new_rare_entity_errors(cases: List[Case], entity_db: EntityDatabase):
+    for case in cases:
+        if case.has_ground_truth() and case.has_predicted_entity() and case.is_named():
+            if entity_db.contains_alias(case.text):
+                candidates = entity_db.get_candidates(case.text)
+                true_popularity = entity_db.get_sitelink_count(case.true_entity.entity_id)
+                is_rare_case = False
+                for candidate in candidates:
+                    if entity_db.get_sitelink_count(candidate) > true_popularity:
+                        is_rare_case = True
+                        break
+                if is_rare_case:
+                    if case.is_correct():
+                        case.add_error_label(ErrorLabel.RARE_CORRECT)
+                    elif entity_db.get_sitelink_count(case.predicted_entity.entity_id) > true_popularity:
+                        case.add_error_label(ErrorLabel.RARE_WRONG)
 
 
 def label_partial_name_errors(cases: List[Case], entity_db: EntityDatabase):
@@ -128,17 +151,28 @@ def overlaps(span1, span2):
     return not (span1[0] >= span2[1] or span2[0] >= span1[1])
 
 
-def label_abstraction_errors(cases: List[Case]):
+def contains_uppercase_word(text: str):
+    for word in text.split():
+        if len(word) > 0 and word[0].isupper():
+            return True
+    return False
+
+
+def label_abstraction_and_unknown_entity_errors(cases: List[Case],
+                                                unknown_ground_truth_spans: Set[Tuple[int, int]]):
     ground_truth_spans = [case.span for case in cases if case.has_ground_truth()]
     for case in cases:
         if case.is_false_positive() and case.mention_type == MentionType.NAMED:
             overlap = False
-            for gt_span in ground_truth_spans:
+            for gt_span in chain(ground_truth_spans, unknown_ground_truth_spans):
                 if overlaps(case.span, gt_span):
                     overlap = True
                     break
-            if not overlap:
+            contains_upper = contains_uppercase_word(case.text)
+            if not overlap and not contains_upper:
                 case.add_error_label(ErrorLabel.ABSTRACTION)
+            elif contains_upper and (not overlap or case.span in unknown_ground_truth_spans):
+                case.add_error_label(ErrorLabel.UNKNOWN_NAMED_ENTITY)
 
 
 def label_hyperlink_errors(article: WikipediaArticle, cases: List[Case]):
