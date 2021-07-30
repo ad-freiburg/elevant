@@ -17,13 +17,15 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "undetected_lowercase": "The span of a lowercase GT mention was not linked / Named lowercase GT mentions",
                        "specificity": "FN and a part of the GT mention was linked to an arbitrary entity / Named GT mentions containing whitespace(s)",
                        "rare": "Mention was linked to a popular entity instead of the true, less popular entity / Named detected",
+                       "rare_new": "The linked entity is more popular than the ground truth / Detected mentions where the most popular candidate is not the correct entity",
                        "demonym": "FN from a list of demonyms (German, Germans, ...) / All demonym GT mentions",
                        "partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
-                       "abstraction": "Named FP that does not overlap with a GT mention",
+                       "abstraction": "Lowercase named FP that does not overlap with a GT mention",
                        "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks",
                        "span_wrong": "FP where the predicted span overlaps with a GT mention with the same entity id / Predicted mentions",
                        "metonymy": "A location is confused with a non-location which is neither a person nor an ethnic group",
                        "unknown_person": "FP with type person where the ground truth is Unknown or the span does not overlap with any ground truth mention",
+                       "unknown_named_entity": "Uppercase mention wrongly linked, where the ground truth is either Unknown or has no label at all",
                        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
                        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates",
                        "non_entity_coreference": "FP mentions in {It, it, This, this, That, that, Its, its}",
@@ -50,6 +52,7 @@ error_category_mapping = {"undetected": "UNDETECTED",
     "multi_candidates": "MULTI_CANDIDATES_WRONG",
     "specificity": "SPECIFICITY",
     "rare": "RARE",
+    "rare_new": "RARE_WRONG",
     "": "DEMONYM_CORRECT",
     "demonym": "DEMONYM_WRONG",
     "": "PARTIAL_NAME_CORRECT",
@@ -60,6 +63,7 @@ error_category_mapping = {"undetected": "UNDETECTED",
     "span_wrong": "SPAN_WRONG",
     "metonymy": "METONYMY",
     "unknown_person": "UNKNOWN_PERSON",
+    "unknown_named_entity": "UNKNOWN_NAMED_ENTITY",
     "non_entity_coreference": "NON_ENTITY_COREFERENCE",
     "referenced_wrong": "COREFERENCE_REFERENCED_WRONG",
     "wrong_reference": "COREFERENCE_WRONG_REFERENCE",
@@ -745,7 +749,7 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
                 tooltip_text += "<br>parent=\"" + annotation.parent_text + "\"";
             }
             if (annotation.hasOwnProperty("error_labels") && annotation.error_labels.length > 0) {
-                tooltip_text += "<br>error=";
+                tooltip_text += "<br>category=";
                 for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
                     if (e_i > 0) {
                         tooltip_text += ",";
@@ -1516,3 +1520,4 @@ function produce_latex(div_id) {
     var show_duration_seconds = 5;
     setTimeout(function() { $("div.latex").hide(); }, show_duration_seconds * 1000);
 }
+
