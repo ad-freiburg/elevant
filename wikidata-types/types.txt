@@ -12,18 +12,12 @@ wd:Q9174       # religion
 wd:Q7257       # ideology
 wd:Q4164871    # position
 wd:Q12737077   # occupation
-wd:Q216353     # title
 wd:Q11862829   # academic discipline
 wd:Q21070598   # narrative entity
 wd:Q618779     # award
 wd:Q12136      # disease
 wd:Q4392985    # religious identity
-wd:Q11514315   # historical period
 wd:Q1656682    # event
-wd:Q180684     # conflict
 wd:Q373899     # record chart
-wd:Q194465     # annexation
-wd:Q381072     # crisis
 wd:Q22222786   # government program
 wd:Q41710      # ethnic group
-wd:Q18603729   # dissolution of an administrative territorial entity
