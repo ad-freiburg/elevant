@@ -125,6 +125,7 @@ def get_nested_labels(labeled_text: str, entity_db: EntityDatabase) -> List[Grou
                                                  entity_name, parent=parent, children=children,
                                                  optional=optional_tags[-1], type=label_type)
             article_labels.append(groundtruth_label)
+            del optional_tags[-1]
             del labels[-1]
             del start_pos[-1]
             inside -= 1
