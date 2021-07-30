@@ -15,12 +15,32 @@ PORT = 7016
 
 API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 CORRECTIONS_FILE = corrections.txt  
-TYPES_WHITELIST = $(shell cat types.txt | sed 's/\s*\#.*$$//g')
+TYPES_FILE = types.txt
+ENTITY_TYPES_FILE = entity-types.ttl
 PREDICATES = wdt:P279 wdt:P31 @en@rdfs:label
-# PREDICATES = wdt:P279
+
 BATCH_SIZE = 10000000
 MAX_RESULT_SIZE = $(shell echo "200 * $(BATCH_SIZE)" | bc)
+TYPES_WHITELIST = $(shell cat types.txt | sed 's/\s*\#.*$$//g')
 
+# Do it all in one target (see text in echo commands).
+#
+# NOTE: Since this is the first target, just typing  make  is sufficient.
+all:
+	@echo
+	@echo "The following steps will be taken (Makefile target in square brackets):"
+	@echo
+	@echo "[getdata]  Get each of $(PREDICATES) from $(API_WIKIDATA)"
+	@echo "[ttl]      Apply corrections (ADD and REMOVE) from $(CORRECTIONS_FILE)"
+	@echo "[index]    Build index from resulting file $(DB).ttl"
+	@echo "[start]    Start backend for that index on port $(PORT)"
+	@echo "[wait]     Wait for the backend to be up"
+	@echo "[gettypes] Launch the entity-types query, write result to $(ENTITY_TYPES_FILE)"
+	@echo
+	@SECONDS=0; \
+	  $(MAKE) -s getdata ttl index start wait gettypes; \
+	  echo; echo "Total time needed: $$(($$SECONDS / 60)) min"
+	@echo
 
 config:
 	@for VAR in API_WIKIDATA API_WIKIDATA_TYPES \
@@ -31,31 +51,29 @@ config:
 	@for VAR in BATCH_SIZE MAX_RESULT_SIZE \
 	  ;do printf "%-30s = %'15d\n" "$$VAR" "$${!VAR}"; done
 
+# Target for the first four steps.
 qlever-instance:
-	@echo "The following steps will be taken:"
-	@echo
-	@echo "1. Get each of $(PREDICATES) from $(API_WIKIDATA)"
-	@echo "2. Apply corrections (ADD and REMOVE) from $(CORRECTIONS_FILE)"
-	@echo "3. Build index from resulting file $(DB).ttl"
-	@echo "4. Start backend for that index on port $(PORT)"
-	@echo
-	$(MAKE) -s getdata # STEP 1
-	@echo
-	$(MAKE) -s ttl     # STEP 2
-	@echo
-	$(MAKE) -s index   # STEP 3
-	@echo
-	$(MAKE) -s start   # STEP 4
+	$(MAKE) -s getdata ttl index start
 
 index:
 	time ( $(DOCKER_CMD) run -it --rm -v $(shell pwd):/pwd --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "IndexBuilderMain -f /pwd/$(DB).ttl -i /pwd/index/$(DB) -s /pwd/qlever.settings.json"; rm -f $(DB)*tmp* )
 
 start:
+	echo "Starting QLever backend (and removing previous container if there is one)"
 	-$(DOCKER_CMD) rm -f qlever.$(DB)
 	$(DOCKER_CMD) run -d --restart=unless-stopped -v $(shell pwd)/index:/index -p $(PORT):7001 -e INDEX_PREFIX=$(DB) -e MEMORY_FOR_QUERIES=$(MEMORY_FOR_QUERIES) -e CACHE_MAX_SIZE_GB=${CACHE_MAX_SIZE_GB} -e CACHE_MAX_SIZE_GB_SINGLE_ENTRY=${CACHE_MAX_SIZE_GB_SINGLE_ENTRY} -e CACHE_MAX_NUM_ENTRIES=${CACHE_MAX_NUM_ENTRIES} --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE)
 
+stop:
+	$(DOCKER_CMD) stop qlever.$(DB)
+
 log:
 	$(DOCKER_CMD) logs -f qlever.$(DB)
+
+# Wait until QLever backend connects to query.
+wait:
+	@printf "Waiting for QLever backend "; \
+	  while [ $$(curl --silent $(API_WIKIDATA_TYPES) > /dev/null; echo $$?) != 0 ]; \
+	    do printf "."; sleep 10; done; echo
 
 # Build TTL with $(PREFIXES) from TTL files obtained via getdata: target.
 ttl:
@@ -108,8 +126,8 @@ clearcache:
 
 
 # Get the types for all entities as TTL
-entity-types:
-	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$@.ttl query.batched
+gettypes:
+	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$(ENTITY_TYPES_FILE) query.batched
 	wc -l $@.ttl | numfmt --grouping
 
 

@@ -3,20 +3,13 @@ import sys
 
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.wikipedia_article import article_from_json
-from src.settings import WHITELIST_FILE
 
 
 if __name__ == "__main__":
     in_file = "benchmark/%s_annotated.txt" % sys.argv[1]
 
     # read whitelist
-    whitelist = {}
-    with open(WHITELIST_FILE) as f:
-        for line in f:
-            if line.endswith("\n"):
-                line = line[:-1]
-            qid, name = line.split(":")
-            whitelist[qid] = name
+    whitelist = EntityDatabaseReader.read_whitelist_types()
     print(whitelist)
 
     # read benchmark
