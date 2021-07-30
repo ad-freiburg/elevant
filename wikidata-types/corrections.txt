@@ -15,6 +15,7 @@ ADD wd:Q4795040 wdt:P31 wd:Q1497364  # Arnold Engineering Development Complex - 
 ADD wd:Q48444513 wdt:P31 wd:Q4164871  # People’s Commissar - position
 ADD wd:Q1178531 wdt:P31 wd:Q4022  # Mollarino - river
 ADD wd:Q20979428 wdt:P31 wd:Q7725634  # Unmeasured strength - literary work
+ADD wd:Q210272 wdt:P31 wd:Q11862829  # cultural heritage - academic discipline
 
 # Subclass-of
 REMOVE wd:Q24229398 wdt:P279 wd:Q12737077  # agent - occupation
@@ -38,3 +39,6 @@ REMOVE wd:Q7397 wdt:P279 wd:Q17537576  # software - creative work
 REMOVE wd:Q376799 wdt:P279 wd:Q618123  # transport infrastructure - geographic feature
 ADD wd:Q4057633 wdt:P279 wd:Q6671777  # hierarchy of administrative territorial entities - structure
 REMOVE wd:Q4057633 wdt:P279 wd:Q1531349  # hierarchy of administrative territorial entities - outline (to break the path Bratislava - creative work)
+REMOVE wd:Q210272 wdt:P279 wd:Q11862829  # cultural heritage - academic discipline
+REMOVE wd:Q96482621 wdt:P279 wd:Q1619519  # administrative territory in South Africa - geography of South Africa (break Cape Town - academic discipline)
+REMOVE wd:Q96482621 wdt:P279 wd:Q1155268  # administrative territory in South Africa - politics of South Africa
