@@ -13,7 +13,6 @@ import json
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.case import case_from_dict
 from src.evaluation.examples_generator import get_example_generator
-from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.wikipedia_article import article_from_json
 from src.evaluation.evaluator import Evaluator
 
@@ -26,32 +25,24 @@ def main(args):
     case_file = None
     output_filename = None
 
-    # Get a dictionary with whitelist types for all predicted entities (ground truth labels already have a type)
-    print("Get whitelist-types for all predicted entities...")
-    predicted_entity_ids = set()
+    # Get a set of entity ids of all predicted entities and candidate entities
+    # to load their information into the entity_db
+    # (all necessary information about ground truth labels is already contained in the benchmark jsonl file)
+    relevant_entity_ids = set()
     for line in input_file:
         article = article_from_json(line)
-        predicted_entity_ids.update([em.entity_id for em in article.entity_mentions.values()])
-
-    # Go through the entity to type mapping
-    id_to_type = dict()
-    for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator():
-        if entity_id in predicted_entity_ids:
-            if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
-                id_to_type[entity_id] = []
-            id_to_type[entity_id].append(whitelist_type)
-    id_to_name = dict()
-    for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
-        id_to_name[entity_id] = name
+        for em in article.entity_mentions.values():
+            relevant_entity_ids.add(em.entity_id)
+            relevant_entity_ids.update(em.candidates)
 
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
-        evaluator = Evaluator(id_to_type, id_to_name, load_data=False, coreference=not args.no_coreference)
+        evaluator = Evaluator(relevant_entity_ids, load_data=False, coreference=not args.no_coreference)
     else:
         output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
         output_file = open(output_filename, 'w', encoding='utf8')
         print("load evaluation entities...")
-        evaluator = Evaluator(id_to_type, id_to_name, load_data=True)
+        evaluator = Evaluator(relevant_entity_ids, load_data=True)
     results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
 
     example_iterator = None

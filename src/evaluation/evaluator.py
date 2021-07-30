@@ -12,9 +12,9 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
 
 
-def load_evaluation_entities():
+def load_evaluation_entities(relevant_entity_ids):
     entity_db = EntityDatabase()
-    entity_db.load_entities_big()
+    entity_db.load_entities(relevant_entity_ids)
     entity_db.load_mapping()
     entity_db.load_redirects()
     entity_db.load_sitelink_counts()
@@ -29,17 +29,14 @@ EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "prono
 
 class Evaluator:
     def __init__(self,
-                 id_to_type,
-                 id_to_name,
+                 relevant_entity_ids,
                  load_data: bool = True,
                  coreference: bool = True):
-        self.id_to_type = id_to_type
-        self.id_to_name = id_to_name
         self.type_id_to_label = EntityDatabaseReader.read_whitelist_types()
         self.all_cases = []
         if load_data:
-            self.entity_db = load_evaluation_entities()
-        self.case_generator = CaseGenerator(self.entity_db, id_to_type)
+            self.entity_db = load_evaluation_entities(relevant_entity_ids)
+        self.case_generator = CaseGenerator(self.entity_db)
         self.data_loaded = load_data
         self.coreference = coreference
         self.counts = {}
@@ -112,8 +109,8 @@ class Evaluator:
                     self.counts["coreference"]["fp"] += 1
                 else:
                     pred_entity_id = case.predicted_entity.entity_id
-                    if pred_entity_id in self.id_to_type:
-                        type_ids = self.id_to_type[pred_entity_id]
+                    if self.entity_db.contains_entity(pred_entity_id):
+                        type_ids = self.entity_db.get_entity(pred_entity_id).type.split("|")
                     else:
                         type_ids = [GroundtruthLabel.OTHER]
                     type_keys = self.get_type_keys(type_ids)
@@ -157,7 +154,7 @@ class Evaluator:
 
         cases = self.case_generator.get_evaluation_cases(article, coref_ground_truth)
 
-        label_errors(article, cases, self.entity_db, self.id_to_type)
+        label_errors(article, cases, self.entity_db)
 
         return cases
 
