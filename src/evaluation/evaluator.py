@@ -21,6 +21,9 @@ def load_evaluation_entities():
     entity_db.load_demonyms()
     entity_db.load_quantities()
     entity_db.load_datetimes()
+    entity_db.add_name_aliases()
+    entity_db.add_synonym_aliases()
+    entity_db.add_link_aliases()
     return entity_db
 
 
@@ -191,6 +194,11 @@ class Evaluator:
                 "errors": self.error_counts[ErrorLabel.RARE],
                 "total": self.counts["NER"]["tp"]
             },
+            "rare_new": {
+                "errors": self.error_counts[ErrorLabel.RARE_WRONG],
+                "total": self.error_counts[ErrorLabel.RARE_CORRECT] +
+                         self.error_counts[ErrorLabel.RARE_WRONG]
+            },
             "demonym": {
                 "errors": self.error_counts[ErrorLabel.DEMONYM_WRONG],
                 "total": self.error_counts[ErrorLabel.DEMONYM_CORRECT] +
@@ -201,7 +209,6 @@ class Evaluator:
                 "total": self.error_counts[ErrorLabel.PARTIAL_NAME_CORRECT] +
                          self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG]
             },
-            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
             "hyperlink": {
                 "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
                 "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
@@ -212,7 +219,9 @@ class Evaluator:
                 "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
             },
             "metonymy": self.error_counts[ErrorLabel.METONYMY],
-            "unknown_person": self.error_counts[ErrorLabel.UNKNOWN_PERSON]
+            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
+            "unknown_person": self.error_counts[ErrorLabel.UNKNOWN_PERSON],
+            "unknown_named_entity": self.error_counts[ErrorLabel.UNKNOWN_NAMED_ENTITY]
         }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None

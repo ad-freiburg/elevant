@@ -40,9 +40,15 @@ def main(args):
             if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
                 id_to_type[entity_id] = []
             id_to_type[entity_id].append(whitelist_type)
+
     id_to_name = dict()
+    ground_truth_entity_ids = {}
+    for line in input_file:
+        article = article_from_json(line)
+        ground_truth_entity_ids.update([label.entity_id for label in article.labels])
     for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
-        id_to_name[entity_id] = name
+        if entity_id in predicted_entity_ids or entity_id in ground_truth_entity_ids:
+            id_to_name[entity_id] = name
 
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
