@@ -45,28 +45,26 @@ show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
 benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc"];
 
-error_category_mapping = {"undetected": "UNDETECTED",
-    "undetected_lowercase": "UNDETECTED_LOWERCASE",
-    "wrong_candidates": "WRONG_CANDIDATES",
-    "": "MULTI_CANDIDATES_CORRECT",
-    "multi_candidates": "MULTI_CANDIDATES_WRONG",
-    "specificity": "SPECIFICITY",
-    "rare": "RARE",
-    "rare_new": "RARE_WRONG",
-    "": "DEMONYM_CORRECT",
-    "demonym": "DEMONYM_WRONG",
-    "": "PARTIAL_NAME_CORRECT",
-    "partial_name": "PARTIAL_NAME_WRONG",
-    "abstraction": "ABSTRACTION",
-    "": "HYPERLINK_CORRECT",
-    "hyperlink": "HYPERLINK_WRONG",
-    "span_wrong": "SPAN_WRONG",
-    "metonymy": "METONYMY",
-    "unknown_person": "UNKNOWN_PERSON",
-    "unknown_named_entity": "UNKNOWN_NAMED_ENTITY",
-    "non_entity_coreference": "NON_ENTITY_COREFERENCE",
-    "referenced_wrong": "COREFERENCE_REFERENCED_WRONG",
-    "wrong_reference": "COREFERENCE_WRONG_REFERENCE",
+error_category_mapping = {"undetected": ["UNDETECTED"],
+    "undetected_lowercase": ["UNDETECTED_LOWERCASE"],
+    "wrong_candidates": ["WRONG_CANDIDATES"],
+    "": ["MULTI_CANDIDATES_CORRECT"],
+    "multi_candidates": ["MULTI_CANDIDATES_WRONG"],
+    "specificity": ["SPECIFICITY"],
+    "rare": ["RARE"],
+    "rare_new": ["RARE_WRONG", "RARE_CORRECT"],
+    "demonym": ["DEMONYM_WRONG", "DEMONYM_CORRECT"],
+    "partial_name": ["PARTIAL_NAME_WRONG", "PARTIAL_NAME_CORRECT"],
+    "abstraction": ["ABSTRACTION"],
+    "": ["HYPERLINK_CORRECT"],
+    "hyperlink": ["HYPERLINK_WRONG"],
+    "span_wrong": ["SPAN_WRONG"],
+    "metonymy": ["METONYMY"],
+    "unknown_person": ["UNKNOWN_PERSON"],
+    "unknown_named_entity": ["UNKNOWN_NAMED_ENTITY"],
+    "non_entity_coreference": ["NON_ENTITY_COREFERENCE"],
+    "referenced_wrong": ["COREFERENCE_REFERENCED_WRONG"],
+    "wrong_reference": ["COREFERENCE_WRONG_REFERENCE"],
     "no_reference": "COREFERENCE_NO_REFERENCE"}
 
 $("document").ready(function() {
@@ -77,7 +75,7 @@ $("document").ready(function() {
     article_select = document.getElementById("article");
 
     show_all_articles_flag = false;
-    show_selected_error = null;
+    selected_categories = null;
     show_selected_type = null;
     last_selected_cell = null;
 
@@ -759,11 +757,17 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
             }
             // Only show selected error category
             var color = annotation.color[0];
-            if (show_selected_error && annotation.error_labels &&
-                    !annotation.error_labels.includes(show_selected_error)) {
+            if (selected_categories && annotation.error_labels) {
                 // Use transparent version of the color, if an error category is selected
-                // And the current annotation does not have the corresponding error label
-                color = annotation.color[1];
+                // And the current annotation does not have a corresponding category label
+                var has_category = false;
+                for (selected_category of selected_categories) {
+                    if (annotation.error_labels.includes(selected_category)) {
+                        has_category = true;
+                        break;
+                    }
+                }
+                if (!has_category) color = annotation.color[1];
             } else if (show_selected_type && annotation.entity_type &&
                        !annotation.entity_type.split("|").includes(show_selected_type)) {
                 color = annotation.color[1];
@@ -1166,14 +1170,14 @@ function show_selected_errors(error_category) {
     var match = error_category.match(/Q[0-9]+:.*/);
     if (error_category in error_category_mapping) {
         show_selected_type = null;
-        show_selected_error = error_category_mapping[error_category];
+        selected_categories = error_category_mapping[error_category];
         show_article();
     } else if (match || error_category == "OTHER") {
-        show_selected_error = null;
+        selected_categories = null;
         show_selected_type = error_category.replace(/(Q[0-9]+):.*/g, "$1");
         show_article();
     } else {
-        show_selected_error = null;
+        selected_categories = null;
         show_selected_type = null;
     }
 }
