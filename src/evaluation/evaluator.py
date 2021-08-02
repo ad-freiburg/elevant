@@ -178,6 +178,7 @@ class Evaluator:
             category: create_f1_dict_from_counts(self.counts[category]) for category in EVALUATION_CATEGORIES
         }
         results_dict["errors"] = {
+            # DETECTION
             "undetected": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED],
                 "total": results_dict["NER"]["ground_truth"]
@@ -186,42 +187,50 @@ class Evaluator:
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_LOWERCASE],
                 "total": self.n_named_lowercase
             },
-            "specificity": {
+            "undetected_specificity": {
                 "errors": self.error_counts[ErrorLabel.SPECIFICITY],
                 "total": self.n_named_contains_space
             },
-            "rare": {
-                "errors": self.error_counts[ErrorLabel.RARE],
+            "undetected_other": self.error_counts[ErrorLabel.UNDETECTED_OTHER],
+            # DISAMBIGUATION
+            "disambiguation": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION],
                 "total": self.counts["NER"]["tp"]
             },
-            "rare_new": {
-                "errors": self.error_counts[ErrorLabel.RARE_WRONG],
-                "total": self.error_counts[ErrorLabel.RARE_CORRECT] +
-                         self.error_counts[ErrorLabel.RARE_WRONG]
-            },
-            "demonym": {
+            "disambiguation_demonym": {
                 "errors": self.error_counts[ErrorLabel.DEMONYM_WRONG],
                 "total": self.error_counts[ErrorLabel.DEMONYM_CORRECT] +
                          self.error_counts[ErrorLabel.DEMONYM_WRONG]
             },
-            "partial_name": {
+            "disambiguation_metonymy": {
+                "errors": self.error_counts[ErrorLabel.METONYMY_WRONG],
+                "total": self.error_counts[ErrorLabel.METONYMY_CORRECT] +
+                         self.error_counts[ErrorLabel.METONYMY_WRONG]
+            },
+            "disambiguation_partial_name": {
                 "errors": self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG],
                 "total": self.error_counts[ErrorLabel.PARTIAL_NAME_CORRECT] +
                          self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG]
+            },
+            "disambiguation_rare": {
+                "errors": self.error_counts[ErrorLabel.RARE_WRONG],
+                "total": self.error_counts[ErrorLabel.RARE_CORRECT] +
+                         self.error_counts[ErrorLabel.RARE_WRONG]
+            },
+            "disambiguation_other": self.error_counts[ErrorLabel.DISAMBIGUATION_OTHER],
+            # FALSE POSITIVES
+            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
+            "unknown_named_entity": self.error_counts[ErrorLabel.UNKNOWN_NAMED_ENTITY],
+            # OTHER
+            "span_wrong": {
+                "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
+                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
             },
             "hyperlink": {
                 "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
                 "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
                          self.error_counts[ErrorLabel.HYPERLINK_WRONG]
             },
-            "span_wrong": {
-                "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
-                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
-            },
-            "metonymy": self.error_counts[ErrorLabel.METONYMY],
-            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
-            "unknown_person": self.error_counts[ErrorLabel.UNKNOWN_PERSON],
-            "unknown_named_entity": self.error_counts[ErrorLabel.UNKNOWN_NAMED_ENTITY]
         }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None

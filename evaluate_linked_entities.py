@@ -42,7 +42,7 @@ def main(args):
             id_to_type[entity_id].append(whitelist_type)
 
     id_to_name = dict()
-    ground_truth_entity_ids = {}
+    ground_truth_entity_ids = set()
     for line in input_file:
         article = article_from_json(line)
         ground_truth_entity_ids.update([label.entity_id for label in article.labels])
