@@ -46,30 +46,30 @@ show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
 benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc"];
 
-error_category_mapping = {"undetected": "UNDETECTED",
-    "undetected_lowercase": "UNDETECTED_LOWERCASE",
-    "wrong_candidates": "WRONG_CANDIDATES",
-    "": "MULTI_CANDIDATES_CORRECT",
-    "multi_candidates": "MULTI_CANDIDATES_WRONG",
-    "undetected_specificity": "SPECIFICITY",
-    "undetected_other": "UNDETECTED_OTHER",
-    "disambiguation": "DISAMBIGUATION",
-    "": "DEMONYM_CORRECT",
-    "disambiguation_demonym": "DEMONYM_WRONG",
-    "": "PARTIAL_NAME_CORRECT",
-    "disambiguation_metonymy": "METONYMY_WRONG",
-    "disambiguation_partial_name": "PARTIAL_NAME_WRONG",
-    "disambiguation_rare": "RARE_WRONG",
-    "disambiguation_other": "DISAMBIGUATION_OTHER",
-    "abstraction": "ABSTRACTION",
-    "unknown_named_entity": "UNKNOWN_NAMED_ENTITY",
-    "": "HYPERLINK_CORRECT",
-    "hyperlink": "HYPERLINK_WRONG",
-    "span_wrong": "SPAN_WRONG",
-    "non_entity_coreference": "NON_ENTITY_COREFERENCE",
-    "referenced_wrong": "COREFERENCE_REFERENCED_WRONG",
-    "wrong_reference": "COREFERENCE_WRONG_REFERENCE",
-    "no_reference": "COREFERENCE_NO_REFERENCE"}
+error_category_mapping = {"undetected": ["UNDETECTED"],
+    "undetected_lowercase": ["UNDETECTED_LOWERCASE"],
+    "wrong_candidates": ["WRONG_CANDIDATES"],
+    "":  ["MULTI_CANDIDATES_CORRECT"],
+    "multi_candidates": ["MULTI_CANDIDATES_WRONG"],
+    "undetected_specificity": ["SPECIFICITY"],
+    "undetected_other": ["UNDETECTED_OTHER"],
+    "disambiguation": ["DISAMBIGUATION"],
+    "": ["DEMONYM_CORRECT"],
+    "disambiguation_demonym": ["DEMONYM_CORRECT", "DEMONYM_WRONG"],
+    "": ["PARTIAL_NAME_CORRECT"],
+    "disambiguation_metonymy": ["METONYMY_CORRECT", "METONYMY_WRONG"],
+    "disambiguation_partial_name": ["PARTIAL_NAME_CORRECT", "PARTIAL_NAME_WRONG"],
+    "disambiguation_rare": ["RARE_CORRECT", "RARE_WRONG"],
+    "disambiguation_other": ["DISAMBIGUATION_OTHER"],
+    "abstraction": ["ABSTRACTION"],
+    "unknown_named_entity": ["UNKNOWN_NAMED_ENTITY"],
+    "": ["HYPERLINK_CORRECT"],
+    "hyperlink": ["HYPERLINK_WRONG"],
+    "span_wrong": ["SPAN_WRONG"],
+    "non_entity_coreference": ["NON_ENTITY_COREFERENCE"],
+    "referenced_wrong": ["COREFERENCE_REFERENCED_WRONG"],
+    "wrong_reference": ["COREFERENCE_WRONG_REFERENCE"],
+    "no_reference": ["COREFERENCE_NO_REFERENCE"]}
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
@@ -79,7 +79,7 @@ $("document").ready(function() {
     article_select = document.getElementById("article");
 
     show_all_articles_flag = false;
-    show_selected_error = null;
+    selected_categories = null;
     show_selected_type = null;
     last_selected_cell = null;
 
@@ -761,11 +761,17 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
             }
             // Only show selected error category
             var color = annotation.color[0];
-            if (show_selected_error && annotation.error_labels &&
-                    !annotation.error_labels.includes(show_selected_error)) {
+            if (selected_categories && annotation.error_labels) {
                 // Use transparent version of the color, if an error category is selected
-                // And the current annotation does not have the corresponding error label
-                color = annotation.color[1];
+                // And the current annotation does not have a corresponding category label
+                var has_category = false;
+                for (selected_category of selected_categories) {
+                    if (annotation.error_labels.includes(selected_category)) {
+                        has_category = true;
+                        break;
+                    }
+                }
+                if (!has_category) color = annotation.color[1];
             } else if (show_selected_type && annotation.entity_type &&
                        !annotation.entity_type.split("|").includes(show_selected_type)) {
                 color = annotation.color[1];
@@ -1134,18 +1140,19 @@ function get_table_row(approach_name, json_obj, div_id) {
                 } else if (Object.keys(value).length > 0) {
                     // Values that consist not of a single number but of multiple
                     // key-value pairs are displayed in a single column.
-                    var composite_value = "";
-                    $.each(value, function(subsubkey) {
-                        var val = Math.round(value[subsubkey] * 100) / 100;
-                        composite_value += val + " / ";
-                    });
-                    value = composite_value.substring(0, composite_value.length - " / ".length);
+                    var processed_value = "<div class='" + class_name + " tooltip'>";
+                    var percentage = (value["errors"] / value["total"] * 100).toFixed(2);
+                    processed_value += percentage + "%";
+                    processed_value += "<span class='tooltiptext'>";
+                    processed_value += value["errors"] + " / " + value["total"];
+                    processed_value += "</span></div>";
+                    value = processed_value;
                 } else if (percentage_headers.includes(subkey)) {
                     // Get rounded percentage but only if number is a decimal < 1
-                    processed_value = "<div class='" + class_name + " tooltip'>"
+                    processed_value = "<div class='" + class_name + " tooltip'>";
                     processed_value += (value * 100).toFixed(2) + "%";
                     // Create tooltip text
-                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>"
+                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>";
                     value = processed_value;
                 } else {
                     Math.round(json_obj[key][subkey] * 100) / 100
@@ -1168,14 +1175,14 @@ function show_selected_errors(error_category) {
     var match = error_category.match(/Q[0-9]+:.*/);
     if (error_category in error_category_mapping) {
         show_selected_type = null;
-        show_selected_error = error_category_mapping[error_category];
+        selected_categories = error_category_mapping[error_category];
         show_article();
     } else if (match || error_category == "OTHER") {
-        show_selected_error = null;
+        selected_categories = null;
         show_selected_type = error_category.replace(/(Q[0-9]+):.*/g, "$1");
         show_article();
     } else {
-        show_selected_error = null;
+        selected_categories = null;
         show_selected_type = null;
     }
 }

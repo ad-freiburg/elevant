@@ -104,7 +104,8 @@ class EntityDatabaseReader:
         return mapping
 
     @staticmethod
-    def get_wikidata_entities_with_types(relevant_entities: Set[str]) -> Dict[str, WikidataEntity]:
+    def get_wikidata_entities_with_types(relevant_entities: Set[str],
+                                         minimum_score: int = 0) -> Dict[str, WikidataEntity]:
         entities = dict()
         id_to_type = dict()
         for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator():
@@ -126,7 +127,8 @@ class EntityDatabaseReader:
             if entity_id in id_to_name:
                 name = id_to_name[entity_id]
             entity = WikidataEntity(name, 0, entity_id, [], type=types)
-            entities[entity_id] = entity
+            if entity.score >= minimum_score:
+                entities[entity_id] = entity
         return entities
 
     @staticmethod

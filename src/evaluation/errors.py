@@ -1,4 +1,4 @@
-from typing import List, Dict, Set, Tuple
+from typing import List, Set, Tuple, Dict
 
 from itertools import chain
 
@@ -12,15 +12,14 @@ from src.models.wikipedia_article import WikipediaArticle
 
 def label_errors(article: WikipediaArticle,
                  cases: List[Case],
-                 entity_db: EntityDatabase,
-                 id_to_type: Dict[str, List[str]]):
+                 entity_db: EntityDatabase):
     text = article.text
     unknown_ground_truth_spans = {case.span for case in cases if case.has_ground_truth()
                                   and not case.is_known_entity()}
     cases = [case for case in cases if (case.is_false_positive() or case.is_known_entity())]
     label_undetected_errors(cases)
-    label_correct(cases, entity_db, id_to_type)
-    label_disambiguation_errors(cases, entity_db, id_to_type)
+    label_correct(cases, entity_db)
+    label_disambiguation_errors(cases, entity_db)
     label_false_positives(cases, unknown_ground_truth_spans)
     label_nonentity_coreference_errors(text, cases)
     label_candidate_errors(cases)
@@ -81,12 +80,12 @@ def is_rare_case(case: Case, entity_db: EntityDatabase):
     return False
 
 
-def label_correct(cases: List[Case], entity_db: EntityDatabase, id_to_type: Dict[str, List[str]]):
+def label_correct(cases: List[Case], entity_db: EntityDatabase):
     for case in cases:
         if case.is_named() and case.is_correct():
             if is_demonym(case, entity_db):
                 case.add_error_label(ErrorLabel.DEMONYM_CORRECT)
-            elif is_metonymy(case, entity_db, id_to_type):
+            elif is_metonymy(case, entity_db):
                 case.add_error_label(ErrorLabel.METONYMY_CORRECT)
             elif is_partial_name(case):
                 case.add_error_label(ErrorLabel.PARTIAL_NAME_CORRECT)
@@ -99,31 +98,33 @@ PERSON_TYPE_QID = "Q18336849"
 ETHNICITY_TYPE_ID = "Q41710"
 
 
-def is_location_alias(text: str, entity_db: EntityDatabase, id_to_type: Dict[str, List[str]]):
+def is_location_alias(text: str, entity_db: EntityDatabase):
     candidates = entity_db.get_candidates(text)
     for candidate in candidates:
-        types = id_to_type.get(candidate, [])
+        candidate_entity = entity_db.get_entity(candidate)
+        types = []
+        if candidate_entity:
+            types = candidate_entity.type.split("|")
         if LOCATION_TYPE_ID in types:
             return True
     return False
 
 
-def is_metonymy(case: Case, entity_db: EntityDatabase, id_to_type: Dict[str, List[str]]):
+def is_metonymy(case: Case, entity_db: EntityDatabase):
     true_types = case.true_entity.type.split("|")
     if LOCATION_TYPE_ID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_ID in true_types :
         return False
-    return is_location_alias(case.text, entity_db, id_to_type)
+    return is_location_alias(case.text, entity_db)
 
 
 def label_disambiguation_errors(cases: List[Case],
-                                entity_db: EntityDatabase,
-                                id_to_type: Dict[str, List[str]]):
+                                entity_db: EntityDatabase):
     for case in cases:
         if case.is_named() and case.is_false_negative() and case.is_false_positive():
             case.add_error_label(ErrorLabel.DISAMBIGUATION)
             if is_demonym(case, entity_db):
                 case.add_error_label(ErrorLabel.DEMONYM_WRONG)
-            elif is_metonymy(case, entity_db, id_to_type):
+            elif is_metonymy(case, entity_db):
                 case.add_error_label(ErrorLabel.METONYMY_WRONG)
             elif is_partial_name(case):
                 case.add_error_label(ErrorLabel.PARTIAL_NAME_WRONG)

@@ -37,9 +37,8 @@ def word_boundary(span: Tuple[int, int], text: str) -> Tuple[int, int]:
 
 
 class CaseGenerator:
-    def __init__(self, entity_db: EntityDatabase, id_to_type):
+    def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
-        self.id_to_type = id_to_type
         self.article = None
         self.coref_ground_truth = None
         self.label_dict = None
@@ -56,8 +55,8 @@ class CaseGenerator:
             entity_type = GroundtruthLabel.QUANTITY
         elif self.entity_db.is_datetime(entity_id):
             entity_type = GroundtruthLabel.DATETIME
-        elif entity_id in self.id_to_type:
-            type_ids = self.id_to_type[entity_id]
+        elif self.entity_db.contains_entity(entity_id):
+            type_ids = self.entity_db.get_entity(entity_id).type.split("|")
             entity_type = "|".join(type_ids)
         return entity_type
 

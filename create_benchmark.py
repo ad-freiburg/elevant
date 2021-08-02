@@ -68,7 +68,7 @@ def get_labels(labeled_text: str) -> List[Tuple[Tuple[int, int], str]]:
     return labels
 
 
-def get_nested_labels(labeled_text: str, entity_db: EntityDatabase) -> List[GroundtruthLabel]:
+def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
     """
     Labels can be nested.
     """
@@ -120,11 +120,12 @@ def get_nested_labels(labeled_text: str, entity_db: EntityDatabase) -> List[Grou
             label_id = label_ids[inside-1][-1]
             label_type = labels[-1] if not labels[-1].startswith("Unknown") \
                 and not re.match(r"Q[0-9]+", labels[-1]) else GroundtruthLabel.OTHER
-            entity_name = entity_db.get_entity(labels[-1]).name if entity_db.contains_entity(labels[-1]) else "Unknown"
+            entity_name = "Unknown"
             groundtruth_label = GroundtruthLabel(label_id, (start_pos[-1], start_pos[-1] + end_pos), labels[-1],
                                                  entity_name, parent=parent, children=children,
                                                  optional=optional_tags[-1], type=label_type)
             article_labels.append(groundtruth_label)
+            del optional_tags[-1]
             del labels[-1]
             del start_pos[-1]
             inside -= 1
@@ -161,9 +162,6 @@ def main(args):
     labels_texts = read_labeled_texts(args.input_file, N_ARTICLES)
     benchmark_articles = []
 
-    entity_db = EntityDatabase()
-    entity_db.load_entities_big()
-
     output_file = None
     if args.output_file:
         output_file = open(args.output_file, "w", encoding="utf8")
@@ -175,7 +173,7 @@ def main(args):
                 article = article_from_json(json)
                 if len(benchmark_articles) < ARTICLES_SPLIT:
                     labels_text = labels_texts[i]
-                labels = get_nested_labels(labels_text, entity_db)
+                labels = get_nested_labels(labels_text)
 
                 article.labels = labels
                 benchmark_articles.append(article)
