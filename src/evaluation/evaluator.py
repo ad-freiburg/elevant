@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
@@ -12,8 +12,11 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
 
 
-def load_evaluation_entities(relevant_entity_ids):
+def load_evaluation_entities(relevant_entity_ids: Set[str]):
     entity_db = EntityDatabase()
+    mapping = EntityDatabaseReader.get_mapping()
+    mapping_entity_ids = set(mapping.values())
+    relevant_entity_ids.update(mapping_entity_ids)
     entity_db.load_entities(relevant_entity_ids)
     entity_db.load_mapping()
     entity_db.load_redirects()
