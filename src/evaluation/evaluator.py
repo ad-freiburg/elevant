@@ -232,7 +232,7 @@ class Evaluator:
                 "total": self.counts["NER"]["tp"]
             }
             results_dict["errors"]["multi_candidates"] = {
-                "wrong": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
+                "errors": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
                 "total": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG] +
                          self.error_counts[ErrorLabel.MULTI_CANDIDATES_CORRECT]
             }

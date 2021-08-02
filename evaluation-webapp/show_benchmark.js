@@ -1136,18 +1136,19 @@ function get_table_row(approach_name, json_obj, div_id) {
                 } else if (Object.keys(value).length > 0) {
                     // Values that consist not of a single number but of multiple
                     // key-value pairs are displayed in a single column.
-                    var composite_value = "";
-                    $.each(value, function(subsubkey) {
-                        var val = Math.round(value[subsubkey] * 100) / 100;
-                        composite_value += val + " / ";
-                    });
-                    value = composite_value.substring(0, composite_value.length - " / ".length);
+                    var processed_value = "<div class='" + class_name + " tooltip'>";
+                    var percentage = (value["errors"] / value["total"] * 100).toFixed(2);
+                    processed_value += percentage + "%";
+                    processed_value += "<span class='tooltiptext'>";
+                    processed_value += value["errors"] + " / " + value["total"];
+                    processed_value += "</span></div>";
+                    value = processed_value;
                 } else if (percentage_headers.includes(subkey)) {
                     // Get rounded percentage but only if number is a decimal < 1
-                    processed_value = "<div class='" + class_name + " tooltip'>"
+                    processed_value = "<div class='" + class_name + " tooltip'>";
                     processed_value += (value * 100).toFixed(2) + "%";
                     // Create tooltip text
-                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>"
+                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>";
                     value = processed_value;
                 } else {
                     Math.round(json_obj[key][subkey] * 100) / 100
