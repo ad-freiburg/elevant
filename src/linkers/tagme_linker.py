@@ -14,10 +14,8 @@ tagme.GCUBE_TOKEN = "56af583d-5f6e-496f-aea2-eab06673b6a3-843339462"
 class TagMeLinker(AbstractEntityLinker):
     NER_IDENTIFIER = LINKER_IDENTIFIER = "TAGME"
 
-    def __init__(self, rho_threshold: float = 0.2):
-        self.entity_db = EntityDatabase()
-        self.entity_db.load_mapping()
-        self.entity_db.load_redirects()
+    def __init__(self, entity_db: EntityDatabase, rho_threshold: float = 0.2):
+        self.entity_db = entity_db
         self.model = None
         self.rho_threshold = rho_threshold
 

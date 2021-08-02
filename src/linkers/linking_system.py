@@ -102,8 +102,14 @@ class LinkingSystem:
             result_dir = linker_info
             self.prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
         elif linker_type == Linkers.TAGME.value:
+            if not self.entity_db.is_mapping_loaded():
+                print("Loading wikipedia-wikidata mapping...")
+                self.entity_db.load_mapping()
+            if not self.entity_db.is_redirects_loaded():
+                print("Loading redirects...")
+                self.entity_db.load_redirects()
             rho_threshold = float(linker_info)
-            self.linker = TagMeLinker(rho_threshold)
+            self.linker = TagMeLinker(self.entity_db, rho_threshold)
         elif linker_type == Linkers.WEXEA.value:
             result_dir = linker_info
             if not self.entity_db.is_mapping_loaded():
