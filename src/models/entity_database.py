@@ -81,8 +81,8 @@ class EntityDatabase:
         for entity in entities.values():
             self.add_entity(entity)
 
-    def load_entities(self, entity_ids: Set[str]):
-        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids)
+    def load_entities(self, entity_ids: Set[str], minimum_score: int = 0):
+        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, minimum_score)
         for entity in entities.values():
             self.add_entity(entity)
 
