@@ -27,6 +27,7 @@ class TagMeLinker(AbstractEntityLinker):
         annotations = sorted(annotations, key=lambda ann: ann.score, reverse=True)
         predictions = {}
         annotated_chars = np.zeros(shape=len(text), dtype=bool)
+        count = 0
         for ann in annotations:
             qid = self.entity_db.link2id(ann.entity_title)
             if qid is not None:
@@ -37,6 +38,11 @@ class TagMeLinker(AbstractEntityLinker):
                     if uppercase and snippet.islower():
                         continue
                     predictions[span] = EntityPrediction(span, qid, {qid})
+            else:
+                print("\nNo mapping to Wikidata found for label '%s'" % ann.entity_title)
+                count += 1
+        if count > 0:
+            print("\n%d entity labels could not be matched to any Wikidata id." % count)
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:

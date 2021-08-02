@@ -3,7 +3,6 @@ from typing import Iterator, Tuple, Dict
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
 
-import os
 import json
 
 
@@ -23,17 +22,18 @@ class NeuralELPredictionReader:
         count = 0
         for link in links:
             label = link["label"]
-            label = label.replace("_", " ")  # TODO: use a more reliable method to process underscored labels
+            label = label.replace("_", " ")
             entity_id = self.entity_db.link2id(label)
-            if not entity_id:
-                print("No mapping found for label '%s'" % label)
+            if not entity_id and label != "<unk wid>":
+                print("\nNo mapping to Wikidata found for label '%s'" % label)
                 count += 1
             start = link["start_char"]
             end = link["end_char"]
             span = (start, end)
             candidates = {entity_id}
             predictions[span] = EntityPrediction(span, entity_id, candidates)
-        print("%d entity labels could not be matched to any id." % count)
+        if count > 0:
+            print("\n%d entity labels could not be matched to any Wikidata id." % count)
         return predictions
 
     def article_predictions_iterator(self, file_path: str) \
