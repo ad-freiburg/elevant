@@ -1514,15 +1514,15 @@ function produce_latex(div_id) {
     // Join lines, copy to textarea and from there to the clipboard.
     var latex_text = latex.join("\n");
     console.log(latex_text);
-    $("div.latex").show();
-    $("div.latex textarea").val(latex_text);
-    $("div.latex textarea").show();  // Text is not selected or copied if it is hidden
-    $("div.latex textarea").select();
+    $('#' + div_id + " .latex").show();
+    $('#' + div_id + " .latex textarea").val(latex_text);
+    $('#' + div_id + " .latex textarea").show();  // Text is not selected or copied if it is hidden
+    $('#' + div_id + " .latex textarea").select();
     document.execCommand("copy");
-    $("div.latex textarea").hide();
+    $('#' + div_id + " .latex textarea").hide();
 
     // Show the notification for the specified number of seconds
     var show_duration_seconds = 5;
-    setTimeout(function() { $("div.latex").hide(); }, show_duration_seconds * 1000);
+    setTimeout(function() { $('#' + div_id + " .latex").hide(); }, show_duration_seconds * 1000);
 }
 
