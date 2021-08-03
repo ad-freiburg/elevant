@@ -106,7 +106,7 @@ class Evaluator:
                     self.type_counts[tk]["tp"] += 1
 
         else:
-            if case.is_false_positive() and not case.is_true_quantity_or_datetime():
+            if case.is_false_positive() and not case.is_true_quantity_or_datetime() and case.factor != 0:
                 self.counts["all"]["fp"] += 1
                 self.counts[key]["fp"] += 1
 
