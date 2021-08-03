@@ -1249,13 +1249,8 @@ function sort_table(column_header, div_id) {
         }
         var value = results[key][subkey]
         if (Object.keys(results[key][subkey]).length > 0) {
-            // A column (e.g. error categories) can contain multiple keys (error/wrong/... and total)
-            var composite_value = "";
-            $.each(value, function(subsubkey) {
-                var val = Math.round(value[subsubkey] * 100) / 100;
-                composite_value += val + " / ";
-            });
-            value = composite_value;
+            // An error category contains two keys and the percentage is displayed, so sort by percentage
+            value = (value["errors"] / value["total"] * 100).toFixed(2);
         }
         col_values.push(value);
      });
