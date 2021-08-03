@@ -88,7 +88,8 @@ class Evaluator:
     def count_mention_type_case(self, case: Case):
         key = case.mention_type.value.lower()
         # Disregard child labels for TP and FN (case.is_correct() is also true if all child labels are linked correctly)
-        if case.is_correct() and not case.is_optional() and not case.true_entity.parent:
+        # Parent could be 0 so check explicitly if parent is None.
+        if case.is_correct() and not case.is_optional() and case.true_entity.parent is None:
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
 
@@ -124,7 +125,7 @@ class Evaluator:
                     for tk in type_keys:
                         self.type_counts[tk]["fp"] += 1
 
-            if case.is_false_negative() and not case.is_optional() and not case.true_entity.parent:
+            if case.is_false_negative() and not case.is_optional() and case.true_entity.parent is None:
                 self.counts["all"]["fn"] += 1
                 self.counts[key]["fn"] += 1
 
