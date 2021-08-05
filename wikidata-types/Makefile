@@ -7,9 +7,9 @@ DB = wikidata-types
 API_WIKIDATA_TYPES = http://localhost:$(PORT)
 DOCKER_IMAGE = qlever.master
 DOCKER_CONTAINER = qlever.$(DB)
-MEMORY_FOR_QUERIES = 20
-CACHE_MAX_SIZE_GB = 10
-CACHE_MAX_SIZE_GB_SINGLE_ENTRY = 5
+MEMORY_FOR_QUERIES = 50
+CACHE_MAX_SIZE_GB = 30
+CACHE_MAX_SIZE_GB_SINGLE_ENTRY = 10
 CACHE_MAX_NUM_ENTRIES = 100
 PORT = 7016
 
@@ -24,6 +24,38 @@ BATCH_SIZE = 10000000
 MAX_RESULT_SIZE = $(shell echo "200 * $(BATCH_SIZE)" | bc)
 TYPES_WHITELIST = $(shell cat types.txt | sed 's/\s*\#.*$$//g')
 SED_PREFIX_SUBSTITUTIONS = $(shell echo "$(PREFIXES)" | sed 's|\([.]\)|\\\1|g; s/PREFIX \+\([^ ]\+\) \+<\([^ ]\+\)>/s|<\2|\1|g; /g;')
+
+# Variants of getting the contents of a variable with a multiline value (see the
+# define ... endef at the end of this file for several variables with such
+# values). Some of these DON'T work, see the explanations.
+#
+# 1.  $(info $(VARIABLE))		value with newlines
+# 2.  $(subst $(NL), ,$(VARIABLE))      value with spaces instead of newlines
+# 3.  echo $(VARIABLE)       		DOES NOT WORK
+# 4.  echo "$(VARIABLE)"     		DOES NOT WORK
+# 5.  echo $${VARIABLE}			like 4, with shell variable
+# 6.  echo "$${VARIABLE}"		like 1, with shell variable
+# 7.  echo "$${VARIABLE//$$'\n'/ }"	like 4, with shell variable
+#
+# Note that to be able to use $${VARIABLE}, there has to be a line with "export"
+# (without the quotes) in the Makefile.
+#
+# @1: Print the value as is; can't use in command because of the newlines
+# @2: The value with spaces instead of newlines; this assumes a definition of NL
+# as a newline (define <two empty lines> endef, see below)
+# @3: Error message because the newline is interpreted as the end of the command
+# @4: Error message for the same reasons (the "..." does not change this)
+# @5: Value with newlines replaced by spaces (echo just splits the value by
+# whitespace and then outputs the fields separated by spaces)
+# @6: Value with newlines intact
+# @7: Same output as 4, but by explicitly replacing each newline with a space
+# (note the // for replacing all occurrences and the $$ because $ has to be
+# escaped in a Makefile)
+#
+# TODO: How to assign a value of a Makefile variable with newlines to another
+# Makefile variable? The following does NOT work (because of the newline)
+#
+# QUERY = $(WARMUP_QUERY_1)
 
 
 # Do it all in one target (see text in echo commands).
@@ -164,12 +196,52 @@ count:
 clearcache:
 	curl -Gs $(API_WIKIDATA_TYPES) --data-urlencode "cmd=clearcachecomplete" > /dev/null
 
+# NOTE: Explanation of the $${!WARMUP_QUERY_VARIABLE//$$'\n'/ }
+#
+# 1. In bash, ${!X} says to consider the value of X as a variable name and take
+# its value; for example, WARMUP_QUERY_VARIABLE could be WARMUP_QUERY_1, and
+# its value is a SPARQL query.
+# 2. The // part replaces *each* newlines (with a single / it would be only the
+# first newline) by a space; note that $'\n' is the standard bash way to get a
+# newline character
+# 3. The $$ instead of $ are needed because $ has a special meaning in a
+# Makefile and needs to be escaped.
 warmup:
-	# docker exec -it qlever-ui bash -c "python manage.py warmup $(DB)"
-	curl -Gs $(API_WIKIDATA_TYPES) --data-urlencode "query=$$PREFIXES $(WARMUP_QUERY_1) LIMIT 0" --data-urlencode "pinresult=true" > /dev/null
-	curl -Gs $(API_WIKIDATA_TYPES) --data-urlencode "query=$$PREFIXES $(WARMUP_QUERY_2) LIMIT 0" --data-urlencode "pinresult=true" > /dev/null
-	curl -Gs $(API_WIKIDATA_TYPES) --data-urlencode "query=$$PREFIXES $(WARMUP_QUERY_3) LIMIT 0" --data-urlencode "pinresult=true" > /dev/null
+	@echo
+	@echo -e "\033[1mAC warmup queries\033[0m"
+	@docker exec -it qlever-ui bash -c "python manage.py warmup $(DB) pin"
+	@echo
+	@echo -e "\033[1mCustom warumup queries\033[0m"
+	@echo
+	@for I in $(shell seq 1 100); do \
+	  QUERY_VARIABLE=WARMUP_QUERY_$$I; \
+	  QUERY=$${!QUERY_VARIABLE//$$'\n'/ }; \
+	  if [ ! -z "$$QUERY" ]; then \
+	    echo "$$QUERY"; \
+	    $(MAKE) -s QUERY="$$QUERY" warmup.single-query; \
+	    printf "\033[34mResult size = %s\033[0m\n" \
+	      $$($(MAKE) -s API=$(API_WIKIDATA_TYPES) QUERY="$$QUERY" count | numfmt --grouping); \
+	    echo; fi; done
+
+warmup.single-query:
+	curl -Gs $(API_WIKIDATA_TYPES) \
+	  --data-urlencode "query=$$PREFIXES $$QUERY LIMIT 0" \
+	  --data-urlencode "pinresult=true"\
+	  > /dev/null
+
 	
+# Alternative way to get the value of a variable referenced by variable with
+# spaces instead of newlines.
+#
+# echo "$(shell echo "${$(WARMUP_QUERY_VARIABLE)}")"
+#
+# 1. The inner "..." are needed because $($(WARMUP_QUERY_VARIABLE)) can contain
+# symbols like ( or ) which are interpreted by the shell
+# 2. With just the "$($(WARMUP_QUERY_VARIABLE))", if there is a newline in the
+# query, this fails because there cannot be a newline within a "...". With the
+# $(shell echo ...) newlines are converted to spaces (TODO: explain why).
+# 3. The outer spaces are needed for the same reason as explained in 1: to avoid
+# interpretation of symbols like ( or )
 
 
 # Get the types for all entities as TTL
@@ -183,6 +255,12 @@ gettypes:
 	@head -1 $(ENTITY_TYPES_FILE) && tail -1 $(ENTITY_TYPES_FILE)
 	@echo
 
+
+
+define NL
+
+
+endef
 
 define PREFIXES
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -224,7 +302,9 @@ SELECT DISTINCT ?item ?type WHERE { {
 endef
 
 define WARMUP_QUERY_1
-SELECT ?s ?p ?o WHERE { { VALUES ?p { wdt:P31 } ?s ?p ?o } UNION { VALUES ?p { wdt:P279 } ?s ?p ?o } } ORDER BY ASC(?s)
+SELECT ?s ?p ?o WHERE
+{ { VALUES ?p { wdt:P31 } ?s ?p ?o } UNION { VALUES ?p { wdt:P279 } ?s ?p ?o } }
+ORDER BY ASC(?s)
 endef
 
 define WARMUP_QUERY_2
@@ -232,7 +312,39 @@ SELECT ?s ?o WHERE { ?s rdfs:label ?o }
 endef
 
 define WARMUP_QUERY_3
-SELECT ?s ?o WHERE { ?s wdt:P279+ ?o } ORDER BY ASC(?s)
+SELECT ?s ?o WHERE { ?s wikibase:sitelinks ?o }
+endef
+
+define WARMUP_QUERY_4
+SELECT ?s ?o WHERE { ?s wdt:P279+ ?o } ORDER BY ?s
+endef
+
+define WARMUP_QUERY_5
+SELECT ?s ?o WHERE { ?s wdt:P279+ ?o } ORDER BY ?s
+endef
+
+define WARMUP_QUERY_6
+SELECT ?s ?o WHERE { ?s wdt:P31 ?o } ORDER BY ?s
+endef
+
+define WARMUP_QUERY_7
+SELECT ?s ?o WHERE { ?s wdt:P31 ?o } ORDER BY ?o
+endef
+
+define WARMUP_QUERY_8
+SELECT ?s ?o WHERE { ?s wdt:P279 ?o } ORDER BY ?s
+endef
+
+define WARMUP_QUERY_9
+SELECT ?s ?o WHERE { ?s wdt:P279 ?o } ORDER BY ?o
+endef
+
+define WARMUP_QUERY_10
+SELECT ?s ?o WHERE { ?s wdt:P31|wdt:P279 ?o } ORDER BY ?s
+endef
+
+define WARMUP_QUERY_11
+SELECT ?s ?o WHERE { ?s wdt:P31|wdt:P279 ?o } ORDER BY ?o
 endef
 
 define ENTITY_NAME_AND_ALIAS_PATTERN
