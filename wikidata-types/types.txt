@@ -20,4 +20,4 @@ wd:Q4392985    # religious identity
 wd:Q1656682    # event
 wd:Q373899     # record chart
 wd:Q22222786   # government program
-wd:Q41710      # ethnic group
+wd:Q33829      # human population
