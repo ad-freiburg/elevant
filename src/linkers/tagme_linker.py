@@ -14,10 +14,8 @@ tagme.GCUBE_TOKEN = "56af583d-5f6e-496f-aea2-eab06673b6a3-843339462"
 class TagMeLinker(AbstractEntityLinker):
     NER_IDENTIFIER = LINKER_IDENTIFIER = "TAGME"
 
-    def __init__(self, rho_threshold: float = 0.2):
-        self.entity_db = EntityDatabase()
-        self.entity_db.load_mapping()
-        self.entity_db.load_redirects()
+    def __init__(self, entity_db: EntityDatabase, rho_threshold: float = 0.2):
+        self.entity_db = entity_db
         self.model = None
         self.rho_threshold = rho_threshold
 
@@ -29,6 +27,7 @@ class TagMeLinker(AbstractEntityLinker):
         annotations = sorted(annotations, key=lambda ann: ann.score, reverse=True)
         predictions = {}
         annotated_chars = np.zeros(shape=len(text), dtype=bool)
+        count = 0
         for ann in annotations:
             qid = self.entity_db.link2id(ann.entity_title)
             if qid is not None:
@@ -39,6 +38,11 @@ class TagMeLinker(AbstractEntityLinker):
                     if uppercase and snippet.islower():
                         continue
                     predictions[span] = EntityPrediction(span, qid, {qid})
+            else:
+                print("\nNo mapping to Wikidata found for label '%s'" % ann.entity_title)
+                count += 1
+        if count > 0:
+            print("\n%d entity labels could not be matched to any Wikidata id." % count)
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:

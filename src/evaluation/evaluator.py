@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
@@ -12,9 +12,13 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
 
 
-def load_evaluation_entities():
+def load_evaluation_entities(relevant_entity_ids: Set[str]):
     entity_db = EntityDatabase()
-    entity_db.load_entities_big()
+    mapping = EntityDatabaseReader.get_mapping()
+    mapping_entity_ids = set(mapping.values())
+    relevant_entity_ids.update(mapping_entity_ids)
+    del mapping_entity_ids
+    entity_db.load_entities(relevant_entity_ids)
     entity_db.load_mapping()
     entity_db.load_redirects()
     entity_db.load_sitelink_counts()
@@ -32,17 +36,14 @@ EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "prono
 
 class Evaluator:
     def __init__(self,
-                 id_to_type,
-                 id_to_name,
+                 relevant_entity_ids,
                  load_data: bool = True,
                  coreference: bool = True):
-        self.id_to_type = id_to_type
-        self.id_to_name = id_to_name
         self.type_id_to_label = EntityDatabaseReader.read_whitelist_types()
         self.all_cases = []
         if load_data:
-            self.entity_db = load_evaluation_entities()
-        self.case_generator = CaseGenerator(self.entity_db, id_to_type)
+            self.entity_db = load_evaluation_entities(relevant_entity_ids)
+        self.case_generator = CaseGenerator(self.entity_db)
         self.data_loaded = load_data
         self.coreference = coreference
         self.counts = {}
@@ -87,7 +88,8 @@ class Evaluator:
     def count_mention_type_case(self, case: Case):
         key = case.mention_type.value.lower()
         # Disregard child labels for TP and FN (case.is_correct() is also true if all child labels are linked correctly)
-        if case.is_correct() and not case.is_optional() and not case.true_entity.parent:
+        # Parent could be 0 so check explicitly if parent is None.
+        if case.is_correct() and not case.is_optional() and case.true_entity.parent is None:
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
 
@@ -104,7 +106,7 @@ class Evaluator:
                     self.type_counts[tk]["tp"] += 1
 
         else:
-            if case.is_false_positive() and not case.is_true_quantity_or_datetime():
+            if case.is_false_positive() and not case.is_true_quantity_or_datetime() and case.factor != 0:
                 self.counts["all"]["fp"] += 1
                 self.counts[key]["fp"] += 1
 
@@ -115,15 +117,15 @@ class Evaluator:
                     self.counts["coreference"]["fp"] += 1
                 else:
                     pred_entity_id = case.predicted_entity.entity_id
-                    if pred_entity_id in self.id_to_type:
-                        type_ids = self.id_to_type[pred_entity_id]
+                    if self.entity_db.contains_entity(pred_entity_id):
+                        type_ids = self.entity_db.get_entity(pred_entity_id).type.split("|")
                     else:
                         type_ids = [GroundtruthLabel.OTHER]
                     type_keys = self.get_type_keys(type_ids)
                     for tk in type_keys:
                         self.type_counts[tk]["fp"] += 1
 
-            if case.is_false_negative() and not case.is_optional() and not case.true_entity.parent:
+            if case.is_false_negative() and not case.is_optional() and case.true_entity.parent is None:
                 self.counts["all"]["fn"] += 1
                 self.counts[key]["fn"] += 1
 
@@ -160,7 +162,7 @@ class Evaluator:
 
         cases = self.case_generator.get_evaluation_cases(article, coref_ground_truth)
 
-        label_errors(article, cases, self.entity_db, self.id_to_type)
+        label_errors(article, cases, self.entity_db)
 
         return cases
 
@@ -178,6 +180,7 @@ class Evaluator:
             category: create_f1_dict_from_counts(self.counts[category]) for category in EVALUATION_CATEGORIES
         }
         results_dict["errors"] = {
+            # DETECTION
             "undetected": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED],
                 "total": results_dict["NER"]["ground_truth"]
@@ -186,42 +189,50 @@ class Evaluator:
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_LOWERCASE],
                 "total": self.n_named_lowercase
             },
-            "specificity": {
+            "undetected_specificity": {
                 "errors": self.error_counts[ErrorLabel.SPECIFICITY],
                 "total": self.n_named_contains_space
             },
-            "rare": {
-                "errors": self.error_counts[ErrorLabel.RARE],
+            "undetected_other": self.error_counts[ErrorLabel.UNDETECTED_OTHER],
+            # DISAMBIGUATION
+            "disambiguation": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION],
                 "total": self.counts["NER"]["tp"]
             },
-            "rare_new": {
-                "errors": self.error_counts[ErrorLabel.RARE_WRONG],
-                "total": self.error_counts[ErrorLabel.RARE_CORRECT] +
-                         self.error_counts[ErrorLabel.RARE_WRONG]
-            },
-            "demonym": {
+            "disambiguation_demonym": {
                 "errors": self.error_counts[ErrorLabel.DEMONYM_WRONG],
                 "total": self.error_counts[ErrorLabel.DEMONYM_CORRECT] +
                          self.error_counts[ErrorLabel.DEMONYM_WRONG]
             },
-            "partial_name": {
+            "disambiguation_metonymy": {
+                "errors": self.error_counts[ErrorLabel.METONYMY_WRONG],
+                "total": self.error_counts[ErrorLabel.METONYMY_CORRECT] +
+                         self.error_counts[ErrorLabel.METONYMY_WRONG]
+            },
+            "disambiguation_partial_name": {
                 "errors": self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG],
                 "total": self.error_counts[ErrorLabel.PARTIAL_NAME_CORRECT] +
                          self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG]
+            },
+            "disambiguation_rare": {
+                "errors": self.error_counts[ErrorLabel.RARE_WRONG],
+                "total": self.error_counts[ErrorLabel.RARE_CORRECT] +
+                         self.error_counts[ErrorLabel.RARE_WRONG]
+            },
+            "disambiguation_other": self.error_counts[ErrorLabel.DISAMBIGUATION_OTHER],
+            # FALSE POSITIVES
+            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
+            "unknown_named_entity": self.error_counts[ErrorLabel.UNKNOWN_NAMED_ENTITY],
+            # OTHER
+            "span_wrong": {
+                "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
+                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
             },
             "hyperlink": {
                 "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
                 "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
                          self.error_counts[ErrorLabel.HYPERLINK_WRONG]
             },
-            "span_wrong": {
-                "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
-                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
-            },
-            "metonymy": self.error_counts[ErrorLabel.METONYMY],
-            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
-            "unknown_person": self.error_counts[ErrorLabel.UNKNOWN_PERSON],
-            "unknown_named_entity": self.error_counts[ErrorLabel.UNKNOWN_NAMED_ENTITY]
         }
         if not self.has_candidates:
             results_dict["errors"]["wrong_candidates"] = None
@@ -232,7 +243,7 @@ class Evaluator:
                 "total": self.counts["NER"]["tp"]
             }
             results_dict["errors"]["multi_candidates"] = {
-                "wrong": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
+                "errors": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
                 "total": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG] +
                          self.error_counts[ErrorLabel.MULTI_CANDIDATES_CORRECT]
             }

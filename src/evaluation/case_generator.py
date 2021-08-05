@@ -37,9 +37,8 @@ def word_boundary(span: Tuple[int, int], text: str) -> Tuple[int, int]:
 
 
 class CaseGenerator:
-    def __init__(self, entity_db: EntityDatabase, id_to_type):
+    def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
-        self.id_to_type = id_to_type
         self.article = None
         self.coref_ground_truth = None
         self.label_dict = None
@@ -56,8 +55,8 @@ class CaseGenerator:
             entity_type = GroundtruthLabel.QUANTITY
         elif self.entity_db.is_datetime(entity_id):
             entity_type = GroundtruthLabel.DATETIME
-        elif entity_id in self.id_to_type:
-            type_ids = self.id_to_type[entity_id]
+        elif self.entity_db.contains_entity(entity_id):
+            type_ids = self.entity_db.get_entity(entity_id).type.split("|")
             entity_type = "|".join(type_ids)
         return entity_type
 
@@ -83,8 +82,8 @@ class CaseGenerator:
         for gt_label in article.labels:
             self.label_dict[gt_label.id] = gt_label
 
-        root_gt_labels = sorted([label for label in article.labels if not label.parent])
-        child_gt_labels = sorted([label for label in article.labels if label.parent])
+        root_gt_labels = sorted([label for label in article.labels if label.parent is None])
+        child_gt_labels = sorted([label for label in article.labels if label.parent is not None])
 
         self.factor_dict = dict()
 
@@ -139,7 +138,7 @@ class CaseGenerator:
             # If gt_label is parent of a child label that was detected, don't count parent label -> factor = 0
             children_correctly_linked = None
             children_correctly_detected = None
-            if not gt_label.parent:
+            if gt_label.parent is None:
                 children_correctly_linked = self.recursively_check_children_correctly_linked(gt_label.id)
                 children_correctly_detected = self.recursively_check_children_correctly_detected(gt_label.id)
                 factor = self.recursively_determine_factor(gt_label.id)
@@ -382,7 +381,7 @@ class CaseGenerator:
             for child_id in label.children:
                 biggest_child_factor = max(biggest_child_factor, self.recursively_determine_factor(child_id))
 
-        if not label.parent:
+        if label.parent is None:
             # We are at the root node. Iff none of the children were detected, show the root node
             factor = 1 if biggest_child_factor == 0 else 0
             self.factor_dict[label_id] = factor
