@@ -38,6 +38,27 @@ For a set of ground truth annotations G and a set of predicted links S, fuzzy re
 They find that the results distinguish the systems that link common entities (Babelfy (relaxed) and TagME) from those that do not.
 The systems that link common entities outperform other systems when the definition of EL annotations is relaxed and perform worse for stricter definitions of EL annotations.
 
+
+### Evaluating Entity Linking: An Analysis of Current Benchmark Datasets and a Roadmap for Doing a Better Job
+*van Erp et al., 2016*
+
+**Paper:** <http://giusepperizzo.github.io/publications/vanErp_Rizzo-LREC2016.pdf>
+
+**Objective:**
+Evaluate current entity linking benchmarks, analyze their strenghts and weaknesses and derive suggestions for how to create better benchmarks.
+
+van Erp et al. analyze 6 different EL benchmarks, but only AIDA-YAGO seems to be frequently used in the EL community.
+They collect and compare entity-mention characteristics like entity overlap (between datasets), confusability (~ number of possible candidates for a mention), prominence, dominance (~ probability of an entity given a mention) and entity types.
+They argue that on benchmarks with low confusability, high prominence and high dominance, simple popularity-based benchmark systems can already achieve high accuracies.
+Regarding entity types they argue that country and company names are typically unique, while this is less often the case for names of cities or persons.
+They therefore expect the entity type distribution to directly impact the difficulty of a benchmark.
+In accordance to our findings they also report that AIDA-YAGO has a strong emphasis on sports related entities such as athletes or sports teams.
+They further collect mention-annotation characteristics like mention boundaries (inclusion of determiners "the", ...), handling redundancy (annotating only the first or all occurrences of an entity), inter-annotation agreement, mention ambiguity, ..., nested entiites.
+Their suggestions for how to create better benchmarks are rather sparse.
+They suggest to focus on documentation (which decisions were made in the process of creating the dataset, e.g. initial offset count 0 or 1), standard formats (or scripts that allow the user to transform a benchmark into a standardized format) and diversity (high confusibility, low prominence, low dominance benchmarks with texts from different domains). 
+
+
+
 ### Evaluating Entity Linking with Wikipedia
 *Hachey et al., 2013*
 
