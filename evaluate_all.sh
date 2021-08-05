@@ -4,9 +4,9 @@ for d in whitelist_benchmark_results/*/*.jsonl ; do
        # This is not an else branch to make it easier to only execute this branch.
        python3 evaluate_linked_entities.py "$d" -b ours
     elif [ "${d: -9}" == "ace.jsonl" ]; then
-        python3 evaluate_linked_entities.py "$d" -b ace
+        python3 evaluate_linked_entities.py "$d" -b ace --no-unknowns
     elif [ "${d: -11}" == "msnbc.jsonl" ]; then
-        python3 evaluate_linked_entities.py "$d" -b msnbc
+        python3 evaluate_linked_entities.py "$d" -b msnbc --no-unknowns
     elif [ "${d: -16}" == "conll-test.jsonl" ]; then
         python3 evaluate_linked_entities.py "$d" -b conll-test
     elif [ "${d: -15}" == "conll-dev.jsonl" ]; then

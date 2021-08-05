@@ -81,10 +81,11 @@ class EntityDatabase:
         for entity in entities.values():
             self.add_entity(entity)
 
-    def load_entities(self, entity_ids: Set[str], minimum_score: int = 0):
-        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, minimum_score)
+    def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: int = 0):
+        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids)
         for entity in entities.values():
-            self.add_entity(entity)
+            if self.get_sitelink_count(entity.entity_id) >= minimum_sitelink_count:
+                self.add_entity(entity)
 
     def size_entities(self) -> int:
         return len(self.entities)

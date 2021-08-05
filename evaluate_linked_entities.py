@@ -37,12 +37,13 @@ def main(args):
 
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
-        evaluator = Evaluator(relevant_entity_ids, load_data=False, coreference=not args.no_coreference)
+        evaluator = Evaluator(relevant_entity_ids, load_data=False, coreference=not args.no_coreference,
+                              contains_unknowns=not args.no_unknowns)
     else:
+        print("load evaluation entities...")
+        evaluator = Evaluator(relevant_entity_ids, load_data=True, contains_unknowns=not args.no_unknowns)
         output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
         output_file = open(output_filename, 'w', encoding='utf8')
-        print("load evaluation entities...")
-        evaluator = Evaluator(relevant_entity_ids, load_data=True)
     results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
 
     example_iterator = None
@@ -100,5 +101,8 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=None,
                         help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
                              "retrieved from the given jsonl file")
+    parser.add_argument("--no-unknowns", action="store_true",
+                        help="Set if the benchmark contains no 'unknown' labels. "
+                             "Uppercase false detections will be treated as 'unknown named entity' errors.")
 
     main(parser.parse_args())

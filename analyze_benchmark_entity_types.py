@@ -6,7 +6,8 @@ from src.models.wikipedia_article import article_from_json
 
 
 if __name__ == "__main__":
-    in_file = "benchmark/%s_annotated.txt" % sys.argv[1]
+    benchmark_name = sys.argv[1]
+    in_file = "benchmarks/benchmark_labels_%s.jsonl" % benchmark_name
 
     # read whitelist
     whitelist = EntityDatabaseReader.read_whitelist_types()
@@ -28,8 +29,8 @@ if __name__ == "__main__":
         if entity_id in entity_ids:
             entity_names[entity_id] = name
 
-    labels_tsv_file = in_file.split("_")[0] + ".labels.tsv"
-    types_json_file = in_file.split("_")[0] + ".types.json"
+    labels_tsv_file = "benchmarks/" + benchmark_name + ".labels.tsv"
+    types_json_file = "benchmarks/" + benchmark_name + ".types.json"
     labels_tsv_file = open(labels_tsv_file, "w", encoding="utf8")
 
     print(len(articles))

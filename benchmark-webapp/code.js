@@ -1,6 +1,6 @@
 $("document").ready(function() {
     console.log("document ready");
-    benchmarks = ["ours", "conll"];
+    benchmarks = ["ours", "conll", "conll-dev", "conll-test", "msnbc", "ace"];
     whitelist = {
         Q18336849: "item with given name property",
         Q27096213: "geographic entity",
@@ -52,7 +52,7 @@ function set_table_body() {
     statistics = {};
     benchmarks.forEach(function(benchmark) {
         console.log(benchmark);
-        $.get("benchmark/" + benchmark + ".types.json", function(data) {
+        $.get("benchmarks/" + benchmark + ".types.json", function(data) {
             console.log(data);
             statistics[benchmark] = data;
             console.log(statistics);
@@ -122,7 +122,7 @@ function show_entity_table() {
     tbody = document.getElementById("entities_table_body");
     tbody.innerHTML = "";
     html_text = "";
-    $.get("benchmark/" + benchmark + ".labels.tsv", function(data) {
+    $.get("benchmarks/" + benchmark + ".labels.tsv", function(data) {
         lines = data.split("\n");
         for (let i = 0; i < lines.length; i++) {
             line = lines[i];

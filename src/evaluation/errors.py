@@ -1,4 +1,4 @@
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Optional
 
 from itertools import chain
 
@@ -12,7 +12,8 @@ from src.models.wikipedia_article import WikipediaArticle
 
 def label_errors(article: WikipediaArticle,
                  cases: List[Case],
-                 entity_db: EntityDatabase):
+                 entity_db: EntityDatabase,
+                 contains_unknowns: bool):
     text = article.text
     unknown_ground_truth_spans = {case.span for case in cases if case.has_ground_truth()
                                   and not case.is_known_entity()}
@@ -20,7 +21,7 @@ def label_errors(article: WikipediaArticle,
     label_undetected_errors(cases)
     label_correct(cases, entity_db)
     label_disambiguation_errors(cases, entity_db)
-    label_false_positives(cases, unknown_ground_truth_spans)
+    label_false_detections(cases, unknown_ground_truth_spans, contains_unknowns)
     label_nonentity_coreference_errors(text, cases)
     label_candidate_errors(cases)
     label_multi_candidates(cases)
@@ -30,12 +31,18 @@ def label_errors(article: WikipediaArticle,
 
 
 def is_subspan(span, subspan):
+    """
+    Check if subspan is contained in span.
+    """
     if span[0] == subspan[0] and span[1] == subspan[1]:
         return False
     return span[0] <= subspan[0] and span[1] >= subspan[1]
 
 
 def is_specificity_error(case: Case, false_positive_spans: List[Tuple[int, int]]):
+    """
+    A false positive span is subspan of the ground truth span.
+    """
     for fp_span in false_positive_spans:
         if is_subspan(case.span, fp_span):
             return True
@@ -43,6 +50,13 @@ def is_specificity_error(case: Case, false_positive_spans: List[Tuple[int, int]]
 
 
 def label_undetected_errors(cases: List[Case]):
+    """
+    Label undetected mentions as undetected and one of:
+    - undetected lowercase
+    - specificity
+    - undetected overlap
+    - undetected other
+    """
     false_positive_spans = [case.span for case in cases if case.is_false_positive()]
     for case in cases:
         if case.is_named() and case.is_false_negative() and case.predicted_entity is None:
@@ -51,6 +65,8 @@ def label_undetected_errors(cases: List[Case]):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
             elif is_specificity_error(case, false_positive_spans):
                 case.add_error_label(ErrorLabel.SPECIFICITY)
+            elif overlaps_any(case.span, false_positive_spans):
+                case.add_error_label(ErrorLabel.UNDETECTED_OVERLAP)
             else:
                 case.add_error_label(ErrorLabel.UNDETECTED_OTHER)
 
@@ -59,6 +75,9 @@ DEMONYM_TYPES = {"Q27096213", "Q41710", "Q17376908"}
 
 
 def is_demonym(case: Case, entity_db: EntityDatabase):
+    """
+    Mention is contained in the list of demonyms and ground truth type is location, ethnicity or languoid.
+    """
     if not entity_db.is_demonym(case.text):
         return False
     types = set(case.true_entity.type.split("|"))
@@ -66,21 +85,29 @@ def is_demonym(case: Case, entity_db: EntityDatabase):
 
 
 def is_partial_name(case: Case):
+    """
+    The ground truth entity name is a multi word, and the mention is contained in it.
+    """
     name = case.true_entity.name
     return " " in name and len(case.text) < len(name) and case.text in name
 
 
 def is_rare_case(case: Case, entity_db: EntityDatabase):
-    if entity_db.contains_alias(case.text):
-        candidates = entity_db.get_candidates(case.text)
-        true_popularity = entity_db.get_sitelink_count(case.true_entity.entity_id)
-        for candidate in candidates:
-            if entity_db.get_sitelink_count(candidate) > true_popularity:
-                return True
-    return False
+    """
+    The most popular candidate is not the ground truth entity.
+    """
+    most_popular_candidate = get_most_popular_candidate(entity_db, case.text)
+    return most_popular_candidate and case.true_entity.entity_id != most_popular_candidate
 
 
 def label_correct(cases: List[Case], entity_db: EntityDatabase):
+    """
+    Label correct predictions with one of (or no label):
+    - demonym correct
+    - metonymy correct
+    - partial name correct
+    - rare correct
+    """
     for case in cases:
         if case.is_named() and case.is_correct():
             if is_demonym(case, entity_db):
@@ -98,37 +125,76 @@ PERSON_TYPE_QID = "Q18336849"
 ETHNICITY_TYPE_ID = "Q41710"
 
 
+def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Optional[str]:
+    """
+    Returns the entity ID of the most popular candidate for the given alias, or None if no candidate exists.
+    """
+    candidates = entity_db.get_candidates(alias)
+    if len(candidates) == 0:
+        return None
+    _, most_popular_candidate = max((entity_db.get_sitelink_count(c), c) for c in candidates)
+    return most_popular_candidate
+
+
 def is_location_alias(text: str, entity_db: EntityDatabase):
-    candidates = entity_db.get_candidates(text)
-    for candidate in candidates:
-        candidate_entity = entity_db.get_entity(candidate)
-        types = []
-        if candidate_entity:
-            types = candidate_entity.type.split("|")
-        if LOCATION_TYPE_ID in types:
-            return True
-    return False
+    """
+    The most popular candidate is a location.
+    """
+    most_popular_candidate = get_most_popular_candidate(entity_db, text)
+    if not most_popular_candidate:
+        return False
+    most_popular_entity = entity_db.get_entity(most_popular_candidate)
+    types = most_popular_entity.type.split("|")
+    return LOCATION_TYPE_ID in types
 
 
 def is_metonymy(case: Case, entity_db: EntityDatabase):
+    """
+    The most popular candidate is a location, and the ground truth is neither a location, person nor ethnicity.
+    """
     true_types = case.true_entity.type.split("|")
     if LOCATION_TYPE_ID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_ID in true_types :
         return False
-    return is_location_alias(case.text, entity_db)
+    most_popular_candidate = get_most_popular_candidate(entity_db, case.text)
+    if not most_popular_candidate:
+        return False
+    most_popular_entity = entity_db.get_entity(most_popular_candidate)
+    most_popular_types = most_popular_entity.type.split("|")
+    return LOCATION_TYPE_ID in most_popular_types
+
+
+def is_metonymy_error(case: Case, entity_db: EntityDatabase):
+    """
+    Same as is_metonymy(), and the predicted entity is a location.
+    """
+    if not is_metonymy(case, entity_db):
+        return False
+    predicted_types = case.predicted_entity.type.split("|")
+    return LOCATION_TYPE_ID in predicted_types
 
 
 def label_disambiguation_errors(cases: List[Case],
                                 entity_db: EntityDatabase):
+    """
+    Mention was detected, but linked to the wrong entity.
+    Cases get labeled with disambiguation errors, and one of the following:
+    - demonym wrong
+    - metonymy wrong
+    - partial name wrong
+    - rare wrong
+    - disambiguation other
+    """
     for case in cases:
         if case.is_named() and case.is_false_negative() and case.is_false_positive():
             case.add_error_label(ErrorLabel.DISAMBIGUATION)
             if is_demonym(case, entity_db):
                 case.add_error_label(ErrorLabel.DEMONYM_WRONG)
-            elif is_metonymy(case, entity_db):
+            elif is_metonymy_error(case, entity_db):
                 case.add_error_label(ErrorLabel.METONYMY_WRONG)
             elif is_partial_name(case):
                 case.add_error_label(ErrorLabel.PARTIAL_NAME_WRONG)
-            elif is_rare_case(case, entity_db):
+            elif is_rare_case(case, entity_db) and \
+                    case.predicted_entity.entity_id == get_most_popular_candidate(entity_db, case.text):
                 case.add_error_label(ErrorLabel.RARE_WRONG)
             else:
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_OTHER)
@@ -164,8 +230,18 @@ def label_multi_candidates(cases: List[Case]):
                 case.add_error_label(ErrorLabel.MULTI_CANDIDATES_WRONG)
 
 
-def overlaps(span1, span2):
+def overlaps(span1: Tuple[int, int], span2: Tuple[int, int]):
     return not (span1[0] >= span2[1] or span2[0] >= span1[1])
+
+
+def overlaps_any(span: Tuple[int, int], spans: List[Tuple[int, int]]):
+    """
+    Span overlaps with any of the spans.
+    """
+    for other in spans:
+        if overlaps(span, other):
+            return True
+    return False
 
 
 def contains_uppercase_word(text: str):
@@ -175,10 +251,23 @@ def contains_uppercase_word(text: str):
     return False
 
 
-def label_false_positives(cases: List[Case], unknown_ground_truth_spans: Set[Tuple[int, int]]):
+def label_false_detections(cases: List[Case],
+                           unknown_ground_truth_spans: Set[Tuple[int, int]],
+                           contains_unknwons: bool):
+    """
+    Labels false positives with false positive and one of the following:
+    - abstraction
+    - unknown named entity
+    - false positive other
+
+    If contains_unknowns is true, unknown named entity is labeled when the ground truth is 'Unknown'.
+    Otherwise, it is also labeled when the mention does not overlap with any ground truth (because unknown labels can
+    be missing, e.g. in the MSNBC and ACE benchmarks).
+    """
     ground_truth_spans = [case.span for case in cases if case.has_ground_truth()]
     for case in cases:
-        if case.is_named() and case.is_false_positive():
+        if case.is_named() and case.is_false_positive() and not case.is_known_entity():
+            case.add_error_label(ErrorLabel.FALSE_DETECTION)
             overlap = False
             for gt_span in chain(ground_truth_spans, unknown_ground_truth_spans):
                 if overlaps(case.span, gt_span):
@@ -187,8 +276,11 @@ def label_false_positives(cases: List[Case], unknown_ground_truth_spans: Set[Tup
             contains_upper = contains_uppercase_word(case.text)
             if not overlap and not contains_upper:
                 case.add_error_label(ErrorLabel.ABSTRACTION)
-            elif contains_upper and (not overlap or case.span in unknown_ground_truth_spans):
+            elif contains_upper and \
+                    ((not overlap and not contains_unknwons) or case.span in unknown_ground_truth_spans):
                 case.add_error_label(ErrorLabel.UNKNOWN_NAMED_ENTITY)
+            else:
+                case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER)
 
 
 def label_hyperlink_errors(article: WikipediaArticle, cases: List[Case]):

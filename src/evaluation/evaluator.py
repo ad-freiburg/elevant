@@ -17,11 +17,10 @@ def load_evaluation_entities(relevant_entity_ids: Set[str]):
     mapping = EntityDatabaseReader.get_mapping()
     mapping_entity_ids = set(mapping.values())
     relevant_entity_ids.update(mapping_entity_ids)
-    del mapping_entity_ids
+    entity_db.load_sitelink_counts()
     entity_db.load_entities(relevant_entity_ids)
     entity_db.load_mapping()
     entity_db.load_redirects()
-    entity_db.load_sitelink_counts()
     entity_db.load_demonyms()
     entity_db.load_quantities()
     entity_db.load_datetimes()
@@ -38,7 +37,8 @@ class Evaluator:
     def __init__(self,
                  relevant_entity_ids,
                  load_data: bool = True,
-                 coreference: bool = True):
+                 coreference: bool = True,
+                 contains_unknowns : bool = True):
         self.type_id_to_label = EntityDatabaseReader.read_whitelist_types()
         self.all_cases = []
         if load_data:
@@ -46,6 +46,7 @@ class Evaluator:
         self.case_generator = CaseGenerator(self.entity_db)
         self.data_loaded = load_data
         self.coreference = coreference
+        self.contains_unknowns = contains_unknowns
         self.counts = {}
         for key in EVALUATION_CATEGORIES:
             self.counts[key] = {"tp": 0, "fp": 0, "fn": 0}
@@ -162,7 +163,7 @@ class Evaluator:
 
         cases = self.case_generator.get_evaluation_cases(article, coref_ground_truth)
 
-        label_errors(article, cases, self.entity_db)
+        label_errors(article, cases, self.entity_db, contains_unknowns=self.contains_unknowns)
 
         return cases
 
@@ -193,7 +194,14 @@ class Evaluator:
                 "errors": self.error_counts[ErrorLabel.SPECIFICITY],
                 "total": self.n_named_contains_space
             },
-            "undetected_other": self.error_counts[ErrorLabel.UNDETECTED_OTHER],
+            "undetected_overlap": {
+                "errors": self.error_counts[ErrorLabel.UNDETECTED_OVERLAP],
+                "total": results_dict["NER"]["ground_truth"] - self.n_named_lowercase
+            },
+            "undetected_other": {
+                "errors": self.error_counts[ErrorLabel.UNDETECTED_OTHER],
+                "total": results_dict["NER"]["ground_truth"] - self.n_named_lowercase
+            },
             # DISAMBIGUATION
             "disambiguation": {
                 "errors": self.error_counts[ErrorLabel.DISAMBIGUATION],
@@ -220,9 +228,11 @@ class Evaluator:
                          self.error_counts[ErrorLabel.RARE_WRONG]
             },
             "disambiguation_other": self.error_counts[ErrorLabel.DISAMBIGUATION_OTHER],
-            # FALSE POSITIVES
+            # FALSE DETECTION
+            "false_detection": self.error_counts[ErrorLabel.FALSE_DETECTION],
             "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
             "unknown_named_entity": self.error_counts[ErrorLabel.UNKNOWN_NAMED_ENTITY],
+            "false_detection_other": self.error_counts[ErrorLabel.FALSE_DETECTION_OTHER],
             # OTHER
             "span_wrong": {
                 "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
