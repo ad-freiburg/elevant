@@ -31,6 +31,9 @@ async function buildGraph(entity_iri) {
 // Obtain graph for given IRI (QLever query + turn result into graph).
 async function getGraphFromQlever(entity_iri) {
   // URL for QLever query (for now: fixed subject Q937 = Albert Einstein).
+  const subclass_only = false;
+  var predicate_path = subclass_only ? "wdt:P279+" : "wdt:P31/wdt:P279*"; 
+  var first_predicate = subclass_only ? "wdt:P279" : "wdt:P31";
   var sparql_query = 
     "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>" +
     "PREFIX wikibase: <http://wikiba.se/ontology#>" +
@@ -41,9 +44,9 @@ async function getGraphFromQlever(entity_iri) {
     "  ?o wikibase:sitelinks ?o_score ." +
     "  ?s rdfs:label ?s_name ." +
     "  ?o rdfs:label ?o_name ." +
-    "  { VALUES ?s { " + entity_iri + " } VALUES ?p { wdt:P31 } ?s ?p ?o }" +
+    "  { VALUES ?s { " + entity_iri + " } VALUES ?p { " + first_predicate + " } ?s ?p ?o }" +
     "  UNION" +
-    "  { " + entity_iri + " wdt:P31/wdt:P279* ?s . VALUES ?p { wdt:P279 } ?s ?p ?o }" +
+    "  { " + entity_iri + " " + predicate_path + " ?s . VALUES ?p { wdt:P279 } ?s ?p ?o }" +
     "}" +
     "ORDER BY DESC(?s_score)";
   var url = sparql_endpoint_url + "?query=" + encodeURIComponent(sparql_query);
@@ -97,7 +100,7 @@ function drawGraph(data) {
 
   // Setup D3 (remove all from previous).
   var svg = d3.select("#graph");
-  svg.selectAll("g").remove();
+  svg.selectAll("*").remove();
   svg.attr("width", div_width);
   svg.attr("height", div_height);
   var width = +svg.attr("width");
@@ -110,7 +113,7 @@ function drawGraph(data) {
                // .scaleExtent([1, 3])
                // .translateExtent([[-0.5 * width, -0.5 * height],
 	       // 	           [+1.5 * width, +1.5 * height]])
-               .on("zoom", event => svg.attr("transform", event.transform));
+               .on("zoom", event => svg.selectAll("g").attr("transform", event.transform));
   svg.call(zoom);
 
   // Clipping.
@@ -123,7 +126,7 @@ function drawGraph(data) {
   var node_radius = score => 7 + Math.log(1 + score);
   var node_border = 3;
   var node_density = Math.sqrt(data.nodes.length / (width * height));
-  var node_charge = -0.3 / node_density;  // For force-based graph layout.
+  var node_charge = -0.9 / node_density;  // For force-based graph layout.
   var node_dist = 50;
   var edge_width = 1;
   var label_font_size = 12;
@@ -383,7 +386,9 @@ function autocomplete(input_field) {
 	    // of autocompleted values.
 	    closeAllLists();
 	    // Extract entity IRI and call graph builder.
-	    const entity_iri = "wd:" + input_field.value.match(/\((Q\d+)\)/)[1];
+	    const entity_id = input_field.value.match(/\((Q\d+)\)/)[1];
+	    const entity_iri = "wd:" + entity_id;
+	    window.location.hash = "#" + entity_id;
 	    buildGraph(entity_iri);
           });
           a.appendChild(b);
