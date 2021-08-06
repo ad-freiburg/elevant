@@ -6,7 +6,13 @@
     <script src="graph.js"></script>
   </head>
   <body>
-    <h1>Show RDF subgraph</title>
-    <svg id="graph" height="500" width="600"></svg>
+    <h2 id="title">Show Wikidata Types subgraph</h2>
+    <div class="autocomplete" style="width:300px;">
+      <input id="entity_input" size="20" type="text" placeholder="Search for Wikidata entity">
+    </div>
+    <p>Showing the connected component when considering only predicates wdt:P31 (edges in red) and wdt:P279 (edges in blue); on our corrected versions of these predicates.</p>
+    <div id="graph_div">
+      <svg id="graph"></svg>
+    </div>
   </body>
 </html>
