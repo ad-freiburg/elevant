@@ -17,8 +17,8 @@ API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 CORRECTIONS_FILE = corrections.txt
 TYPES_FILE = types.txt
 ENTITY_TYPES_FILE = entity-types.ttl
-DATA_QUERY_NAMES = P279 P31
-# DATA_QUERY_NAMES = P279 P31 LABEL SITELINKS
+# DATA_QUERY_NAMES = P279 P31
+DATA_QUERY_NAMES = P279 P31 LABEL SITELINKS
 
 BATCH_SIZE = 10000000
 MAX_RESULT_SIZE = $(shell echo "200 * $(BATCH_SIZE)" | bc)
@@ -70,10 +70,11 @@ all:
 	@echo "[index]    Build index from resulting file $(DB).ttl"
 	@echo "[start]    Start backend for that index on port $(PORT)"
 	@echo "[wait]     Wait for the backend to be up"
+	@echo "[warmup]   Launch warmup queries"
 	@echo "[gettypes] Launch the entity-types query, write result to $(ENTITY_TYPES_FILE)"
 	@echo
 	@SECONDS=0; \
-	  $(MAKE) -s getdata ttl index start wait gettypes; \
+	  $(MAKE) -s getdata ttl index start wait warmup gettypes; \
 	  echo; echo "Total time needed: $$(($$SECONDS / 60)) min"
 	@echo
 
