@@ -308,15 +308,15 @@ ORDER BY ASC(?s)
 endef
 
 define WARMUP_QUERY_2
-SELECT ?s ?o WHERE { ?s rdfs:label ?o }
+SELECT ?s ?o WHERE { ?s rdfs:label ?o } ORDER BY ?s
 endef
 
 define WARMUP_QUERY_3
-SELECT ?s ?o WHERE { ?s wikibase:sitelinks ?o }
+SELECT ?s ?o WHERE { ?s rdfs:label ?o } ORDER BY ?o
 endef
 
 define WARMUP_QUERY_4
-SELECT ?s ?o WHERE { ?s wdt:P279+ ?o } ORDER BY ?s
+SELECT ?s ?o WHERE { ?s wikibase:sitelinks ?o } ORDER BY ?s
 endef
 
 define WARMUP_QUERY_5
@@ -324,26 +324,30 @@ SELECT ?s ?o WHERE { ?s wdt:P279+ ?o } ORDER BY ?s
 endef
 
 define WARMUP_QUERY_6
-SELECT ?s ?o WHERE { ?s wdt:P31 ?o } ORDER BY ?s
+SELECT ?s ?o WHERE { ?s wdt:P279+ ?o } ORDER BY ?s
 endef
 
 define WARMUP_QUERY_7
-SELECT ?s ?o WHERE { ?s wdt:P31 ?o } ORDER BY ?o
+SELECT ?s ?o WHERE { ?s wdt:P31 ?o } ORDER BY ?s
 endef
 
 define WARMUP_QUERY_8
-SELECT ?s ?o WHERE { ?s wdt:P279 ?o } ORDER BY ?s
+SELECT ?s ?o WHERE { ?s wdt:P31 ?o } ORDER BY ?o
 endef
 
 define WARMUP_QUERY_9
-SELECT ?s ?o WHERE { ?s wdt:P279 ?o } ORDER BY ?o
+SELECT ?s ?o WHERE { ?s wdt:P279 ?o } ORDER BY ?s
 endef
 
 define WARMUP_QUERY_10
-SELECT ?s ?o WHERE { ?s wdt:P31|wdt:P279 ?o } ORDER BY ?s
+SELECT ?s ?o WHERE { ?s wdt:P279 ?o } ORDER BY ?o
 endef
 
 define WARMUP_QUERY_11
+SELECT ?s ?o WHERE { ?s wdt:P31|wdt:P279 ?o } ORDER BY ?s
+endef
+
+define WARMUP_QUERY_12
 SELECT ?s ?o WHERE { ?s wdt:P31|wdt:P279 ?o } ORDER BY ?o
 endef
 
