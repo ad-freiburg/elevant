@@ -1,3 +1,8 @@
+:root {
+    --cell-hover-color: #F9E29B;
+    --cell-selected-color: #F6CF59;
+}
+
 html, input, select {
     font-family: Helvetica, sans-serif;
 }
@@ -29,3 +34,18 @@ table, td, th {
     padding: 3px;
 }
 
+#benchmarks_table tbody {
+    cursor: pointer;
+}
+#benchmarks_table tbody tr td:nth-child(1) {
+    cursor: default;
+}
+#benchmarks_table tbody tr:nth-child(1) {
+    cursor: default;
+}
+#benchmarks_table tbody td.hovered {
+    background-color: var(--cell-hover-color);
+}
+#benchmarks_table tbody td.selected {
+    background-color: var(--cell-selected-color);
+}

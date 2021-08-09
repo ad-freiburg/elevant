@@ -33,8 +33,46 @@ $("document").ready(function() {
         Q41710: "ethnic group",
         Q18603729: "dissolution of an administrative territorial entity"
     }
+    last_selected_cell = null;
+
     set_table_head();
     set_table_body();
+
+    // Highlight cells on hover
+    $("#benchmarks_table tbody").on("mouseenter", "td", function() {
+        // Left-most column and first row should not be hoverable
+        var first_cell_text = $(this).closest('tr').find("td:first").text();
+        if ($(this).text() != first_cell_text && !first_cell_text.startsWith("total")) {
+            $(this).addClass("hovered");
+        }
+    });
+
+    $("#benchmarks_table tbody").on("mouseleave", "td", function() {
+        $(this).removeClass("hovered");
+    });
+
+    // Highlight cells on click and un-highlight previously clicked cell
+    $("#benchmarks_table tbody").on("click", "td", function() {
+        if (last_selected_cell) {
+            $(last_selected_cell).removeClass("selected");
+        }
+        last_selected_cell = null;
+        var first_cell_text = $(this).closest('tr').find("td:first").text();
+        // Left-most column and first row should not be hoverable
+        if ($(this).text() != first_cell_text && !first_cell_text.startsWith("total")) {
+            $(this).addClass("selected");
+            last_selected_cell = this;
+            // Show entity table for selected benchmark and type values
+            var first_cell_html = $(this).closest('tr').find("td:first").html();
+            var type = first_cell_html.split("<br>")[0].replace(/<\/?b>/g, "");
+            var col_index = $(this).parent().children().index($(this)) + 1;
+            var benchmark = $("#benchmarks_table thead th:nth-child(" + col_index + ")").text();
+            show_entity_table_for_selected_values(benchmark, type);
+            // Set selectors to the new values
+            $("#benchmark_select").val(benchmark);
+            $("#type_select").val(type);
+        }
+    });
 });
 
 function set_table_head() {
@@ -119,6 +157,33 @@ function prepare_selectors() {
 function show_entity_table() {
     benchmark = document.getElementById("benchmark_select").value;
     type = document.getElementById("type_select").value;
+    show_entity_table_for_selected_values(benchmark, type);
+
+    // Iterate over benchmarks table cells in the first column to find the cell with the corresponding type
+    var row_index = null;
+    $("#benchmarks_table tbody td:nth-child(1)").each(function(index) {
+        var text = $(this).html().split("<br>")[0].replace(/<\/?b>/g, "");
+        if (text == type) {
+            row_index = index;
+        }
+    });
+    // Iterate over benchmarks table header cells to find the cell with the corresponding benchmark
+    var col_index = null;
+    $("#benchmarks_table thead th").each(function(index) {
+        var text = $(this).text();
+        if (text == benchmark) {
+            col_index = index;
+        }
+    });
+    // Set corresponding benchmarks table cell to selected and de-select previously selected cell
+    var cell = $("#benchmarks_table tbody tr:eq(" + row_index + ") td:eq(" + col_index + ")");
+    $(last_selected_cell).removeClass("selected");
+    cell.addClass("selected");
+    last_selected_cell = cell;
+}
+
+
+function show_entity_table_for_selected_values(benchmark, type) {
     tbody = document.getElementById("entities_table_body");
     tbody.innerHTML = "";
     html_text = "";
