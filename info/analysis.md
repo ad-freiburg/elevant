@@ -47,7 +47,7 @@ The systems that link common entities outperform other systems when the definiti
 **Objective:**
 Evaluate current entity linking benchmarks, analyze their strenghts and weaknesses and derive suggestions for how to create better benchmarks.
 
-van Erp et al. analyze 6 different EL benchmarks, but only AIDA-YAGO seems to be frequently used in the EL community.
+Van Erp et al. analyze 6 different EL benchmarks, but only AIDA-YAGO seems to be frequently used in the EL community.
 They collect and compare entity-mention characteristics like entity overlap (between datasets), confusability (~ number of possible candidates for a mention), prominence, dominance (~ probability of an entity given a mention) and entity types.
 They argue that on benchmarks with low confusability, high prominence and high dominance, simple popularity-based benchmark systems can already achieve high accuracies.
 Regarding entity types they argue that country and company names are typically unique, while this is less often the case for names of cities or persons.
@@ -57,6 +57,23 @@ They further collect mention-annotation characteristics like mention boundaries 
 Their suggestions for how to create better benchmarks are rather sparse.
 They suggest to focus on documentation (which decisions were made in the process of creating the dataset, e.g. initial offset count 0 or 1), standard formats (or scripts that allow the user to transform a benchmark into a standardized format) and diversity (high confusibility, low prominence, low dominance benchmarks with texts from different domains). 
 
+
+### A step further towards a consensus on linking tweets to Wikipedia
+*Nait‑Hamoud et al., 2021*
+
+**Paper:** <https://link.springer.com/content/pdf/10.1007/s12065-020-00549-8.pdf>
+
+**Objective:**
+Introduce a set of rules to define the entity linking task for tweets. The effectiveness of the defined rules is analyzed by implementing an end-to-end entity linking system for tweets.
+
+Nait‑Hamoud et al. describe a discrepancy between different entity linking benchmarks for tweets.
+They provide a set of rules and guidelines to find a consensus for EL benchmarks.
+These rules are:
+- The mention is not a Twitter user mention.
+- The linked entity is a proper entity according to their definition (--> the entity has a corresponding Wikipedia page which is not a redirect or disambiguation page)
+- The mention is the primary topic of the linked entity.
+- Annotate longest coherent entities in tweets.
+- Annotate from the remaining mentions in the text dominant entities of types: Person, Organization, Location, Character, Events, Products, and Thing proposed in the taxonomy of the NEEL 2016 challenge
 
 
 ### Evaluating Entity Linking with Wikipedia
