@@ -34,8 +34,24 @@ table, td, th {
     padding: 3px;
 }
 
+#benchmarks_table thead .sort_symbol {
+    visibility: hidden;
+    font-size: 0.8em;
+}
+#benchmarks_table thead .asc .sort_symbol {
+    visibility: visible;
+}
+#benchmarks_table thead .desc .sort_symbol {
+    visibility: visible;
+}
 #benchmarks_table tbody {
     cursor: pointer;
+}
+#benchmarks_table thead {
+    cursor:pointer;
+}
+#benchmarks_table thead th:nth-child(1) {
+    cursor: default;
 }
 #benchmarks_table tbody tr td:nth-child(1) {
     cursor: default;

@@ -63,10 +63,8 @@ $("document").ready(function() {
             $(this).addClass("selected");
             last_selected_cell = this;
             // Show entity table for selected benchmark and type values
-            var first_cell_html = $(this).closest('tr').find("td:first").html();
-            var type = first_cell_html.split("<br>")[0].replace(/<\/?b>/g, "");
-            var col_index = $(this).parent().children().index($(this)) + 1;
-            var benchmark = $("#benchmarks_table thead th:nth-child(" + col_index + ")").text();
+            var type = get_type_from_cell(this);
+            var benchmark = get_benchmark_from_cell(this);
             show_entity_table_for_selected_values(benchmark, type);
             // Set selectors to the new values
             $("#benchmark_select").val(benchmark);
@@ -75,12 +73,24 @@ $("document").ready(function() {
     });
 });
 
+function get_benchmark_from_cell(element) {
+    var col_index = $(element).parent().children().index($(element)) + 1;
+    var benchmark = $("#benchmarks_table thead th:nth-child(" + col_index + ")").html().replace(/<span.*/, "");
+    return benchmark;
+}
+
+function get_type_from_cell(element) {
+    var first_cell_html = $(element).closest('tr').find("td:first").html();
+    var type = first_cell_html.split("<br>")[0].replace(/<\/?b>/g, "");
+    return type;
+}
+
 function set_table_head() {
     thead = document.getElementById("benchmarks_table_head");
     head_html = "<tr>";
     head_html += "<th></th>";
     for (benchmark of benchmarks) {
-        head_html += "<th>" + benchmark + "</th>";
+        head_html += "<th onclick='sort_table(this)'>" + benchmark + "<span class='sort_symbol'>&#9660</span></th>";
     }
     head_html += "</tr>";
     thead.innerHTML = head_html;
@@ -96,14 +106,14 @@ function set_table_body() {
             console.log(statistics);
             console.log(Object.keys(statistics).length);
             if (Object.keys(statistics).length == benchmarks.length) {
-                fill_table();
+                fill_table(Object.keys(statistics[benchmarks[0]].types));
                 prepare_selectors();
             }
         });
     });
 }
 
-function fill_table() {
+function fill_table(type_array) {
     body_html = "<tr>";
     body_html += "<td><b>total</b><br>level 1<br>other</td>";
     for (benchmark of benchmarks) {
@@ -115,7 +125,7 @@ function fill_table() {
         body_html += other + " (" + (other / sum * 100).toFixed(2) + "%)</td>";
     }
     body_html += "</tr>";
-    for (type of Object.keys(statistics[benchmarks[0]].types)) {
+    for (type of type_array) {
         console.log(type);
         body_html += "<tr><td><b>" + type + "</b><br>level 1<br>other" + "</td>";
         for (benchmark of benchmarks) {
@@ -158,7 +168,14 @@ function show_entity_table() {
     benchmark = document.getElementById("benchmark_select").value;
     type = document.getElementById("type_select").value;
     show_entity_table_for_selected_values(benchmark, type);
+    // Set corresponding benchmarks table cell to selected and de-select previously selected cell
+    var cell = get_cell(benchmark, type);
+    $(last_selected_cell).removeClass("selected");
+    cell.addClass("selected");
+    last_selected_cell = cell;
+}
 
+function get_cell(benchmark, type) {
     // Iterate over benchmarks table cells in the first column to find the cell with the corresponding type
     var row_index = null;
     $("#benchmarks_table tbody td:nth-child(1)").each(function(index) {
@@ -170,18 +187,15 @@ function show_entity_table() {
     // Iterate over benchmarks table header cells to find the cell with the corresponding benchmark
     var col_index = null;
     $("#benchmarks_table thead th").each(function(index) {
-        var text = $(this).text();
+        var text = $(this).html().replace(/<span.*/, "");
         if (text == benchmark) {
             col_index = index;
         }
     });
-    // Set corresponding benchmarks table cell to selected and de-select previously selected cell
+    // Get corresponding benchmarks table cell
     var cell = $("#benchmarks_table tbody tr:eq(" + row_index + ") td:eq(" + col_index + ")");
-    $(last_selected_cell).removeClass("selected");
-    cell.addClass("selected");
-    last_selected_cell = cell;
+    return cell;
 }
-
 
 function show_entity_table_for_selected_values(benchmark, type) {
     tbody = document.getElementById("entities_table_body");
@@ -221,4 +235,75 @@ function show_entity_table_for_selected_values(benchmark, type) {
         }
         tbody.innerHTML = html_text;
     });
+}
+
+function sort_table(column_header) {
+    /*
+    Sort table rows with respect to the selected column.
+    Get values for the selected column header from the statistics object.
+    Extract an array with the keys (the types) and an array with the values (level1 + not level1).
+    Get sort order for the value array and apply it to the key array.
+    Empty and re-fill the table in order of the sorted key array.
+    */
+    // Get list of values in the selected column
+    var benchmark_name = $(column_header).html().replace(/<span.*/, "");
+    var column_values = statistics[benchmark_name]["types"];
+    var key_array = Object.keys(column_values);
+    var value_array = [];
+    for (value_tuple of Object.values(column_values)) {
+        value_array.push(value_tuple[0] + value_tuple[1]);
+    }
+
+    // Store type and benchmark name of currently selected cell
+    var selected_cell = $("#benchmarks_table tbody td.selected");
+    if (selected_cell.length > 0) {
+        var selected_type = get_type_from_cell(selected_cell);
+        var selected_benchmark = get_benchmark_from_cell(selected_cell);
+    }
+
+    // Check if sorting should be ascending or descending
+    var descending = !$(column_header).hasClass("desc");
+
+    // Get new sorting order of the type keys
+    sort_function = function(a, b) {a = parseFloat(a[0]); b = parseFloat(b[0]); return (isNaN(a)) ? 1 - isNaN(b) : b - a;};
+    const decor = (v, i) => [v, i];          // set index to value
+    const undecor = a => a[1];               // leave only index
+    const argsort = arr => arr.map(decor).sort(sort_function).map(undecor);
+    var order = argsort(value_array);
+    key_array = order.map(i => key_array[i]);
+
+    // Remove asc/desc classes from all columns
+    $("#benchmarks_table th").each(function() {
+        $(this).removeClass("desc");
+        $(this).removeClass("asc");
+    })
+
+    if (descending) {
+        // Show down-pointing triangle
+        $(column_header).find(".sort_symbol").html("&#9660");
+        // Add new class to indicate descending sorting order
+        $(column_header).addClass("desc");
+    } else {
+        // Reverse sorting order
+        order = order.reverse();
+        key_array = key_array.reverse();
+        // Show up-pointing triangle
+        $(column_header).find(".sort_symbol").html("&#9650");
+        // Add new class to indicate ascending sorting order
+        $(column_header).addClass("asc");
+    }
+
+    // Remove old table rows
+    $("#benchmarks_table tbody").empty();
+
+    // Add table rows in new order to the table body
+    fill_table(key_array);
+
+    // Re-add selected class if row or cell was previously selected
+    if (selected_cell.length > 0) {
+        // Re-add selected class to previously selected row
+        var cell = get_cell(selected_benchmark, selected_type);
+        cell.addClass("selected");
+        last_selected_cell = cell;
+    }
 }
