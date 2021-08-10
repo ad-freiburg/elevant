@@ -34,6 +34,15 @@ table, td, th {
     padding: 3px;
 }
 
+/* Make the table headers move down when scrolling so they are always visible */
+table th {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+}
+
 #benchmarks_table thead .sort_symbol {
     visibility: hidden;
     font-size: 0.8em;
