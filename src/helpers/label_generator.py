@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple, Dict
+from typing import Iterator, Tuple, Dict, Optional
 
 from spacy.kb import KnowledgeBase
 from spacy.language import Language, Doc
@@ -24,7 +24,9 @@ class LabelGenerator:
         self.kb = kb
         self.mapping = mapping
 
-    def read_examples(self, n: int = -1, test: bool = False) -> Iterator[Tuple[Doc, Dict[str, Dict[Tuple[int, int], str]]]]:
+    def read_examples(self,
+                      n: int = -1,
+                      test: Optional[bool] = False) -> Iterator[Tuple[Doc, Dict[str, Dict[Tuple[int, int], str]]]]:
         """
         Generate training examples for the entity linker.
 
@@ -39,6 +41,7 @@ class LabelGenerator:
           {"links": [(span1, entity_id1), (span2, entity_id2), ...]}
 
         :param n: number of training examples
+        :param test: articles are read from the development instead of the training set
         :return: iterator over training examples
         """
         disable_training = [pipe for pipe in LabelGenerator.DISABLE_TRAINING if pipe in self.model.pipeline]

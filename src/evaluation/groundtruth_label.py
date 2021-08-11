@@ -1,7 +1,12 @@
 from typing import Tuple, Optional, List, Dict
 
 
-def is_level_one(entity_name):
+def is_level_one(entity_name: str) -> bool:
+    """
+    Return true if the entity is a level 1 entity according to our definition:
+    The entity name contains alphabetic characters and the first alphabetic
+    character of the entity name is an uppercase character.
+    """
     if entity_name != "Unknown":
         alpha_chars = [char for char in entity_name if char.isalpha()]
         # Check if first alphabetic character exists and is uppercase

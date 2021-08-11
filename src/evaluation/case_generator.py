@@ -45,7 +45,7 @@ class CaseGenerator:
         self.all_predictions = None
         self.factor_dict = None
 
-    def determine_entity_type(self, entity_id):
+    def determine_entity_type(self, entity_id: str) -> str:
         """
         Determine the type of an entity.
         Either a type from the whitelist or QUANTITY, DATETIME, OTHER.
@@ -61,6 +61,9 @@ class CaseGenerator:
         return entity_type
 
     def get_evaluation_cases(self, article: WikipediaArticle, coref_ground_truth) -> List[Case]:
+        """
+        Return all evaluation cases for a given article.
+        """
         self.article = article
         self.coref_ground_truth = coref_ground_truth
 
@@ -86,7 +89,6 @@ class CaseGenerator:
         child_gt_labels = sorted([label for label in article.labels if label.parent is not None])
 
         self.factor_dict = dict()
-
         cases = []
 
         # Ground truth cases:
@@ -301,7 +303,9 @@ class CaseGenerator:
 
     def recursively_determine_factor(self, label_id: int, ignore_siblings=False) -> int:
         """
-        Returns factor for given label_id and saves factors in the factors dictionary.
+        Returns factor for given label_id and saves determined factors in the
+        factors dictionary. Factors of children that did not have to be looked
+        at are not saved in the factors dictionary.
 
         >>> cg = CaseGenerator(EntityDatabase())
         >>> text = "aa, bb, cc"

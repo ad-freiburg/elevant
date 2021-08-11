@@ -15,7 +15,9 @@ from src import settings
 from src.utils.offset_converter import OffsetConverter
 
 
-def get_non_overlapping_span(span, linked_entities, text) -> Tuple[int, int]:
+def get_non_overlapping_span(span: Tuple[int, int],
+                             linked_entities: Dict[Tuple[int, int], EntityMention],
+                             text: str) -> Optional[Tuple[int, int]]:
     for linked_span in sorted(linked_entities):
         if linked_span[0] > span[1]:
             # linked spans are sorted so we can break the loop as soon as the start

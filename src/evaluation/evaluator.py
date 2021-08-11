@@ -12,7 +12,7 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
 
 
-def load_evaluation_entities(relevant_entity_ids: Set[str]):
+def load_evaluation_entities(relevant_entity_ids: Set[str]) -> EntityDatabase:
     entity_db = EntityDatabase()
     mapping = EntityDatabaseReader.get_mapping()
     mapping_entity_ids = set(mapping.values())
@@ -142,7 +142,7 @@ class Evaluator:
                     for tk in type_keys:
                         self.type_counts[tk]["fn"] += 1
 
-    def get_type_keys(self, type_ids):
+    def get_type_keys(self, type_ids: List[str]) -> List[str]:
         type_keys = []
         for type_id in type_ids:
             if type_id in self.type_id_to_label:

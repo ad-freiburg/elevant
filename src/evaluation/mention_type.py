@@ -12,11 +12,11 @@ class MentionType(Enum):
         return self != MentionType.NAMED
 
 
-def is_nominal(mention: str):
+def is_nominal(mention: str) -> bool:
     return (mention.startswith("the ") or mention.startswith("The ")) and mention[4:].islower()
 
 
-def get_mention_type(mention: str):
+def get_mention_type(mention: str) -> MentionType:
     if PronounFinder.is_pronoun(mention):
         return MentionType.PRONOMINAL
     elif is_nominal(mention):

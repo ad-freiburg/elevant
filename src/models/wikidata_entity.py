@@ -20,7 +20,7 @@ class WikidataEntity:
         self.akronyms = akronyms if akronyms else set()
         self.type = type
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.entity_id < other.entity_id
 
     def add_title_synonym(self, synonym: str):

@@ -110,21 +110,21 @@ class WikipediaArticle:
     def set_evaluation_span(self, start: int, end: int):
         self.evaluation_span = (start, end)
 
-    def set_evaluation_time(self, evaluation_time):
+    def set_evaluation_time(self, evaluation_time: float):
         self.evaluation_time = evaluation_time
 
-    def get_span_by_id(self, span_id):
+    def get_span_by_id(self, span_id: int) -> Tuple[int, int]:
         if span_id - 1 < len(self.spans):
             return self.spans[span_id - 1]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.to_dict())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
-def article_from_dict(data: Dict):
+def article_from_dict(data: Dict) -> WikipediaArticle:
     links = [(tuple(span), target) for span, target in data["links"]]  # span is saved as list, but must be tuple
     title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
     labels = None
@@ -135,7 +135,7 @@ def article_from_dict(data: Dict):
         else:
             labels = []
             for span, entity_id in data["labels"]:
-                gt_label = GroundtruthLabel(0, span, entity_id, None, None, False)
+                gt_label = GroundtruthLabel(0, span, entity_id, None)
                 labels.append(gt_label)
     return WikipediaArticle(id=int(data["id"]),
                             title=data["title"],
@@ -150,5 +150,5 @@ def article_from_dict(data: Dict):
                             evaluation_time=data["evaluation_time"] if "evaluation_time" in data else None)
 
 
-def article_from_json(dump: str):
+def article_from_json(dump: str) -> WikipediaArticle:
     return article_from_dict(json.loads(dump))

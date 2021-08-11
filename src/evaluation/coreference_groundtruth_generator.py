@@ -1,3 +1,5 @@
+from typing import Dict, Tuple, Set
+
 from src.utils.pronoun_finder import PronounFinder
 from src.models.wikipedia_article import WikipediaArticle
 
@@ -5,7 +7,7 @@ from src.models.wikipedia_article import WikipediaArticle
 _COREF_PREFIXES = ("the ", "that ", "this ")
 
 
-def is_coreference(text):
+def is_coreference(text: str) -> bool:
     if PronounFinder.is_pronoun(text):
         return True
     lower = text.lower()
@@ -17,7 +19,7 @@ def is_coreference(text):
 
 class CoreferenceGroundtruthGenerator:
     @staticmethod
-    def get_groundtruth(article: WikipediaArticle):
+    def get_groundtruth(article: WikipediaArticle) -> Dict[Tuple[int, int], Set[Tuple[int, int]]]:
         if not article.labels:
             return {}
 

@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, Optional
 
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.groundtruth_label import GroundtruthLabel
@@ -172,7 +172,7 @@ class JsonBenchmarkExampleReader:
                 yield article
 
 
-def get_example_generator(benchmark_name, from_json_file=True):
+def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = True):
     if from_json_file:
         path = "benchmarks/"
         if benchmark_name == Benchmark.OURS.value:

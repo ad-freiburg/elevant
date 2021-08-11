@@ -110,45 +110,44 @@ class Case:
         self.eval_type = self._type()
         self.coref_type = self._coref_type()
 
-    def has_ground_truth(self):
+    def has_ground_truth(self) -> bool:
         return self.true_entity is not None
 
-    def has_predicted_entity(self):
+    def has_predicted_entity(self) -> bool:
         return self.predicted_entity is not None
 
-    def is_known_entity(self):
+    def is_known_entity(self) -> bool:
         return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown") \
                and not self.true_entity.is_datetime() and not self.true_entity.is_quantity()
 
-    def is_detected(self):
+    def is_detected(self) -> bool:
         return self.detected
 
-    def is_correct(self):
+    def is_correct(self) -> bool:
         return self.predicted_entity is not None and self.true_entity \
                and self.true_entity.entity_id == self.predicted_entity.entity_id \
                or self.children_correctly_linked is True
 
-    def true_entity_is_candidate(self):
+    def true_entity_is_candidate(self) -> bool:
         return self.true_entity.entity_id in set([cand.entity_id for cand in self.candidates])
 
-    def n_candidates(self):
+    def n_candidates(self) -> int:
         return len(self.candidates)
 
-    def is_false_positive(self):
+    def is_false_positive(self) -> bool:
         return not self.is_correct() and self.has_predicted_entity() and not self.is_true_quantity_or_datetime()
 
-    def is_false_negative(self):
+    def is_false_negative(self) -> bool:
         return not self.is_correct() and self.has_ground_truth() and self.is_known_entity() and not self.is_optional()
 
-    def is_true_coreference(self):
+    def is_true_coreference(self) -> bool:
         return self.is_true_coref
 
-    def is_true_quantity_or_datetime(self):
-        return self.true_entity and self.predicted_entity and \
-               ((self.true_entity.is_quantity() and self.true_entity.type == self.predicted_entity.type) or
-                (self.true_entity.is_datetime() and self.true_entity.type == self.predicted_entity.type))
+    def is_true_quantity_or_datetime(self) -> bool:
+        return self.true_entity and self.predicted_entity and self.true_entity.type == self.predicted_entity.type and \
+               (self.true_entity.is_quantity() or self.true_entity.is_datetime())
 
-    def is_optional(self):
+    def is_optional(self) -> bool:
         return self.optional or self.true_entity and (self.true_entity.is_quantity() or self.true_entity.is_datetime())
 
     def add_error_label(self, error_label: ErrorLabel):
@@ -216,10 +215,10 @@ class Case:
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
-    def is_coreference(self):
+    def is_coreference(self) -> bool:
         return self.mention_type.is_coreference()
 
-    def is_named(self):
+    def is_named(self) -> bool:
         return not self.is_coreference()
 
 

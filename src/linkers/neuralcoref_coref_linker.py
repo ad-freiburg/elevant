@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 import spacy
 import neuralcoref
@@ -19,7 +19,7 @@ class NeuralcorefCorefLinker(AbstractCorefLinker):
             self.model = model
         neuralcoref.add_to_pipe(self.model, max_dist=50, max_dist_match=100)
 
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
+    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None) -> List[CorefCluster]:
         doc = self.model(article.text)
 
         coref_clusters = []

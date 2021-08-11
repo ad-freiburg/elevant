@@ -183,7 +183,7 @@ class LinkingSystem:
         elif linker_type == LinkLinkers.LINK_LINKER.value:
             self.link_linker = LinkEntityLinker()
 
-    def _initialize_coref_linker(self, linker_type: str, linker_info):
+    def _initialize_coref_linker(self, linker_type: str, linker_info: str):
         if linker_type == CoreferenceLinkers.NEURALCOREF.value:
             self.coreference_linker = NeuralcorefCorefLinker()
         elif linker_type == CoreferenceLinkers.ENTITY.value:

@@ -30,7 +30,7 @@ def label_errors(article: WikipediaArticle,
     label_coreference_errors(cases)
 
 
-def is_subspan(span, subspan):
+def is_subspan(span: Tuple[int, int], subspan: Tuple[int, int]) -> bool:
     """
     Check if subspan is contained in span.
     """
@@ -39,7 +39,7 @@ def is_subspan(span, subspan):
     return span[0] <= subspan[0] and span[1] >= subspan[1]
 
 
-def is_specificity_error(case: Case, false_positive_spans: List[Tuple[int, int]]):
+def is_specificity_error(case: Case, false_positive_spans: List[Tuple[int, int]]) -> bool:
     """
     A false positive span is subspan of the ground truth span.
     """
@@ -74,7 +74,7 @@ def label_undetected_errors(cases: List[Case]):
 DEMONYM_TYPES = {"Q27096213", "Q41710", "Q17376908"}
 
 
-def is_demonym(case: Case, entity_db: EntityDatabase):
+def is_demonym(case: Case, entity_db: EntityDatabase) -> bool:
     """
     Mention is contained in the list of demonyms and ground truth type is location, ethnicity or languoid.
     """
@@ -84,7 +84,7 @@ def is_demonym(case: Case, entity_db: EntityDatabase):
     return bool(types.intersection(DEMONYM_TYPES))
 
 
-def is_partial_name(case: Case):
+def is_partial_name(case: Case) -> bool:
     """
     The ground truth entity name is a multi word, and the mention is contained in it.
     """
@@ -92,7 +92,7 @@ def is_partial_name(case: Case):
     return " " in name and len(case.text) < len(name) and case.text in name
 
 
-def is_rare_case(case: Case, entity_db: EntityDatabase):
+def is_rare_case(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is not the ground truth entity.
     """
@@ -136,7 +136,7 @@ def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Optiona
     return most_popular_candidate
 
 
-def is_location_alias(text: str, entity_db: EntityDatabase):
+def is_location_alias(text: str, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is a location.
     """
@@ -148,7 +148,7 @@ def is_location_alias(text: str, entity_db: EntityDatabase):
     return LOCATION_TYPE_ID in types
 
 
-def is_metonymy(case: Case, entity_db: EntityDatabase):
+def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is a location, and the ground truth is neither a location, person nor ethnicity.
     """
@@ -163,7 +163,7 @@ def is_metonymy(case: Case, entity_db: EntityDatabase):
     return LOCATION_TYPE_ID in most_popular_types
 
 
-def is_metonymy_error(case: Case, entity_db: EntityDatabase):
+def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
     """
     Same as is_metonymy(), and the predicted entity is a location.
     """
@@ -230,11 +230,11 @@ def label_multi_candidates(cases: List[Case]):
                 case.add_error_label(ErrorLabel.MULTI_CANDIDATES_WRONG)
 
 
-def overlaps(span1: Tuple[int, int], span2: Tuple[int, int]):
+def overlaps(span1: Tuple[int, int], span2: Tuple[int, int]) -> bool:
     return not (span1[0] >= span2[1] or span2[0] >= span1[1])
 
 
-def overlaps_any(span: Tuple[int, int], spans: List[Tuple[int, int]]):
+def overlaps_any(span: Tuple[int, int], spans: List[Tuple[int, int]]) -> bool:
     """
     Span overlaps with any of the spans.
     """
@@ -244,7 +244,7 @@ def overlaps_any(span: Tuple[int, int], spans: List[Tuple[int, int]]):
     return False
 
 
-def contains_uppercase_word(text: str):
+def contains_uppercase_word(text: str) -> bool:
     for word in text.split():
         if len(word) > 0 and word[0].isupper():
             return True

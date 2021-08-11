@@ -130,7 +130,7 @@ class EntityDatabaseReader:
         return entities
 
     @staticmethod
-    def entity_to_label_iterator():
+    def entity_to_label_iterator() -> Iterator[Tuple[str, str]]:
         with open(settings.LABEL_MAPPING, "r", encoding="utf8") as file:
             for line in file:
                 lst = line.strip().split("\t")
@@ -139,7 +139,7 @@ class EntityDatabaseReader:
                 yield entity_id, name
 
     @staticmethod
-    def entity_to_whitelist_type_iterator():
+    def entity_to_whitelist_type_iterator() -> Iterator[Tuple[str, str]]:
         with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
             for line in file:
                 lst = line.strip().split()
@@ -161,7 +161,7 @@ class EntityDatabaseReader:
         return types
 
     @staticmethod
-    def get_gender_mapping(mappings_file: str = settings.GENDER_MAPPING_FILE):
+    def get_gender_mapping(mappings_file: str = settings.GENDER_MAPPING_FILE) -> Dict[str, Gender]:
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
             line = line[:-1]
@@ -186,7 +186,7 @@ class EntityDatabaseReader:
             yield entity_id, given_name
 
     @staticmethod
-    def get_type_mapping(mappings_file: str = settings.RELEVANT_TYPES_FILE):
+    def get_type_mapping(mappings_file: str = settings.RELEVANT_TYPES_FILE) -> Dict[str, List[str]]:
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
             line = line[:-1]

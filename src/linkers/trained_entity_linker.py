@@ -141,7 +141,7 @@ class TrainedEntityLinker(AbstractEntityLinker):
             x[i] = input_vector
         return x
 
-    def determine_n_features(self, token_vector_length) -> int:
+    def determine_n_features(self, token_vector_length: int) -> int:
         """
         Determine the number of features of the input vector.
         """

@@ -12,7 +12,7 @@ class PronounFinder:
                        "them": Gender.UNKNOWN}
 
     @classmethod
-    def is_pronoun(cls, text):
+    def is_pronoun(cls, text: str) -> bool:
         # Do not match "US" or "IT" but match "I"
         return text.lower() in cls.pronoun_genders and (not text.isupper() or text.lower() == "i")
 
@@ -26,5 +26,5 @@ class PronounFinder:
         return pronoun_spans
 
     @classmethod
-    def is_first_person_singular(cls, text):
+    def is_first_person_singular(cls, text: str) -> bool:
         return text in ("I", "my", "me")

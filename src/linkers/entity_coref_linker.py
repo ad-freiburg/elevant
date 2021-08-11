@@ -47,7 +47,11 @@ class ReferencedEntity:
         self.direct_speech = direct_speech
 
 
-def get_direct_speeches(article: WikipediaArticle, doc: Doc):
+def get_direct_speeches(article: WikipediaArticle, doc: Doc) -> List[DirectSpeech]:
+    """
+    Return a list with direct speeches (span and possible speaker token) for
+    the given article.
+    """
     paragraph_matches = re.finditer(r"\n\n", article.text)
     paragraph_boundaries = [m.start() for m in paragraph_matches] if paragraph_matches else []
 
@@ -88,6 +92,9 @@ def get_direct_speeches(article: WikipediaArticle, doc: Doc):
 
 
 def get_paragraphs(article: WikipediaArticle) -> List[Tuple[int, int]]:
+    """
+    Return a list of paragraph spans for the given article.
+    """
     paragraph_matches = re.finditer(r"\n\n", article.text)
     paragraphs = []
     start = 0
@@ -101,6 +108,9 @@ def get_paragraphs(article: WikipediaArticle) -> List[Tuple[int, int]]:
 
 
 def is_first_subj_in_paragraph(tok: Token, paragraphs: List[Tuple[int, int]], doc: Doc) -> bool:
+    """
+    Return true if the given token is the first subject in the given paragraph.
+    """
     if tok.dep_ not in ('nsubj', 'nsubjpass'):
         return False
     for start, end in paragraphs:
@@ -112,6 +122,9 @@ def is_first_subj_in_paragraph(tok: Token, paragraphs: List[Tuple[int, int]], do
 
 
 def get_containing_direct_speech(offset: int, direct_speeches: List[DirectSpeech]) -> DirectSpeech:
+    """
+    Return the direct speech that contains the given offset if any.
+    """
     for ds in direct_speeches:
         s, e = ds.span
         if s <= offset <= e:
@@ -191,7 +204,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                     preceding_entities.append(preceding_entity)
         return preceding_entities
 
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
+    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None) -> List[CorefCluster]:
         if not article.entity_mentions:
             return []
 

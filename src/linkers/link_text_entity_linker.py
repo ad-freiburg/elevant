@@ -5,6 +5,7 @@ from spacy.language import Language
 
 import spacy
 
+from src.models.entity_database import EntityDatabase
 from src.models.entity_mention import EntityMention
 from src.utils.offset_converter import OffsetConverter
 from src.utils.pronoun_finder import PronounFinder
@@ -12,7 +13,7 @@ from src.models.wikipedia_article import WikipediaArticle
 from src import settings
 
 
-def is_overlapping_span(covered_positions: Set[int], span: Tuple[int, int]):
+def is_overlapping_span(covered_positions: Set[int], span: Tuple[int, int]) -> bool:
     for i in range(span[0], span[1]):
         if i in covered_positions:
             return True
@@ -22,7 +23,7 @@ def is_overlapping_span(covered_positions: Set[int], span: Tuple[int, int]):
 class LinkTextEntityLinker:
     LINKER_IDENTIFIER = "LTL"
 
-    def __init__(self, entity_db, model: Optional[Language] = None):
+    def __init__(self, entity_db: EntityDatabase, model: Optional[Language] = None):
         if model is None:
             self.model = spacy.load(settings.LARGE_MODEL_NAME)
         else:

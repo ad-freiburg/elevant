@@ -21,7 +21,7 @@ class XrennerCorefLinker(AbstractCorefLinker):
         self.model = init_parser("spacy", "en", parser_opts={}, include_headers=True)
         self.xrenner = Xrenner()
 
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
+    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None) -> List[CorefCluster]:
         # Replace rare non-breaking-spaces with normal spaces since xrenner can't handle them
         text = article.text.replace(" ", " ")
         doc = self.model(text)

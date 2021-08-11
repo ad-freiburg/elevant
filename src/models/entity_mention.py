@@ -18,7 +18,7 @@ class EntityMention:
         self.candidates = candidates if candidates is not None else set()
         self.contained = contained
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {"span": self.span,
              "recognized_by": self.recognized_by}
         if self.entity_id is not None:
@@ -37,19 +37,19 @@ class EntityMention:
         self.entity_id = entity_id
         self.linked_by = linked_by
 
-    def is_linked(self):
+    def is_linked(self) -> bool:
         return self.entity_id is not None
 
-    def overlaps(self, span: Tuple[int, int]):
+    def overlaps(self, span: Tuple[int, int]) -> bool:
         return self.span[0] < span[1] and self.span[1] > span[0]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.to_dict())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return tuple(self.span) < tuple(other.span)
 
 

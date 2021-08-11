@@ -1,4 +1,4 @@
-from typing import Iterator, Dict, Tuple, List
+from typing import Iterator, Dict, Tuple, List, Optional
 
 import os
 import json
@@ -109,7 +109,7 @@ class WikipediaDumpReader:
         return text, links, title_synonyms
 
     @staticmethod
-    def json_iterator(yield_none: bool = False) -> Iterator[str]:
+    def json_iterator(yield_none: Optional[bool] = False) -> Iterator[str]:
         """
         Iterate over all articles in JSON format.
 
@@ -141,7 +141,7 @@ class WikipediaDumpReader:
         return article
 
     @staticmethod
-    def article_iterator(yield_none: bool = False) -> Iterator[WikipediaArticle]:
+    def article_iterator(yield_none: Optional[bool] = False) -> Iterator[WikipediaArticle]:
         """
         Iterates over the articles in the given extracted Wikipedia dump.
 

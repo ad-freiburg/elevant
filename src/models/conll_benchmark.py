@@ -49,13 +49,13 @@ class ConllDocument:
                 predicted_label = predicted_tokens_raw[i].split("\\")[-1]
             self.tokens.append(ConllToken(text, tag, label, predicted_label))
 
-    def text(self):
+    def text(self) -> str:
         return ' '.join([token.text for token in self.tokens])
 
-    def get_truth(self):
+    def get_truth(self) -> str:
         return ' '.join([token.get_truth() for token in self.tokens])
 
-    def get_predicted(self):
+    def get_predicted(self) -> str:
         return ' '.join([token.get_predicted() for token in self.tokens])
 
     def to_article(self) -> WikipediaArticle:

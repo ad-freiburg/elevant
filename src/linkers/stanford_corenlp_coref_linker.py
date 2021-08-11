@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 import stanza
 from stanza.server import CoreNLPClient
@@ -14,7 +14,7 @@ class StanfordCoreNLPCorefLinker(AbstractCorefLinker):
         self.client = CoreNLPClient(properties={'annotators': "tokenize,ssplit,pos,lemma,ner,parse,coref",
                                                 'coref.algorithm': 'neural'}, timeout=100000, memory='16G')
 
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
+    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None) -> List[CorefCluster]:
         coref_clusters = []
         try:
             annotations = self.client.annotate(article.text)

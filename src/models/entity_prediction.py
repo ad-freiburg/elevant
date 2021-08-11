@@ -10,7 +10,7 @@ class EntityPrediction:
         self.entity_id = entity_id
         self.candidates = candidates
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {
             "span": self.span,
             "entity_id": self.entity_id,

@@ -1,3 +1,4 @@
+from typing import Dict, Tuple, Iterator
 import os
 import json
 
@@ -6,7 +7,7 @@ from src.models.entity_prediction import EntityPrediction
 
 class AmbiversePredictionReader:
     @staticmethod
-    def _get_prediction_from_file(file_path):
+    def _get_prediction_from_file(file_path: str) -> Dict[Tuple[int, int], EntityPrediction]:
         """
         Yields all predictions in the given ambiverse disambiguation result file
 
@@ -25,7 +26,7 @@ class AmbiversePredictionReader:
         return predictions
 
     @staticmethod
-    def article_predictions_iterator(disambiguation_dir):
+    def article_predictions_iterator(disambiguation_dir: str) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """
         Yields predictions for each ambiverse disambiguation result file in the given directory
 

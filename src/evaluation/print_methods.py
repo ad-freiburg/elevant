@@ -1,8 +1,7 @@
-import json
-from typing import Tuple, Dict, List, Optional
+from typing import Tuple, Dict, List
 
 from termcolor import colored
-from src.evaluation.case import CASE_COLORS, CaseType, ErrorLabel, Case
+from src.evaluation.case import CASE_COLORS, CaseType, Case
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 
 
@@ -14,7 +13,7 @@ def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
     return percent, nominator, denominator
 
 
-def create_f1_dict(tp, fp, fn):
+def create_f1_dict(tp: int, fp: int, fn: int) -> Dict:
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     ground_truth = tp + fn
     recall = tp / ground_truth if ground_truth > 0 else 0
@@ -34,7 +33,7 @@ def create_f1_dict_from_counts(counts: Dict):
     return create_f1_dict(counts["tp"], counts["fp"], counts["fn"])
 
 
-def print_colored_text(cases, text):
+def print_colored_text(cases: List[Case], text: str):
     colored_spans = [(case.span, CASE_COLORS[case.eval_type]) for case in cases
                      if case.eval_type != CaseType.UNKNOWN_ENTITY]
     i = 0
@@ -59,7 +58,7 @@ def print_colored_text(cases, text):
     print(print_str)
 
 
-def print_article_nerd_evaluation(cases, text):
+def print_article_nerd_evaluation(cases: List[Case], text: str):
     for case in cases:
         true_str = "(%s %s)" % (case.true_entity.entity_id, case.true_entity.name) \
             if case.true_entity is not None else "None"
@@ -80,7 +79,7 @@ def print_article_nerd_evaluation(cases, text):
                       color=CASE_COLORS[case.eval_type]))
 
 
-def print_article_coref_evaluation(cases, text):
+def print_article_coref_evaluation(cases: List[Case], text: str):
     coref_cases = [c for c in cases
                    if c.is_true_coreference() or c.predicted_by == AbstractCorefLinker.IDENTIFIER]
     print("Coreference Cases:")

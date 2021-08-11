@@ -19,7 +19,7 @@ class AbstractCorefLinker(abc.ABC):
                       article: WikipediaArticle,
                       doc: Optional[Doc] = None,
                       only_pronouns: Optional[bool] = False,
-                      evaluation_span: Tuple[int, int] = None,
+                      evaluation_span: Optional[Tuple[int, int]] = None,
                       verbose: Optional[bool] = False):
         coref_clusters = self.get_clusters(article, doc)
         if verbose:
@@ -56,7 +56,7 @@ class AbstractCorefLinker(abc.ABC):
                 article: WikipediaArticle,
                 doc: Optional[Doc] = None,
                 only_pronouns: Optional[bool] = False,
-                evaluation_span: Tuple[int, int] = None,
+                evaluation_span: Optional[Tuple[int, int]] = None,
                 verbose: Optional[bool] = False):
         coref_clusters = self.get_clusters(article, doc)
         if verbose:

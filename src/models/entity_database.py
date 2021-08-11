@@ -10,7 +10,7 @@ class EntityDatabase:
         self.entities = {}
         self.entities: Dict[str, WikidataEntity]
         self.entities_by_name = {}
-        self.entities: Dict[str, Set[str]]
+        self.entities_by_name: Dict[str, Set[str]]
         self.aliases = {}
         self.aliases: Dict[str, Set[str]]
         self.wikipedia2wikidata = {}
@@ -66,7 +66,7 @@ class EntityDatabase:
             return 0
         return self.get_entity(entity_id).score
 
-    def load_entities_small(self, minimum_score: int = 0):
+    def load_entities_small(self, minimum_score: Optional[int] = 0):
         for entity in EntityDatabaseReader.read_entity_file():
             if entity.score >= minimum_score:
                 self.add_entity(entity)
@@ -81,7 +81,7 @@ class EntityDatabase:
         for entity in entities.values():
             self.add_entity(entity)
 
-    def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: int = 0):
+    def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: Optional[int] = 0):
         entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids)
         for entity in entities.values():
             if self.get_sitelink_count(entity.entity_id) >= minimum_sitelink_count:
@@ -217,16 +217,16 @@ class EntityDatabase:
             frequency += self.get_link_frequency(alias, entity_id)
         return frequency
 
-    def get_entity_frequency(self, entity_id: str):
+    def get_entity_frequency(self, entity_id: str) -> int:
         return self.entity_frequencies[entity_id] if entity_id in self.entity_frequencies else 0
 
     def load_gender(self):
         self.entity2gender = EntityDatabaseReader.get_gender_mapping()
 
-    def is_gender_loaded(self):
+    def is_gender_loaded(self) -> bool:
         return len(self.entity2gender) > 0
 
-    def get_gender(self, entity_id):
+    def get_gender(self, entity_id: str) -> Gender:
         if len(self.entity2gender) == 0:
             print("Warning: Tried to access gender information but gender mapping was not loaded.")
         elif entity_id in self.entity2gender:
@@ -244,42 +244,42 @@ class EntityDatabase:
                 if len(family_name) > 1:
                     self.family_names[entity_id] = family_name
 
-    def is_given_names_loaded(self):
+    def is_given_names_loaded(self) -> bool:
         return len(self.given_names) > 0
 
-    def has_given_name(self, entity_id):
+    def has_given_name(self, entity_id: str) -> bool:
         if len(self.given_names) == 0:
             print("Warning: Tried to access first names of entity database but first name mapping was not loaded.")
         if entity_id in self.given_names:
             return True
         return False
 
-    def get_given_name(self, entity_id):
+    def get_given_name(self, entity_id: str) -> str:
         return self.given_names[entity_id]
 
-    def is_family_names_loaded(self):
+    def is_family_names_loaded(self) -> bool:
         return len(self.family_names) > 0
 
-    def has_family_name(self, entity_id):
+    def has_family_name(self, entity_id: str) -> bool:
         if len(self.family_names) == 0:
             print("Warning: Tried to access family names of entity database but family name mapping was not loaded.")
         if entity_id in self.family_names:
             return True
         return False
 
-    def get_family_name(self, entity_id):
+    def get_family_name(self, entity_id: str) -> str:
         return self.family_names[entity_id]
 
     def load_types(self):
         self.entity2types = EntityDatabaseReader.get_type_mapping()
 
-    def is_types_loaded(self):
+    def is_types_loaded(self) -> bool:
         return len(self.entity2types) > 0
 
-    def has_types(self, entity_id):
+    def has_types(self, entity_id: str) -> bool:
         return entity_id in self.entity2types
 
-    def get_types(self, entity_id):
+    def get_types(self, entity_id: str) -> List[str]:
         return self.entity2types[entity_id]
 
     def load_unigram_counts(self):
@@ -293,10 +293,10 @@ class EntityDatabase:
     def load_sitelink_counts(self):
         self.sitelink_counts = EntityDatabaseReader.get_sitelink_counts()
 
-    def has_sitelink_counts_loaded(self):
+    def has_sitelink_counts_loaded(self) -> bool:
         return len(self.sitelink_counts) > 0
 
-    def get_sitelink_count(self, entity_id):
+    def get_sitelink_count(self, entity_id: str) -> int:
         if not self.has_sitelink_counts_loaded():
             print("Warning: Tried to access sitelink counts of entity database, but sitelink counts were not loaded.")
         return self.sitelink_counts[entity_id] if entity_id in self.sitelink_counts else 0
@@ -304,38 +304,38 @@ class EntityDatabase:
     def load_demonyms(self):
         self.demonyms = EntityDatabaseReader.get_demonyms()
 
-    def has_demonyms_loaded(self):
+    def has_demonyms_loaded(self) -> bool:
         return len(self.demonyms) > 0
 
-    def is_demonym(self, text):
+    def is_demonym(self, text: str) -> bool:
         if not self.has_demonyms_loaded():
             print("Warning: Tried to access demonyms of entity database, but demonyms were not loaded.")
         return text in self.demonyms
 
-    def get_entities_for_demonym(self, demonym):
+    def get_entities_for_demonym(self, demonym: str) -> List[str]:
         return self.demonyms[demonym]
 
     def load_languages(self):
         self.languages = EntityDatabaseReader.get_languages()
 
-    def has_languages_loaded(self):
+    def has_languages_loaded(self) -> bool:
         return len(self.languages) > 0
 
-    def is_language(self, text):
+    def is_language(self, text: str) -> bool:
         if not self.has_languages_loaded():
             print("Warning: Tried to access languages of entity database, but languages were not loaded.")
         return text in self.languages
 
-    def get_entity_for_language(self, language):
+    def get_entity_for_language(self, language: str) -> str:
         return self.languages[language]
 
     def load_quantities(self):
         self.quantities = EntityDatabaseReader.get_real_numbers()
 
-    def has_quantities_loaded(self):
+    def has_quantities_loaded(self) -> bool:
         return len(self.quantities) > 0
 
-    def is_quantity(self, entity_id):
+    def is_quantity(self, entity_id: str) -> bool:
         if not self.has_quantities_loaded():
             print("Warning: Tried to access quantities of entity database, but quantities were not loaded.")
         return entity_id in self.quantities
@@ -343,10 +343,10 @@ class EntityDatabase:
     def load_datetimes(self):
         self.datetimes = EntityDatabaseReader.get_points_in_time()
 
-    def has_datetimes_loaded(self):
+    def has_datetimes_loaded(self) -> bool:
         return len(self.datetimes) > 0
 
-    def is_datetime(self, entity_id):
+    def is_datetime(self, entity_id: str) -> bool:
         if not self.has_datetimes_loaded():
             print("Warning: Tried to access datetimes of entity database, but datetimes were not loaded.")
         return entity_id in self.datetimes

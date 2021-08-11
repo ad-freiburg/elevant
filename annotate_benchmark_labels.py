@@ -1,7 +1,5 @@
 import argparse
-import sys
 
-from src import settings
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
