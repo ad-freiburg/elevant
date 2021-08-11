@@ -38,7 +38,7 @@ class Evaluator:
                  relevant_entity_ids,
                  load_data: bool = True,
                  coreference: bool = True,
-                 contains_unknowns : bool = True):
+                 contains_unknowns: bool = True):
         self.type_id_to_label = EntityDatabaseReader.read_whitelist_types()
         self.all_cases = []
         if load_data:
@@ -72,13 +72,13 @@ class Evaluator:
 
     def count_ner_case(self, case: Case):
         if case.is_named():
-            if case.has_ground_truth() and case.is_known_entity() and not case.is_optional():
-                # Disregard child labels for TP and FN (children correctly detected is None only for child labels)
-                if case.has_predicted_entity() and case.children_correctly_detected is True:
+            # Disregard child GT labels for TP and FN
+            if case.has_ground_truth() and case.is_known_entity() and not case.is_optional() and case.true_entity.parent is None:
+                if case.children_correctly_detected is True:
                     self.counts["NER"]["tp"] += 1
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
-                if not is_level_one(case.text) and case.children_correctly_detected is not None:
+                if not is_level_one(case.text):
                     self.n_named_lowercase += 1
             elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
