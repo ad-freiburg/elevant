@@ -28,19 +28,25 @@ html, body {
     padding-left: 10pt;
 }
 
-table, td, th {
+/* Do not use border-collapse: collapse, so the th border is still shown when scrolling. See also
+https://stackoverflow.com/questions/50361698/border-style-do-not-work-with-sticky-position-element */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+td, th {
     border: 1px solid black;
-    border-collapse: collapse;
     padding: 3px;
 }
 
 /* Make the table headers move down when scrolling so they are always visible */
-table th {
+th {
     position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 10;
-    background: #fff;
+    background: #E5E5E5;
 }
 
 #benchmarks_table thead .sort_symbol {
