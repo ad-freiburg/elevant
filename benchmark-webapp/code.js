@@ -1,6 +1,5 @@
 $("document").ready(function() {
     console.log("document ready");
-    benchmarks = ["ours", "conll", "conll-dev", "conll-test", "msnbc", "ace"];
     whitelist = {
         Q18336849: "item with given name property",
         Q27096213: "geographic entity",
@@ -33,10 +32,19 @@ $("document").ready(function() {
         Q41710: "ethnic group",
         Q18603729: "dissolution of an administrative territorial entity"
     }
+    get_existing_benchmark_names('benchmarks/')
+        .then((data) => {
+            benchmarks = data;
+            set_table_head();
+            set_table_body();
+        })
+        .catch((error) => {
+            alert('Files could not be loaded. please check console for details');
+            console.error(error);
+        });
+
     last_selected_cell = null;
 
-    set_table_head();
-    set_table_body();
 
     // Highlight cells on hover
     $("#benchmarks_table tbody").on("mouseenter", "td", function() {
@@ -72,6 +80,47 @@ $("document").ready(function() {
         }
     });
 });
+
+function get_existing_benchmark_names(dir) {
+    return new Promise((resolve, reject) => {
+        try {
+            var benchmark_names = [];
+            var existing_types_files = {};
+            var existing_labels_files = {};
+            $.ajax({
+                url: dir,
+                success: function (data) {
+                    $(data).find("a").each(function() {
+                        filename = $(this).attr("href");
+                        if (filename.endsWith(".types.json") || filename.endsWith(".labels.tsv")) {
+                            benchmark_name = filename.split(".")[0];
+                            if (filename.endsWith(".types.json")) {
+                                existing_types_files[benchmark_name] = true;
+                            }
+                            if (filename.endsWith(".labels.tsv")) {
+                                existing_labels_files[benchmark_name] = true;
+                            }
+                            if (benchmark_name in existing_types_files && benchmark_name in existing_labels_files) {
+                                benchmark_names.push(benchmark_name);
+                                delete existing_types_files[benchmark_name];
+                                delete existing_labels_files[benchmark_name];
+                            }
+                        }
+                    });
+                    for (benchmark_name in existing_types_files) {
+                        console.log("No corresponding labels file found for " + benchmark_name + ".");
+                    }
+                    for (benchmark_name in existing_labels_files) {
+                        console.log("No corresponding types file found for " + benchmark_name + ".");
+                    }
+                    return resolve(benchmark_names);
+                }
+            });
+        } catch (ex) {
+            return reject(new Error(ex));
+        }
+    });
+}
 
 function get_benchmark_from_cell(element) {
     var col_index = $(element).parent().children().index($(element)) + 1;
