@@ -1,38 +1,18 @@
 $("document").ready(function() {
-    console.log("document ready");
-    whitelist = {
-        Q18336849: "item with given name property",
-        Q27096213: "geographic entity",
-        Q483394: "genre",
-        Q43229: "organization",
-        Q17376908: "languoid",
-        Q17537576: "creative work",
-        Q2424752: "product",
-        Q431289: "brand",
-        Q43460564: "chemical entity",
-        Q16521: "taxon",
-        Q9174: "religion",
-        Q7257: "ideology",
-        Q4164871: "position",
-        Q12737077: "occupation",
-        Q216353: "title",
-        Q11862829: "academic discipline",
-        Q21070598: "narrative entity",
-        Q618779: "award",
-        Q431289: "brand",
-        Q12136: "disease",
-        Q4392985: "religious identity",
-        Q11514315: "historical period",
-        Q1656682: "event",
-        Q180684: "conflict",
-        Q373899: "record chart",
-        Q194465: "annexation",
-        Q381072: "crisis",
-        Q22222786: "government program",
-        Q41710: "ethnic group",
-        Q18603729: "dissolution of an administrative territorial entity"
-    }
-    get_existing_benchmark_names('benchmarks/')
+    $.get("wikidata-types/types.txt", function(file_content) {
+        // Retrieve whitelist QID to name mapping
+        whitelist = {};
+        for (line of file_content.split("\n")) {
+            var arr = line.split("#");
+            if (arr.length > 1) {
+                qid = arr[0].trim();
+                qid = qid.substring("wd:".length, qid.length);
+                name = arr[1].trim();
+                whitelist[qid] = name;
+            }
+        }
+        // Retrieve benchmark names from labels and types files in the benchmark directory
+        get_existing_benchmark_names('benchmarks/')
         .then((data) => {
             benchmarks = data;
             set_table_head();
@@ -42,9 +22,9 @@ $("document").ready(function() {
             alert('Files could not be loaded. please check console for details');
             console.error(error);
         });
+    });
 
     last_selected_cell = null;
-
 
     // Highlight cells on hover
     $("#benchmarks_table tbody").on("mouseenter", "td", function() {

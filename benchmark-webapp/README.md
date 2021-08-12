@@ -12,11 +12,16 @@ This webapp displays information about the groundtruth label types and level1 di
 
         cd benchmark-webapp
 
-1. Link to the benchmark directory that contains the generated `*.types.json` and `*.labels.tsv` files:
+1. Link to the `benchmarks` directory that contains the generated `*.types.json` and `*.labels.tsv` files:
 
         ln -s ../benchmarks
+        
+1. Link to the `wikidata-types` directory that contains the whitelist type file `types.txt`:
+
+        ln -s ../wikidata-types
         
 1. Start a file server:
 
         python3 -m http.server [PORT]
+
 1. Access the webapp at 0.0.0.0:[PORT] (default port is 8000).
