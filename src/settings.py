@@ -18,11 +18,15 @@ if DATA_DIRECTORY is None:
 
 ARTICLE_JSON_DIR = DATA_DIRECTORY + "json/"
 ARTICLE_JSON_FILE = DATA_DIRECTORY + "wiki_extractor_output/wiki_dump_with_links_and_bold.jsonl"
+WIKINEWS_ARTICLE_JSON_FILE = "/local/data/prangen/wikipedia_dumps/enwikinews-20210801-extracted.json"
 
 SPLIT_ARTICLES_DIR = DATA_DIRECTORY + "articles_split/"
 TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "training_bold.jsonl"
 DEVELOPMENT_ARTICLES = SPLIT_ARTICLES_DIR + "development_bold.jsonl"
 TEST_ARTICLES = SPLIT_ARTICLES_DIR + "test_bold.jsonl"
+WIKINEWS_TRAINING_ARTICLES = SPLIT_ARTICLES_DIR + "wikinews_training.jsonl"
+WIKINEWS_DEVELOPMENT_ARTICLES = SPLIT_ARTICLES_DIR + "wikinews_development.jsonl"
+WIKINEWS_TEST_ARTICLES = SPLIT_ARTICLES_DIR + "wikinews_test.jsonl"
 
 DATABASE_DIRECTORY = DATA_DIRECTORY + "yi-chun/"
 ENTITY_FILE = DATABASE_DIRECTORY + "wikidata-entities-large.tsv"
@@ -45,6 +49,7 @@ LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"
 TITLE_SYNONYMS_FILE = DATA_DIRECTORY + "title_synonyms.pkl"
 AKRONYMS_FILE = DATA_DIRECTORY + "akronyms.pkl"
+WIKINEWS_CATEGORY_TO_WIKIPEDIA = DATA_DIRECTORY + "wikinews_category_to_wikipedia.pkl"
 
 ENTITY_PREFIX = "http://www.wikidata.org/entity/"
 

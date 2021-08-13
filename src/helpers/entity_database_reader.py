@@ -260,3 +260,9 @@ class EntityDatabaseReader:
                 entity_id = entity_id[:-1].split("/")[-1]
                 points_in_time.add(entity_id)
         return points_in_time
+
+    @staticmethod
+    def get_wikinews_category_to_wikipedia_mapping() -> Dict[str, str]:
+        with open(settings.WIKINEWS_CATEGORY_TO_WIKIPEDIA, "rb") as f:
+            mapping = pickle.load(f)
+        return mapping
