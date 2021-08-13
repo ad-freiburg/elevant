@@ -33,7 +33,7 @@ REMOVE wd:Q482 wdt:P279 wd:Q223393  # poetry - literary genre
 REMOVE wd:Q1358344 wdt:P279 wd:Q15961987  # news program - television genre
 REMOVE wd:Q1030814 wdt:P279 wd:Q12909644   # big tent - political ideology
 REMOVE wd:Q1168287 wdt:P279 wd:Q166542  # intervention - international relations (to break the path NATO intervention in Bosnia and Herzegovina - award)
-ADD wd:Q38829 wdt:P279 wd:Q7432  # breed - species
+ADD wd:Q38829 wdt:P279 wd:Q16521  # breed - taxon
 ADD wd:Q11344 wdt:P279 wd:Q43460564  # chemical element - chemical entity
 ADD wd:Q39825 wdt:P279 wd:Q1656682  # census - event
 REMOVE wd:Q14897293 wdt:P279 wd:Q17537576  # fictional entity - creative work
