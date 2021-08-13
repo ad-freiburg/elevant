@@ -93,6 +93,7 @@ function get_existing_benchmark_names(dir) {
                     for (benchmark_name in existing_labels_files) {
                         console.log("No corresponding types file found for " + benchmark_name + ".");
                     }
+                    benchmark_names.sort(compare_benchmark_names);
                     return resolve(benchmark_names);
                 }
             });
@@ -100,6 +101,21 @@ function get_existing_benchmark_names(dir) {
             return reject(new Error(ex));
         }
     });
+}
+
+function compare_benchmark_names(benchmark_1, benchmark_2) {
+    return benchmark_key(benchmark_1) - benchmark_key(benchmark_2) ||
+        benchmark_1 > benchmark_2;
+}
+
+function benchmark_key(benchmark_name) {
+    /* Our benchmark, the CoNLL benchmarks and MSNBC are the most relevant for
+    us right now and should be shown first.
+    */
+    if (benchmark_name.includes("ours")) return 1;
+    else if (benchmark_name.includes("conll")) return 2;
+    else if (benchmark_name.startsWith("msnbc")) return 3;
+    else return 10;
 }
 
 function get_benchmark_from_cell(element) {
