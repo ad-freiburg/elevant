@@ -174,7 +174,7 @@ class Evaluator:
         print_article_coref_evaluation(cases, article.text)
 
     def print_results(self):
-        print_evaluation_summary(self)
+        print_evaluation_summary(self.counts)
 
     def get_results_dict(self):
         results_dict = {

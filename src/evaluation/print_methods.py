@@ -102,99 +102,12 @@ def print_article_coref_evaluation(cases: List[Case], text: str):
                       color=CASE_COLORS[case.coref_type]))
 
 
-def print_evaluation_summary(evaluator):
-    all_cases = evaluator.all_cases
-    counts = evaluator.counts
-    n_total = n_correct = n_known = n_detected = n_contained = n_is_candidate = n_true_in_multiple_candidates = \
-        n_correct_multiple_candidates = n_false_positives = n_false_negatives = n_ground_truth = n_false_detection = \
-        n_coref_total = n_coref_tp = n_coref_fp = 0
-    for case in all_cases:
-        n_total += 1
-
-        if case.is_coreference():
-            if case.is_true_coreference():
-                n_coref_total += 1
-                if case.is_correct():
-                    n_coref_tp += 1
-                else:
-                    n_coref_fp += 1
-            if not case.is_true_coreference():
-                n_coref_fp += 1
-        else:
-            if case.has_ground_truth():
-                n_ground_truth += 1
-                if case.is_known_entity():
-                    n_known += 1
-                    if case.contained:
-                        n_contained += 1
-                    if case.is_detected():
-                        n_detected += 1
-                        if case.true_entity_is_candidate():
-                            n_is_candidate += 1
-                            if len(case.candidates) > 1:
-                                n_true_in_multiple_candidates += 1
-                                if case.is_correct():
-                                    n_correct_multiple_candidates += 1
-
-        if case.is_correct():
-            n_correct += 1
-        elif case.is_known_entity():
-            n_false_negatives += 1
-        if case.is_false_positive():
-            n_false_positives += 1
-        if case.eval_type == CaseType.FALSE_DETECTION:
-            n_false_detection += 1
-
-    n_unknown = n_ground_truth - n_known
-    n_undetected = n_known - n_detected
-
-    print("\n== EVALUATION ==")
-    print("%i ground truth entity mentions evaluated" % n_ground_truth)
-    print("\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_ground_truth))
-    print("\t%.2f%% not a known entity (%i/%i)" % percentage(n_unknown, n_ground_truth))
-    print("\t%.2f%% known entities (%i/%i)" % percentage(n_known, n_ground_truth))
-    print("\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_known))
-    print("\t\t%.2f%% contained (%i/%i)" % percentage(n_contained, n_known))
-    print("\t\t%.2f%% not detected (%i/%i)" % percentage(n_undetected, n_known))
-    print("\t\t%.2f%% detected (%i/%i)" % percentage(n_detected, n_known))
-    print("\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_detected))
-    # TODO: Link-linker and coreference-linker do not yield candidate information
-    print("\t\t\t%.2f%% true entity in candidates (%i/%i)" % percentage(n_is_candidate, n_detected))
-    print("\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct, n_is_candidate))
-    print("\t\t\t\t%.2f%% multiple candidates (%i/%i)" % percentage(n_true_in_multiple_candidates, n_is_candidate))
-    print("\t\t\t\t\t%.2f%% correct (%i/%i)" % percentage(n_correct_multiple_candidates,
-                                                          n_true_in_multiple_candidates))
-
-    print()
-    print("Coreference evaluation:")
-    print("\tprecision = %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_tp + n_coref_fp))
-    print("\trecall =    %.2f%% (%i/%i)" % percentage(n_coref_tp, n_coref_total))
-    coref_precision = n_coref_tp / (n_coref_tp + n_coref_fp) if n_coref_tp + n_coref_fp > 0 else 0
-    coref_recall = n_coref_tp / n_coref_total if n_coref_total > 0 else 0
-    coref_f1 = 2 * coref_precision * coref_recall / (coref_precision + coref_recall)\
-        if (coref_precision + coref_recall) > 0 else 0
-    print("\tf1 =        %.2f%%" % (coref_f1*100))
-
-    print("\nNER:")
-    ner_precision, ner_prec_nominator, ner_prec_denominator = percentage(counts["NER"]["tp"],
-                                                                         counts["NER"]["tp"] + counts["NER"]["fp"])
-    print("precision = %.2f%% (%i/%i)" % (ner_precision, ner_prec_nominator, ner_prec_denominator))
-    ner_recall, ner_rec_nominator, ner_rec_denominator = percentage(counts["NER"]["tp"],
-                                                                    counts["NER"]["tp"] + counts["NER"]["fn"])
-    print("recall =    %.2f%% (%i/%i)" % (ner_recall, ner_rec_nominator, ner_rec_denominator))
-    ner_precision = ner_precision / 100
-    ner_recall = ner_recall / 100
-    ner_f1 = 2 * ner_precision * ner_recall / (ner_precision + ner_recall) if (ner_precision + ner_recall) > 0 else 0
-    print("f1 =        %.2f%%" % (ner_f1 * 100))
-
-    print("\nNERD:")
-    print("tp = %i, fp = %i (false detections = %i), fn = %i" %
-          (n_correct, n_false_positives, n_false_detection, n_false_negatives))
-    precision, prec_nominator, prec_denominator = percentage(n_correct, n_correct + n_false_positives)
-    print("precision = %.2f%% (%i/%i)" % (precision, prec_nominator, prec_denominator))
-    recall, rec_nominator, rec_denominator = percentage(n_correct, n_correct + n_false_negatives)
-    print("recall =    %.2f%% (%i/%i)" % (recall, rec_nominator, rec_denominator))
-    precision = precision / 100
-    recall = recall / 100
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-    print("f1 =        %.2f%%" % (f1 * 100))
+def print_evaluation_summary(counts: Dict):
+    print("== EVALUATION ==")
+    for category in counts:
+        print()
+        print("= %s =" % category)
+        f1_dict = create_f1_dict(counts[category]["tp"], counts[category]["fp"], counts[category]["fn"])
+        print("precision:\t%.2f%%" % (f1_dict["precision"] * 100))
+        print("recall:\t\t%.2f%%" % (f1_dict["recall"] * 100))
+        print("f1:\t\t%.2f%%" % (f1_dict["f1"] * 100))
