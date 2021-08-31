@@ -726,13 +726,17 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
         // annotation is a tuple with (span, annotation_info)
         span = annotation[0];
 
+        if (!cutoff_done){
+            // Text should only be the text within the given evaluation span (Careful: This is the entire article if a
+            // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
+            // shown)
+            cutoff_done = true;
+            text = text.substring(0, evaluation_span[1]);
+        }
         if (span[1] > evaluation_span[1]) {
             continue;
         } else if (span[0] < evaluation_span[0]) {
             break;
-        } else if (!cutoff_done){
-            cutoff_done = true;
-            text = text.substring(0, evaluation_span[1]);
         }
         annotation = annotation[1];
         before = text.substring(0, span[0]);
