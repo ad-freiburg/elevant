@@ -569,7 +569,11 @@ function get_predicted_annotations(article_index) {
                 continue;
             }
         }
-        if ("predicted_entity" in mention && (mention.factor == null || mention.factor > 0)) {
+        if (mention.factor == 0) {
+            // Do not display overlapping mentions
+            continue;
+        }
+        if ("predicted_entity" in mention) {
             // mention is inside the evaluation span and therefore an evaluated case
             if (is_correct_optional_case(mention)) {
                 color = GREY;
