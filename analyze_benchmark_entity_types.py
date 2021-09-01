@@ -69,7 +69,7 @@ if __name__ == "__main__":
                         is_traditional_entity_type = True
                 if is_traditional_entity_type:
                     n_traditional_entities += 1
-            total_counts[bool(label.level1)] += 1
+                total_counts[bool(label.level1)] += 1
 
     labels_tsv_file.close()
 
@@ -88,5 +88,5 @@ if __name__ == "__main__":
         f.write(json.dumps({"total": [total_counts[True], total_counts[False]],
                             "types": type_name_counts}))
 
-    print(f"{n_traditional_entities / known_labels * 100}% of the known mentions are covered by "
+    print(f"{n_traditional_entities / known_labels * 100:.2f}% of the known mentions are covered by "
           f"{traditional_entity_types}")
