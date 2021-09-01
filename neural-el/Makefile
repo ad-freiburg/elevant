@@ -17,7 +17,7 @@ help:
 	@echo "		Time to run: ~ 4h | required RAM: ~40GB${RESET}"
 
 link_benchmark:
-	python3 neuralel.py --config=configs/config.ini --model_path=/data/models/CDTE.model --in_file=/data/benchmark_articles.txt --out_file=/results/linked_articles.jsonl
+	python3 neuralel.py --config=configs/config.ini --model_path=/data/models/CDTE.model --in_file=/data/articles.txt --out_file=/results/linked_articles.jsonl
 
 link_ner_articles:
 	python3 neuralel.py --config=configs/config.ini --model_path=/data/models/CDTE.model --in_file=/data/benchmark_articles_ner.txt --out_file=/results/linked_articles_ner.jsonl --contains_ner=True
