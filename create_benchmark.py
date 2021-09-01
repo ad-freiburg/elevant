@@ -1,21 +1,18 @@
 import argparse
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from src import settings
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import article_from_json
 
 
 START_TAG = "<START>"
 END_TAG = "<END>"
-N_ARTICLES = 43
-ARTICLES_SPLIT = 100
 SKIP_ARTICLES = {2, 10, 14}
 
 
-def read_labeled_texts(path: str, n: int) -> List[str]:
+def read_labeled_texts(path: str, n: Optional[int] = None) -> List[str]:
     texts = []
     lines = []
     for line in open(path):
@@ -23,7 +20,7 @@ def read_labeled_texts(path: str, n: int) -> List[str]:
             if len(lines) > 0:
                 texts.append("".join(lines))
                 lines = []
-                if len(texts) == n:
+                if n is not None and len(texts) == n:
                     return texts
         else:
             line = line.replace(START_TAG, "")
@@ -159,32 +156,46 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
 
 
 def main(args):
-    labels_texts = read_labeled_texts(args.input_file, N_ARTICLES)
-    benchmark_articles = []
+    labels_texts = read_labeled_texts(args.input_file, args.num_articles)
 
     output_file = None
     if args.output_file:
         output_file = open(args.output_file, "w", encoding="utf8")
 
-    with open(settings.OWN_BENCHMARK_FILE) as json_file:
-        for i in range(N_ARTICLES):
-            if i not in SKIP_ARTICLES:
-                json = next(json_file)
-                article = article_from_json(json)
-                if len(benchmark_articles) < ARTICLES_SPLIT:
-                    labels_text = labels_texts[i]
-                labels = get_nested_labels(labels_text)
+    title_span_jsonl_file = None
+    if args.title_span_jsonl_file:
+        title_span_jsonl_file = open(args.title_span_jsonl_file, "r")
 
+    article_count = 0
+    skip_count = 0
+    with open(args.article_jsonl_file) as jsonl_file:
+        for i, json in enumerate(jsonl_file):
+            if i + skip_count >= len(labels_texts) or \
+                    (args.num_articles is not None and article_count >= args.num_articles):
+                break
+            if title_span_jsonl_file:
+                title_span_json = next(title_span_jsonl_file)
+            if not args.skip or i + skip_count not in SKIP_ARTICLES:
+                if not args.skip and i + skip_count in SKIP_ARTICLES:
+                    skip_count += 1
+                article = article_from_json(json)
+                labels = get_nested_labels(labels_texts[i + skip_count])
                 article.labels = labels
-                benchmark_articles.append(article)
+
+                if title_span_jsonl_file:
+                    article_title_spans = article_from_json(title_span_json)
+                    article.title_synonyms = article_title_spans.title_synonyms
 
                 if output_file:
                     output_file.write(article.to_json() + "\n")
                 else:
                     print(article.to_json())
+                article_count += 1
 
     if output_file:
         output_file.close()
+    if title_span_jsonl_file:
+        title_span_jsonl_file.close()
 
 
 if __name__ == "__main__":
@@ -196,5 +207,23 @@ if __name__ == "__main__":
 
     parser.add_argument("-out", "--output_file", type=str, default=None,
                         help="File to write the labeled benchmark to (one json article per line).")
+
+    parser.add_argument("-n", "--num_articles", type=int, default=None,
+                        help="Number of articles to read from the input file.")
+
+    parser.add_argument("--skip", action="store_true",
+                        help="Set if the article_jsonl_file contains those articles that should be skipped.")
+
+    parser.add_argument("--article_jsonl_file", type=str, default=settings.OWN_BENCHMARK_FILE,
+                        help="File that contains the original article in jsonl format"
+                             "(for additional info like hyperlink spans). If the settings.OWN_BENCHMARK_FILE"
+                             "does not contain all articles because the benchmark is being extended, use e.g."
+                             "benchmarks/benchmark_articles.all.jsonl")
+
+    parser.add_argument("--title_span_jsonl_file", type=str, default=None,
+                        help="File that contains the benchmark articles including bold title span info."
+                             "Only needed if the benchmark is extended."
+                             "(E.g. benchmarks/benchmark_articles.all.bold.jsonl. This can't simply be used as"
+                             "article_jsonl_file, since the article texts slightly differ from the benchmark version)")
 
     main(parser.parse_args())
