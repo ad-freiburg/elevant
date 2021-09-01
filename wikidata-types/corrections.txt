@@ -18,6 +18,7 @@ ADD wd:Q20979428 wdt:P31 wd:Q7725634  # Unmeasured strength - literary work
 ADD wd:Q210272 wdt:P31 wd:Q11862829  # cultural heritage - academic discipline
 ADD wd:Q10283 wdt:P31 wd:Q15726071  # Kumbh Mela - Hindu pilgrimage
 REMOVE wd:Q9531 wdt:P31 wd:Q7094076  # BBC - online database
+ADD wd:Q49084 wdt:P31 wd:Q223393  # short story - literary genre
 
 # Subclass-of
 REMOVE wd:Q24229398 wdt:P279 wd:Q12737077  # agent - occupation
