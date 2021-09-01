@@ -43,8 +43,10 @@ if __name__ == "__main__":
     known_labels = 0
     n_traditional_entities = 0
     for article in articles:
-        num_labels += len(article.labels)
         for label in article.labels:
+            if label.parent is not None:
+                continue
+            num_labels += 1
             mention = article.text[label.span[0]:label.span[1]]
             if label.entity_id.startswith("Unknown"):
                 types = ["UNKNOWN"]
