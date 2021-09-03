@@ -19,6 +19,12 @@ ADD wd:Q210272 wdt:P31 wd:Q11862829  # cultural heritage - academic discipline
 ADD wd:Q10283 wdt:P31 wd:Q15726071  # Kumbh Mela - Hindu pilgrimage
 REMOVE wd:Q9531 wdt:P31 wd:Q7094076  # BBC - online database
 ADD wd:Q49084 wdt:P31 wd:Q223393  # short story - literary genre
+ADD wd:Q65077540 wdt:P31 wd:Q56019  # Army general - military rank
+ADD wd:Q7574456 wdt:P31 wd:Q15987302  # Special Advocate - legal profession
+ADD wd:Q7088285 wdt:P31 wd:Q177518  # olleh TV - IPTV
+ADD wd:Q4627135 wdt:P31 wd:Q2990946  # Charles Schwab Cup Championship - golf tournament
+ADD wd:Q223172  wdt:P31 wd:Q232358  # Achilles tendon - tendon
+ADD wd:Q7363 wdt:P31 wd:Q4936952  # nose - anatomical structure
 
 # Subclass-of
 REMOVE wd:Q24229398 wdt:P279 wd:Q12737077  # agent - occupation
@@ -49,3 +55,6 @@ REMOVE wd:Q192283 wdt:P279 wd:Q11032  # news agency - newspaper
 ADD wd:Q41710 wdt:P279 wd:Q33829  # ethnic group - human population
 ADD wd:Q18669875 wdt:P279 wd:Q1656682  # incident - event
 REMOVE wd:Q190122 wdt:P279 wd:Q28038717  # promissory note - negotiable instrument  (break any currency - creative work)
+ADD wd:Q1130251 wdt:P279 wd:Q15275719  # NHL Entry Draft - recurring event
+ADD wd:Q14897293 wdt:P279 wd:Q17537576  # fictional entity - creative work
+ADD wd:Q8366 wdt:P279 wd:Q47461344  # algorithm - written work
