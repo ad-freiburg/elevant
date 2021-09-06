@@ -10,7 +10,7 @@ from src.models.wikipedia_article import article_from_json
 
 START_TAG = "<START>"
 END_TAG = "<END>"
-N_ARTICLES = 43
+N_ARTICLES = 83
 ARTICLES_SPLIT = 100
 SKIP_ARTICLES = {2, 10, 14}
 
