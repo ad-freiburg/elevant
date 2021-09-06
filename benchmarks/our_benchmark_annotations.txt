@@ -906,7 +906,7 @@ Vehicle registration plates of the United States for 2016
 **** ARTICLE #64: Vitrea subrimata (https://en.wikipedia.org/wiki?curid=20750090) *****
 Vitrea subrimata
 
-<START>[Q7937224|Vitrea subrimata] is a species of small, air-breathing [Q6484264|land snail], a terrestrial pulmonate [Q4867740|gastropod mollusk] in the family [Q1543331|Pristilomatidae].
+<START>[Q7937224|Vitrea subrimata] is a species of small, air-breathing land snail, a terrestrial pulmonate [Q4867740|gastropod mollusk] in the family [Q1543331|Pristilomatidae].
 
 The distribution of [Q7937224|this species] is alpine and [Q27449|southern-[Q46|European]].
 

@@ -21,3 +21,7 @@ wd:Q1656682    # event
 wd:Q373899     # record chart
 wd:Q22222786   # government program
 wd:Q33829      # human population
+wd:Q1075       # color
+wd:Q179661     # treatment
+wd:Q169872     # symptom
+wd:Q4936952    # anatomical structure

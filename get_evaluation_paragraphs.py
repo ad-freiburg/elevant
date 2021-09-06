@@ -1,6 +1,7 @@
-import sys
 import random
+import argparse
 
+from src.helpers.newscrawl_corpus import NewscrawlCorpus
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 
 
@@ -9,11 +10,11 @@ EVAL_START_TAG = "<START>"
 EVAL_END_TAG = "<END>"
 
 
-if __name__ == "__main__":
-    print_text = sys.argv[1] == "text"
-
+def main(args):
     random.seed(31072020)
-    articles = list(WikipediaCorpus.development_articles())
+
+    articles = list(NewscrawlCorpus.development_articles()) if args.newscrawl else \
+        list(WikipediaCorpus.development_articles())
     random.shuffle(articles)
     for a_i, article in enumerate(articles):
         text = article.text
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         end = start + sum(paragraph_lengths[eval_begin_paragraph:eval_end_paragraph]) + \
             2 * (eval_end_paragraph - eval_begin_paragraph - 1)
         article.set_evaluation_span(start, end)
-        if print_text:
+        if args.text:
             preceding = text[:start]
             eval_text = text[start:end]
             after = text[end:]
@@ -39,3 +40,14 @@ if __name__ == "__main__":
             print(preceding + EVAL_START_TAG + eval_text + EVAL_END_TAG + after)
         else:
             print(article.to_json())
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
+    parser.add_argument("--newscrawl", action="store_true",
+                        help="Get evaluation paragraphs for the Newscrawl dataset instead of Wikipedia.")
+    parser.add_argument("--text", action="store_true",
+                        help="Print the paragraphs as text instead of json.")
+
+    main(parser.parse_args())

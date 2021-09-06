@@ -249,7 +249,7 @@ if __name__ == "__main__":
     group_input.add_argument("-i", "--input_file", type=str,
                              help="Input file with one article per line in jsonl format.")
 
-    group_input.add_argument("--input_benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,
+    group_input.add_argument("-b", "--input_benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,
                              help="Iterate over benchmark articles of the given benchmark.")
 
     group_input.add_argument("--input_wiki_dump", default=False, action="store_true",

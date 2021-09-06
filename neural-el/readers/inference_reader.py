@@ -5,6 +5,7 @@ import readers.utils as utils
 from readers.Mention import Mention
 from readers.config import Config
 from readers.vocabloader import VocabLoader
+from ccg_nlpy import remote_pipeline
 import spacy
 
 
@@ -15,8 +16,12 @@ end_word = "<eos>"
 class InferenceReader(object):
     def __init__(self, config, vocabloader,
                  num_cands, batch_size, strict_context=True,
-                 pretrain_wordembed=True, coherence=True):
-        self.nlp = spacy.load("en_core_web_lg")
+                 pretrain_wordembed=True, coherence=True, spacy_doc_processing=False):
+        self.spacy_doc_processing = spacy_doc_processing
+        if self.spacy_doc_processing:
+            self.nlp = spacy.load("en_core_web_lg")
+        else:
+            self.pipeline = remote_pipeline.RemotePipeline(server_api='http://macniece.seas.upenn.edu:4001')
         self.typeOfReader = "inference"
         self.start_word = start_word
         self.end_word = end_word
@@ -132,13 +137,17 @@ class InferenceReader(object):
 
     def processTestDoc(self, doctext, ner_spans):
         self.doctext = doctext
-        self.spacy_doc = self.nlp(self.doctext)
-        # List of tokens
-        self.doc_tokens = [tok.text for tok in self.spacy_doc]
+        if self.spacy_doc_processing:
+            self.spacy_doc = self.nlp(self.doctext)
+            # List of tokens
+            self.doc_tokens = [tok.text for tok in self.spacy_doc]
+            # sent_end_token_indices : contains index for the starting of the next sentence.
+            self.sent_end_token_indices = [s.end for s in self.spacy_doc.sents]
+        else:
+            self.ccgdoc = self.pipeline.doc(self.doctext)
+            self.doc_tokens = self.ccgdoc.get_tokens
+            self.sent_end_token_indices = self.ccgdoc.get_sentence_end_token_indices
         print("doc_tokens: ", self.doc_tokens)
-        # sent_end_token_indices : contains index for the starting of the
-        # next sentence.
-        self.sent_end_token_indices = [s.end for s in self.spacy_doc.sents]
         print("sent_end_token_indices: ", self.sent_end_token_indices)
         # List of tokenized sentences
         self.sentences_tokenized = []
@@ -153,15 +162,24 @@ class InferenceReader(object):
         if ner_spans is None:
             self.ner_cons_list = []
             self.ner_offsets = []
-            for span in self.spacy_doc.ents:
-                span_start = span.start_char
-                span_end = span.end_char
-                start = self.get_token_idx(span_start, self.spacy_doc)
-                end = self.get_token_idx(span_end, self.spacy_doc)
-                tokens = self.spacy_doc.text[span_start:span_end]
-                ner_dict = {'score': 1.0, 'start': start, 'end': end, 'tokens': tokens}
-                self.ner_cons_list.append(ner_dict)
-                self.ner_offsets.append((span_start, span_end))
+            if self.spacy_doc_processing:
+                for span in self.spacy_doc.ents:
+                    span_start = span.start_char
+                    span_end = span.end_char
+                    start = self.get_token_idx(span_start, self.spacy_doc)
+                    end = self.get_token_idx(span_end, self.spacy_doc)
+                    tokens = self.spacy_doc.text[span_start:span_end]
+                    ner_dict = {'score': 1.0, 'start': start, 'end': end, 'tokens': tokens}
+                    self.ner_cons_list.append(ner_dict)
+                    self.ner_offsets.append((span_start, span_end))
+            else:
+                # List of ner dicts from ccg pipeline
+                try:
+                    self.ner_cons_list = self.ccgdoc.get_ner_conll.cons_list
+                    self.ner_cons_list = [] if not self.ner_cons_list else self.ner_cons_list
+                except:
+                    print("NO NAMED ENTITIES IN THE DOC. EXITING")
+
         else:
             print("Retrieving ner spans")
             self.ner_cons_list = self.get_ner_dict(ner_spans)

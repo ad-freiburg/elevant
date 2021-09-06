@@ -4,6 +4,7 @@ import pprint
 import numpy as np
 import tensorflow as tf
 import json
+import copy
 
 from readers.inference_reader import InferenceReader
 from models.figer_model.el_model import ELModel
@@ -57,6 +58,7 @@ flags.DEFINE_string("test_out_fp", "", "Write Test Prediction Data")
 flags.DEFINE_string("out_file", "", "Write inference data to the specified file")
 flags.DEFINE_string("in_file", "", "Input file to be linked. With one document in a single line")
 flags.DEFINE_string("contains_ner", False, "Input comes with recognized mentions so don't perform NER.")
+flags.DEFINE_string("spacy", False, "Use spacy document preprocessing instead of ccg_nlpy.")
 
 FLAGS = flags.FLAGS
 
@@ -86,7 +88,8 @@ def main(_):
                              batch_size=FLAGS.batch_size,
                              strict_context=FLAGS.strict_context,
                              pretrain_wordembed=FLAGS.pretrain_wordembed,
-                             coherence=FLAGS.coherence)
+                             coherence=FLAGS.coherence,
+                             spacy_doc_processing=FLAGS.spacy)
     model_mode = 'inference'
 
     if FLAGS.out_file:
@@ -103,6 +106,8 @@ def main(_):
                 print("Add punctuation to end of line.")
                 line += " ."
             reader.initialize_for_doc(line, FLAGS.contains_ner)
+            if not FLAGS.spacy:
+                docta = reader.ccgdoc
             if len(reader.ner_cons_list) > 0:
                 with tf.Graph().as_default():
                     config_proto = tf.ConfigProto()
@@ -170,20 +175,42 @@ def main(_):
                                 print("Predicted Entity Types : {}".format(predTypes))
                                 print("\n")
                                 mentionnum += 1
-                        cons_list = reader.ner_cons_list
+                        if FLAGS.spacy:
+                            cons_list = reader.ner_cons_list
 
-                        # Compute the character start and end offset for each mention
-                        for i, cons in enumerate(cons_list):
-                            if i > len(entityTitleList):
-                                print("Length discrepancy")
-                                print(entityTitleList, cons_list)
-                            cons['label'] = entityTitleList[i]
-                            cons['start_char'] = reader.ner_offsets[i][0]
-                            cons['end_char'] = reader.ner_offsets[i][1]
-                        if len(cons_list) != len(reader.ner_offsets):
-                            print("LIST LENGTHS DIFFER!!!", "*"*80)
+                            # Compute the character start and end offset for each mention
+                            for i, cons in enumerate(cons_list):
+                                if i > len(entityTitleList):
+                                    print("Length discrepancy")
+                                    print(entityTitleList, cons_list)
+                                cons['label'] = entityTitleList[i]
+                                cons['start_char'] = reader.ner_offsets[i][0]
+                                cons['end_char'] = reader.ner_offsets[i][1]
+                            if len(cons_list) != len(reader.ner_offsets):
+                                print("LIST LENGTHS DIFFER!!!", "*"*80)
 
-                        predictions = {"predictions": cons_list}
+                            predictions = {"predictions": cons_list}
+                        else:
+                            elview = copy.deepcopy(docta.view_dictionary['NER_CONLL'])
+                            elview.view_name = 'ENG_NEURAL_EL'
+
+                            # Compute the character start and end offset for each mention
+                            token_offsets = docta.as_json['tokenOffsets']
+                            sentence_end_positions = docta.as_json['sentences']['sentenceEndPositions']
+                            for i, cons in enumerate(elview.cons_list):
+                                cons['label'] = entityTitleList[i]
+                                sentence_idx = sentenceList[i]
+                                sentence_start_token_idx = sentence_end_positions[
+                                    sentence_idx - 1] if sentence_idx > 0 else 0
+                                start_token_idx = sentence_start_token_idx + cons['start']
+                                start_char = token_offsets[start_token_idx]['startCharOffset']
+                                end_token_idx = sentence_start_token_idx + cons['end']
+                                end_char = token_offsets[end_token_idx]['endCharOffset']
+                                cons['start_char'] = start_char
+                                cons['end_char'] = end_char
+
+                            docta.view_dictionary['ENG_NEURAL_EL'] = elview
+                            predictions = {"predictions": elview.cons_list}
 
                         if FLAGS.out_file:
                             out_file.write(json.dumps(predictions) + "\n")
