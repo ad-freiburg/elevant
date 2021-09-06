@@ -569,7 +569,7 @@ Share this article
 
 <START>Share
 
-15 shares
+[QUANTITY|15] shares
 
 Share or comment on this article
 <END>
@@ -1132,11 +1132,11 @@ Looking back on the film that spotlighted Ginsburg worldwide, and offered intima
 
 "We greenlit the film because of Ruth Bader Ginsburg's extraordinary legacy in equal rights and her stature within our national culture," Amy Entelis, executive vice president for talent and content development for CNN Worldwide, told The Associated Press in an email Saturday.
 
-<START>"We never expected the film to generate the reaction that it did. Many people were unfamiliar with her pre-judicial career as a lawyer for the ACLU and how she played such an essential role in securing equal rights, particularly for women, which meant all Americans benefited," she wrote. "The stories of her personal struggle to become an attorney makes her singular contributions to the law that much more poignant. And her enduring marriage to Martin Ginsburg touched and moved audiences of all genders and generations."
+<START>"We never expected [Q42048168|the film] to generate the reaction that [Q42048168|it] did. Many people were unfamiliar with [Q11116|her] pre-judicial career as a [Q40348|lawyer] for the [Q21637|ACLU] and how [Q11116|she] played such an essential role in securing equal rights, particularly for women, which meant all [Q846570|Americans] benefited," [Q58416693|she] wrote. "The stories of [Q11116|her] personal struggle to become an [Q40348|attorney] makes [Q11116|her] singular contributions to the law that much more poignant. And [Q11116|her] enduring marriage to [Q6775247|Martin Ginsburg] touched and moved audiences of all genders and generations."
 
-This CNN Films documentary will be broadcast on CNN Saturday night at 10 p.m. ET, with encores Sunday at 10 p.m. and 2 a.m. Eastern. The film is also available via CNN on demand with cable and satellite subscriptions beginning Sunday, and for streaming via CNNgo platforms, also beginning Sunday until Sept. 26.
+This [Q15994987|CNN Films] [Q93204|documentary] will be broadcast on [Q48340|CNN] [DATETIME|Saturday night at 10 p.m. ET], with encores [DATETIME|Sunday at 10 p.m.] and [DATETIME|2 a.m. Eastern]. [Q42048168|The film] is also available via [Q48340|CNN] on demand with cable and satellite subscriptions beginning [DATETIME|Sunday], and for streaming via [Q21503813|CNNgo] platforms, also beginning [DATETIME|Sunday] until [DATETIME|Sept. 26].
 
-The documentary is also available for streaming on Hulu, Apple TV and for rent on Amazon Prime Video and in the iTunes store.<END>
+[Q15994987|The documentary] is also available for streaming on [Q1630304|Hulu], [Q270285|Apple TV] and for rent on [Q4740856|Amazon Prime Video] and in the [Q9593|[Q9589|iTunes] store].<END>
 
 Time magazine will feature Ginsburg on one of multiple special covers for an October double issue presenting the 2020 Time 100 list of the world's most influential people. It will include a special tribute to the justice, who was featured on the list in 2015.
 
@@ -1189,11 +1189,11 @@ Charlie has been involved in a clinical trial for the drug called PRO-140 since 
 
 As opposed to traditional antiretroviral therapy (ART), which involves taking daily medication, Charlie receives a weekly injection that has no side effects.
 
-<START>In December, he received the news from the head of his clinical trial that he has achieved complete suppression of the virus using this method alone.
+<START>In [DATETIME|December], [Q103939|he] received the news from the head of his clinical trial that he has achieved complete suppression of [Q15787|the virus] using this method alone.
 
-Since breaking the news of his diagnosis to the world, the outspoken star has been forthcoming about the topic in public.
+Since breaking the news of [Q103939|his] diagnosis to the world, [Q103939|the outspoken star] has been forthcoming about the topic in public.
 
-During his previous appearance on the KIIS FM radio show, Charlie, who once openly bragged about his 'polygamy' lifestyle, admits his sex life is now non-existent due to health woes.<END>
+During his previous appearance on the [Q1582014|KIIS FM] radio show, [Q103939|Charlie], who once openly bragged about his 'polygamy' lifestyle, admits [Q103939|his] sex life is now non-existent due to health woes.<END>
 
 '... Here's the joke these days right, a friend of mine says 'hey man how's your sex life?' and I'm like 'oh it's just f---ing perfect because HIV is such a great pickup line!" he told the show's hosts.
 
@@ -1213,12 +1213,12 @@ They are beautifully presented in colourful packaging, which looks far more expe
 
 It's a new year - which means there's a new colour to wear. Pantone has declared Ultra Violet the shade of 2018, so expect to see it on make-up counters in everything from eyeliner to lipstick.
 
-<START>If that feels a step too far, try a violet nail polish. Nailberry's L'Oxygene Polish in Extravagant (£14.50, nailberry.co.uk) ensures nails won't dry out, or for a deeper shade, try YSL La Laque Couture Nail Polish in Violet Baroque (£19.50, yslbeauty.co.uk).
+<START>If that feels a step too far, try a violet nail polish. [Unknown1|Nailberry]'s [Unknown2|L'Oxygene Polish in Extravagant] (£14.50, nailberry.co.uk) ensures nails won't dry out, or for a deeper shade, try [Unknown3|YSL La Laque Couture Nail Polish in Violet Baroque] (£19.50, yslbeauty.co.uk).
 
-I love L'Oreal Color Riche Oil Nail Polish in Violet Vendome (£4.95, nailpolishdirect.co.uk), a rich, vibrant hue.
+I love [Unknown4|[Q156077|L'Oreal] [Unknown5|Color Riche Oil Nail Polish in Violet Vendome]] (£4.95, nailpolishdirect.co.uk), a rich, vibrant hue.
 
 
-All eyes have been on Meghan Markle and her glowing skin since her engagement.<END>
+All eyes have been on [Q3304418|Meghan Markle] and her glowing skin since her engagement.<END>
 
 So it's nice to hear she loves a multi-tasking bargain just as much as the rest of us. Her must-have travel product is a bottle of Tea Tree Oil.
 
@@ -1287,11 +1287,11 @@ One admirer, Bobbie Brown, 42, asked Kate whether she had felt the baby kicking 
 
 "She said: 'Yes it is, very much so'," she said.
 
-<START>Although it is still one of the largest centres for fish processing in Britain, Grimsby has been in decline since the 1950s and youth unemployment is among the highest in the country.
+<START>Although [Q179406|it] is still one of the largest centres for fish processing in [Q145|Britain], [Q179406|Grimsby] has been in decline since [DATETIME|the 1950s] and youth unemployment is among the highest in [Q145|the country].
 
-Unfortunately the Duchess's arrival was almost 90 minutes late after her helicopter was delayed by thick fog.
+Unfortunately [Q10479|the Duchess]'s arrival was almost [QUANTITY|90] minutes late after [Q10479|her] helicopter was delayed by thick fog.
 
-Royal artist Paul Emsley explains the new portrait of The Duchess of Cambridge<END>
+Royal [Q483501|artist] [Q2947141|Paul Emsley] explains the new portrait of [Q10479|The Duchess of Cambridge]<END>
 
 She had been due to be collected from Kensington Palace by the Queen's helicopter, known as the Royal Fight, at 10am in time for a 11.35am start. The flight is paid for by taxpayers and will cost around £3,500.
 
@@ -1336,11 +1336,11 @@ Four: "My question is to the Minister for Communications [Malcolm Turnbull]. Min
 
 The answers were (question one) no; (question two) yes; (question three) no; (question four) because I'm not a treacherous back-stabber who helped bring down both leaders I have served under.
 
-<START>Mr Shorten then moved a no-confidence motion in the Prime Minister, yet devoted much of his energy to a gratuitous personal attack on Turnbull: "He, the Zorro of the dispatch box, has said that he wants the job but he will not fight for the job. He is prepared to injure his Prime Minister but he leaves his supporters hanging. He is a veritable ball of ambivalence!"
+<START>[Q4910865|Mr Shorten] then moved a no-confidence motion in [Q348577|the Prime Minister], yet devoted much of [Q4910865|his] energy to a gratuitous personal attack on [Q927550|Turnbull]: "[Q927550|He], the Zorro of the dispatch box, has said that [Q927550|he] wants the job but [Q927550|he] will not fight for [Q319145|the job]. [Q927550|He] is prepared to injure [Q348577|his Prime Minister] but [Q927550|he] leaves [Q927550|his] supporters hanging. [Q927550|He] is a veritable ball of ambivalence!"
 
-And so on. Shorten will not be remembered for his wit.
+And so on. Shorten will not be remembered for his [Q4910865|wit].
 
-This week was an opportunity for him to display that he was a better man than the Prime Minister, that he was more than a vindictive point-scorer, that he had policies to address the nation's drift into debt and deficit. He did not take that opportunity. He missed it completely.<END>
+[DATETIME|This week] was an opportunity for [Q4910865|him] to display that [Q4910865|he] was a better man than [Q348577|the Prime Minister], that [Q4910865|he] was more than a vindictive point-scorer, that [Q4910865|he] had policies to address [Q408|the nation]'s drift into debt and deficit. [Q4910865|He] did not take that opportunity. [Q4910865|He] missed it completely.<END>
 
 Then there were the voyeurs of the opposition, the members waving goodbye to the Prime Minister and Treasurer Joe Hockey. They were led from the front row by Jenny Macklin, who, you would think, would know better, having reached her 60s and been in parliament for 19 years. Nineteen years in which six Labor leaders were deposed in eight leadership changes, with all but Paul Keating departing at the behest of their own colleagues (Kim Beazley, Simon Crean, Mark Latham, Kevin Rudd and Julia Gillard).
 
@@ -1365,11 +1365,11 @@ Dorner's 'last stand' after hiding in plain sight
 
 Thick snow still blankets the small ski town of Big Bear Lake after a weekend storm which had hindered the search for Christopher Dorner.
 
-<START>A massive manhunt led sheriffs here last week after the 33-year-old's truck was found burning on a mountain road.
+<START>A massive manhunt led [Q578478|sheriffs] here [DATETIME|last week] after [Q4419912|the 33-year-old]'s truck was found burning on a mountain road.
 
-The authorities went from house to house in the snow, looking for the ex-policeman who was suspected of double murder and of killing a former colleague while on the run.
+The authorities went from house to house in the snow, looking for [Q4419912|the ex-policeman] who was suspected of double murder and of killing a former colleague while on the run.
 
-They used snow cat vehicles to scour the area for any sign of the 270lb (122kg) African American, who was not thought to have had any winter survival training.<END>
+They used snow cat vehicles to scour the area for any sign of the [QUANTITY|270]lb ([QUANTITY|122]kg) [Q49085|African American], who was not thought to have had any winter survival training.<END>
 
 'Heartbroken'
 
@@ -1456,11 +1456,11 @@ The Egyptian head of state has overseen a large crackdown on critics, jailing th
 
 Over 20 human rights groups denounced France's strategic partnership with Egypt as the country "is abusively using counter-terrorist legislation to eradicate the legitimate work in favour of human rights and suppress all peaceful dissent in the country." They called for a demonstration on Tuesday near the National Assembly in Paris.
 
-<START>El-Sissi has said that his tough rule has ensured stability, pointing to war and destruction in Syria, Yemen and Libya as the alternative.
+<START>[Q307871|El-Sissi] has said that [Q307871|his] tough rule has ensured stability, pointing to war and destruction in [Q858|Syria], [Q805|Yemen] and [Q1016|Libya] as the alternative.
 
-At a press conference with French President Emmanuel Macron, el-Sissi said: "You cannot present the state of Egypt, with all that it has done for its people and for stability in the region, with it being a dictatorship."
+At a press conference with [Q3052772|[Q191954|French President] [Q3052772|Emmanuel Macron]], [Q307871|el-Sissi] said: "You cannot present the state of [Q79|Egypt], with all that [Q79|it] has done for [Q79|its] people and for stability in the region, with [Q79|it] being a dictatorship."
 
-He said that religious values were more important than human values.<END>
+[Q79|He] said that religious values were more important than human values.<END>
 
 Macron said he had discussed the question of human rights with the Egyptian leader.
 
@@ -1512,9 +1512,9 @@ Celebrity hotelier Andre Balazs, 60,'reached up the skirt...
 
 PIERS MORGAN: For God's sake go now, Theresa. Because...
 
-<START>Married Pakistani doctor, 44, molested Muslim student...
+<START>Married [Q843|Pakistani] [Q39631|doctor], [QUANTITY|44], molested [Q47740|Muslim] student...
 
-Louis C.K 'got naked and masturbated in front of...
+[Q15079|Louis C.K] 'got naked and masturbated in front of...
 
 Shocking moment a man is seen repeatedly throwing his...<END>
 
@@ -1545,11 +1545,11 @@ The original song tells of two boys whose friendship goes from playing at war as
 
 The new single is being produced to promote the 90th anniversary of the Armistice.
 
-<START>It will be released on November 10.
+<START>[Unknown1|It] will be released on [DATETIME|November 10].
 
-© Independent Television News Limited 2008. All rights reserved.
+[Q1297822|©] [Q1210241|Independent Television News Limited] [DATETIME|2008]. All rights reserved.
 
-Post to Fark Post to del.icio.us Digg this story Post to reddit Post to Facebook Post to StumbleUpon Seed Newsvine Post to GNN Post to MySpace
+Post to [Q2918185|Fark] Post to [Q329192|del.icio.us] Digg this story Post to [Q1136|reddit] Post to [Q355|Facebook] Post to [Q911595|StumbleUpon] Seed [Q7019883|Newsvine] Post to [Q1531638|GNN] Post to [Q40629|MySpace]
 <END>
 **** ARTICLE #37: 20130608 - Turkey protests pose a new threat to Syria peace efforts (None) *****
 Turkey protests pose a new threat to Syria peace efforts
@@ -1588,11 +1588,11 @@ Turkey has been vying for EU entry since 2005 but lags behind almost everyone be
 
 EU Enlargement Minister Stefan Fuele, who was in Istanbul for talks, delivered a public reproach.
 
-<START>"Peaceful demonstrations constitute a legitimate way for groups to express their views in a democratic society," Fuele said.
+<START>"Peaceful demonstrations constitute a legitimate way for groups to express their views in a democratic society," [Q370164|Fuele] said.
 
-"Excessive use of force by police against these demonstrations has no place in such a democracy."
+"Excessive use of force by police against these demonstrations has no place in such a [Q7174|democracy]."
 
-The widely publicized chastisement was music to the ears of Erdogan's many foes on the right, left and center of Turkey's volatile political spectrum. The civil strife complicates Turkey's overt support for Syria's armed opposition, based in Istanbul, and a dangerous balancing act with eastern Kurdish factions known to have strong links with armed groups in Syria, Iraq and Iran.<END>
+The widely publicized chastisement was music to the ears of [Q39259|Erdogan]'s many foes on the right, left and center of [Q43|Turkey]'s volatile political spectrum. The civil strife complicates [Q43|Turkey]'s overt support for [Q858|Syria]'s armed opposition, based in [Q406|Istanbul], and a dangerous balancing act with eastern [Q12223|Kurdish] factions known to have strong links with armed groups in [Q858|Syria], [Q796|Iraq] and [Q794|Iran].<END>
 
 Turkey is a major player in international peacemaking efforts now under way in Syria, involving negotiators from the EU, the United Nations, Russia, the United States and the Arab world.
 
@@ -1623,11 +1623,11 @@ Over 3,000 users have commented on the now viral tweet, revealing what they rega
 
 Another said that 'eight is the only acceptable answer', while a different user wrote: 'I'd go up to 7. That one looks nice n gooey on the inside.'
 
-<START>'Really anything from four to seven is acceptable. But five is ideal,' one man said.
+<START>'Really anything from [QUANTITY|four] to [QUANTITY|seven] is acceptable. But [QUANTITY|five] is ideal,' one man said.
 
-Meanwhile, a mother-of-two wrote: 'As an ex-Girl Scout and mom who spends every summer at Boy Scout camp with my two sons: You need a 7 or 8 on that marshmallow char scale to achieve the internal molten gooey-ness to make a proper S'more...'
+Meanwhile, a mother-of-[QUANTITY|two] wrote: 'As an ex-[Unknown1|Girl Scout] and mom who spends every summer at [Unknown2|Boy Scout] camp with my [QUANTITY|two] sons: You need a [QUANTITY|7] or [QUANTITY|8] on that marshmallow char scale to achieve the internal molten gooey-ness to make a proper S'more...'
 
-Similarly another user, who said she was once a Girl Scout, said: 'Eight is perfect. Most needs to be toasted with a slight burned area. I was a Girl Scout.'<END>
+Similarly another user, who said she was once a [Unknown1|Girl Scout], said: '[QUANTITY|Eight] is perfect. Most needs to be toasted with a slight burned area. I was a [Unknown1|Girl Scout].'<END>
 
 Some others shared stronger opinions on the topic of toasting marshmallows, as one woman said: 'Anyone who chooses one-six must have some real issues in their lives......or they could be diagnosed with ADHD.'
 
@@ -1658,11 +1658,11 @@ Anais Garcia, from Baltimore, Maryland, told how she starved herself in a desper
 
 At the height of her sickness she weighed just 80lbs (5.7st) and was told by doctors that if she danced again her heart would stop.
 
-<START>Now the 20-year-old is recovering from the illness and is determined to help other dancers struggling with body image and eating disorders.
+<START>Now [Unknown1|the 20-year-old] is recovering from the illness and is determined to help other [Q805221|dancers] struggling with body image and eating disorders.
 
-Anais, who majored in dance at a performing arts high school, said staff and students placed a 'huge emphasis' on body type.
+[Unknown1|Anais], who majored in dance at a performing arts high school, said staff and [Q48282|students] placed a 'huge emphasis' on body type.
 
-'You wear skin tight leotards and tights in front of full length mirrors for hours each day,' she said. 'I was constantly told to change my body, specifically to develop longer and leaner muscles.<END>
+'You wear skin tight leotards and tights in front of full length mirrors for hours each day,' [Unknown1|she] said. '[Unknown1|I] was constantly told to change [Unknown1|my] body, specifically to develop longer and leaner muscles.<END>
 
 'Many teachers promote the dancers who are thinner and taller and ignore the dancers who are not.'
 
@@ -1763,11 +1763,11 @@ Ashton has made some bold choices in his selection, leaving Vickery on the bench
 
 But Jonny Wilkinson will continue his half-back partnership with scrum-half Andy Gomarsall.
 
-<START>Wilkinson missed the first two games of the tournament because of an ankle injury but kicked 24 points on his return as England beat Samoa.
+<START>[Q318920|Wilkinson] missed the first [QUANTITY|two] games of [Q124753|the tournament] because of an ankle injury but kicked [QUANTITY|24] points on [Q318920|his] return as [Q378628|England] beat [Q3590539|Samoa].
 
-He now needs another 22 points to become the record points scorer in World Cups, eclipsing the 227 amassed by Scotland great Gavin Hastings.
+[Q318920|He] now needs another [QUANTITY|22] points to become the record points scorer in [Q16640|World Cups], eclipsing the [QUANTITY|227] amassed by [Q945016|Scotland] great [Q427291|Gavin Hastings].
 
-England and Tonga have met only once before in an officially recognised Test. It came in the 1999 World Cup, with England easing to a 101-10 victory.<END>
+[Q378628|England] and [Unknown1|Tonga] have met only once before in an officially recognised Test. It came in the [Q1141048|1999 World Cup], with [Q378628|England] easing to a [QUANTITY|101]-[QUANTITY|10] victory.<END>
 
 But this time round promises to be a lot closer, with Latu promising: "We are going to throw the kitchen sink at England.
 
