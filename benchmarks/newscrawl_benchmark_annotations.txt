@@ -9,9 +9,9 @@ Suggest, however, that you're thinking of being laidback about contraception bec
 
 <START>They might also mention the fact that middle-aged women are the fastest-growing demographic seeking abortions, and that much of what's said about female fertility is wrong.
 
-So, when I tell you to be cautious, I really mean it. If you're going to try the rhythm method, you need to be careful monitoring your temperature and ovulation.
+So, when [Q7371805|I] tell [Unknown1|you] to be cautious, [Q7371805|I] really mean it. If [Unknown1|you]'re going to try the rhythm method, [Unknown1|you] need to be careful monitoring your temperature and ovulation.
 
-You also need to be prepared to exercise extreme self-control during fertile periods - which is also when you'll be feeling most desire. Good luck with that.<END>
+[Unknown1|You] also need to be prepared to exercise extreme self-control during fertile periods - which is also when [Unknown1|you]'ll be feeling most desire. Good luck with that.<END>
 
 None of this means that you have to go back on the Pill. There's a wide range of alternatives. The popular Mirena coil releases smaller doses of hormones than the contraceptive Pill and safeguards against pregnancy for five years.
 
@@ -57,7 +57,7 @@ Share
 
 'That radical authenticity of [Q232708|hers] was what made [Q212064|me] fall head over heels in love,' [Q212064|he] added.
 
-'And that's what [Q212064|I] want for [Unknown1[Q212064|my] daughter] - to be expectation-less with [Unknown1|her] love and not allow preconceived standards to affect [Unknown1|her], to ask [Unknown1|herself] what [Unknown1|she] wants and feel empowered enough to act on it.'<END>
+'And that's what [Q212064|I] want for [Unknown1|[Q212064|my] daughter] - to be expectation-less with [Unknown1|her] love and not allow preconceived standards to affect [Unknown1|her], to ask [Unknown1|herself] what [Unknown1|she] wants and feel empowered enough to act on it.'<END>
 
 Channing says he hopes their daughter, Everly, will have the same strength his wife has.
 
@@ -135,9 +135,9 @@ NEW YORK, Dec. 13, 2019 /PRNewswire/ -- "Regulatory authorization of the Tandem 
 
 <START>As part of our mission to improve the lives of those affected by T1D, [Q6107958|JDRF] has been a leader in [Q1569064|artificial pancreas] ([Q1569064|AP]) research for more than [QUANTITY|15] years and partnered with the [Q204711|U.S. Food and Drug Administration] ([Q204711|FDA]) to establish regulatory pathways to ensure [Q1569064|AP] technology gets into the hands of people with T1D as quickly as possible.
 
-This is the [QUANTITY|second] hybrid closed-loop system on the market and the [QUANTITY|first] algorithm authorized as an interoperable automated glycemic controller, which means it could be a component of an open-protocol system. People with different devices could use the algorithm and manage their glucose levels in a way that works best for them. JDRF research grants supported the development of this algorithm, and our advocacy supported the Special Diabetes Program, which funded its clinical testing.
+This is the [QUANTITY|second] hybrid closed-loop system on the market and the [QUANTITY|first] algorithm authorized as an interoperable automated glycemic controller, which means it could be a component of an open-protocol system. People with different devices could use the algorithm and manage their glucose levels in a way that works best for them. [Q6107958|JDRF] research grants supported the development of this algorithm, and our advocacy supported the Special Diabetes Program, which funded its clinical testing.
 
-Until we find cures, we are continuing to support the development of new technologies and treatments to improve blood sugar management so people with T1D can live healthier and more manageable lives. [Q6107958|JDRF] is also fighting to ensure people with this disease have more choices and better access to the diabetes management tools that work best for them through our Coverage2Control campaign. Today's announcement is yet another reason why health plans should cover all [Q204711|FDA] authorized diabetes management tools, to help people with T1D manage this life-threatening disease. In particular, [Q6107958|JDRF] calls upon [Q2103926|UnitedHealthcare] to lift [Q2103926|its] restrictions which limit options of insulin pumps available to [Q2103926|its] members."<END>
+Until we find cures, we are continuing to support the development of new technologies and treatments to improve blood sugar management so people with T1D can live healthier and more manageable lives. [Q6107958|JDRF] is also fighting to ensure people with this disease have more choices and better access to the diabetes management tools that work best for them through our Coverage2Control campaign. [DATETIME|Today]'s announcement is yet another reason why health plans should cover all [Q204711|FDA] authorized diabetes management tools, to help people with T1D manage this life-threatening disease. In particular, [Q6107958|JDRF] calls upon [Q2103926|UnitedHealthcare] to lift [Q2103926|its] restrictions which limit options of insulin pumps available to [Q2103926|its] members."<END>
 
 
 JDRF is the leading global organization funding type 1 diabetes (T1D) research. Our mission is to accelerate life-changing breakthroughs to cure, prevent and treat T1D and its complications. To accomplish this, JDRF has invested more than $2.2 billion in research funding since our inception. We are an organization built on a grassroots model of people connecting in their local communities, collaborating regionally for efficiency and broader fundraising impact and uniting on a national stage to pool resources, passion and energy. We collaborate with academic institutions, policymakers and corporate and industry partners to develop and deliver a pipeline of innovative therapies to people living with T1D. Our staff and volunteers throughout the United States and our six international affiliates are dedicated to advocacy, community engagement and our vision of a world without T1D. For more information, please visit jdrf.org or follow us on Twitter: @JDRF.
@@ -598,11 +598,11 @@ The news is better for a host of Wells' new teammates.
 
 "Levi Greenwood will train on Friday ... he had some hamstring tightness, but we expect him to roll out on Friday," Walsh said.
 
-<START>"It means [DATETIME|Friday] will be the biggest session of the week and we expect [Q6535420|him] to train then, as will [Q7437027|Scott Pendlebury] ([Q223172|achilles]).
+<START>"It means [DATETIME|Friday] will be the biggest session of [DATETIME|the week] and we expect [Q6535420|him] to train then, as will [Q7437027|Scott Pendlebury] ([Q223172|achilles]).
 
-"[Q19872792|Jordan De Goey] ([Q129757|thigh]) has improved significantly. [Q19872792|He] ran on the weekend, so [Q19872792|he] will train as well.
+"[Q19872792|Jordan De Goey] ([Q129757|thigh]) has improved significantly. [Q19872792|He] ran on [DATETIME|the weekend], so [Q19872792|he] will train as well.
 
-"There will be some good inclusions on the track from guys who missed last week, so that's all positive news."
+"There will be some good inclusions on the track from guys who missed [DATETIME|last week], so that's all positive news."
 <END>
 **** ARTICLE #18: 20140616 - Casey Kasem's long distance dedications (None) *****
 Casey Kasem's long distance dedications
@@ -1117,9 +1117,9 @@ Members of the Syndicate, who said they were friends with Baron, told A Current 
 
 The 14 syndicate members only learned the truth about Baron's newfound wealth after one of his Toll colleagues delivered him a congratulatory bottle of champagne from Tattslotto.
 
-<START>The civil trial ended on the same day it began in the [Q4109092|Victorian Supreme Court] on [DATETIME|Wednesday]. It was expected to carry on for [QUANTITY|five] days.
+<START>The civil trial ended on [DATETIME|the same day] it began in the [Q4109092|Victorian Supreme Court] on [DATETIME|Wednesday]. It was expected to carry on for [QUANTITY|five] days.
 
-'Things have changed a bit,' [Q16729644|[Q56060731|[Q16533|Justice]] Kim Hargrave] said after [Q17131110|counsel] for the group suing [Unknown1|Mr Baron] advised [Q4109092|the court] the case had been resolved.
+'Things have changed a bit,' [Q16729644|[Q56060731|[Q16533|Justice]] [Q16729644|Kim Hargrave]] said after [Q17131110|counsel] for the group suing [Unknown1|Mr Baron] advised [Q4109092|the court] the case had been resolved.
 
 It is understood each of the members wanted around $[QUANTITY|1 million] in a pay-out but may get less than a quarter of that, according to [Q4656226|A Current Affair].
 <END>
@@ -1136,7 +1136,7 @@ Looking back on the film that spotlighted Ginsburg worldwide, and offered intima
 
 This [Q15994987|CNN Films] [Q93204|documentary] will be broadcast on [Q48340|CNN] [DATETIME|Saturday night at 10 p.m. ET], with encores [DATETIME|Sunday at 10 p.m.] and [DATETIME|2 a.m. Eastern]. [Q42048168|The film] is also available via [Q48340|CNN] on demand with cable and satellite subscriptions beginning [DATETIME|Sunday], and for streaming via [Q21503813|CNNgo] platforms, also beginning [DATETIME|Sunday] until [DATETIME|Sept. 26].
 
-[Q15994987|The documentary] is also available for streaming on [Q1630304|Hulu], [Q270285|Apple TV] and for rent on [Q4740856|Amazon Prime Video] and in the [Q9593|[Q9589|iTunes] store].<END>
+[Q42048168|The documentary] is also available for streaming on [Q1630304|Hulu], [Q270285|Apple TV] and for rent on [Q4740856|Amazon Prime Video] and in the [Q9593|[Q9589|iTunes] store].<END>
 
 Time magazine will feature Ginsburg on one of multiple special covers for an October double issue presenting the 2020 Time 100 list of the world's most influential people. It will include a special tribute to the justice, who was featured on the list in 2015.
 
@@ -1199,8 +1199,7 @@ During his previous appearance on the [Q1582014|KIIS FM] radio show, [Q103939|Ch
 
 When asked whether he's still sexually active he replied: 'not anymore' and added that his sex life suffered instantly after his shocking health revelation.
 
-**** ARTICLE #30: 20180321 - 
-There's nothing better than a pamper day at home to get you ready for the week ahead. (None) *****
+**** ARTICLE #30: 20180321 - There's nothing better than a pamper day at home to get you ready for the week ahead. (None) *****
 
 There's nothing better than a pamper day at home to get you ready for the week ahead.
 
@@ -1213,9 +1212,9 @@ They are beautifully presented in colourful packaging, which looks far more expe
 
 It's a new year - which means there's a new colour to wear. Pantone has declared Ultra Violet the shade of 2018, so expect to see it on make-up counters in everything from eyeliner to lipstick.
 
-<START>If that feels a step too far, try a violet nail polish. [Unknown1|Nailberry]'s [Unknown2|L'Oxygene Polish in Extravagant] (£14.50, nailberry.co.uk) ensures nails won't dry out, or for a deeper shade, try [Unknown3|YSL La Laque Couture Nail Polish in Violet Baroque] (£19.50, yslbeauty.co.uk).
+<START>If that feels a step too far, try a [Q428124|violet] [Q36864|nail] polish. [Unknown1|Nailberry]'s [Unknown2|L'Oxygene Polish in Extravagant] (£[QUANTITY|14.50], nailberry.co.uk) ensures [Q36864|nails] won't dry out, or for a deeper shade, try [Unknown3|YSL La Laque Couture Nail Polish in Violet Baroque] (£[QUANTITY|19.50], yslbeauty.co.uk).
 
-I love [Unknown4|[Q156077|L'Oreal] [Unknown5|Color Riche Oil Nail Polish in Violet Vendome]] (£4.95, nailpolishdirect.co.uk), a rich, vibrant hue.
+I love [Unknown4|[Q156077|L'Oreal] [Unknown5|Color Riche Oil Nail Polish in Violet Vendome]] (£[QUANTITY|4.95], nailpolishdirect.co.uk), a rich, vibrant hue.
 
 
 All eyes have been on [Q3304418|Meghan Markle] and her glowing skin since her engagement.<END>
@@ -1287,11 +1286,11 @@ One admirer, Bobbie Brown, 42, asked Kate whether she had felt the baby kicking 
 
 "She said: 'Yes it is, very much so'," she said.
 
-<START>Although [Q179406|it] is still one of the largest centres for fish processing in [Q145|Britain], [Q179406|Grimsby] has been in decline since [DATETIME|the 1950s] and youth unemployment is among the highest in [Q145|the country].
+<START>Although [Q179406|it] is still one of the largest centres for [Q152|fish] processing in [Q145|Britain], [Q179406|Grimsby] has been in decline since [DATETIME|the 1950s] and youth unemployment is among the highest in [Q145|the country].
 
 Unfortunately [Q10479|the Duchess]'s arrival was almost [QUANTITY|90] minutes late after [Q10479|her] helicopter was delayed by thick fog.
 
-Royal [Q483501|artist] [Q2947141|Paul Emsley] explains the new portrait of [Q10479|The Duchess of Cambridge]<END>
+Royal [Q483501|artist] [Q2947141|Paul Emsley] explains the new [Q134307|portrait] of [Q10479|The Duchess of Cambridge]<END>
 
 She had been due to be collected from Kensington Palace by the Queen's helicopter, known as the Royal Fight, at 10am in time for a 11.35am start. The flight is paid for by taxpayers and will cost around £3,500.
 
@@ -1336,9 +1335,9 @@ Four: "My question is to the Minister for Communications [Malcolm Turnbull]. Min
 
 The answers were (question one) no; (question two) yes; (question three) no; (question four) because I'm not a treacherous back-stabber who helped bring down both leaders I have served under.
 
-<START>[Q4910865|Mr Shorten] then moved a no-confidence motion in [Q348577|the Prime Minister], yet devoted much of [Q4910865|his] energy to a gratuitous personal attack on [Q927550|Turnbull]: "[Q927550|He], the Zorro of the dispatch box, has said that [Q927550|he] wants the job but [Q927550|he] will not fight for [Q319145|the job]. [Q927550|He] is prepared to injure [Q348577|his Prime Minister] but [Q927550|he] leaves [Q927550|his] supporters hanging. [Q927550|He] is a veritable ball of ambivalence!"
+<START>[Q4910865|Mr Shorten] then moved a no-confidence motion in [Q348577|the Prime Minister], yet devoted much of [Q4910865|his] energy to a gratuitous personal attack on [Q927550|Turnbull]: "[Q927550|He], the [Q226822|Zorro] of the dispatch box, has said that [Q927550|he] wants [Q319145|the job] but [Q927550|he] will not fight for [Q319145|the job]. [Q927550|He] is prepared to injure [Q348577|[Q927550|his] [Q319145|Prime Minister]] but [Q927550|he] leaves [Q927550|his] supporters hanging. [Q927550|He] is a veritable ball of ambivalence!"
 
-And so on. Shorten will not be remembered for his [Q4910865|wit].
+And so on. [Q4910865|Shorten] will not be remembered for [Q4910865|his] wit.
 
 [DATETIME|This week] was an opportunity for [Q4910865|him] to display that [Q4910865|he] was a better man than [Q348577|the Prime Minister], that [Q4910865|he] was more than a vindictive point-scorer, that [Q4910865|he] had policies to address [Q408|the nation]'s drift into debt and deficit. [Q4910865|He] did not take that opportunity. [Q4910865|He] missed it completely.<END>
 
@@ -1369,7 +1368,7 @@ Thick snow still blankets the small ski town of Big Bear Lake after a weekend st
 
 The authorities went from house to house in the snow, looking for [Q4419912|the ex-policeman] who was suspected of double murder and of killing a former colleague while on the run.
 
-They used snow cat vehicles to scour the area for any sign of the [QUANTITY|270]lb ([QUANTITY|122]kg) [Q49085|African American], who was not thought to have had any winter survival training.<END>
+They used snow cat vehicles to scour the area for any sign of [Q4419912|the 270lb (122kg) African American], who was not thought to have had any winter survival training.<END>
 
 'Heartbroken'
 
@@ -1512,7 +1511,7 @@ Celebrity hotelier Andre Balazs, 60,'reached up the skirt...
 
 PIERS MORGAN: For God's sake go now, Theresa. Because...
 
-<START>Married [Q843|Pakistani] [Q39631|doctor], [QUANTITY|44], molested [Q47740|Muslim] student...
+<START>Married [Q843|[Q3310017|Pakistani]] [Q39631|doctor], [QUANTITY|44], molested [Q47740|Muslim] [Q48282|student]...
 
 [Q15079|Louis C.K] 'got naked and masturbated in front of...
 
@@ -1625,9 +1624,9 @@ Another said that 'eight is the only acceptable answer', while a different user 
 
 <START>'Really anything from [QUANTITY|four] to [QUANTITY|seven] is acceptable. But [QUANTITY|five] is ideal,' one man said.
 
-Meanwhile, a mother-of-[QUANTITY|two] wrote: 'As an ex-[Unknown1|Girl Scout] and mom who spends every summer at [Unknown2|Boy Scout] camp with my [QUANTITY|two] sons: You need a [QUANTITY|7] or [QUANTITY|8] on that marshmallow char scale to achieve the internal molten gooey-ness to make a proper S'more...'
+Meanwhile, [Unknown1|a mother-of-[QUANTITY|two]] wrote: 'As an ex-[Unknown2|Girl Scout] and mom who spends every summer at [Unknown3|Boy Scout] camp with [Unknown1|my] [QUANTITY|two] sons: You need a [QUANTITY|7] or [QUANTITY|8] on that marshmallow char scale to achieve the internal molten gooey-ness to make a proper [Q2339814|S'more]...'
 
-Similarly another user, who said she was once a [Unknown1|Girl Scout], said: '[QUANTITY|Eight] is perfect. Most needs to be toasted with a slight burned area. I was a [Unknown1|Girl Scout].'<END>
+Similarly [Unknown4|another user], who said [Unknown4|she] was once a [Unknown2|Girl Scout], said: '[QUANTITY|Eight] is perfect. Most needs to be toasted with a slight burned area. [Unknown4|I] was a [Unknown2|Girl Scout].'<END>
 
 Some others shared stronger opinions on the topic of toasting marshmallows, as one woman said: 'Anyone who chooses one-six must have some real issues in their lives......or they could be diagnosed with ADHD.'
 
@@ -1718,12 +1717,10 @@ She added: 'I am heading in the right direction. I am only going to recover as m
 
 'I am on a mission to recover fully and help others one day.'
 
-**** ARTICLE #40: 20161219 - Graphic video: Russian ambassador shot
- (None) *****
+**** ARTICLE #40: 20161219 - Graphic video: Russian ambassador shot (None) *****
 Graphic video: Russian ambassador shot
 <START><END>
-**** ARTICLE #41: 20070928 - 
-Tonga have been one of the major surprises in this tournament. (None) *****
+**** ARTICLE #41: 20070928 - Tonga have been one of the major surprises in this tournament. (None) *****
 
 Tonga have been one of the major surprises in this tournament.
 
@@ -1763,7 +1760,7 @@ Ashton has made some bold choices in his selection, leaving Vickery on the bench
 
 But Jonny Wilkinson will continue his half-back partnership with scrum-half Andy Gomarsall.
 
-<START>[Q318920|Wilkinson] missed the first [QUANTITY|two] games of [Q124753|the tournament] because of an ankle injury but kicked [QUANTITY|24] points on [Q318920|his] return as [Q378628|England] beat [Q3590539|Samoa].
+<START>[Q318920|Wilkinson] missed the [QUANTITY|first] [QUANTITY|two] games of [Q124753|the tournament] because of an ankle injury but kicked [QUANTITY|24] points on [Q318920|his] return as [Q378628|England] beat [Q3590539|Samoa].
 
 [Q318920|He] now needs another [QUANTITY|22] points to become the record points scorer in [Q16640|World Cups], eclipsing the [QUANTITY|227] amassed by [Q945016|Scotland] great [Q427291|Gavin Hastings].
 
