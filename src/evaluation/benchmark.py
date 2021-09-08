@@ -10,3 +10,4 @@ class Benchmark(Enum):
     ACE = "ace"
     MSNBC = "msnbc"
     WIKIPEDIA = "wikipedia"
+    NEWSCRAWL = "newscrawl"

@@ -9,9 +9,6 @@ from src.models.wikipedia_article import article_from_json
 
 START_TAG = "<START>"
 END_TAG = "<END>"
-N_ARTICLES = 83
-ARTICLES_SPLIT = 100
-SKIP_ARTICLES = {2, 10, 14}
 
 
 def read_labeled_texts(path: str, n: Optional[int] = None) -> List[str]:
@@ -160,6 +157,7 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
 def main(args):
     labels_texts = read_labeled_texts(args.input_file, args.num_articles)
 
+    skip_articles = [int(num) - 1 for num in args.skip_articles.split()]
     output_file = None
     if args.output_file:
         output_file = open(args.output_file, "w", encoding="utf8")
@@ -177,8 +175,8 @@ def main(args):
                 break
             if title_span_jsonl_file:
                 title_span_json = next(title_span_jsonl_file)
-            if not args.skip or i + skip_count not in SKIP_ARTICLES:
-                if not args.skip and i + skip_count in SKIP_ARTICLES:
+            if not args.skip or i + skip_count not in skip_articles:
+                if not args.skip and i + skip_count in skip_articles:
                     skip_count += 1
                 article = article_from_json(json)
                 labels = get_nested_labels(labels_texts[i + skip_count])
@@ -212,6 +210,9 @@ if __name__ == "__main__":
 
     parser.add_argument("-n", "--num_articles", type=int, default=None,
                         help="Number of articles to read from the input file.")
+
+    parser.add_argument("--skip_articles", type=str, default="3 11 15",
+                        help="Articles that should be skipped, separated by whitespace. Articles start at 1.")
 
     parser.add_argument("--skip", action="store_true",
                         help="Set if the article_jsonl_file contains those articles that should be skipped.")

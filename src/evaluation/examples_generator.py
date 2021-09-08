@@ -148,17 +148,6 @@ class MsnbcExampleReader:
             yield article
 
 
-class OwnBenchmarkExampleReader:
-    @staticmethod
-    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
-        with open(settings.OWN_BENCHMARK_FILE, "r") as benchmark_file:
-            for i, json_line in enumerate(benchmark_file):
-                if i == n:
-                    break
-                article = article_from_json(json_line)
-                yield article
-
-
 class JsonBenchmarkExampleReader:
     def __init__(self, benchmark_filename: str):
         self.benchmark_filename = benchmark_filename
@@ -173,8 +162,8 @@ class JsonBenchmarkExampleReader:
 
 
 def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = True):
+    path = "benchmarks/"
     if from_json_file:
-        path = "benchmarks/"
         if benchmark_name == Benchmark.OURS.value:
             benchmark_filename = path + "benchmark_labels_ours.jsonl"
         elif benchmark_name == Benchmark.CONLL_DEV.value:
@@ -187,6 +176,8 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
             benchmark_filename = path + "benchmark_labels_ace.jsonl"
         elif benchmark_name == Benchmark.MSNBC.value:
             benchmark_filename = path + "benchmark_labels_msnbc.jsonl"
+        elif benchmark_name == Benchmark.NEWSCRAWL.value:
+            benchmark_filename = path + "benchmark_labels_newscrawl.jsonl"
         else:
             raise ValueError("%s is not a known benchmark." % benchmark_name)
         example_generator = JsonBenchmarkExampleReader(benchmark_filename)
@@ -198,7 +189,9 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
         elif benchmark_name == Benchmark.CONLL_TEST.value:
             example_generator = ConllTestExampleReader()
         elif benchmark_name == Benchmark.OURS.value:
-            example_generator = OwnBenchmarkExampleReader()
+            example_generator = JsonBenchmarkExampleReader(path + settings.OWN_BENCHMARK_FILE)
+        elif benchmark_name == Benchmark.NEWSCRAWL.value:
+            example_generator = JsonBenchmarkExampleReader(path + "benchmark_labels_newscrawl.jsonl")
         else:
             print("Load wikipedia to wikidata mapping for example generator...")
             entity_db = EntityDatabase()
