@@ -47,7 +47,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
 
 show_mentions = {"named": true, "nominal": true, "pronominal": true};
 
-benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc"];
+benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl"];
 
 error_category_mapping = {"undetected": ["UNDETECTED"],
     "undetected_lowercase": ["UNDETECTED_LOWERCASE"],
@@ -358,8 +358,15 @@ function set_article_select_options() {
     for (ai in articles) {
         article = articles[ai];
         option = document.createElement("option");
+        // Shorten the article title if it's longer than 40 characters
+        var title;
+        if (article.title) {
+            title = (article.title.length <= 40) ? article.title : article.title.substring(0, 40) + "..."
+        } else {
+            title = article.text.substring(0, Math.min(40, article.text.length)) + "...";
+        }
         // Conll articles don't have a title. In that case use the first 40 characters of the article
-        option.text = (article.title) ? article.title : article.text.substring(0, Math.min(40, article.text.length)) + "...";
+        option.text = title;
         option.value = ai;
         article_select.add(option);
     }
