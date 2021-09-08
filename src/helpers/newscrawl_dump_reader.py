@@ -23,8 +23,10 @@ class NewscrawlDumpReader(WikipediaDumpReader):
         :return: the article as WikipediaArticle object
         """
         article_data = json.loads(json_dump)
+        article_id = article_data["id"].replace(".", "")
         title = article_data["date"] + " - " + article_data["text"].split("\n\n")[0]
-        article = WikipediaArticle(id=article_data["id"],
+        title = title.replace("\n", "")  # A title may not contain newlines (important for evaluation in txt format)
+        article = WikipediaArticle(id=article_id,
                                    title=title,
                                    text=article_data["text"],
                                    links=[])
