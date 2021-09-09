@@ -189,7 +189,7 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
         elif benchmark_name == Benchmark.CONLL_TEST.value:
             example_generator = ConllTestExampleReader()
         elif benchmark_name == Benchmark.OURS.value:
-            example_generator = JsonBenchmarkExampleReader(path + settings.OWN_BENCHMARK_FILE)
+            example_generator = JsonBenchmarkExampleReader(settings.OWN_BENCHMARK_FILE)
         elif benchmark_name == Benchmark.NEWSCRAWL.value:
             example_generator = JsonBenchmarkExampleReader(path + "benchmark_labels_newscrawl.jsonl")
         else:
