@@ -308,6 +308,10 @@ function show_entity_table_for_selected_values(benchmark, type) {
                     type_names += tp;
                 }
                 vals[3] = type_names;
+                // Add Wikidata Link for QIDs
+                if (vals[1].match(/Q[0-9]+/)) {
+                    vals[1] = "<a href=\"https://www.wikidata.org/wiki/" + vals[1] + "\">" + vals[1] + "</a>";
+                }
                 if (is_selected) {
                     row = "<tr>";
                     for (val of vals) {
