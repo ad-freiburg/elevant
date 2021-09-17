@@ -723,23 +723,19 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
             }
         }
     }
+    // Text should only be the text within the given evaluation span (Careful: This is the entire article if a
+    // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
+    // shown)
+    text = text.substring(0, evaluation_span[1]);
+
     // STEP 2: Add the combined annotations and links to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
-    cutoff_done = false;
     id_counter = 0;
     if (evaluation && annotation_spans[0].length - 1 < article_num) annotation_spans[0].push([]);
     else if (prediction && annotation_spans[1].length - 1 < article_num) annotation_spans[1].push([]);
     for (annotation of annotations_with_links.reverse()) {
         // annotation is a tuple with (span, annotation_info)
         span = annotation[0];
-
-        if (!cutoff_done){
-            // Text should only be the text within the given evaluation span (Careful: This is the entire article if a
-            // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
-            // shown)
-            cutoff_done = true;
-            text = text.substring(0, evaluation_span[1]);
-        }
         if (span[1] > evaluation_span[1]) {
             continue;
         } else if (span[0] < evaluation_span[0]) {
