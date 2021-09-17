@@ -35,4 +35,4 @@ In this work we present a neural, modular entity linking system that learns a un
     
 To get benchmark articles into Neural EL's expected input format and location use wiki entity linker's `write_articles.py` with the following options:
         
-        python3 write_articles.py --input_benchmark --output_file <data_directory>/neural-el_resources/articles.txt --one_article_per_line
+        python3 write_articles.py --output_file <data_directory>/neural-el_resources/articles.txt --one_article_per_line --input_benchmark <benchmark_name>

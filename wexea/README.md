@@ -34,7 +34,7 @@ The original repository is based on the LREC 2020 paper:
 
 To get benchmark articles into WEXEA's expected input format and location use wiki entity linker's `write_articles.py` with the following options:
         
-        python3 write_articles.py --input_benchmark --output_dir <output_directory>/original_articles_benchmark/new/ --title_in_filename --print_hyperlinks --print_entity_list
+        python3 write_articles.py --output_dir <output_directory>/original_articles_benchmark/new/ --title_in_filename --print_hyperlinks --print_entity_list --input_benchmark <benchmark_name>
 
 ## Server Visualization
 
