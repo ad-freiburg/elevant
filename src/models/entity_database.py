@@ -41,6 +41,7 @@ class EntityDatabase:
         self.languages = {}
         self.quantities = set()
         self.datetimes = set()
+        self.wikipedia_id2wikipedia_title = dict()
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -350,3 +351,17 @@ class EntityDatabase:
         if not self.has_datetimes_loaded():
             print("Warning: Tried to access datetimes of entity database, but datetimes were not loaded.")
         return entity_id in self.datetimes
+
+    def load_wikipedia_id2wikipedia_title(self):
+        self.wikipedia_id2wikipedia_title = EntityDatabaseReader.get_wikipedia_id2wikipedia_title_mapping()
+
+    def has_wikipedia_id2wikipedia_title_loaded(self) -> bool:
+        return len(self.wikipedia_id2wikipedia_title) > 0
+
+    def get_wikipedia_title_by_wikipedia_id(self, wikipedia_id: int) -> Optional[str]:
+        if not self.has_wikipedia_id2wikipedia_title_loaded():
+            print("Warning: Tried to access wikipedia title to wikipedia id mapping of entity database, but mapping was"
+                  " not loaded.")
+        if wikipedia_id in self.wikipedia_id2wikipedia_title:
+            return self.wikipedia_id2wikipedia_title[wikipedia_id]
+        return None

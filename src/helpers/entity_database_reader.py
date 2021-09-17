@@ -260,3 +260,13 @@ class EntityDatabaseReader:
                 entity_id = entity_id[:-1].split("/")[-1]
                 points_in_time.add(entity_id)
         return points_in_time
+
+    @staticmethod
+    def get_wikipedia_id2wikipedia_title_mapping() -> Dict[int, str]:
+        wikipedia_id2_wikipedia_title = dict()
+        with open(settings.WIKIPEDIA_ID_TO_TITLE_FILE) as f:
+            for line in f:
+                wikipedia_id, title = line.strip().split("\t")
+                wikipedia_id = int(wikipedia_id)
+                wikipedia_id2_wikipedia_title[wikipedia_id] = title
+        return wikipedia_id2_wikipedia_title

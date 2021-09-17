@@ -14,6 +14,9 @@ To write articles in a format that is suitable as WEXEA input use options
 
 To write articles in a format that is suitable as Neural EL (Gupta) input use options
 --output_file <path> --one_article_per_line
+
+To write articles in a format that is suitable as Wikifier input use options
+--output_dir <path> --ascii
 """
 
 import argparse
@@ -39,6 +42,10 @@ class Annotation(Enum):
     LINKS = 1
     HYPERLINKS = 2
     NER = 3
+
+
+def replace_non_ascii_chars(text: str) -> str:
+    return ''.join([char if ord(char) < 128 else '_' for char in text])
 
 
 def get_entity_text(article: WikipediaArticle,
@@ -228,7 +235,12 @@ def main(args):
             text = re.sub(r"\s", " ", text)
 
         if args.article_header:
-            output_file.write("***** %s (%i) *****%s" % (article.title, article.id, separator))
+            article_title = article.title
+            if args.ascii:
+                article_title = replace_non_ascii_chars(article.title)
+            output_file.write("***** %s (%i) *****%s" % (article_title, article.id, separator))
+        if args.ascii:
+            text = replace_non_ascii_chars(text)
         output_file.write(text + "\n")
 
         if args.output_dir:
@@ -293,5 +305,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--print_entity_list", action="store_true",
                         help="Print a list of entities at the end of the article")
+
+    parser.add_argument("--ascii", action="store_true",
+                        help="Use only ASCII characters in output file(s) and replace errors by '_'.")
 
     main(parser.parse_args())

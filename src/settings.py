@@ -49,6 +49,7 @@ LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "link_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "link_redirects.pkl"
 TITLE_SYNONYMS_FILE = DATA_DIRECTORY + "title_synonyms.pkl"
 AKRONYMS_FILE = DATA_DIRECTORY + "akronyms.pkl"
+WIKIPEDIA_ID_TO_TITLE_FILE = DATA_DIRECTORY + "wikipedia_id_to_title.tsv"
 
 ENTITY_PREFIX = "http://www.wikidata.org/entity/"
 

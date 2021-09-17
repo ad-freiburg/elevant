@@ -165,3 +165,21 @@ AIDA is therefore a global entity linking system.
 
 **Noteworthy error categories:**
 -
+
+
+### Relational Inference for Wikification
+*Cheng and Roth, 2013*
+
+**Paper:** <https://aclanthology.org/D13-1184.pdf>
+
+**Code:** <https://cogcomp.seas.upenn.edu/page/download_view/Wikifier>
+
+**Objective:**
+
+**Approach:**
+Cheng and Roth argue that it is necessary to incorporate background knowledge to successfully disambiguate mentions in certain contexts and to understand the relation between mentions in a context.
+In their paper, they focus on eliminating entity linking errors due to natural language constructs that are obvious to a human reader (e.g. in "As Mubarak, the wife of deposed Egyptian President Hosni Mubarak got older, her influence..." linking both Mubarak mentions to the most linked page Hosni Mubarak).
+They approach this task by extracting textual relations between mentions (e.g. possessive, coreference, apposition, ...) and combining them with relations retrieved from a knowledge base (more precisely, they combine the confidence scores of both extracted relations).
+They extract syntactico-semantic relations using (existing?) high precision classifiers.
+They extract coreference relations by clustering named entities that share tokens or are acronyms of each other when there is no ambiguity (E.g. "Al Goldman, chief market strategist at A.G. Edwards said ... Goldman told us that ..." if there is no other longer mention containing Goldman in the document, like Goldman Sachs). They then use a voting algorithm to generate candidates for the cluster.
+They also make use of nominal mentions as in "Dorothy Byrne, a state coordinator for the Florida Green Party". They use TF-IDF cosine similarity between the nominal mention and the lexical context of the candidate page, head word attributes and entity relation (i.e. between Dorothy Byrne and Florida Green Party) to find an entity candidates that are coherent with the nominal description.

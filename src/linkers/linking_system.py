@@ -2,6 +2,7 @@ from typing import Optional, Tuple, Dict
 
 from src.helpers.neural_el_prediction_reader import NeuralELPredictionReader
 from src.helpers.wexea_prediction_reader import WexeaPredictionReader
+from src.helpers.wikifier_prediction_reader import WikifierPredictionReader
 from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
 from src.helpers.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
@@ -166,6 +167,18 @@ class LinkingSystem:
             min_score = int(linker_info)
             self.linker = PopularEntitiesLinker(min_score, self.entity_db, longest_alias_ner)
             self.globally = True
+        elif linker_type == Linkers.WIKIFIER.value:
+            if not self.entity_db.is_mapping_loaded():
+                print("Loading wikipedia-wikidata mapping...")
+                self.entity_db.load_mapping()
+            if not self.entity_db.is_redirects_loaded():
+                print("Loading redirects...")
+                self.entity_db.load_redirects()
+            if not self.entity_db.has_wikipedia_id2wikipedia_title_loaded():
+                print("Loading wikipedia id to title mapping...")
+                self.entity_db.load_wikipedia_id2wikipedia_title()
+            result_dir = linker_info
+            self.prediction_iterator = WikifierPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
 
     def _initialize_link_linker(self, linker_type: str):
         if not self.entity_db.is_mapping_loaded():

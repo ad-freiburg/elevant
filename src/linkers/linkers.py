@@ -13,6 +13,7 @@ class Linkers(Enum):
     TRAINED_MODEL = "trained_model"
     BERT_MODEL = "bert_model"
     POPULAR_ENTITIES = "popular_entities"
+    WIKIFIER = "wikifier"
     NONE = "none"
 
 
