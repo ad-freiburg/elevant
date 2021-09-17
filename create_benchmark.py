@@ -212,7 +212,8 @@ if __name__ == "__main__":
                         help="Number of articles to read from the input file.")
 
     parser.add_argument("--skip_articles", type=str, default="3 11 15",
-                        help="Articles that should be skipped, separated by whitespace. Articles start at 1.")
+                        help="Articles that should be skipped, separated by whitespace. Articles start at 1."
+                             "Default: 3 11 15")
 
     parser.add_argument("--skip", action="store_true",
                         help="Set if the article_jsonl_file contains those articles that should be skipped.")
