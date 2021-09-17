@@ -5,11 +5,15 @@ from src.models.gender import Gender
 
 
 class PronounFinder:
-    pronoun_genders = {"i": Gender.UNKNOWN, "my": Gender.UNKNOWN, "me": Gender.UNKNOWN, "you": Gender.UNKNOWN,
-                       "your": Gender.UNKNOWN, "he": Gender.MALE, "his": Gender.MALE, "him": Gender.MALE,
-                       "she": Gender.FEMALE, "her": Gender.FEMALE, "it": Gender.NEUTRAL, "its": Gender.NEUTRAL,
-                       "us": Gender.UNKNOWN, "our": Gender.UNKNOWN, "they": Gender.UNKNOWN, "their": Gender.UNKNOWN,
-                       "them": Gender.UNKNOWN}
+    pronoun_genders = {"i": Gender.UNKNOWN, "my": Gender.UNKNOWN, "me": Gender.UNKNOWN, "myself": Gender.UNKNOWN,
+                       "you": Gender.UNKNOWN, "your": Gender.UNKNOWN, "yourself": Gender.UNKNOWN,
+                       "he": Gender.MALE, "his": Gender.MALE, "him": Gender.MALE, "himself": Gender.MALE,
+                       "she": Gender.FEMALE, "her": Gender.FEMALE, "herself": Gender.FEMALE,
+                       "it": Gender.NEUTRAL, "its": Gender.NEUTRAL, "itself": Gender.NEUTRAL,
+                       "us": Gender.UNKNOWN, "our": Gender.UNKNOWN, "ourselves": Gender.UNKNOWN,
+                       "yourselves": Gender.UNKNOWN,
+                       "they": Gender.UNKNOWN, "their": Gender.UNKNOWN, "them": Gender.UNKNOWN,
+                       "themselves": Gender.UNKNOWN}
 
     @classmethod
     def is_pronoun(cls, text: str) -> bool:
