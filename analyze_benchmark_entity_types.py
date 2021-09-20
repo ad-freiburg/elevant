@@ -53,7 +53,6 @@ if __name__ == "__main__":
             else:
                 types = label.type.split("|")
             entity_name = entity_names[label.entity_id] if label.entity_id in entity_names else "Unknown"
-            print(mention, label.entity_id, entity_name, types, label.level1)
             labels_tsv_file.write("\t".join((mention,
                                              label.entity_id,
                                              entity_name,
@@ -62,16 +61,16 @@ if __name__ == "__main__":
                                   + "\n")
             if "UNKNOWN" not in types:
                 known_labels += 1
-                is_traditional_entity_type = False
-                for type in types:
-                    if type not in type_counts:
-                        type_counts[type] = {True: 0, False : 0}
-                    type_counts[type][bool(label.level1)] += 1
-                    if type in traditional_entity_types:
-                        is_traditional_entity_type = True
-                if is_traditional_entity_type:
-                    n_traditional_entities += 1
-                total_counts[bool(label.level1)] += 1
+            is_traditional_entity_type = False
+            for type in types:
+                if type not in type_counts:
+                    type_counts[type] = {True: 0, False: 0}
+                type_counts[type][bool(label.level1)] += 1
+                if type in traditional_entity_types:
+                    is_traditional_entity_type = True
+            if is_traditional_entity_type:
+                n_traditional_entities += 1
+            total_counts[bool(label.level1)] += 1
 
     labels_tsv_file.close()
 
@@ -83,7 +82,6 @@ if __name__ == "__main__":
             other_count = type_counts[type][False]
         else:
             lvl1_count = other_count = 0
-        print(type_name, lvl1_count, other_count)
         type_name_counts[type_name] = [lvl1_count, other_count]
 
     with open(types_json_file, "w", encoding="utf8") as f:
