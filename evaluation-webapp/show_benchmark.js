@@ -89,6 +89,12 @@ $("document").ready(function() {
     show_selected_type = null;
     last_selected_cell = null;
 
+    sorting_variables = {"evaluation": {}, "type_evaluation": {}}
+    for (div in sorting_variables) {
+        sorting_variables[div]["column_index"] = null;
+        sorting_variables[div]["descending"] = true;
+    }
+
     set_benchmark_select_options();
 
     // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
@@ -1042,6 +1048,19 @@ function build_overview_table(path, benchmark_name) {
                 // Add table body
                 build_evaluation_table_body(result_array, "evaluation");
                 build_evaluation_table_body(result_array, "type_evaluation");
+
+                // Sort the table according to previously chosen sorting
+                for (div in sorting_variables) {
+                    var sort_column_index = sorting_variables[div]["column_index"];
+                    var sort_descending = sorting_variables[div]["sort_descending"];
+                    if (sort_column_index != null) {
+                        var sort_column_header = $('#' + div + ' table thead tr:nth-child(2) th:nth-child(' + sort_column_index + ')');
+                        // Hack to get the right sort order which is determined by
+                        // whether the column header already has the class "descending"
+                        if (!sort_descending) sort_column_header.addClass("desc");
+                        sort_table(sort_column_header, div);
+                    }
+                }
             });
         });
     });
@@ -1242,6 +1261,11 @@ function sort_table(column_header, div_id) {
     // Get list of values in the selected column
     // + 1 because nth-child indices are 1-based
     var col_index = $(column_header).parent().children().index($(column_header)) + 1;
+
+    // Store the column index to apply the same sorting when selecting a different benchmark
+    // Can't just store and use the column header itself since it's the header of the old table
+    sorting_variables[div_id]["column_index"] = col_index;
+
     var key = $(column_header).data("array-key");
     var subkey = $(column_header).data("array-subkey");
     var col_values = [];
@@ -1282,6 +1306,7 @@ function sort_table(column_header, div_id) {
 
     // Check if sorting should be ascending or descending
     var descending = !$(column_header).hasClass("desc");
+    sorting_variables[div_id]["sort_descending"] = descending;
 
     // Get new sorting order of the row indices and create a new result array according to the new sorting
     if (col_index == 1) {
