@@ -1,5 +1,6 @@
 from typing import Dict, Set, Tuple, Iterator, Optional, List
 
+from src import settings
 from src.models.gender import Gender
 from src.models.wikidata_entity import WikidataEntity
 from src.helpers.entity_database_reader import EntityDatabaseReader
@@ -72,18 +73,19 @@ class EntityDatabase:
             if entity.score >= minimum_score:
                 self.add_entity(entity)
 
-    def load_entities_big(self):
+    def load_entities_big(self, type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
         mapping = EntityDatabaseReader.get_mapping()
         # The mapping contains Wikipedia titles. Load an additional mapping for Wikidata names.
         # Don't save the mapping because it is huge and we only need the names of entities that
         # are in the Wikipedia-Wikidata mapping.
         entity_ids = set(mapping.values())
-        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids)
+        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, type_mapping)
         for entity in entities.values():
             self.add_entity(entity)
 
-    def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: Optional[int] = 0):
-        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids)
+    def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: Optional[int] = 0,
+                      type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
+        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, type_mapping)
         for entity in entities.values():
             if self.get_sitelink_count(entity.entity_id) >= minimum_sitelink_count:
                 self.add_entity(entity)

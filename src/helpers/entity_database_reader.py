@@ -1,4 +1,4 @@
-from typing import List, Iterator, Tuple, Dict, Set
+from typing import List, Iterator, Tuple, Dict, Set, Optional
 
 from urllib.parse import unquote
 import pickle
@@ -104,10 +104,10 @@ class EntityDatabaseReader:
         return mapping
 
     @staticmethod
-    def get_wikidata_entities_with_types(relevant_entities: Set[str]) -> Dict[str, WikidataEntity]:
+    def get_wikidata_entities_with_types(relevant_entities: Set[str], type_mapping_file: str) -> Dict[str, WikidataEntity]:
         entities = dict()
         id_to_type = dict()
-        for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator():
+        for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator(type_mapping_file):
             if entity_id in relevant_entities:
                 if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
                     id_to_type[entity_id] = []
@@ -139,8 +139,9 @@ class EntityDatabaseReader:
                 yield entity_id, name
 
     @staticmethod
-    def entity_to_whitelist_type_iterator() -> Iterator[Tuple[str, str]]:
-        with open(settings.WHITELIST_TYPE_MAPPING, "r", encoding="utf8") as file:
+    def entity_to_whitelist_type_iterator(type_mapping_file: str) \
+            -> Iterator[Tuple[str, str]]:
+        with open(type_mapping_file, "r", encoding="utf8") as file:
             for line in file:
                 lst = line.strip().split()
                 entity_id = lst[0][3:]
@@ -148,9 +149,9 @@ class EntityDatabaseReader:
                 yield entity_id, whitelist_type
 
     @staticmethod
-    def read_whitelist_types() -> Dict[str, str]:
+    def read_whitelist_types(whitelist_file: Optional[str] = settings.WHITELIST_FILE) -> Dict[str, str]:
         types = dict()
-        with open(settings.WHITELIST_FILE, "r", encoding="utf8") as file:
+        with open(whitelist_file, "r", encoding="utf8") as file:
             for line in file:
                 line = line.strip()
                 if line:

@@ -1,5 +1,6 @@
 import argparse
 
+from src import settings
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
@@ -16,7 +17,7 @@ def main(args):
             label_entity_ids.add(label.entity_id)
 
     print("Load entity information..")
-    entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids)
+    entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids, settings.WHITELIST_TYPE_MAPPING)
 
     for article in example_iterator.iterate():
         for label in article.labels:

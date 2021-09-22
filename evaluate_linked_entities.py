@@ -9,7 +9,9 @@ The evaluation results are printed.
 
 import argparse
 import json
+import re
 
+from src import settings
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.case import case_from_dict
 from src.evaluation.examples_generator import get_example_generator
@@ -34,14 +36,35 @@ def main(args):
         for em in article.entity_mentions.values():
             relevant_entity_ids.add(em.entity_id)
             relevant_entity_ids.update(em.candidates)
+        if args.type_mapping and not args.benchmark:
+            # If a type mapping other than the default mapping is used, ground truth labels must be re-annotated
+            for gt_label in article.labels:
+                relevant_entity_ids.add(gt_label.entity_id)
+    if args.type_mapping and args.benchmark:
+        for article in get_example_generator(args.benchmark).iterate():
+            for gt_label in article.labels:
+                relevant_entity_ids.add(gt_label.entity_id)
 
+    # Read whitelist types
+    whitelist_types = set()
+    if args.type_whitelist:
+        with open(args.type_whitelist, 'r', encoding='utf8') as file:
+            for line in file:
+                type_match = re.search(r"Q[0-9]+", line)
+                if type_match:
+                    type = type_match.group(0)
+                    whitelist_types.add(type)
+
+    whitelist_file = args.type_whitelist if args.type_whitelist else settings.WHITELIST_FILE
     if args.input_case_file:
         case_file = open(args.input_case_file, 'r', encoding='utf8')
-        evaluator = Evaluator(relevant_entity_ids, load_data=False, coreference=not args.no_coreference,
-                              contains_unknowns=not args.no_unknowns)
+        evaluator = Evaluator(relevant_entity_ids, None, whitelist_file=whitelist_file, load_data=False,
+                              coreference=not args.no_coreference, contains_unknowns=not args.no_unknowns)
     else:
         print("load evaluation entities...")
-        evaluator = Evaluator(relevant_entity_ids, load_data=True, contains_unknowns=not args.no_unknowns)
+        type_mapping_file = args.type_mapping if args.type_mapping else settings.WHITELIST_TYPE_MAPPING
+        evaluator = Evaluator(relevant_entity_ids, type_mapping_file, whitelist_file=whitelist_file, load_data=True,
+                              contains_unknowns=not args.no_unknowns)
         output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
         output_file = open(output_filename, 'w', encoding='utf8')
     results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
@@ -59,13 +82,50 @@ def main(args):
             benchmark_article = next(example_iterator)
             article.labels = benchmark_article.labels
 
+        if args.type_mapping:
+            # Map benchmark label entities to types in the mapping
+            for gt_label in article.labels:
+                entity = evaluator.entity_db.get_entity(gt_label.entity_id)
+                if entity:  # Should be None only if label is a Unknown, but for some reason it doesn't happen
+                    gt_label.type = entity.type
+
+        if whitelist_types:
+            # Ignore groundtruth labels that do not have a type that is included in the whitelist
+            filtered_labels = []
+            added_label_ids = set()
+            for gt_label in article.labels:
+                # Only consider parent labels. Child types can not be counted, since otherwise we
+                # would end up with fractional TP/FN
+                # Add all children of a parent as well. This works because article.labels are sorted -
+                # parents always come before children
+                if gt_label.parent is None or gt_label.parent in added_label_ids:
+                    types = gt_label.type.split("|")
+                    for type in types:
+                        if type in whitelist_types or gt_label.parent is not None \
+                                or gt_label.entity_id.startswith("Unknown"):
+                            filtered_labels.append(gt_label)
+                            added_label_ids.add(gt_label.id)
+                            break
+            article.labels = filtered_labels
+
+            # If the type_filter_predictions argument is set, ignore predictions that do
+            # not have a type that is included in the whitelist
+            filtered_entity_mentions = {}
+            if args.type_filter_predictions:
+                for span, em in article.entity_mentions.items():
+                    types = evaluator.entity_db.get_entity(em.entity_id).type.split("|")
+                    for type in types:
+                        if type in whitelist_types:
+                            filtered_entity_mentions[span] = em
+                            break
+                article.entity_mentions = filtered_entity_mentions
+
         if args.input_case_file:
             dump = json.loads(case_file.readline())
             cases = [case_from_dict(case_dict) for case_dict in dump]
         else:
             cases = evaluator.get_cases(article)
         evaluator.add_cases(cases)
-        # evaluator.print_article_evaluation(article, cases)
 
         if not args.input_case_file:
             case_list = [case.to_dict() for case in cases]
@@ -104,5 +164,13 @@ if __name__ == "__main__":
     parser.add_argument("--no-unknowns", action="store_true",
                         help="Set if the benchmark contains no 'unknown' labels. "
                              "Uppercase false detections will be treated as 'unknown named entity' errors.")
+    parser.add_argument("--type_mapping", type=str, default=None,
+                        help="Map groundtruth labels and predicted entities to types using the given mapping.")
+    parser.add_argument("--type_whitelist", type=str, default=None,
+                        help="Evaluate only over labels with a type from the given whitelist and ignore other labels. "
+                             "One type per line in the format \"<qid> # <label>\".")
+    parser.add_argument("--type_filter_predictions", action="store_true",
+                        help="Ignore predicted links that do not have a type from the type whitelist."
+                             "This has no effect if the type_whitelist argument is not provided.")
 
     main(parser.parse_args())

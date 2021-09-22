@@ -1,5 +1,6 @@
-from typing import List, Set
+from typing import List, Set, Optional
 
+from src import settings
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation.case_generator import CaseGenerator
@@ -12,13 +13,13 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
 
 
-def load_evaluation_entities(relevant_entity_ids: Set[str]) -> EntityDatabase:
+def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: str) -> EntityDatabase:
     entity_db = EntityDatabase()
     mapping = EntityDatabaseReader.get_mapping()
     mapping_entity_ids = set(mapping.values())
     relevant_entity_ids.update(mapping_entity_ids)
     entity_db.load_sitelink_counts()
-    entity_db.load_entities(relevant_entity_ids)
+    entity_db.load_entities(relevant_entity_ids, type_mapping=type_mapping_file)
     entity_db.load_mapping()
     entity_db.load_redirects()
     entity_db.load_demonyms()
@@ -35,14 +36,16 @@ EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "prono
 
 class Evaluator:
     def __init__(self,
-                 relevant_entity_ids,
+                 relevant_entity_ids: Set[str],
+                 type_mapping_file: Optional[str],
+                 whitelist_file: Optional[str] = settings.WHITELIST_FILE,
                  load_data: bool = True,
                  coreference: bool = True,
                  contains_unknowns: bool = True):
-        self.type_id_to_label = EntityDatabaseReader.read_whitelist_types()
+        self.type_id_to_label = EntityDatabaseReader.read_whitelist_types(whitelist_file)
         self.all_cases = []
         if load_data:
-            self.entity_db = load_evaluation_entities(relevant_entity_ids)
+            self.entity_db = load_evaluation_entities(relevant_entity_ids, type_mapping_file)
         self.case_generator = CaseGenerator(self.entity_db)
         self.data_loaded = load_data
         self.coreference = coreference
