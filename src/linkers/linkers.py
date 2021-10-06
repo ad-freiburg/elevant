@@ -14,6 +14,7 @@ class Linkers(Enum):
     BERT_MODEL = "bert_model"
     POPULAR_ENTITIES = "popular_entities"
     WIKIFIER = "wikifier"
+    PURE_PRIOR = "pure_prior"
     NONE = "none"
 
 

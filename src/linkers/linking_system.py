@@ -10,6 +10,7 @@ from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
+from src.linkers.pure_prior_linker import PurePriorLinker
 from src.linkers.trained_entity_linker import TrainedEntityLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
@@ -179,6 +180,10 @@ class LinkingSystem:
                 self.entity_db.load_wikipedia_id2wikipedia_title()
             result_dir = linker_info
             self.prediction_iterator = WikifierPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
+        elif linker_type == Linkers.PURE_PRIOR.value:
+            whitelist_file = linker_info
+            self.entity_db.load_link_frequencies()
+            self.linker = PurePriorLinker(self.entity_db, whitelist_file)
 
     def _initialize_link_linker(self, linker_type: str):
         if not self.entity_db.is_mapping_loaded():
