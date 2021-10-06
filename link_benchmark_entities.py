@@ -18,6 +18,7 @@ import argparse
 import time
 import os
 
+from src import settings
 from src.evaluation.benchmark import Benchmark
 from src.linkers.linkers import Linkers, CoreferenceLinkers, LinkLinkers
 from src.linkers.linking_system import LinkingSystem
@@ -38,7 +39,8 @@ def main(args):
                                    args.coreference_linker,
                                    args.kb_name,
                                    args.minimum_score,
-                                   args.longest_alias_ner)
+                                   args.longest_alias_ner,
+                                   args.type_mapping)
 
     example_generator = get_example_generator(args.benchmark)
 
@@ -99,5 +101,7 @@ if __name__ == "__main__":
                         help="For the baselines: use longest matching alias NER instead of SpaCy NER.")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
+    parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
+                        help="For pure prior linker: Map predicted entities to types using the given mapping.")
 
     main(parser.parse_args())

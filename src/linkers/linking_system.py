@@ -43,7 +43,7 @@ def uppercase_predictions(predictions: Dict[Tuple[int, int], EntityPrediction],
 
 class LinkingSystem:
     def __init__(self, linker_type: str, linker: str, link_linker: str, coreference_linker: str, kb_name: str,
-                 minimum_score: int, longest_alias_ner: bool):
+                 minimum_score: int, longest_alias_ner: bool, type_mapping_file: str):
         self.link_linker = None
         self.linker = None
         self.prediction_iterator = None
@@ -51,6 +51,7 @@ class LinkingSystem:
         self.coreference_prediction_iterator = None
         self.entity_db = None
         self.globally = False
+        self.type_mapping_file = type_mapping_file  # Only needed for pure prior linker
 
         self._initialize_entity_db(linker_type, linker, link_linker, coreference_linker, minimum_score)
         self._initialize_link_linker(link_linker)
@@ -69,7 +70,7 @@ class LinkingSystem:
         elif linker_type == Linkers.BASELINE.value and linker in ("scores", "links"):
             self.entity_db.load_entities_small(minimum_score)
         else:
-            self.entity_db.load_entities_big()
+            self.entity_db.load_entities_big(self.type_mapping_file)
 
         print(self.entity_db.size_entities(), "entities")
         if linker_type == Linkers.BASELINE.value:

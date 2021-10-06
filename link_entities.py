@@ -17,6 +17,7 @@ per line.
 import argparse
 import os
 
+from src import settings
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
 from src.models.wikipedia_article import WikipediaArticle
@@ -31,7 +32,8 @@ def main(args):
                                    args.coreference_linker,
                                    args.kb_name,
                                    args.minimum_score,
-                                   args.longest_alias_ner)
+                                   args.longest_alias_ner,
+                                   args.type_mapping)
     if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
         print("Wexea can only be used as coreference linker in combination with the Wexea linker")
         exit(1)
@@ -98,5 +100,7 @@ if __name__ == "__main__":
                         help="For the baselines: use longest matching alias NER instead of SpaCy NER.")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
+    parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
+                        help="For pure prior linker: Map predicted entities to types using the given mapping.")
 
     main(parser.parse_args())
