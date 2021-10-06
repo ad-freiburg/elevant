@@ -162,7 +162,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                               max_distance: Optional[int] = None,
                               type_reference: Optional[bool] = False,
                               direct_speech: Optional[DirectSpeech] = None,
-                              neutral_paragraph_subject: Optional[bool] = False) -> ReferencedEntity:
+                              neutral_paragraph_subject: Optional[bool] = False) -> Optional[ReferencedEntity]:
         referenced_entity = None
         direct_speech_len = 0
         if neutral_paragraph_subject and self.title_entity and self.title_entity.gender == Gender.NEUTRAL:
@@ -171,6 +171,8 @@ class EntityCorefLinker(AbstractCorefLinker):
             pre_span = preceding_entity.span
             if direct_speech and PronounFinder.is_first_person_singular(tok_text):
                 # Resolve first person singular references in direct speech to the direct speech speaker entity
+                if direct_speech.speaker is None:
+                    return
                 speaker_s = direct_speech.speaker.idx
                 if pre_span[0] <= speaker_s <= pre_span[1]:
                     if preceding_entity.gender in [Gender.MALE, Gender.FEMALE]:
