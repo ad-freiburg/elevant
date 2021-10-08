@@ -16,6 +16,7 @@ per line.
 
 import argparse
 import os
+import time
 
 from src import settings
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
@@ -24,8 +25,17 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src.models.neural_net import NeuralNet
 
+from multiprocessing.dummy import Pool as ThreadPool
+
 
 def main(args):
+    def link_entities_tuple_argument(args_tuple):
+        """
+        multiprocessing.dummy.Pool.map() can't seem to handle multiple arguments,
+        therefore we use this helper function.
+        """
+        linking_system.link_entities(args_tuple[0], args_tuple[1], args_tuple[2])
+
     linking_system = LinkingSystem(args.linker_type,
                                    args.linker,
                                    args.link_linker,
@@ -47,6 +57,13 @@ def main(args):
 
     output_file = open(args.output_file, 'w', encoding='utf8')
 
+    pool = None
+    if args.multithreading > 1:
+        # Make the Pool of workers
+        pool = ThreadPool(args.multithreading)
+
+    articles = []
+    start = time.time()
     for i, line in enumerate(input_file):
         if i == args.n_articles:
             break
@@ -54,11 +71,38 @@ def main(args):
             article = WikipediaArticle(id=i, title="", text=line[:-1], links=[])
         else:
             article = WikipediaDumpReader.json2article(line)
-        linking_system.link_entities(article, args.uppercase, args.only_pronouns)
-        output_file.write(article.to_json() + "\n")
-        print("\r%i articles" % (i + 1), end='')
-    print()
 
+        if args.multithreading > 1:
+            articles.append(article)
+            if len(articles) >= args.multithreading * 5:
+                pool.map(link_entities_tuple_argument, zip(articles,
+                                                           [args.uppercase for _ in articles],
+                                                           [args.only_pronouns for _ in articles]))
+                # close the pool and wait for the work to finish
+                pool.close()
+                pool.join()
+                for article in articles:
+                    output_file.write(article.to_json() + "\n")
+                    print("\r%i articles" % (i + 1), end='')
+                # Reset for next batch
+                articles = []
+                pool = ThreadPool(8)
+        else:
+            linking_system.link_entities(article, args.uppercase, args.only_pronouns)
+            output_file.write(article.to_json() + "\n")
+            print("\r%i articles" % (i + 1), end='')
+
+    # Link left-over articles
+    if args.multithreading > 1 and len(articles) > 0:
+        pool.map(linking_system.link_entities, articles)
+        pool.close()
+        pool.join()
+        for article in articles:
+            output_file.write(article.to_json() + "\n")
+            print("\r%i articles" % (i + 1), end='')
+
+    print()
+    print("Linked articles in %fs" % (time.time() - start))
     input_file.close()
     output_file.close()
 
@@ -102,5 +146,7 @@ if __name__ == "__main__":
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
                         help="For pure prior linker: Map predicted entities to types using the given mapping.")
+    parser.add_argument("-m", "--multithreading", type=int, default=1,
+                        help="Number of threads to use. Default is 1.")
 
     main(parser.parse_args())
