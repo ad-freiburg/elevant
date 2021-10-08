@@ -86,7 +86,7 @@ def main(args):
                     print("\r%i articles" % (i + 1), end='')
                 # Reset for next batch
                 articles = []
-                pool = ThreadPool(8)
+                pool = ThreadPool(args.multithreading)
         else:
             linking_system.link_entities(article, args.uppercase, args.only_pronouns)
             output_file.write(article.to_json() + "\n")
