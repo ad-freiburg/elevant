@@ -159,7 +159,7 @@ if __name__ == "__main__":
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evaluation.")
     parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=None,
-                        help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
+                        help="Benchmark over which to evaluate the linked entities. If none is given, labels are "
                              "retrieved from the given jsonl file")
     parser.add_argument("--no-unknowns", action="store_true",
                         help="Set if the benchmark contains no 'unknown' labels. "

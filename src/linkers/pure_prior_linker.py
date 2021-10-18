@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, Dict, Tuple, Iterator
+from typing import Optional, Dict, Tuple, List
 
 import spacy
 from spacy.tokens import Doc
@@ -23,6 +23,8 @@ class PurePriorLinker(AbstractEntityLinker):
         self.whitelist_types = {}
         if whitelist_type_file:
             self.whitelist_types = self.get_whitelist_types(whitelist_type_file)
+        self.prefixes = set()
+        self._compute_prefixes()
 
     def get_whitelist_types(self, whitelist_type_file: str):
         types = EntityDatabaseReader.read_whitelist_types(whitelist_type_file)
@@ -31,26 +33,44 @@ class PurePriorLinker(AbstractEntityLinker):
     def has_entity(self, entity_id: str) -> bool:
         return self.entity_db.contains_entity(entity_id)
 
-    def get_mention_spans(self, doc: Doc, text: str) -> Iterator[Tuple[Tuple[int, int], str]]:
-        for n_tokens in range(self.max_tokens, 0, -1):
-            for result in self.get_mention_spans_with_n_tokens(doc, text, n_tokens):
-                yield result
-
     @staticmethod
-    def get_mention_spans_with_n_tokens(doc: Doc,
-                                        text: str,
-                                        n_tokens: int) -> Iterator[Tuple[Tuple[int, int], str]]:
-        mention_start = 0
-        while mention_start + n_tokens < len(doc):
-            span = doc[mention_start].idx, doc[mention_start + n_tokens].idx + len(doc[mention_start + n_tokens])
-            mention_text = text[span[0]:span[1]]
-            yield span, mention_text
-            mention_start += 1
+    def token_span_to_char_span(doc: Doc,
+                                token_span_start: int,
+                                token_span_end: int) -> Tuple[int, int]:
+        """The token span end is included."""
+        span = doc[token_span_start].idx, doc[token_span_end].idx + len(doc[token_span_end])
+        return span
+
+    def _compute_prefixes(self):
+        for alias in self.entity_db.aliases:
+            alias_doc = self.model(alias)
+            n_tokens = len(alias_doc)
+            for i in range(n_tokens - 1):
+                span = PurePriorLinker.token_span_to_char_span(alias_doc, 0, i)
+                prefix = alias[span[0]:span[1]]
+                self.prefixes.add(prefix)
+
+    def get_mention_spans(self,
+                          doc: Doc,
+                          text: str) -> List[Tuple[Tuple[int, int], str]]:
+        """The resulting spans can overlap."""
+        mention_spans = []
+        for start in range(len(doc)):
+            length = 0
+            while start + length < len(doc):
+                span = PurePriorLinker.token_span_to_char_span(doc, start, start + length)
+                span_text = text[span[0]:span[1]]
+                if self.entity_db.contains_alias(span_text):
+                    mention_spans.append((span, span_text))
+                if span_text not in self.prefixes:
+                    break
+                length += 1
+        return mention_spans
 
     def get_matching_entity_id(self, mention_text: str) -> Optional[str]:
-        if mention_text in self.entity_db.link_frequencies:
-            return max(self.entity_db.link_frequencies[mention_text],
-                       key=self.entity_db.link_frequencies[mention_text].get)
+        if self.entity_db.contains_alias(mention_text):
+            return max(self.entity_db.get_candidates(mention_text),
+                       key=lambda candidate: self.entity_db.get_link_frequency(mention_text, candidate))
 
     def has_whitelist_type(self, entity_id: str) -> bool:
         if self.entity_db.contains_entity(entity_id):
@@ -69,7 +89,9 @@ class PurePriorLinker(AbstractEntityLinker):
 
         predictions = {}
         annotated_chars = np.zeros(shape=len(text), dtype=bool)
-        for span, mention_text in self.get_mention_spans(doc, text):
+        mention_spans = self.get_mention_spans(doc, text)
+        mention_spans = sorted(mention_spans, key=lambda span: span[0][1] - span[0][0], reverse=True)
+        for span, mention_text in mention_spans:
             if uppercase and mention_text.islower():
                 continue
             predicted_entity_id = self.get_matching_entity_id(mention_text)
