@@ -737,8 +737,8 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
     // STEP 2: Add the combined annotations and links to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
     id_counter = 0;
-    if (evaluation && annotation_spans[0].length - 1 < article_num) annotation_spans[0].push([]);
-    else if (prediction && annotation_spans[1].length - 1 < article_num) annotation_spans[1].push([]);
+    if (annotation_spans[0].length - 1 < article_num) annotation_spans[0].push([]);
+    if (annotation_spans[1].length - 1 < article_num) annotation_spans[1].push([]);
     for (annotation of annotations_with_links.reverse()) {
         // annotation is a tuple with (span, annotation_info)
         span = annotation[0];
