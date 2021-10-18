@@ -44,7 +44,8 @@ class PurePriorLinker(AbstractEntityLinker):
     def _compute_prefixes(self):
         print("computing prefixes...")
         for ai, alias in enumerate(self.entity_db.aliases):
-            print(f"\r{ai}/{len(self.entity_db.aliases)} aliases")
+            if ai % 1000 == 0:
+                print(f"\r{ai}/{len(self.entity_db.aliases)} aliases", end="")
             alias_doc = self.model(alias)
             n_tokens = len(alias_doc)
             for i in range(n_tokens - 1):
