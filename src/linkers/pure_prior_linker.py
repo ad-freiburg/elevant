@@ -42,7 +42,9 @@ class PurePriorLinker(AbstractEntityLinker):
         return span
 
     def _compute_prefixes(self):
-        for alias in self.entity_db.aliases:
+        print("computing prefixes...")
+        for ai, alias in enumerate(self.entity_db.aliases):
+            print(f"\r{ai}/{len(self.entity_db.aliases)} aliases")
             alias_doc = self.model(alias)
             n_tokens = len(alias_doc)
             for i in range(n_tokens - 1):
@@ -55,15 +57,19 @@ class PurePriorLinker(AbstractEntityLinker):
                           text: str) -> List[Tuple[Tuple[int, int], str]]:
         """The resulting spans can overlap."""
         mention_spans = []
+        print("text:", text)
         for start in range(len(doc)):
+            print(f"start at position {start}")
             length = 0
             while start + length < len(doc):
                 span = PurePriorLinker.token_span_to_char_span(doc, start, start + length)
                 span_text = text[span[0]:span[1]]
                 if self.entity_db.contains_alias(span_text):
+                    print(f"{span_text} is alias")
                     mention_spans.append((span, span_text))
                 if span_text not in self.prefixes:
                     break
+                print(f"{span_text} is prefix")
                 length += 1
         return mention_spans
 

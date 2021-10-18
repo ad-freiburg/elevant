@@ -183,9 +183,13 @@ class LinkingSystem:
             self.prediction_iterator = WikifierPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
         elif linker_type == Linkers.PURE_PRIOR.value:
             whitelist_file = linker_info
+            print("add name aliases...")
             self.entity_db.add_name_aliases()
+            print("add synonym aliases...")
             self.entity_db.add_synonym_aliases()
+            print("load link frequencies...")
             self.entity_db.load_link_frequencies()
+            print("done loading entity DB.")
             self.linker = PurePriorLinker(self.entity_db, whitelist_file)
 
     def _initialize_link_linker(self, linker_type: str):
