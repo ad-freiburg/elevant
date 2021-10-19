@@ -62,7 +62,8 @@ class LinkingSystem:
                               minimum_score: int):
         print("load entities...")
         self.entity_db = EntityDatabase()
-        if not link_linker and not coreference_linker and ((linker_type == Linkers.BASELINE.value and linker == "max-match-ner")
+        if not link_linker and not coreference_linker and ((linker_type == Linkers.BASELINE.value and
+                                                            linker == "max-match-ner")
                                                            or linker_type == Linkers.TAGME.value
                                                            or linker_type == Linkers.AMBIVERSE.value
                                                            or linker_type == Linkers.IOB.value):
@@ -183,7 +184,17 @@ class LinkingSystem:
             self.prediction_iterator = WikifierPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
         elif linker_type == Linkers.PURE_PRIOR.value:
             whitelist_file = linker_info
+            if not self.entity_db.is_mapping_loaded():
+                print("Loading wikipedia-wikidata mapping...")
+                self.entity_db.load_mapping()
+            if not self.entity_db.is_redirects_loaded():
+                print("Loading redirects...")
+                self.entity_db.load_redirects()
             self.entity_db.load_link_frequencies()
+            print("add name aliases...")
+            self.entity_db.add_name_aliases()
+            print("add synonym aliases...")
+            self.entity_db.add_synonym_aliases()
             self.linker = PurePriorLinker(self.entity_db, whitelist_file)
 
     def _initialize_link_linker(self, linker_type: str):

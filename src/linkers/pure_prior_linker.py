@@ -24,7 +24,8 @@ class PurePriorLinker(AbstractEntityLinker):
         if whitelist_type_file:
             self.whitelist_types = self.get_whitelist_types(whitelist_type_file)
 
-    def get_whitelist_types(self, whitelist_type_file: str):
+    @staticmethod
+    def get_whitelist_types(whitelist_type_file: str):
         types = EntityDatabaseReader.read_whitelist_types(whitelist_type_file)
         return types
 
@@ -42,15 +43,23 @@ class PurePriorLinker(AbstractEntityLinker):
                                         n_tokens: int) -> Iterator[Tuple[Tuple[int, int], str]]:
         mention_start = 0
         while mention_start + n_tokens < len(doc):
-            span = doc[mention_start].idx, doc[mention_start + n_tokens].idx + len(doc[mention_start + n_tokens])
+            span = doc[mention_start].idx, doc[mention_start + n_tokens - 1].idx + len(
+                doc[mention_start + n_tokens - 1])
             mention_text = text[span[0]:span[1]]
             yield span, mention_text
             mention_start += 1
 
     def get_matching_entity_id(self, mention_text: str) -> Optional[str]:
         if mention_text in self.entity_db.link_frequencies:
-            return max(self.entity_db.link_frequencies[mention_text],
-                       key=self.entity_db.link_frequencies[mention_text].get)
+            # Get matching entity ids for given mention text in order of their link frequency
+            entity_id = max(self.entity_db.link_frequencies[mention_text],
+                            key=self.entity_db.link_frequencies[mention_text].get)
+            # Return the with the highest link frequency that has a whitelist type and
+            # a synonym matching the mention text
+            if (not self.whitelist_types or self.has_whitelist_type(entity_id)) and mention_text in \
+                    self.entity_db.get_entity(entity_id).synonyms:
+                return entity_id
+        return None
 
     def has_whitelist_type(self, entity_id: str) -> bool:
         if self.entity_db.contains_entity(entity_id):
@@ -72,12 +81,12 @@ class PurePriorLinker(AbstractEntityLinker):
         for span, mention_text in self.get_mention_spans(doc, text):
             if uppercase and mention_text.islower():
                 continue
+            # Do not allow overlapping links. Prioritize links with more tokens
+            if np.sum(annotated_chars[span[0]:span[1]]) != 0:
+                continue
             predicted_entity_id = self.get_matching_entity_id(mention_text)
             if predicted_entity_id:
-                # Do not allow overlapping links. Prioritize links with more tokens
-                if np.sum(annotated_chars[span[0]:span[1]]) == 0:
-                    if not self.whitelist_types or self.has_whitelist_type(predicted_entity_id):
-                        annotated_chars[span[0]:span[1]] = True
-                        candidates = {predicted_entity_id}
-                        predictions[span] = EntityPrediction(span, predicted_entity_id, candidates)
+                annotated_chars[span[0]:span[1]] = True
+                candidates = {predicted_entity_id}
+                predictions[span] = EntityPrediction(span, predicted_entity_id, candidates)
         return predictions
