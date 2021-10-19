@@ -198,10 +198,13 @@ class LinkingSystem:
             self.linker = PurePriorLinker(self.entity_db, whitelist_file)
 
     def _initialize_link_linker(self, linker_type: str):
-        if not self.entity_db.is_mapping_loaded():
-            self.entity_db.load_mapping()
-        if not self.entity_db.is_redirects_loaded():
-            self.entity_db.load_redirects()
+        if linker_type:
+            if not self.entity_db.is_mapping_loaded():
+                print("Loading wikipedia-wikidata mapping...")
+                self.entity_db.load_mapping()
+            if not self.entity_db.is_redirects_loaded():
+                print("Loading redirects...")
+                self.entity_db.load_redirects()
         if linker_type == LinkLinkers.LINK_TEXT_LINKER.value:
             print("add synonyms...")
             self.entity_db.add_synonym_aliases()
