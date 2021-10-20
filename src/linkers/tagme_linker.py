@@ -1,7 +1,6 @@
 from typing import Dict, Tuple, Optional
 
 import tagme
-import numpy as np
 
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
@@ -26,18 +25,15 @@ class TagMeLinker(AbstractEntityLinker):
         annotations = tagme.annotate(text).get_annotations(self.rho_threshold)
         annotations = sorted(annotations, key=lambda ann: ann.score, reverse=True)
         predictions = {}
-        annotated_chars = np.zeros(shape=len(text), dtype=bool)
         count = 0
         for ann in annotations:
             qid = self.entity_db.link2id(ann.entity_title)
             if qid is not None:
-                if np.sum(annotated_chars[ann.begin:ann.end]) == 0:
-                    annotated_chars[ann.begin:ann.end] = True
-                    span = (ann.begin, ann.end)
-                    snippet = text[span[0]:span[1]]
-                    if uppercase and snippet.islower():
-                        continue
-                    predictions[span] = EntityPrediction(span, qid, {qid})
+                span = (ann.begin, ann.end)
+                snippet = text[span[0]:span[1]]
+                if uppercase and snippet.islower():
+                    continue
+                predictions[span] = EntityPrediction(span, qid, {qid})
             else:
                 print("\nNo mapping to Wikidata found for label '%s'" % ann.entity_title)
                 count += 1

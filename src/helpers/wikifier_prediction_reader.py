@@ -47,7 +47,6 @@ class WikifierPredictionReader:
         :return: dictionary that contains all predictions for the given file
         """
         predictions = {}
-        spans = []
         xml_tree = ElementTree.parse(file_path)
         root = xml_tree.getroot()
         count = 0
@@ -75,21 +74,8 @@ class WikifierPredictionReader:
                 if candidate_entity_id:
                     candidates.add(candidate_entity_id)
 
-            # Avoid overlapping spans: Keep the larger one.
-            # Assume that Wikifier predictions are sorted by span start (but not by span end)
-            if spans and spans[-1][1] > span[0]:
-                # Overlap detected.
-                previous_span_length = spans[-1][1] - spans[-1][0]
-                current_span_length = span[1] - span[0]
-                if previous_span_length >= current_span_length:
-                    # Previous span is longer than current span, so discard current prediction
-                    continue
-                else:
-                    del predictions[spans[-1]]
-                    del spans[-1]
-
+            # Note that Wikifier produces overlapping spans
             predictions[span] = EntityPrediction(span, entity_id, candidates)
-            spans.append(span)
 
         if count > 0:
             print("\n%d entity labels could not be matched to any Wikidata id." % count)

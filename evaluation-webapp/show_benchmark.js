@@ -574,8 +574,8 @@ function get_predicted_annotations(article_index) {
     }
 
     // list with tooltip information for each mention
-    var annotations = []
-
+    var annotations = {};
+    var spans = [];
     for (mention of mentions) {
         if (mention.mention_type && mention.mention_type.toLowerCase() in show_mentions) {
             if (!show_mentions[mention.mention_type.toLowerCase()]) {
@@ -587,6 +587,24 @@ function get_predicted_annotations(article_index) {
             continue;
         }
         if ("predicted_entity" in mention) {
+            // Avoid overlapping spans: Keep the larger one.
+            // Assume that predictions are sorted by span start (but not by span end)
+            var last_index = spans.length - 1;
+            if (spans.length > 0 && spans[last_index][1] > mention.span[0]) {
+                // Overlap detected.
+                var previous_span_length = spans[last_index][1] - spans[last_index][0];
+                var current_span_length = mention.span[1] - mention.span[0];
+                if (previous_span_length >= current_span_length) {
+                    // Previous span is longer than current span so discard current prediction
+                    continue
+                } else {
+                    delete annotations[spans[last_index]];
+                    spans.splice(-1);
+                }
+            }
+
+            spans.push(mention.span)
+
             // mention is inside the evaluation span and therefore an evaluated case
             if (is_correct_optional_case(mention)) {
                 color = GREY;
@@ -631,8 +649,9 @@ function get_predicted_annotations(article_index) {
             "predicted_by": predicted_by,
             "error_labels": mention.error_labels
         };
-        annotations.push(annotation);
+        annotations[mention.span] = annotation;
     }
+    annotations = Object.values(annotations);
     return annotations
 }
 
