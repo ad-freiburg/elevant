@@ -9,6 +9,7 @@ from src.linkers.abstract_entity_linker import AbstractEntityLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
 from src import settings
+from src.utils.offset_converter import OffsetConverter
 
 
 class PurePriorLinker(AbstractEntityLinker):
@@ -48,17 +49,26 @@ class PurePriorLinker(AbstractEntityLinker):
             yield span, mention_text, n_tokens
             mention_start += 1
 
-    def get_matching_entity_id(self, mention_text: str) -> Optional[str]:
+    def get_matching_entity_id(self, mention_text: str, is_sent_start: bool) -> Optional[str]:
         if mention_text in self.entity_db.link_frequencies:
             # Get matching entity ids for given mention text in order of their link frequency
             entity_id = max(self.entity_db.link_frequencies[mention_text],
                             key=self.entity_db.link_frequencies[mention_text].get)
             # Return the with the highest link frequency that has a whitelist type and
             # a synonym matching the mention text
-            if (not self.whitelist_types or self.has_whitelist_type(entity_id)) and mention_text in \
-                    self.entity_db.get_entity(entity_id).synonyms:
+            if (not self.whitelist_types or self.has_whitelist_type(entity_id)) and \
+                    self.has_synonym(entity_id, mention_text, is_sent_start):
                 return entity_id
         return None
+
+    def has_synonym(self, entity_id: str, mention_text: str, is_sent_start: bool) -> bool:
+        """ Check if the given mention text is a synonym of the entity with the given ID.
+        Returns true also if the mention starts at a sentence start and the mention text
+        starting with a lower case letter is a synonym.
+        """
+        lower_mention_text = mention_text[0].lower() + mention_text[1:]
+        return mention_text in self.entity_db.get_entity(entity_id).synonyms or \
+            (is_sent_start and lower_mention_text in self.entity_db.get_entity(entity_id).synonyms)
 
     def has_whitelist_type(self, entity_id: str) -> bool:
         if self.entity_db.contains_entity(entity_id):
@@ -81,7 +91,8 @@ class PurePriorLinker(AbstractEntityLinker):
         for span, mention_text, n_tokens in self.get_mention_spans(doc, text):
             if uppercase and mention_text.islower():
                 continue
-            predicted_entity_id = self.get_matching_entity_id(mention_text)
+            is_sent_start = OffsetConverter.get_token(span[0], doc).is_sent_start
+            predicted_entity_id = self.get_matching_entity_id(mention_text, is_sent_start)
             if predicted_entity_id:
                 if np.sum(annotated_chars[span[0]:span[1]]) != 0:
                     # Do not allow overlapping links. Prioritize links with more tokens and resolve ties by link
@@ -90,7 +101,8 @@ class PurePriorLinker(AbstractEntityLinker):
                     overlap_span, overlap_n_tokens = spans[annotated_chars[span[0]:span[1]][overlap_indices[0]]]
                     overlap_prediction = predictions[overlap_span]
                     overlap_mention_text = text[overlap_prediction.span[0]:overlap_prediction.span[1]]
-                    overlap_link_frequency = self.entity_db.link_frequencies[overlap_mention_text][overlap_prediction.entity_id]
+                    overlap_link_frequency = self.entity_db.link_frequencies[overlap_mention_text] \
+                        [overlap_prediction.entity_id]
                     curr_link_frequency = self.entity_db.link_frequencies[mention_text][predicted_entity_id]
                     if overlap_n_tokens == n_tokens and overlap_link_frequency < curr_link_frequency:
                         # Remove previous predicted entity
