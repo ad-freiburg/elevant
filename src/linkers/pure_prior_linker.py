@@ -26,8 +26,7 @@ class PurePriorLinker(AbstractEntityLinker):
 
     @staticmethod
     def get_whitelist_types(whitelist_type_file: str):
-        types = EntityDatabaseReader.read_whitelist_types(whitelist_type_file)
-        return types
+        return EntityDatabaseReader.read_whitelist_types(whitelist_type_file)
 
     def has_entity(self, entity_id: str) -> bool:
         return self.entity_db.contains_entity(entity_id)
@@ -46,7 +45,7 @@ class PurePriorLinker(AbstractEntityLinker):
             span = doc[mention_start].idx, doc[mention_start + n_tokens - 1].idx + len(
                 doc[mention_start + n_tokens - 1])
             mention_text = text[span[0]:span[1]]
-            yield span, mention_text
+            yield span, mention_text, n_tokens
             mention_start += 1
 
     def get_matching_entity_id(self, mention_text: str) -> Optional[str]:
@@ -77,16 +76,35 @@ class PurePriorLinker(AbstractEntityLinker):
             doc = self.model(text)
 
         predictions = {}
-        annotated_chars = np.zeros(shape=len(text), dtype=bool)
-        for span, mention_text in self.get_mention_spans(doc, text):
+        annotated_chars = np.zeros(shape=len(text), dtype=int)
+        spans = {}
+        for span, mention_text, n_tokens in self.get_mention_spans(doc, text):
             if uppercase and mention_text.islower():
-                continue
-            # Do not allow overlapping links. Prioritize links with more tokens
-            if np.sum(annotated_chars[span[0]:span[1]]) != 0:
                 continue
             predicted_entity_id = self.get_matching_entity_id(mention_text)
             if predicted_entity_id:
-                annotated_chars[span[0]:span[1]] = True
+                if np.sum(annotated_chars[span[0]:span[1]]) != 0:
+                    # Do not allow overlapping links. Prioritize links with more tokens and resolve ties by link
+                    # frequency. This works, because spans are sorted by number of tokens and then from left to right.
+                    overlap_indices = np.nonzero(annotated_chars[span[0]:span[1]])[0]
+                    overlap_span, overlap_n_tokens = spans[annotated_chars[span[0]:span[1]][overlap_indices[0]]]
+                    overlap_prediction = predictions[overlap_span]
+                    overlap_mention_text = text[overlap_prediction.span[0]:overlap_prediction.span[1]]
+                    overlap_link_frequency = self.entity_db.link_frequencies[overlap_mention_text][overlap_prediction.entity_id]
+                    curr_link_frequency = self.entity_db.link_frequencies[mention_text][predicted_entity_id]
+                    if overlap_n_tokens == n_tokens and overlap_link_frequency < curr_link_frequency:
+                        # Remove previous predicted entity
+                        del predictions[overlap_prediction.span]
+                        del spans[overlap_prediction.span[0] + 1]
+                        annotated_chars[overlap_prediction.span[0]:overlap_prediction.span[1]] = 0
+                    else:
+                        # Skip current predicted entity
+                        continue
+
+                # Add new prediction
+                # +1 so we can use sum to detect overlaps (span[0] can be 0)
+                annotated_chars[span[0]:span[1]] = span[0] + 1
                 candidates = {predicted_entity_id}
                 predictions[span] = EntityPrediction(span, predicted_entity_id, candidates)
+                spans[span[0] + 1] = span, n_tokens  # there are no overlaps so span starts uniquely determine a span
         return predictions
