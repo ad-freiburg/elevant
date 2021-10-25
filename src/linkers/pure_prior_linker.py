@@ -13,17 +13,21 @@ from src.utils.offset_converter import OffsetConverter
 
 
 class PurePriorLinker(AbstractEntityLinker):
-    LINKER_IDENTIFIER = "PurePrior"
+    LINKER_IDENTIFIER = "PURE_PRIOR_LINKER"
 
     def __init__(self,
                  entity_database: EntityDatabase,
-                 whitelist_type_file: str):
+                 whitelist_type_file: str,
+                 use_pos: bool):
         self.entity_db = entity_database
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
         self.max_tokens = 15
         self.whitelist_types = {}
         if whitelist_type_file:
             self.whitelist_types = self.get_whitelist_types(whitelist_type_file)
+        self.use_pos = use_pos
+        if self.use_pos:
+            PurePriorLinker.LINKER_IDENTIFIER = "POS_PRIOR_LINKER"
 
     @staticmethod
     def get_whitelist_types(whitelist_type_file: str):
@@ -37,8 +41,8 @@ class PurePriorLinker(AbstractEntityLinker):
             for result in self.get_mention_spans_with_n_tokens(doc, text, n_tokens):
                 yield result
 
-    @staticmethod
-    def get_mention_spans_with_n_tokens(doc: Doc,
+    def get_mention_spans_with_n_tokens(self,
+                                        doc: Doc,
                                         text: str,
                                         n_tokens: int) -> Iterator[Tuple[Tuple[int, int], str]]:
         mention_start = 0
@@ -46,7 +50,11 @@ class PurePriorLinker(AbstractEntityLinker):
             span = doc[mention_start].idx, doc[mention_start + n_tokens - 1].idx + len(
                 doc[mention_start + n_tokens - 1])
             mention_text = text[span[0]:span[1]]
-            yield span, mention_text, n_tokens
+            # For the pos_prior linker, require at least one noun in the mention tokens
+            if not self.use_pos or [True for tok in doc[mention_start:mention_start + n_tokens]
+                                    if tok.pos_ in ["PROPN", "NOUN"]]:
+                # Only consider span as mention span if it contains at least one noun
+                yield span, mention_text, n_tokens
             mention_start += 1
 
     def get_matching_entity_id(self, mention_text: str, is_sent_start: bool) -> Optional[str]:
@@ -101,7 +109,7 @@ class PurePriorLinker(AbstractEntityLinker):
                     overlap_span, overlap_n_tokens = spans[annotated_chars[span[0]:span[1]][overlap_indices[0]]]
                     overlap_prediction = predictions[overlap_span]
                     overlap_mention_text = text[overlap_prediction.span[0]:overlap_prediction.span[1]]
-                    overlap_link_frequency = self.entity_db.link_frequencies[overlap_mention_text] \
+                    overlap_link_frequency = self.entity_db.link_frequencies[overlap_mention_text]\
                         [overlap_prediction.entity_id]
                     curr_link_frequency = self.entity_db.link_frequencies[mention_text][predicted_entity_id]
                     if overlap_n_tokens == n_tokens and overlap_link_frequency < curr_link_frequency:

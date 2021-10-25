@@ -182,7 +182,7 @@ class LinkingSystem:
                 self.entity_db.load_wikipedia_id2wikipedia_title()
             result_dir = linker_info
             self.prediction_iterator = WikifierPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
-        elif linker_type == Linkers.PURE_PRIOR.value:
+        elif linker_type == Linkers.PURE_PRIOR.value or linker_type == Linkers.POS_PRIOR.value:
             whitelist_file = linker_info
             if not self.entity_db.is_mapping_loaded():
                 print("Loading wikipedia-wikidata mapping...")
@@ -195,7 +195,7 @@ class LinkingSystem:
             self.entity_db.add_name_aliases()
             print("add synonym aliases...")
             self.entity_db.add_synonym_aliases()
-            self.linker = PurePriorLinker(self.entity_db, whitelist_file)
+            self.linker = PurePriorLinker(self.entity_db, whitelist_file, use_pos=linker_type == Linkers.POS_PRIOR.value)
 
     def _initialize_link_linker(self, linker_type: str):
         if linker_type:

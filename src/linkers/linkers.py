@@ -15,6 +15,7 @@ class Linkers(Enum):
     POPULAR_ENTITIES = "popular_entities"
     WIKIFIER = "wikifier"
     PURE_PRIOR = "pure_prior"
+    POS_PRIOR = "pos_prior"
     NONE = "none"
 
 
