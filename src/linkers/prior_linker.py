@@ -12,7 +12,7 @@ from src import settings
 from src.utils.offset_converter import OffsetConverter
 
 
-class PurePriorLinker(AbstractEntityLinker):
+class PriorLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "PURE_PRIOR_LINKER"
 
     def __init__(self,
@@ -27,7 +27,7 @@ class PurePriorLinker(AbstractEntityLinker):
             self.whitelist_types = self.get_whitelist_types(whitelist_type_file)
         self.use_pos = use_pos
         if self.use_pos:
-            PurePriorLinker.LINKER_IDENTIFIER = "POS_PRIOR_LINKER"
+            PriorLinker.LINKER_IDENTIFIER = "POS_PRIOR_LINKER"
 
     @staticmethod
     def get_whitelist_types(whitelist_type_file: str):

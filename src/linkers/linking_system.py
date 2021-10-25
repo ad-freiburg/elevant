@@ -10,7 +10,7 @@ from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
-from src.linkers.pure_prior_linker import PurePriorLinker
+from src.linkers.prior_linker import PriorLinker
 from src.linkers.trained_entity_linker import TrainedEntityLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
@@ -195,7 +195,7 @@ class LinkingSystem:
             self.entity_db.add_name_aliases()
             print("add synonym aliases...")
             self.entity_db.add_synonym_aliases()
-            self.linker = PurePriorLinker(self.entity_db, whitelist_file, use_pos=linker_type == Linkers.POS_PRIOR.value)
+            self.linker = PriorLinker(self.entity_db, whitelist_file, use_pos=linker_type == Linkers.POS_PRIOR.value)
 
     def _initialize_link_linker(self, linker_type: str):
         if linker_type:
