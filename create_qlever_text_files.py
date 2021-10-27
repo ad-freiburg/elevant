@@ -9,8 +9,8 @@ def main(args):
     model.add_pipe(model.create_pipe("sentencizer"))
 
     record_id = 0
-    wordsfile_name = args.output_prefix + "_wordsfile.tsv"
-    docsfile_name = args.output_prefix + "_docsfile.tsv"
+    wordsfile_name = args.output_prefix + ".wordsfile.tsv"
+    docsfile_name = args.output_prefix + ".docsfile.tsv"
     wordsfile = open(wordsfile_name, "w", encoding="utf8")
     docsfile = open(docsfile_name, "w", encoding="utf8")
     with open(args.input_file, "r", encoding="utf8") as input_file:
