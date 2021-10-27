@@ -15,13 +15,13 @@ if DATA_DIRECTORY is None:
     exit(1)
 
 # Base files
-ARTICLE_JSON_FILE = DATA_DIRECTORY + "wikipedia_dump_files/wiki_dump_with_links_and_bold.jsonl"
+ARTICLE_JSON_FILE = DATA_DIRECTORY + "wikipedia_dump_files/enwiki-latest-articles-extracted.jsonl"
 
 
 # Article files
-WIKIPEDIA_TRAINING_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/training_bold.jsonl"
-WIKIPEDIA_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/development_bold.jsonl"
-WIKIPEDIA_TEST_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/test_bold.jsonl"
+WIKIPEDIA_TRAINING_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/training.jsonl"
+WIKIPEDIA_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/development.jsonl"
+WIKIPEDIA_TEST_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/test.jsonl"
 
 NEWSCRAWL_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/development.jsonl"
 NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/test.jsonl"
@@ -55,7 +55,7 @@ TITLE_SYNONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/title_synonyms.pkl"
 AKRONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/akronyms.pkl"
 WIKIPEDIA_ID_TO_TITLE_FILE = DATA_DIRECTORY + "wikipedia_mappings/wikipedia_id_to_title.tsv"
 UNIGRAMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/unigrams.txt"
-
+WIKIPEDIA_ABSTRACTS_FILE = DATA_DIRECTORY + "wikipedia_mappings/article_abstracts.tsv"
 
 # Spacy knowledge base files
 KB_FILE = DATA_DIRECTORY + "spacy_knowledge_bases/wikidata/kb"

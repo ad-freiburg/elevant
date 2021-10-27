@@ -1,5 +1,6 @@
 import re
 
+from src import settings
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 
@@ -13,5 +14,6 @@ if __name__ == "__main__":
                 frequencies[t] = 1
             else:
                 frequencies[t] += 1
-    for t in sorted(frequencies):
-        print(t, frequencies[t])
+    with open(settings.UNIGRAMS_FILE, "w", encoding="utf8") as output_file:
+        for t in sorted(frequencies):
+            output_file.write("%s %d\n" % (t, frequencies[t]))

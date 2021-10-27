@@ -17,11 +17,11 @@ if __name__ == "__main__":
 
     vector_generator = VectorGenerator()
 
-    vector_dir = settings.DATA_DIRECTORY + "vectors_abstracts/"
+    vector_dir = settings.VECTORS_ABSTRACTS_DIRECTORY
     if not os.path.exists(vector_dir):
         os.mkdir(vector_dir)
 
-    abstracts_file = settings.DATA_DIRECTORY + "article_abstracts.txt"
+    abstracts_file = settings.WIKIPEDIA_ABSTRACTS_FILE
     vectors = []
     file_no = 0
 
