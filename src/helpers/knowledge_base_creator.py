@@ -22,7 +22,7 @@ class KnowledgeBaseCreator:
         kb = KnowledgeBase(vocab=model.vocab, entity_vector_length=model.vocab.vectors.shape[1])
 
         print("read vectors...")
-        vector_dir = settings.DATA_DIRECTORY + "vectors_abstracts/"
+        vector_dir = settings.VECTORS_ABSTRACTS_DIRECTORY
         for entity_id, vector in VectorLoader.iterate(vector_dir):
             frequency = entity_db.get_entity_frequency(entity_id)
             kb.add_entity(entity=entity_id, freq=frequency, entity_vector=vector)

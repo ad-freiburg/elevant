@@ -16,12 +16,12 @@ class WikipediaCorpus:
 
     @staticmethod
     def training_articles(n: int = -1) -> Iterator[WikipediaArticle]:
-        return WikipediaCorpus.get_articles(settings.TRAINING_ARTICLES, n)
+        return WikipediaCorpus.get_articles(settings.WIKIPEDIA_TRAINING_ARTICLES, n)
 
     @staticmethod
     def development_articles(n: int = -1) -> Iterator[WikipediaArticle]:
-        return WikipediaCorpus.get_articles(settings.DEVELOPMENT_ARTICLES, n)
+        return WikipediaCorpus.get_articles(settings.WIKIPEDIA_DEVELOPMENT_ARTICLES, n)
 
     @staticmethod
     def test_articles(n: int = -1) -> Iterator[WikipediaArticle]:
-        return WikipediaCorpus.get_articles(settings.TEST_ARTICLES, n)
+        return WikipediaCorpus.get_articles(settings.WIKIPEDIA_TEST_ARTICLES, n)

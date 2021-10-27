@@ -23,9 +23,3 @@ class VectorLoader:
                 vectors = pickle.load(f)
             for entity_id, vector in vectors:
                 yield entity_id, vector
-
-    @staticmethod
-    def load_old():
-        with open(settings.VECTORS_FILE, "rb") as f:
-            vectors = pickle.load(f)
-        return vectors

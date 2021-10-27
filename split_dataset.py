@@ -25,9 +25,9 @@ if __name__ == "__main__":
     random.shuffle(articles)
 
     print("writing articles...")
-    with open(settings.TRAINING_ARTICLES, "w") as f_train, \
-            open(settings.DEVELOPMENT_ARTICLES, "w") as f_dev, \
-            open(settings.TEST_ARTICLES, "w") as f_test:
+    with open(settings.WIKIPEDIA_TRAINING_ARTICLES, "w") as f_train, \
+            open(settings.WIKIPEDIA_DEVELOPMENT_ARTICLES, "w") as f_dev, \
+            open(settings.WIKIPEDIA_TEST_ARTICLES, "w") as f_test:
         n_train = n_dev = n_test = 0
         for i, article in enumerate(articles):
             if i < N_DEV_TEST:
