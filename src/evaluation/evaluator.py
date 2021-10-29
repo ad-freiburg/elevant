@@ -15,7 +15,7 @@ from src.evaluation.errors import label_errors
 
 def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: str) -> EntityDatabase:
     entity_db = EntityDatabase()
-    mapping = EntityDatabaseReader.get_mapping()
+    mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
     mapping_entity_ids = set(mapping.values())
     relevant_entity_ids.update(mapping_entity_ids)
     entity_db.load_sitelink_counts()

@@ -10,59 +10,37 @@ from src.models.wikidata_entity import WikidataEntity
 
 
 WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"
-ENTITY_PREFIX = "http://www.wikidata.org/entity/"
-LABEL_SUFFIX = "@en"
-
-
-def parse_entity_id(url: str) -> str:
-    if url.startswith("<"):
-        url = url[1:]
-    if url.endswith(">"):
-        url = url[:-1]
-    if url.startswith(settings.ENTITY_PREFIX):
-        entity_id = url[len(settings.ENTITY_PREFIX):]
-    else:
-        entity_id = url
-    return entity_id
-
-
-def parse_name(encoded_name: str) -> str:
-    if '\"' not in encoded_name:
-        return encoded_name
-    return encoded_name.split('\"')[1]
 
 
 class EntityDatabaseReader:
     @staticmethod
     def read_entity_file() -> List[WikidataEntity]:
-        return EntityDatabaseReader._read_entity_file(settings.ENTITY_FILE)
+        return EntityDatabaseReader._read_entity_file(settings.WIKIDATA_ENTITIES_FILE)
 
     @staticmethod
     def _read_entity_file(path: str) -> List[WikidataEntity]:
         entities = []
         for i, line in enumerate(open(path)):
-            if i > 0:
-                values = line[:-1].split('\t')
-                name = values[0]
-                score = int(values[1])
-                entity_id = values[4]
-                synonyms = [synonym for synonym in values[5].split(";") if len(synonym) > 0]
-                entity = WikidataEntity(name, score, entity_id, synonyms)
-                entities.append(entity)
+            values = line.strip('\n').split('\t')
+            name = values[0]
+            score = int(values[1])
+            entity_id = values[4]
+            synonyms = [synonym for synonym in values[5].split(";") if len(synonym) > 0]
+            entity = WikidataEntity(name, score, entity_id, synonyms)
+            entities.append(entity)
         return entities
 
     @staticmethod
     def read_entity_database() -> Dict[str, WikidataEntity]:
         entities = dict()
-        for i, line in enumerate(open(settings.ENTITY_FILE)):
-            if i > 0:
-                values = line[:-1].split('\t')
-                name = values[0]
-                score = int(values[1])
-                entity_id = values[4]
-                synonyms = [synonym for synonym in values[5].split(";") if len(synonym) > 0]
-                entity = WikidataEntity(name, score, entity_id, synonyms)
-                entities[entity_id] = entity
+        for i, line in enumerate(open(settings.WIKIDATA_ENTITIES_FILE)):
+            values = line.strip('\n').split('\t')
+            name = values[0]
+            score = int(values[1])
+            entity_id = values[4]
+            synonyms = [synonym for synonym in values[5].split(";") if len(synonym) > 0]
+            entity = WikidataEntity(name, score, entity_id, synonyms)
+            entities[entity_id] = entity
         return entities
 
     @staticmethod
@@ -90,16 +68,12 @@ class EntityDatabaseReader:
         return akronyms
 
     @staticmethod
-    def get_mapping(mappings_file: str = settings.WIKI_MAPPING_FILE):
+    def get_wikipedia_to_wikidata_mapping(mappings_file: str = settings.QID_TO_WIKIPEDIA_URL_FILE):
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
-            line = line[:-1]
-            link_url, entity_url = line.split(">,<")
-            link_url = link_url[1:]
-            entity_url = entity_url[:-1]
+            entity_id, link_url = line.strip('\n').split('\t')
             link_url = unquote(link_url)
             entity_name = link_url[len(WIKI_URL_PREFIX):].replace('_', ' ')
-            entity_id = entity_url[len(ENTITY_PREFIX):]
             mapping[entity_name] = entity_id
         return mapping
 
@@ -131,12 +105,10 @@ class EntityDatabaseReader:
 
     @staticmethod
     def entity_to_label_iterator() -> Iterator[Tuple[str, str]]:
-        with open(settings.LABEL_MAPPING, "r", encoding="utf8") as file:
+        with open(settings.QID_TO_LABEL_FILE, "r", encoding="utf8") as file:
             for line in file:
-                lst = line.strip().split("\t")
-                entity_id = lst[0][:-1].split("/")[-1]
-                name = lst[1][1:-4]
-                yield entity_id, name
+                entity_id, label = line.strip('\n').split('\t')
+                yield entity_id, label
 
     @staticmethod
     def entity_to_whitelist_type_iterator(type_mapping_file: str) \
@@ -162,14 +134,11 @@ class EntityDatabaseReader:
         return types
 
     @staticmethod
-    def get_gender_mapping(mappings_file: str = settings.GENDER_MAPPING_FILE) -> Dict[str, Gender]:
+    def get_gender_mapping(mappings_file: str = settings.QID_TO_GENDER_FILE) -> Dict[str, Gender]:
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
-            line = line[:-1]
-            entity_url, gender_label = line.split("\t")
-            entity_url = entity_url.strip("<>")
-            entity_id = entity_url[len(ENTITY_PREFIX):]
-            gender_tokens = gender_label[:-len(LABEL_SUFFIX)].strip('"').split()
+            entity_id, gender_label = line.strip('\n').split('\t')
+            gender_tokens = gender_label.split()
             if "female" in gender_tokens:
                 mapping[entity_id] = Gender.FEMALE
             elif "male" in gender_tokens:
@@ -180,14 +149,12 @@ class EntityDatabaseReader:
 
     @staticmethod
     def read_names() -> Iterator[Tuple[str, str]]:
-        for line in open(settings.GIVEN_NAME_FILE):
-            wikidata_url, encoded_given_name = line[:-1].split(">\t")
-            entity_id = parse_entity_id(wikidata_url)
-            given_name = encoded_given_name[:-len(LABEL_SUFFIX)].strip('"')
-            yield entity_id, given_name
+        for line in open(settings.QID_TO_GIVEN_NAME_FILE):
+            entity_id, name = line.strip('\n').split('\t')
+            yield entity_id, name
 
     @staticmethod
-    def get_type_mapping(mappings_file: str = settings.RELEVANT_TYPES_FILE) -> Dict[str, List[str]]:
+    def get_type_mapping(mappings_file: str = settings.QID_TO_RELEVANT_TYPES_FILE) -> Dict[str, List[str]]:
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
             line = line[:-1]
@@ -207,9 +174,9 @@ class EntityDatabaseReader:
     @staticmethod
     def get_sitelink_counts() -> Dict[str, int]:
         counts = {}
-        with open(settings.WIKIDATA_SITELINK_COUNTS_FILE) as f:
+        with open(settings.QID_TO_SITELINK_FILE) as f:
             for line in f:
-                entity_id, count = line.split()
+                entity_id, count = line.strip('\n').split('\t')
                 count = int(count)
                 if count > 0:
                     counts[entity_id] = count
@@ -218,11 +185,9 @@ class EntityDatabaseReader:
     @staticmethod
     def get_demonyms() -> Dict[str, List[str]]:
         demonyms = {}
-        with open(settings.DEMONYM_FILE) as f:
+        with open(settings.QID_TO_DEMONYM_FILE) as f:
             for line in f:
-                entity_id, demonym = line.split("\t")
-                entity_id = entity_id[:-1].split("/")[-1]
-                demonym = demonym.split("\"")[1]
+                entity_id, demonym = line.strip('\n').split('\t')
                 if demonym not in demonyms:
                     demonyms[demonym] = []
                 if demonym + "s" not in demonyms:
@@ -234,31 +199,27 @@ class EntityDatabaseReader:
     @staticmethod
     def get_languages() -> Dict[str, str]:
         languages = {}
-        with open(settings.LANGUAGE_FILE) as f:
+        with open(settings.QID_TO_LANGUAGE_FILE) as f:
             for line in f:
-                entity_id, language = line.split("\t")
-                entity_id = entity_id[:-1].split("/")[-1]
-                language = language.split("\"")[1]
+                entity_id, language = line.strip('\n').split('\t')
                 languages[language] = entity_id
         return languages
 
     @staticmethod
     def get_real_numbers() -> Set[str]:
         real_numbers = set()
-        with open(settings.REAL_NUMBERS) as f:
+        with open(settings.QUANTITY_FILE) as f:
             for line in f:
-                entity_id = line.strip()
-                entity_id = entity_id[:-1].split("/")[-1]
+                entity_id = line.strip('\n')
                 real_numbers.add(entity_id)
         return real_numbers
 
     @staticmethod
     def get_points_in_time() -> Set[str]:
         points_in_time = set()
-        with open(settings.POINTS_IN_TIME) as f:
+        with open(settings.DATETIME_FILE) as f:
             for line in f:
-                entity_id = line.strip()
-                entity_id = entity_id[:-1].split("/")[-1]
+                entity_id = line.strip('\n')
                 points_in_time.add(entity_id)
         return points_in_time
 
@@ -267,7 +228,7 @@ class EntityDatabaseReader:
         wikipedia_id2_wikipedia_title = dict()
         with open(settings.WIKIPEDIA_ID_TO_TITLE_FILE) as f:
             for line in f:
-                wikipedia_id, title = line.strip().split("\t")
+                wikipedia_id, title = line.strip('\n').split("\t")
                 wikipedia_id = int(wikipedia_id)
                 wikipedia_id2_wikipedia_title[wikipedia_id] = title
         return wikipedia_id2_wikipedia_title

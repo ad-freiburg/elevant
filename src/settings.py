@@ -15,7 +15,7 @@ if DATA_DIRECTORY is None:
     exit(1)
 
 # Base files
-ARTICLE_JSON_FILE = DATA_DIRECTORY + "wikipedia_dump_files/enwiki-latest-articles-extracted.jsonl"
+ARTICLE_JSON_FILE = DATA_DIRECTORY + "wikipedia_dump_files/enwiki-20200703-articles-extracted.jsonl"
 
 
 # Article files
@@ -28,23 +28,23 @@ NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/test.jsonl"
 
 
 # Wikidata mappings
-ENTITY_FILE = DATA_DIRECTORY + "wikidata_mappings/wikidata_entities.tsv"
-ABSTRACTS_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_abstract.tsv"
-WIKI_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_url.tsv"
+WIKIDATA_ENTITIES_FILE = DATA_DIRECTORY + "wikidata_mappings/wikidata_entities.tsv"
+QID_TO_ABSTRACTS_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_abstract.tsv"
+QID_TO_WIKIPEDIA_URL_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_url.tsv"
 
-GENDER_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_gender.tsv"
-GIVEN_NAME_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_given_name.tsv"
-TYPE_MAPPING_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_categories_v9.txt"
-ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_classes.txt"
-RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_classes.txt"
-WIKIDATA_SITELINK_COUNTS_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_sitelinks.txt"
-DEMONYM_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_demonym.tsv"
-LANGUAGE_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_language.tsv"
-REAL_NUMBERS = DATA_DIRECTORY + "wikidata_mappings/real_numbers.tsv"
-POINTS_IN_TIME = DATA_DIRECTORY + "wikidata_mappings/point_in_time.tsv"
+QID_TO_GENDER_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_gender.tsv"
+QID_TO_GIVEN_NAME_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_given_name.tsv"
+QID_TO_CATEGORY_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_categories_v9.tsv"
+QID_TO_ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_classes.tsv"
+QID_TO_RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_classes.tsv"
+QID_TO_SITELINK_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_sitelink.tsv"
+QID_TO_DEMONYM_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_demonym.tsv"
+QID_TO_LANGUAGE_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_language.tsv"
+QUANTITY_FILE = DATA_DIRECTORY + "wikidata_mappings/quantity.tsv"
+DATETIME_FILE = DATA_DIRECTORY + "wikidata_mappings/datetime.tsv"
 
 WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.ttl"
-LABEL_MAPPING = DATA_DIRECTORY + "wikidata_mappings/qid_to_label.tsv"
+QID_TO_LABEL_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_label.tsv"
 WHITELIST_FILE = "wikidata-types/types.txt"
 
 
@@ -84,8 +84,6 @@ OWN_BENCHMARK_FILE = "benchmarks/benchmark_labels_ours.jsonl"
 
 
 # Other settings
-ENTITY_PREFIX = "http://www.wikidata.org/entity/"
-
 LARGE_MODEL_NAME = "en_core_web_lg"
 
 NER_IGNORE_TAGS = {

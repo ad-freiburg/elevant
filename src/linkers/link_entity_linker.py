@@ -4,7 +4,7 @@ from src.helpers.entity_database_reader import EntityDatabaseReader
 
 
 def get_mapping():
-    return EntityDatabaseReader.get_mapping()
+    return EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
 
 
 class LinkEntityLinker:

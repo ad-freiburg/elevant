@@ -74,7 +74,7 @@ class EntityDatabase:
                 self.add_entity(entity)
 
     def load_entities_big(self, type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
-        mapping = EntityDatabaseReader.get_mapping()
+        mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
         # The mapping contains Wikipedia titles. Load an additional mapping for Wikidata names.
         # Don't save the mapping because it is huge and we only need the names of entities that
         # are in the Wikipedia-Wikidata mapping.
@@ -119,7 +119,7 @@ class EntityDatabase:
         return alias in self.aliases
 
     def load_mapping(self):
-        mapping = EntityDatabaseReader.get_mapping()
+        mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
         for entity_name in mapping:
             entity_id = mapping[entity_name]
             self.wikipedia2wikidata[entity_name] = entity_id

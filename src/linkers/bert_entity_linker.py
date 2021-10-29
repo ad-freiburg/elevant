@@ -33,7 +33,7 @@ class BertEntityLinker(AbstractEntityLinker):
             ner_postprocessor = NERPostprocessor(entity_db)
             self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
-        wikipedia_abstracts_file = settings.ABSTRACTS_FILE
+        wikipedia_abstracts_file = settings.QID_TO_ABSTRACTS_FILE
         self.wikipedia_abstracts = {}
         if not isfile(wikipedia_abstracts_file):
             raise FileNotFoundError(f"Can't find Wikipedia abstracts file at {wikipedia_abstracts_file}.")

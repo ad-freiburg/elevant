@@ -34,7 +34,7 @@ if __name__ == "__main__":
     print("generating vectors...")
     vectors = []
     file_no = start_line // SAVE_EVERY
-    for i, line in enumerate(open(settings.ABSTRACTS_FILE)):
+    for i, line in enumerate(open(settings.QID_TO_ABSTRACTS_FILE)):
         if i < start_line:
             continue
         entity_id, name, description = line[:-1].split('\t')

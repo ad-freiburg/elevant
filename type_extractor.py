@@ -6,7 +6,7 @@ class TypeExtractor:
         self.entity_to_categories = {}
         self.entity_to_relevant_types = {}
 
-    def load_entity_to_categories(self, mappings_file: str = settings.TYPE_MAPPING_FILE):
+    def load_entity_to_categories(self, mappings_file: str = settings.QID_TO_CATEGORY_FILE):
         with open(mappings_file, "r") as file:
             for line in file:
                 line = line[:-1]
@@ -15,7 +15,7 @@ class TypeExtractor:
                 secondary_id = secondary.split(":")[0]
                 self.entity_to_categories[entity_id] = (primary_id, secondary_id)
 
-    def extract_relevant_types(self, mapping_file: str = settings.ALL_TYPES_FILE):
+    def extract_relevant_types(self, mapping_file: str = settings.QID_TO_ALL_TYPES_FILE):
         """
         Extract all classes of an entity that come before its secondary category
         in the class hierarchy.
@@ -47,7 +47,7 @@ class TypeExtractor:
                         self.entity_to_relevant_types[entity_id] = []
                     self.entity_to_relevant_types[entity_id].append(type_id)
 
-    def write_relevant_types(self, outfile: str = settings.RELEVANT_TYPES_FILE):
+    def write_relevant_types(self, outfile: str = settings.QID_TO_RELEVANT_TYPES_FILE):
         with open(outfile, "w", encoding="utf8") as outfile:
             for entity_id, types in sorted(self.entity_to_relevant_types.items()):
                 outfile.write("%s\t" % entity_id)
