@@ -31,7 +31,7 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     return entity_db
 
 
-EVALUATION_CATEGORIES = ("all", "NER", "coreference", "entity_named", "entity_other", "nominal", "pronominal", "level_1")
+EVALUATION_CATEGORIES = ("all", "NER", "coref", "entity_named", "entity_other", "nominal", "pronominal", "level_1")
 
 
 class Evaluator:
@@ -101,7 +101,7 @@ class Evaluator:
                 self.counts["level_1"]["tp"] += 1
 
             if case.is_coreference():
-                self.counts["coreference"]["tp"] += 1
+                self.counts["coref"]["tp"] += 1
             else:
                 type_ids = case.true_entity.type
                 type_ids = type_ids.split("|")
@@ -118,7 +118,7 @@ class Evaluator:
                     self.counts["level_1"]["fp"] += 1
 
                 if case.is_coreference():
-                    self.counts["coreference"]["fp"] += 1
+                    self.counts["coref"]["fp"] += 1
                 else:
                     pred_entity_id = case.predicted_entity.entity_id
                     if self.entity_db.contains_entity(pred_entity_id):
@@ -137,7 +137,7 @@ class Evaluator:
                     self.counts["level_1"]["fn"] += 1
 
                 if case.is_coreference():
-                    self.counts["coreference"]["fn"] += 1
+                    self.counts["coref"]["fn"] += 1
                 else:
                     type_ids = case.true_entity.type
                     type_ids = type_ids.split("|")
@@ -263,16 +263,16 @@ class Evaluator:
         results_dict["coreference_errors"] = {
             "no_reference": {
                 "errors": self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE],
-                "total": results_dict["coreference"]["ground_truth"]
+                "total": results_dict["coref"]["ground_truth"]
             },
             "wrong_reference": {
                 "errors": self.error_counts[ErrorLabel.COREFERENCE_WRONG_REFERENCE],
-                "total": results_dict["coreference"]["ground_truth"] -
+                "total": results_dict["coref"]["ground_truth"] -
                          self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE]
             },
             "referenced_wrong": {
                 "errors": self.error_counts[ErrorLabel.COREFERENCE_REFERENCED_WRONG],
-                "total": results_dict["coreference"]["ground_truth"] -
+                "total": results_dict["coref"]["ground_truth"] -
                          self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE] -
                          self.error_counts[ErrorLabel.COREFERENCE_WRONG_REFERENCE]
             },
