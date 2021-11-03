@@ -1,15 +1,17 @@
 from enum import Enum
 
 from src.utils.pronoun_finder import PronounFinder
+from src.evaluation.groundtruth_label import is_level_one
 
 
 class MentionType(Enum):
-    NAMED = "NAMED"
+    ENTITY_NAMED = "ENTITY_NAMED"
+    ENTITY_OTHER = "ENTITY_OTHER"
     NOMINAL = "NOMINAL"
     PRONOMINAL = "PRONOMINAL"
 
     def is_coreference(self):
-        return self != MentionType.NAMED
+        return self != MentionType.ENTITY_NAMED and self != MentionType.ENTITY_OTHER
 
 
 _COREF_PREFIXES = ("the ", "that ", "this ", "that ", "these ", "those ")
@@ -33,10 +35,14 @@ def is_nominal(mention: str) -> bool:
     return False
 
 
-def get_mention_type(mention: str) -> MentionType:
+def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType:
     if PronounFinder.is_pronoun(mention):
         return MentionType.PRONOMINAL
     elif is_nominal(mention):
         return MentionType.NOMINAL
     else:
-        return MentionType.NAMED
+        entity_name = true_entity.name if true_entity else predicted_entity.name
+        if is_level_one(entity_name):
+            return MentionType.ENTITY_NAMED
+        else:
+            return MentionType.ENTITY_OTHER

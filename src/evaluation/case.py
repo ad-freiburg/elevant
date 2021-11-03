@@ -105,7 +105,7 @@ class Case:
         self.children_correctly_linked = children_correctly_linked
         self.children_correctly_detected = children_correctly_detected
         self.error_labels = set() if error_labels is None else error_labels
-        self.mention_type = get_mention_type(text)
+        self.mention_type = get_mention_type(text, true_entity, predicted_entity)
         self.factor = 1 if factor is None else factor
         self.eval_type = self._type()
         self.coref_type = self._coref_type()
@@ -218,7 +218,7 @@ class Case:
     def is_coreference(self) -> bool:
         return self.mention_type.is_coreference()
 
-    def is_named(self) -> bool:
+    def is_not_coreference(self) -> bool:
         return not self.is_coreference()
 
 

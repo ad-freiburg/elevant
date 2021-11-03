@@ -31,7 +31,7 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     return entity_db
 
 
-EVALUATION_CATEGORIES = ("all", "NER", "coreference", "named", "nominal", "pronominal", "level_1")
+EVALUATION_CATEGORIES = ("all", "NER", "coreference", "entity_named", "entity_other", "nominal", "pronominal", "level_1")
 
 
 class Evaluator:
@@ -59,8 +59,8 @@ class Evaluator:
             type_key = self.get_type_keys([type_id])[0]
             self.type_counts[type_key] = {"tp": 0, "fp": 0, "fn": 0}
         self.has_candidates = False
-        self.n_named_lowercase = 0
-        self.n_named_contains_space = 0
+        self.n_entity_lowercase = 0
+        self.n_entity_contains_space = 0
 
     def add_cases(self, cases: List[Case]):
         self.all_cases.extend(cases)
@@ -70,11 +70,11 @@ class Evaluator:
             self.count_error_labels(case)
             if len(case.candidates) > 1:
                 self.has_candidates = True
-            if case.is_named() and case.has_ground_truth() and ' ' in case.text:
-                self.n_named_contains_space += 1
+            if case.is_not_coreference() and case.has_ground_truth() and ' ' in case.text:
+                self.n_entity_contains_space += 1
 
     def count_ner_case(self, case: Case):
-        if case.is_named():
+        if case.is_not_coreference():
             # Disregard child GT labels for TP and FN
             if case.has_ground_truth() and case.is_known_entity() and not case.is_optional() and case.true_entity.parent is None:
                 if case.children_correctly_detected is True:
@@ -82,7 +82,7 @@ class Evaluator:
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
                 if not is_level_one(case.text):
-                    self.n_named_lowercase += 1
+                    self.n_entity_lowercase += 1
             elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
                 # otherwise ignore the case (NIL-entities are not expected to be predicted and should not count towards
@@ -191,19 +191,19 @@ class Evaluator:
             },
             "undetected_lowercase": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_LOWERCASE],
-                "total": self.n_named_lowercase
+                "total": self.n_entity_lowercase
             },
             "undetected_specificity": {
                 "errors": self.error_counts[ErrorLabel.SPECIFICITY],
-                "total": self.n_named_contains_space
+                "total": self.n_entity_contains_space
             },
             "undetected_overlap": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_OVERLAP],
-                "total": results_dict["NER"]["ground_truth"] - self.n_named_lowercase
+                "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
             },
             "undetected_other": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_OTHER],
-                "total": results_dict["NER"]["ground_truth"] - self.n_named_lowercase
+                "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
             },
             # DISAMBIGUATION
             "disambiguation": {

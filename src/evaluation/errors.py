@@ -59,7 +59,7 @@ def label_undetected_errors(cases: List[Case]):
     """
     false_positive_spans = [case.span for case in cases if case.is_false_positive()]
     for case in cases:
-        if case.is_named() and case.is_false_negative() and case.predicted_entity is None:
+        if case.is_not_coreference() and case.is_false_negative() and case.predicted_entity is None:
             case.add_error_label(ErrorLabel.UNDETECTED)
             if not is_level_one(case.text):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
@@ -109,7 +109,7 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase):
     - rare correct
     """
     for case in cases:
-        if case.is_named() and case.is_correct():
+        if case.is_not_coreference() and case.is_correct():
             if is_demonym(case, entity_db):
                 case.add_error_label(ErrorLabel.DEMONYM_CORRECT)
             elif is_metonymy(case, entity_db):
@@ -185,7 +185,7 @@ def label_disambiguation_errors(cases: List[Case],
     - disambiguation other
     """
     for case in cases:
-        if case.is_named() and case.is_false_negative() and case.is_false_positive():
+        if case.is_not_coreference() and case.is_false_negative() and case.is_false_positive():
             case.add_error_label(ErrorLabel.DISAMBIGUATION)
             if is_demonym(case, entity_db):
                 case.add_error_label(ErrorLabel.DEMONYM_WRONG)
@@ -253,7 +253,7 @@ def contains_uppercase_word(text: str) -> bool:
 
 def label_false_detections(cases: List[Case],
                            unknown_ground_truth_spans: Set[Tuple[int, int]],
-                           contains_unknwons: bool):
+                           contains_unknowns: bool):
     """
     Labels false positives with false positive and one of the following:
     - abstraction
@@ -266,7 +266,7 @@ def label_false_detections(cases: List[Case],
     """
     ground_truth_spans = [case.span for case in cases if case.has_ground_truth()]
     for case in cases:
-        if case.is_named() and case.is_false_positive() and not case.is_known_entity():
+        if case.is_not_coreference() and case.is_false_positive() and not case.is_known_entity():
             case.add_error_label(ErrorLabel.FALSE_DETECTION)
             overlap = False
             for gt_span in chain(ground_truth_spans, unknown_ground_truth_spans):
@@ -277,7 +277,7 @@ def label_false_detections(cases: List[Case],
             if not overlap and not contains_upper:
                 case.add_error_label(ErrorLabel.ABSTRACTION)
             elif contains_upper and \
-                    ((not overlap and not contains_unknwons) or case.span in unknown_ground_truth_spans):
+                    ((not overlap and not contains_unknowns) or case.span in unknown_ground_truth_spans):
                 case.add_error_label(ErrorLabel.UNKNOWN_NAMED_ENTITY)
             else:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER)
@@ -302,7 +302,7 @@ def label_coreference_errors(cases: List[Case]):
             else:
                 true_reference = None
                 for j in range(i - 1, -1, -1):
-                    if cases[j].mention_type == MentionType.NAMED and cases[j].has_ground_truth() and \
+                    if cases[j].mention_type == MentionType.ENTITY_NAMED and cases[j].has_ground_truth() and \
                             cases[j].true_entity.entity_id == case.true_entity.entity_id:
                         true_reference = cases[j]
                         break
