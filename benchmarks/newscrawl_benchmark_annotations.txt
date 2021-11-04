@@ -475,7 +475,7 @@ The song was released amid claims Taylor has filed paperwork to trademark phrase
 
 <START>According to [Q2630118|TMZ], [Q26876|the award-winning singer-songwriter] has also trademarked song titles from [Q26876|her] [Q37814092|[Q37814092|reputation] album] so [Q26876|she] can use the lyrics and titles on official merchandise.
 
-Meanwhile, a minute-long snippet of [Q38552445|Ready For It?] debuted during the [Q4705216|Alabama] versus [Q5461626|Florida State] football game on [DATETIME|Saturday], before [Q26876|Taylor] released [Q38552445|the entire track] to [Q866|YouTube] on [DATETIME|Sunday].
+Meanwhile, a minute-long snippet of [Q38552445|Ready For It?] debuted during the [Q4705216|Alabama] versus [Q5461626|Florida State] [Q41323|football] game on [DATETIME|Saturday], before [Q26876|Taylor] released [Q38552445|the entire track] to [Q866|YouTube] on [DATETIME|Sunday].
 
 In stark contrast to [Q37912621|Look What You Made Me Do], [Q38552445|the peppy new anthem] struck a far more upbeat note, with [Q26876|Taylor] singing of love and romance.<END>
 
@@ -880,7 +880,7 @@ The ACR is a national professional organization serving more than 34,000 diagnos
 
 About The Center for Radiation Therapy of Beverly Hills
 
-<START>Established in [DATETIME|2006] by [Unknown1|Tower Hematology Oncology Medical Group], [Unknown2|The Center for Radiation Therapy of Beverly Hills] ([Unknown2|RTBH]) is centrally located in the heart of [Q127856|Beverly Hills] and adjacent to the cities of [Q47164|Santa Monica] and [Q65|Los Angeles]. [Unknown2|RTBH] provides [Q162555|oncology] patients with state-of-the-art [Q180507|radiation therapy] care by a team of highly trained and experienced [Q5133860|clinicians]. [Unknown2||Its] above-ground design creates a highly accessible treatment environment. [Unknown2|RTBH] was the first treatment center in [Q844837|Southern California] to implement [Unknown3|RapidArc™] radiotherapy technology from [Q4993917|Varian Medical Systems], a revolutionary breakthrough in cancer treatment that delivers powerful [Q133212|tumor]-destroying radiation with unprecedented speed and remarkable precision. For more information, please visit www.rtbh.net.
+<START>Established in [DATETIME|2006] by [Unknown1|Tower Hematology Oncology Medical Group], [Unknown2|The Center for Radiation Therapy of Beverly Hills] ([Unknown2|RTBH]) is centrally located in the heart of [Q127856|Beverly Hills] and adjacent to the cities of [Q47164|Santa Monica] and [Q65|Los Angeles]. [Unknown2|RTBH] provides [Q162555|oncology] patients with state-of-the-art [Q180507|radiation therapy] care by a team of highly trained and experienced [Q5133860|clinicians]. [Unknown2|Its] above-ground design creates a highly accessible treatment environment. [Unknown2|RTBH] was the first treatment center in [Q844837|Southern California] to implement [Unknown3|RapidArc™] radiotherapy technology from [Q4993917|Varian Medical Systems], a revolutionary breakthrough in cancer treatment that delivers powerful [Q133212|tumor]-destroying radiation with unprecedented speed and remarkable precision. For more information, please visit www.rtbh.net.
 
 About [Unknown4|Valley Radiotherapy Associates Medical Group, Inc].
 
