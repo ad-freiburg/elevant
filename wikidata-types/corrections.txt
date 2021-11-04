@@ -25,6 +25,10 @@ ADD wd:Q7088285 wdt:P31 wd:Q177518  # olleh TV - IPTV
 ADD wd:Q4627135 wdt:P31 wd:Q2990946  # Charles Schwab Cup Championship - golf tournament
 ADD wd:Q223172  wdt:P31 wd:Q232358  # Achilles tendon - tendon
 ADD wd:Q7363 wdt:P31 wd:Q4936952  # nose - anatomical structure
+ADD wd:Q31920 wdt:P31 wd:Q349  # swimming - sport
+ADD wd:Q7735 wdt:P31 wd:Q349  # diving - sport
+ADD wd:Q159992 wdt:P31 wd:Q349  # surfing - sport
+ADD wd:Q6531690 wdt:P31 wd:Q349  # clean and jerk - sport
 
 # Subclass-of
 REMOVE wd:Q24229398 wdt:P279 wd:Q12737077  # agent - occupation
@@ -58,3 +62,4 @@ REMOVE wd:Q190122 wdt:P279 wd:Q28038717  # promissory note - negotiable instrume
 ADD wd:Q1130251 wdt:P279 wd:Q15275719  # NHL Entry Draft - recurring event
 ADD wd:Q14897293 wdt:P279 wd:Q17537576  # fictional entity - creative work
 ADD wd:Q8366 wdt:P279 wd:Q47461344  # algorithm - written work
+REMOVE wd:Q25894868 wdt:P279 wd:Q2221906  # place type - geographic location
