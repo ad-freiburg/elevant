@@ -16,7 +16,7 @@ WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata_mappings/
 API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 # Note that the query names are also used for generating the file name by
 # casting the query name to lowercase and appending .tsv
-DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_GIVEN_NAME QID_TO_SITELINK WIKIDATA_ENTITIES QID_TO_WIKIPEDIA_URL
+DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_GIVEN_NAME QID_TO_SITELINK WIKIDATA_ENTITIES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 BATCH_SIZE = 10000000
 NUM_LINKER_THREADS = 8
 
@@ -39,7 +39,7 @@ config:
 	@echo "and compute all necessary Wikipedia mappings."
 	@echo
 
-setup: download_wiki extract_wiki split_wiki getdata
+setup: download_wiki extract_wiki split_wiki getmappings
 
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:
@@ -62,12 +62,12 @@ link_wiki:
 	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_THREADS}; \
 	fi
 
-getdata: get_wikidata_mappings get_wikipedia_mappings
+getmappings: get_wikidata_mappings get_wikipedia_mappings get_relevant_types_mapping
 
 # Get data for queries from $(DATA_QUERY_VARABLES) via $(API_WIKIDATA) and write to tsv files.
 get_wikidata_mappings:
 	@echo
-	@echo "[getdata] Get data for given queries in batches"
+	@echo "[get_wikidata_mappings] Get data for given queries in batches."
 	@echo
 	@echo "DATA_QUERY_NAMES = $(DATA_QUERY_NAMES)"
 	for QUERY_NAME in $(DATA_QUERY_NAMES); do echo; \
@@ -76,7 +76,20 @@ get_wikidata_mappings:
 	  $(MAKE) -sB API=$${API_WIKIDATA} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query.batched; done
 	@echo
 
+# These files are only needed for our coref resolver. Data generation takes several hours.
+# If the coref resolver is not needed, skip this step.
+get_relevant_types_mapping:
+	@echo
+	@echo "[get_relevant_types_mapping] Get mapping from QID to relevant types needed only for our own coref resolver."
+	@echo "This can take several hours (< 6h). If the coref resolver is not needed you can skip this step."
+	@echo
+	python3 create_all_types_mapping.py
+	python3 create_relevant_types_mapping.py
+
 get_wikipedia_mappings:
+	@echo
+	@echo "[get_wikipedia_mappings] Extract mappings from Wikipedia."
+	@echo
 	python3 extract_akronyms.py
 	python3 extract_abstracts.py
 	python3 get_link_frequencies.py
@@ -217,6 +230,18 @@ define QID_TO_WIKIPEDIA_URL_QUERY
 SELECT ?qid ?url WHERE {
    ?url schema:about ?qid .
    ?url schema:isPartOf <https://en.wikipedia.org/>
+}
+endef
+
+define QID_TO_P31_QUERY
+SELECT ?item ?type WHERE {
+    ?item wdt:P31 ?type .
+}
+endef
+
+define QID_TO_P279_QUERY
+SELECT ?item ?type WHERE {
+    ?item wdt:P279 ?type .
 }
 endef
 

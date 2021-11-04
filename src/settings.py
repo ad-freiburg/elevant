@@ -31,21 +31,23 @@ NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/test.jsonl"
 WIKIDATA_ENTITIES_FILE = DATA_DIRECTORY + "wikidata_mappings/wikidata_entities.tsv"
 QID_TO_ABSTRACTS_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_abstract.tsv"
 QID_TO_WIKIPEDIA_URL_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_url.tsv"
-
 QID_TO_GENDER_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_gender.tsv"
 QID_TO_GIVEN_NAME_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_given_name.tsv"
-QID_TO_CATEGORY_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_categories_v9.tsv"
-QID_TO_ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_classes.tsv"
-QID_TO_RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_classes.tsv"
 QID_TO_SITELINK_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_sitelink.tsv"
 QID_TO_DEMONYM_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_demonym.tsv"
 QID_TO_LANGUAGE_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_language.tsv"
+QID_TO_INSTANCE_OF_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_p31.tsv"
+QID_TO_SUBCLASS_OF_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_p279.tsv"
+QID_TO_LABEL_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_label.tsv"
 QUANTITY_FILE = DATA_DIRECTORY + "wikidata_mappings/quantity.tsv"
 DATETIME_FILE = DATA_DIRECTORY + "wikidata_mappings/datetime.tsv"
-
-WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.ttl"
-QID_TO_LABEL_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_label.tsv"
+# Files to generate a mapping from QID to all its relevant types needed for our coref resolver
+COARSE_TYPES = "data/coarse_types.tsv"
+QID_TO_ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_types.tsv"
+QID_TO_RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_types.tsv"
+# Wikidata types files
 WHITELIST_FILE = "wikidata-types/types.txt"
+WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.ttl"
 
 
 # Wikipedia mappings

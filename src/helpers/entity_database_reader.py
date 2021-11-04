@@ -207,21 +207,11 @@ class EntityDatabaseReader:
 
     @staticmethod
     def get_real_numbers() -> Set[str]:
-        real_numbers = set()
-        with open(settings.QUANTITY_FILE) as f:
-            for line in f:
-                entity_id = line.strip('\n')
-                real_numbers.add(entity_id)
-        return real_numbers
+        return EntityDatabaseReader.read_into_set(settings.QUANTITY_FILE)
 
     @staticmethod
     def get_points_in_time() -> Set[str]:
-        points_in_time = set()
-        with open(settings.DATETIME_FILE) as f:
-            for line in f:
-                entity_id = line.strip('\n')
-                points_in_time.add(entity_id)
-        return points_in_time
+        return EntityDatabaseReader.read_into_set(settings.DATETIME_FILE)
 
     @staticmethod
     def get_wikipedia_id2wikipedia_title_mapping() -> Dict[int, str]:
@@ -232,3 +222,37 @@ class EntityDatabaseReader:
                 wikipedia_id = int(wikipedia_id)
                 wikipedia_id2_wikipedia_title[wikipedia_id] = title
         return wikipedia_id2_wikipedia_title
+
+    @staticmethod
+    def get_instance_of_mapping():
+        return EntityDatabaseReader.read_item_to_qid_set_mapping(settings.QID_TO_INSTANCE_OF_FILE)
+
+    @staticmethod
+    def get_subclass_of_mapping():
+        return EntityDatabaseReader.read_item_to_qid_set_mapping(settings.QID_TO_SUBCLASS_OF_FILE)
+
+    @staticmethod
+    def get_coarse_types():
+        return EntityDatabaseReader.read_into_set(settings.COARSE_TYPES)
+
+    @staticmethod
+    def read_item_to_qid_set_mapping(mapping_file):
+        mapping = {}
+        with open(mapping_file) as f:
+            for line in f:
+                key, value = line.strip('\n').split('\t')
+                # Could also be "unknown value" in Wikidata which yields sth like _:134b940e46468ab95602a542cefecb52
+                if value and value[0] == "Q":
+                    if key not in mapping:
+                        mapping[key] = set()
+                    mapping[key].add(value)
+        return mapping
+
+    @staticmethod
+    def read_into_set(file):
+        new_set = set()
+        with open(file) as f:
+            for line in f:
+                item = line.strip('\n')
+                new_set.add(item)
+        return new_set
