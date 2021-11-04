@@ -28,7 +28,7 @@
 ## Build a QLever instance and query it for the desired result
 
 This directory contains a `Makefile`, with which the following sequence of steps
-can be exeucted with `make all` or even shorter with just `make`. When you do
+can be executed with `make all` or even shorter with just `make`. When you do
 that, at the beginning, the name of the Makefile target for each step is shown
 together with a short explanation. You can use these targets to execute one or
 more steps individually, for example `make start wait gettypes`.
@@ -41,5 +41,5 @@ more steps individually, for example `make start wait gettypes`.
 4. Start a QLever instance based on that index
 5. Wait for the backend to be ready
 6. Issue query for all Wikidata entities and all their types from a given
-   whiteliste of types as listed in `types.txt`; the result for that query is
+   whitelist of types as listed in `types.txt`; the result for that query is
    written to a file `entity-types.ttl` (Makefile variable `ENTITY_TYPES_FILE`).
