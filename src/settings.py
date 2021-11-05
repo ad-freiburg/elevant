@@ -2,7 +2,7 @@ import os
 
 
 _DATA_DIRECTORIES = [
-    "/nfs/students/matthias-hertel/wiki_entity_linker/",
+    "/local/data/prangen/wiki_entity_linker/",
     "/data/"
 ]
 DATA_DIRECTORY = None
