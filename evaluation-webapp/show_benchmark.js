@@ -45,7 +45,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "errors": "Error categories",
                        "coreference_errors": "Coreference error categories"};
 
-show_mentions = {"named": true, "nominal": true, "pronominal": true};
+show_mentions = {"entity_named": true, "entity_other": true, "nominal": true, "pronominal": true};
 
 benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl"];
 
