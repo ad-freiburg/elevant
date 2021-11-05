@@ -172,7 +172,7 @@ Due to [Q36:Poland|its] tragic historical experience with aggression of powerful
 **** ARTICLE #10: 1930 NCAA Swimming and Diving Championships (https://en.wikipedia.org/wiki?curid=51391796) *****
 1930 NCAA Swimming and Diving Championships
 
-<START>The [Q28446681:|1930 NCAA Swimming and Diving Championships] were contested at the [Q6743907:|Malkin Athletic Center] at [Q13371:Harvard University|Harvard University] in [Q49111:Cambridge|[Q49111|Cambridge], [Q771|Massachusetts]] as part of the [QUANTITY|seventh] annual [Q271805:National Collegiate Athletic Association|NCAA] swim meet to determine the team and individual national champions of men's collegiate [Q31920|swimming] and [Q7735|diving] in [Q30|the [Q30:United States of America|United States]].
+<START>The [Q28446681:|1930 NCAA Swimming and Diving Championships] were contested at the [Q6743907:|Malkin Athletic Center] at [Q13371:Harvard University|Harvard University] in [Q49111:Cambridge|[Q49111|Cambridge], [Q771|Massachusetts]] as part of the [QUANTITY|seventh] annual [Q271805:National Collegiate Athletic Association|NCAA] swim meet to determine the team and individual national champions of men's collegiate [Q31920|swimming] and [Q7735|diving] in [Q30|the [Q30:United States of America|United States]]. 
 
 Only individual championships were officially contested during the [QUANTITY|first] [QUANTITY|thirteen]-[Q271805:National Collegiate Athletic Association|NCAA] sponsored [Q31920|swimming] and [Q7735|diving] championships. Unofficial team standings were kept but a team title was not officially awarded until [DATETIME|1937].
 
