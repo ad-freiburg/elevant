@@ -8,6 +8,9 @@ from src.models.entity_mention import EntityMention, entity_mention_from_dict
 from src.models.entity_prediction import EntityPrediction
 
 
+ABSTRACT_INDICATOR = "ABSTRACT"
+
+
 class WikipediaArticle:
     def __init__(self,
                  id: int,
@@ -19,6 +22,7 @@ class WikipediaArticle:
                  entity_mentions: Optional[List[EntityMention]] = None,
                  evaluation_span: Optional[Tuple[int, int]] = None,
                  labels: Optional[List[GroundtruthLabel]] = None,
+                 sections: Optional[List[Tuple[Tuple[int, int], str]]] = None,
                  evaluation_time: Optional[float] = None):
         self.id = id
         self.title = title
@@ -33,6 +37,7 @@ class WikipediaArticle:
         self.add_entity_mentions(entity_mentions)
         self.evaluation_span = evaluation_span if evaluation_span is not None else (0, len(self.text))
         self.labels = labels
+        self.sections = sections
         self.evaluation_time = evaluation_time
 
     def to_dict(self) -> Dict:
@@ -50,6 +55,8 @@ class WikipediaArticle:
             data["evaluation_span"] = self.evaluation_span
         if self.labels is not None:
             data["labels"] = [label.to_dict() for label in sorted(self.labels)]
+        if self.sections is not None:
+            data["sections"] = self.sections
         if self.evaluation_time is not None:
             data["evaluation_time"] = self.evaluation_time
         return data
@@ -117,6 +124,20 @@ class WikipediaArticle:
         if span_id - 1 < len(self.spans):
             return self.spans[span_id - 1]
 
+    def get_abstract_span(self):
+        if self.sections:
+            first_section_span = self.sections[0][0]
+            first_section_text = self.text[first_section_span[0]:first_section_span[1]]
+            title_end = first_section_text.find("\n\n") + len("\n\n")
+            return title_end, first_section_span[1]
+        else:
+            # If no section information is present, use first paragraph up until first empty line as abstract
+            first_paragraph_start = self.text.find("\n\n") + len("\n\n")
+            first_paragraph_end = self.text.find("\n\n", first_paragraph_start)
+            if first_paragraph_end == -1:
+                return [-1, -1]
+            return first_paragraph_start, first_paragraph_end
+
     def __str__(self) -> str:
         return str(self.to_dict())
 
@@ -127,6 +148,7 @@ class WikipediaArticle:
 def article_from_dict(data: Dict) -> WikipediaArticle:
     links = [(tuple(span), target) for span, target in data["links"]]  # span is saved as list, but must be tuple
     title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
+    sections = [(tuple(span), title) for span, title in data["sections"]] if "sections" in data else None
     labels = None
     if "labels" in data:
         # Ensure backwards compatibility
@@ -147,6 +169,7 @@ def article_from_dict(data: Dict) -> WikipediaArticle:
                                              data["entity_mentions"]] if "entity_mentions" in data else None,
                             evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
                             labels=labels,
+                            sections=sections,
                             evaluation_time=data["evaluation_time"] if "evaluation_time" in data else None)
 
 
