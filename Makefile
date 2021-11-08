@@ -4,7 +4,7 @@ BOLD := \033[1m
 DIM := \033[2m
 RESET := \033[0m
 
-DATA_DIR = /local/data/prangen/wiki_entity_linker/
+DATA_DIR = /local/data/entity-linking/
 
 WIKIPEDIA_DUMP_FILES_DIR = ${DATA_DIR}wikipedia_dump_files/
 WIKI_DUMP = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-pages-articles-multistream.xml.bz2

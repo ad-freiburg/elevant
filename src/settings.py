@@ -2,7 +2,7 @@ import os
 
 
 _DATA_DIRECTORIES = [
-    "/local/data/prangen/wiki_entity_linker/",
+    "/local/data/entity-linking/",
     "/data/"
 ]
 DATA_DIRECTORY = None
