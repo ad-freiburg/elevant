@@ -31,7 +31,8 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     return entity_db
 
 
-EVALUATION_CATEGORIES = ("all", "NER", "coref", "entity_named", "entity_other", "nominal", "pronominal", "level_1")
+EVALUATION_CATEGORIES = ("all", "NER", "coref", "entity", "entity_named", "entity_other", "nominal", "pronominal",
+                         "level_1")
 
 
 class Evaluator:
@@ -180,6 +181,9 @@ class Evaluator:
         print_evaluation_summary(self.counts)
 
     def get_results_dict(self):
+        self.counts["entity"]["tp"] = self.counts["entity_named"]["tp"] + self.counts["entity_other"]["tp"]
+        self.counts["entity"]["fp"] = self.counts["entity_named"]["fp"] + self.counts["entity_other"]["fp"]
+        self.counts["entity"]["fn"] = self.counts["entity_named"]["fn"] + self.counts["entity_other"]["fn"]
         results_dict = {
             category: create_f1_dict_from_counts(self.counts[category]) for category in EVALUATION_CATEGORIES
         }
