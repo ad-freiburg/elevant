@@ -97,6 +97,7 @@ get_wikipedia_mappings:
 	python3 extract_title_synonyms.py
 	python3 count_unigrams.py
 	python3 get_wikipedia_id_to_title_mapping.py
+	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.tsv
 
 # Get result for $(QUERY) in batches of size $(BATCH_SIZE), using query: target
 query.batched:

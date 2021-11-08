@@ -124,19 +124,22 @@ class WikipediaArticle:
         if span_id - 1 < len(self.spans):
             return self.spans[span_id - 1]
 
-    def get_abstract_span(self):
-        if self.sections:
-            first_section_span = self.sections[0][0]
-            first_section_text = self.text[first_section_span[0]:first_section_span[1]]
-            title_end = first_section_text.find("\n\n") + len("\n\n")
-            return title_end, first_section_span[1]
-        else:
-            # If no section information is present, use first paragraph up until first empty line as abstract
-            first_paragraph_start = self.text.find("\n\n") + len("\n\n")
-            first_paragraph_end = self.text.find("\n\n", first_paragraph_start)
-            if first_paragraph_end == -1:
-                return [-1, -1]
-            return first_paragraph_start, first_paragraph_end
+    def get_abstract_span(self) -> Tuple[int, int]:
+        """
+        Get the abstract of an Wikipedia article with sections.
+        Throws an error if no sections are provided in the file from which the article was created.
+        """
+        first_section_span = self.sections[0][0]
+        first_section_text = self.text[first_section_span[0]:first_section_span[1]]
+        title_end = first_section_text.find("\n\n") + len("\n\n")
+        abstract_start = title_end
+        abstract_text = self.text[abstract_start:first_section_span[1]]
+        first_newline_ind = abstract_text.find("\n")
+        if 0 < first_newline_ind < 60 and "°" in abstract_text[:first_newline_ind] and \
+                len(abstract_text) > first_newline_ind + 2:
+            # Filter out leading coordinates from abstract
+            abstract_start = title_end + first_newline_ind + 1
+        return abstract_start, first_section_span[1]
 
     def __str__(self) -> str:
         return str(self.to_dict())
