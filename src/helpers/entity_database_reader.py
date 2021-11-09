@@ -172,13 +172,13 @@ class EntityDatabaseReader:
         return counts
 
     @staticmethod
-    def get_sitelink_counts() -> Dict[str, int]:
+    def get_sitelink_counts(min_count=1) -> Dict[str, int]:
         counts = {}
         with open(settings.QID_TO_SITELINK_FILE) as f:
             for line in f:
                 entity_id, count = line.strip('\n').split('\t')
                 count = int(count)
-                if count > 0:
+                if count >= min_count:
                     counts[entity_id] = count
         return counts
 
@@ -224,28 +224,29 @@ class EntityDatabaseReader:
         return wikipedia_id2_wikipedia_title
 
     @staticmethod
-    def get_instance_of_mapping():
-        return EntityDatabaseReader.read_item_to_qid_set_mapping(settings.QID_TO_INSTANCE_OF_FILE)
+    def get_instance_of_mapping(relevant_entities=None):
+        return EntityDatabaseReader.read_item_to_qid_set_mapping(settings.QID_TO_INSTANCE_OF_FILE, relevant_entities)
 
     @staticmethod
-    def get_subclass_of_mapping():
-        return EntityDatabaseReader.read_item_to_qid_set_mapping(settings.QID_TO_SUBCLASS_OF_FILE)
+    def get_subclass_of_mapping(relevant_entities=None):
+        return EntityDatabaseReader.read_item_to_qid_set_mapping(settings.QID_TO_SUBCLASS_OF_FILE, relevant_entities)
 
     @staticmethod
     def get_coarse_types():
         return EntityDatabaseReader.read_into_set(settings.COARSE_TYPES)
 
     @staticmethod
-    def read_item_to_qid_set_mapping(mapping_file):
+    def read_item_to_qid_set_mapping(mapping_file, relevant_items):
         mapping = {}
         with open(mapping_file) as f:
             for line in f:
                 key, value = line.strip('\n').split('\t')
-                # Could also be "unknown value" in Wikidata which yields sth like _:134b940e46468ab95602a542cefecb52
-                if value and value[0] == "Q":
-                    if key not in mapping:
-                        mapping[key] = set()
-                    mapping[key].add(value)
+                if not relevant_items or key in relevant_items:
+                    # Could also be "unknown value" in Wikidata which yields sth like _:134b940e46468ab95602a542cefecb52
+                    if value and value[0] == "Q":
+                        if key not in mapping:
+                            mapping[key] = set()
+                        mapping[key].add(value)
         return mapping
 
     @staticmethod

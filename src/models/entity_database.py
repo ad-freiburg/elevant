@@ -57,7 +57,7 @@ class EntityDatabase:
     def contains_entity_name(self, entity_name: str) -> bool:
         return entity_name in self.entities_by_name
 
-    def get_entities_by_name(self, entity_name: str) -> str:
+    def get_entities_by_name(self, entity_name: str) -> Set[str]:
         return self.entities_by_name[entity_name]
 
     def get_entity(self, entity_id: str) -> WikidataEntity:

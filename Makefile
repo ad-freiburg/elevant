@@ -62,7 +62,7 @@ link_wiki:
 	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_THREADS}; \
 	fi
 
-getmappings: get_wikidata_mappings get_wikipedia_mappings get_relevant_types_mapping
+getmappings: get_wikidata_mappings build_wikipedia_mappings build_relevant_types_mapping
 
 # Get data for queries from $(DATA_QUERY_VARABLES) via $(API_WIKIDATA) and write to tsv files.
 get_wikidata_mappings:
@@ -76,19 +76,17 @@ get_wikidata_mappings:
 	  $(MAKE) -sB API=$${API_WIKIDATA} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query.batched; done
 	@echo
 
-# These files are only needed for our coref resolver. Data generation takes several hours.
-# If the coref resolver is not needed, skip this step.
-get_relevant_types_mapping:
+build_relevant_types_mapping:
 	@echo
-	@echo "[get_relevant_types_mapping] Get mapping from QID to relevant types needed only for our own coref resolver."
-	@echo "This can take several hours (< 6h). If the coref resolver is not needed you can skip this step."
+	@echo "[build_relevant_types_mapping] Get mapping from QID to relevant types needed only for our own coref resolver."
+	@echo "Takes <= 30 mins. If the coref resolver is not needed you can skip this step."
 	@echo
-	python3 create_all_types_mapping.py
+	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
 	python3 create_relevant_types_mapping.py
 
-get_wikipedia_mappings:
+build_wikipedia_mappings:
 	@echo
-	@echo "[get_wikipedia_mappings] Extract mappings from Wikipedia."
+	@echo "[build_wikipedia_mappings] Build mappings from Wikipedia."
 	@echo
 	python3 extract_akronyms.py
 	python3 extract_abstracts.py
