@@ -24,8 +24,8 @@ class EntityDatabaseReader:
             values = line.strip('\n').split('\t')
             name = values[0]
             score = int(values[1])
-            entity_id = values[4]
-            synonyms = [synonym for synonym in values[5].split(";") if len(synonym) > 0]
+            entity_id = values[2]
+            synonyms = [synonym for synonym in values[3].split(";") if len(synonym) > 0]
             entity = WikidataEntity(name, score, entity_id, synonyms)
             entities.append(entity)
         return entities
@@ -37,8 +37,8 @@ class EntityDatabaseReader:
             values = line.strip('\n').split('\t')
             name = values[0]
             score = int(values[1])
-            entity_id = values[4]
-            synonyms = [synonym for synonym in values[5].split(";") if len(synonym) > 0]
+            entity_id = values[2]
+            synonyms = [synonym for synonym in values[3].split(";") if len(synonym) > 0]
             entity = WikidataEntity(name, score, entity_id, synonyms)
             entities[entity_id] = entity
         return entities

@@ -214,16 +214,14 @@ SELECT ?s ?o WHERE {
 endef
 
 define WIKIDATA_ENTITIES_QUERY
-SELECT ?name ?score ?description ?wikipedia_url ?wikidata_id (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) ?image_url WHERE {
+SELECT ?name ?score ?wikidata_id (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) WHERE {
    ?wikipedia_url schema:about ?wikidata_id .
    ?wikipedia_url schema:isPartOf <https://en.wikipedia.org/> .
    ?wikidata_id @en@rdfs:label ?name .
-   ?wikidata_id @en@schema:description ?description .
    ?wikidata_id ^schema:about/wikibase:sitelinks ?score .
    OPTIONAL { ?wikidata_id @en@skos:altLabel ?synonym }
-   OPTIONAL { ?wikidata_id wdt:P18 ?image_url }
 }
-GROUP BY ?name ?score ?description ?wikipedia_url ?wikidata_id ?image_url
+GROUP BY ?name ?score ?wikipedia_url ?wikidata_id
 ORDER BY DESC(?score)
 endef
 
