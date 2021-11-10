@@ -247,7 +247,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                         for type_id in self.entity_db.get_types(entity_id):
                             if self.entity_db.contains_entity(type_id):
                                 type_entity = self.entity_db.get_entity(type_id)
-                                names = type_entity.synonyms + [type_entity.name]
+                                names = type_entity.synonyms | {type_entity.name}
                                 for name in names:
                                     name_list = name.lower().split("/")
                                     types.update(name_list)

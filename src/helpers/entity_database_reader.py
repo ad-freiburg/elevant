@@ -25,7 +25,7 @@ class EntityDatabaseReader:
             name = values[0]
             score = int(values[1])
             entity_id = values[2]
-            synonyms = [synonym for synonym in values[3].split(";") if len(synonym) > 0]
+            synonyms = {synonym for synonym in values[3].split(";") if len(synonym) > 0}
             entity = WikidataEntity(name, score, entity_id, synonyms)
             entities.append(entity)
         return entities
@@ -38,7 +38,7 @@ class EntityDatabaseReader:
             name = values[0]
             score = int(values[1])
             entity_id = values[2]
-            synonyms = [synonym for synonym in values[3].split(";") if len(synonym) > 0]
+            synonyms = {synonym for synonym in values[3].split(";") if len(synonym) > 0}
             entity = WikidataEntity(name, score, entity_id, synonyms)
             entities[entity_id] = entity
         return entities
@@ -99,7 +99,7 @@ class EntityDatabaseReader:
                 types = "|".join(id_to_type[entity_id])
             if entity_id in id_to_name:
                 name = id_to_name[entity_id]
-            entity = WikidataEntity(name, 0, entity_id, [], type=types)
+            entity = WikidataEntity(name, 0, entity_id, type=types)
             entities[entity_id] = entity
         return entities
 

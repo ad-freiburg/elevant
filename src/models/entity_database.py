@@ -124,13 +124,13 @@ class EntityDatabase:
             self.aliases[alias] = {entity_id}
         else:
             self.aliases[alias].add(entity_id)
-        self.entities[entity_id].synonyms.append(alias)
+        self.entities[entity_id].synonyms.add(alias)
 
     def add_wikidata_aliases(self):
         self.loaded_info[MappingName.WIKIDATA_ALIASES] = LoadedInfo(LoadingType.FULL)
         for entity in EntityDatabaseReader.read_entity_file():
             if self.contains_entity(entity.entity_id):
-                for alias in entity.synonyms + [entity.name]:
+                for alias in entity.synonyms | {entity.name}:
                     self.add_alias(alias, entity.entity_id)
 
     def add_name_aliases(self):

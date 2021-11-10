@@ -8,14 +8,14 @@ class WikidataEntity:
                  name: str,
                  score: int,
                  entity_id: str,
-                 synonyms: List[str],
+                 synonyms: Optional[Set[str]] = None,
                  title_synonyms: Optional[Set[str]] = None,
                  akronyms: Optional[Set[str]] = None,
                  type: Optional[str] = GroundtruthLabel.OTHER):
         self.name = name
         self.score = score
         self.entity_id = entity_id
-        self.synonyms = synonyms
+        self.synonyms = synonyms if synonyms else set()
         self.title_synonyms = title_synonyms if title_synonyms else set()
         self.akronyms = akronyms if akronyms else set()
         self.type = type

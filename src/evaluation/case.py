@@ -225,13 +225,13 @@ class Case:
 def case_from_dict(data) -> Case:
     true_entity = None
     if "true_entity" in data:
-        true_entity = WikidataEntity(data["true_entity"]["name"], 0, data["true_entity"]["entity_id"], [])
+        true_entity = WikidataEntity(data["true_entity"]["name"], 0, data["true_entity"]["entity_id"])
     pred_entity = None
     if "predicted_entity" in data:
-        pred_entity = WikidataEntity(data["predicted_entity"]["name"], 0, data["predicted_entity"]["entity_id"], [])
+        pred_entity = WikidataEntity(data["predicted_entity"]["name"], 0, data["predicted_entity"]["entity_id"])
     candidates = set()
     if "candidates" in data:
-        candidates = set([WikidataEntity(cand["name"], 0, cand["entity_id"], [])
+        candidates = set([WikidataEntity(cand["name"], 0, cand["entity_id"])
                           for cand in data["candidates"]])
     error_labels = {ERROR_LABELS[label] for label in data["error_labels"]}
     return Case(span=data["span"],

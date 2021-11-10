@@ -46,9 +46,9 @@ class LinkTextEntityLinker:
         if self.entity_db.contains_entity(entity_id):
             entity = self.entity_db.get_entity(entity_id)
             synonyms = entity.synonyms
-            title_synonyms = list(entity.title_synonyms)
-            akronyms = list(entity.akronyms)
-            for syn in title_synonyms + synonyms + akronyms:
+            title_synonyms = entity.title_synonyms
+            akronyms = entity.akronyms
+            for syn in title_synonyms | synonyms | akronyms:
                 # Do not append all lowercase synonyms (e.g. "it" for Italy)
                 if not syn.islower() and syn not in synonym_dict:
                     synonym_dict[syn] = entity_id
