@@ -218,7 +218,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip", action="store_true",
                         help="Set if the article_jsonl_file contains those articles that should be skipped.")
 
-    parser.add_argument("--article_jsonl_file", type=str, default=settings.OWN_BENCHMARK_FILE,
+    parser.add_argument("--article_jsonl_file", type=str, default=settings.WIKI_EX_BENCHMARK_FILE,
                         help="File that contains the original article in jsonl format"
                              "(for additional info like hyperlink spans). If the settings.OWN_BENCHMARK_FILE"
                              "does not contain all articles because the benchmark is being extended, use e.g."

@@ -47,7 +47,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
 
 show_mentions = {"entity_named": true, "entity_other": true, "nominal": true, "pronominal": true};
 
-benchmark_names = ["ours", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl"];
+benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl"];
 
 error_category_mapping = {"undetected": ["UNDETECTED"],
     "undetected_lowercase": ["UNDETECTED_LOWERCASE"],
@@ -254,8 +254,8 @@ function set_benchmark_select_options() {
             option.value = benchmark;
             benchmark_select.add(option);
         }
-        // Set default value to "ours".
-        $('#benchmark option:contains("ours")').prop('selected',true);
+        // Set default value to "wiki-ex".
+        $('#benchmark option:contains("wiki-ex")').prop('selected',true);
         show_benchmark_results();
     });
 }
@@ -1020,9 +1020,9 @@ function build_overview_table(path, benchmark_name) {
                 $(folder_data).find("a").each(function() {
                     file_name = $(this).attr("href");
                     // This assumes the benchmark is specified in the last dot separated column before the
-                    // file extension if it is not our benchmark.
+                    // file extension if it is not our wiki-ex benchmark.
                     benchmark = file_name.split(".").slice(-2)[0];
-                    benchmark_match = ((benchmark_name == "ours" && !benchmark_names.includes(benchmark)) || benchmark == benchmark_name);
+                    benchmark_match = ((benchmark_name == "wiki-ex" && !benchmark_names.includes(benchmark)) || benchmark == benchmark_name);
                     if (file_name.endsWith(RESULTS_EXTENSION) && benchmark_match) {
                         var url = path + "/" + folder + "/" + file_name;
                         urls.push(url);

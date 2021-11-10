@@ -27,7 +27,7 @@ from src.evaluation.examples_generator import get_example_generator
 
 def main(args):
     if args.link_linker:
-        if args.benchmark != Benchmark.OURS.value and args.benchmark != Benchmark.CONLL_PSEUDO_LINKS.value:
+        if args.benchmark != Benchmark.WIKI_EX.value and args.benchmark != Benchmark.CONLL_PSEUDO_LINKS.value:
             print("WARNING: Using a link linker only makes sense over benchmarks that contain hyperlinks.")
     if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
         print("Wexea can only be used as coreference linker in combination with the Wexea linker")
@@ -78,7 +78,7 @@ if __name__ == "__main__":
                              "EXPLOSION: Full path to the saved model.\n"
                              "AMBIVERSE: Full path to the predictions directory.\n"
                              "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
-    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,
+    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.WIKI_EX.value,
                         help="Benchmark over which to evaluate the linker.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")

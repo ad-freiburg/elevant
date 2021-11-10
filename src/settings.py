@@ -83,7 +83,7 @@ ACE04_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/ace2004/ace2004.xml"
 MSNBC_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc/RawText/"
 MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc/msnbc.xml"
 
-OWN_BENCHMARK_FILE = "benchmarks/benchmark_labels_ours.jsonl"
+WIKI_EX_BENCHMARK_FILE = "benchmarks/benchmark_labels_wiki-ex.jsonl"
 
 
 # Other settings

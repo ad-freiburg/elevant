@@ -164,8 +164,8 @@ class JsonBenchmarkExampleReader:
 def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = True):
     path = "benchmarks/"
     if from_json_file:
-        if benchmark_name == Benchmark.OURS.value:
-            benchmark_filename = path + "benchmark_labels_ours.jsonl"
+        if benchmark_name == Benchmark.WIKI_EX.value:
+            benchmark_filename = path + "benchmark_labels_wiki-ex.jsonl"
         elif benchmark_name == Benchmark.CONLL_DEV.value:
             benchmark_filename = path + "benchmark_labels_conll-dev.jsonl"
         elif benchmark_name == Benchmark.CONLL_TEST.value:
@@ -188,8 +188,8 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
             example_generator = ConllDevExampleReader()
         elif benchmark_name == Benchmark.CONLL_TEST.value:
             example_generator = ConllTestExampleReader()
-        elif benchmark_name == Benchmark.OURS.value:
-            example_generator = JsonBenchmarkExampleReader(settings.OWN_BENCHMARK_FILE)
+        elif benchmark_name == Benchmark.WIKI_EX.value:
+            example_generator = JsonBenchmarkExampleReader(settings.WIKI_EX_BENCHMARK_FILE)
         elif benchmark_name == Benchmark.NEWSCRAWL.value:
             example_generator = JsonBenchmarkExampleReader(path + "benchmark_labels_newscrawl.jsonl")
         else:

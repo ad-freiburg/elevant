@@ -120,7 +120,7 @@ function benchmark_key(benchmark_name) {
     Our benchmark, the CoNLL benchmarks and MSNBC are the most relevant for
     us right now and should be shown first.
     */
-    if (benchmark_name.includes("ours")) return 1;
+    if (benchmark_name.includes("wiki-ex")) return 1;
     else if (benchmark_name.includes("conll")) return 2;
     else if (benchmark_name.startsWith("msnbc")) return 3;
     else return 10;

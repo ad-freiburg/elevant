@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-out", "--output_file", type=str, required=True,
                         help="Output file with one benchmark article in json format per line.")
-    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.OURS.value,
+    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.WIKI_EX.value,
                         help="Benchmark in which to annotate the labels. Default: Our benchmark.")
 
     main(parser.parse_args())

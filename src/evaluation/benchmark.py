@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Benchmark(Enum):
-    OURS = "ours"
+    WIKI_EX = "wiki-ex"
     CONLL = "conll"
     CONLL_DEV = "conll-dev"
     CONLL_TEST = "conll-test"
