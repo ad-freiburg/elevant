@@ -26,7 +26,7 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     entity_db.load_quantities()
     entity_db.load_datetimes()
     entity_db.add_name_aliases()
-    entity_db.add_synonym_aliases()
+    entity_db.add_wikidata_aliases()
     entity_db.add_link_aliases()
     return entity_db
 

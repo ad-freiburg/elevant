@@ -126,8 +126,7 @@ class EntityDatabase:
             self.aliases[alias].add(entity_id)
         self.entities[entity_id].synonyms.append(alias)
 
-    def add_synonym_aliases(self):
-        # TODO: Rename to wikidata aliases
+    def add_wikidata_aliases(self):
         self.loaded_info[MappingName.WIKIDATA_ALIASES] = LoadedInfo(LoadingType.FULL)
         for entity in EntityDatabaseReader.read_entity_file():
             if self.contains_entity(entity.entity_id):

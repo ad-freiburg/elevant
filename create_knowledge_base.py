@@ -23,7 +23,7 @@ if __name__ == "__main__":
     print(entity_db.size_entities(), "entities")
     print("load aliases...")
     entity_db.add_name_aliases()
-    entity_db.add_synonym_aliases()
+    entity_db.add_wikidata_aliases()
     print(entity_db.size_aliases(), "aliases")
     print("load frequencies...")
     entity_db.load_mapping()

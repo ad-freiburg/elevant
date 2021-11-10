@@ -85,7 +85,7 @@ class LinkingSystem:
                 self.entity_db.load_link_frequencies()
             else:
                 print("add synonyms...")
-                self.entity_db.add_synonym_aliases()
+                self.entity_db.add_wikidata_aliases()
                 print(self.entity_db.size_aliases(), "aliases")
                 print("add names...")
                 self.entity_db.add_name_aliases()
@@ -164,7 +164,7 @@ class LinkingSystem:
                 self.entity_db.add_name_aliases()
             if not self.entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
                 print("Load wikidata aliases")
-                self.entity_db.add_synonym_aliases()
+                self.entity_db.add_wikidata_aliases()
             if not self.entity_db.has_languages_loaded():
                 print("Loading languages...")
                 self.entity_db.load_languages()
@@ -200,7 +200,7 @@ class LinkingSystem:
             print("add name aliases...")
             self.entity_db.add_name_aliases()
             print("add synonym aliases...")
-            self.entity_db.add_synonym_aliases()
+            self.entity_db.add_wikidata_aliases()
             self.linker = PriorLinker(self.entity_db, whitelist_file, use_pos=linker_type == Linkers.POS_PRIOR.value)
 
     def _initialize_link_linker(self, linker_type: str):
@@ -213,7 +213,7 @@ class LinkingSystem:
                 self.entity_db.load_redirects()
         if linker_type == LinkLinkers.LINK_TEXT_LINKER.value:
             print("add synonyms...")
-            self.entity_db.add_synonym_aliases()
+            self.entity_db.add_wikidata_aliases()
             print(self.entity_db.size_aliases(), "aliases")
             print("add names...")
             self.entity_db.add_name_aliases()

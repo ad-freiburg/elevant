@@ -1,4 +1,3 @@
-from copy import copy
 from typing import List, Tuple, Optional, Dict
 
 import spacy
@@ -40,7 +39,7 @@ class MaximumMatchingNER(AbstractEntityLinker):
             entity_db.add_name_aliases()
         if not entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
             print("Load wikidata aliases")
-            entity_db.add_synonym_aliases()
+            entity_db.add_wikidata_aliases()
         if not entity_db.is_mapping_loaded():
             print("Loading wikipedia-wikidata mapping...")
             entity_db.load_mapping()
