@@ -129,6 +129,8 @@ class WikipediaArticle:
         Get the abstract of an Wikipedia article with sections.
         Throws an error if no sections are provided in the file from which the article was created.
         """
+        if self.sections is None:
+            raise AttributeError("Tried to get abstract span but the article does not contain any section data.")
         first_section_span = self.sections[0][0]
         first_section_text = self.text[first_section_span[0]:first_section_span[1]]
         title_end = first_section_text.find("\n\n") + len("\n\n")
