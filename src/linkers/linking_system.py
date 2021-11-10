@@ -12,7 +12,7 @@ from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
 from src.linkers.prior_linker import PriorLinker
 from src.linkers.trained_entity_linker import TrainedEntityLinker
-from src.models.entity_database import EntityDatabase
+from src.models.entity_database import EntityDatabase, MappingName
 from src.models.entity_prediction import EntityPrediction
 from src.linkers.explosion_linker import ExplosionEntityLinker
 from src.linkers.hobbs_coref_linker import HobbsCorefLinker
@@ -159,6 +159,12 @@ class LinkingSystem:
             self.linker = BertEntityLinker(linker_info, self.entity_db)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
             min_count = int(linker_info)
+            if not self.entity_db.loaded_info.get(MappingName.NAME_ALIASES):
+                print("Load name aliases")
+                self.entity_db.add_name_aliases()
+            if not self.entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
+                print("Load wikidata aliases")
+                self.entity_db.add_synonym_aliases()
             if not self.entity_db.has_languages_loaded():
                 print("Loading languages...")
                 self.entity_db.load_languages()
