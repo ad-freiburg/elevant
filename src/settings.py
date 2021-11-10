@@ -22,6 +22,7 @@ ARTICLE_JSON_FILE = DATA_DIRECTORY + "wikipedia_dump_files/enwiki-20200703-artic
 WIKIPEDIA_TRAINING_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/training.jsonl"
 WIKIPEDIA_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/development.jsonl"
 WIKIPEDIA_TEST_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/test.jsonl"
+DEV_AND_TEST_ARTICLE_IDS = "data/dev_and_test_article_ids.pkl"
 
 NEWSCRAWL_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/development.jsonl"
 NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/test.jsonl"
