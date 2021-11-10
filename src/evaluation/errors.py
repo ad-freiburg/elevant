@@ -209,7 +209,7 @@ def label_nonentity_coreference_errors(text: str, cases: List[Case]):
             continue
         if not case.has_ground_truth():
             snippet = text[case.span[0]:case.span[1]]
-            if snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
+            if len(snippet) > 1 and snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
                 case.add_error_label(ErrorLabel.NON_ENTITY_COREFERENCE)
 
 

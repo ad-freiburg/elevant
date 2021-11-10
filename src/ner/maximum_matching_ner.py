@@ -1,9 +1,10 @@
+from copy import copy
 from typing import List, Tuple, Optional, Dict
 
 import spacy
 from spacy.tokens.doc import Doc
 
-from src.models.entity_database import EntityDatabase
+from src.models.entity_database import EntityDatabase, MappingName
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
 from src.models.entity_prediction import EntityPrediction
 from src.utils.dates import is_date
@@ -18,25 +19,39 @@ def contains_uppercase(text: str) -> bool:
 
 
 class MaximumMatchingNER(AbstractEntityLinker):
-    def predict(self, text: str, doc: Optional[Doc] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+    def predict(self,
+                text: str,
+                doc: Optional[Doc] = None,
+                uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         mention_spans = self.entity_mentions(text)
-        predictions = {span: EntityPrediction(span, "Unknown", set()) for span in mention_spans}
+        if uppercase:
+            predictions = {span: EntityPrediction(span, "Unknown", set()) for span in mention_spans
+                           if not text[span[0]:span[1]].islower()}
+        else:
+            predictions = {span: EntityPrediction(span, "Unknown", set()) for span in mention_spans}
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:
         return False
 
-    def __init__(self, entity_db: Optional[EntityDatabase] = None):
-        if entity_db is None:
-            entity_db = EntityDatabase()
-            entity_db.load_entities_big()
+    def __init__(self, entity_db: EntityDatabase):
+        if not entity_db.loaded_info.get(MappingName.NAME_ALIASES):
+            print("Load name aliases")
             entity_db.add_name_aliases()
+        if not entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
+            print("Load wikidata aliases")
             entity_db.add_synonym_aliases()
+        if not entity_db.is_mapping_loaded():
+            print("Loading wikipedia-wikidata mapping...")
             entity_db.load_mapping()
+        if not entity_db.is_redirects_loaded():
+            print("Loading redirects...")
             entity_db.load_redirects()
+        if not entity_db.is_link_frequencies_loaded():
+            print("Loading redirects...")
             entity_db.load_link_frequencies()
-            entity_db.add_link_aliases()
         if len(entity_db.unigram_counts) == 0:
+            print("Load unigram counts...")
             entity_db.load_unigram_counts()
         model = spacy.load("en_core_web_sm")
         stopwords = model.Defaults.stop_words

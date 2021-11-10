@@ -1,9 +1,30 @@
-from typing import Dict, Set, Tuple, Iterator, Optional, List
+from enum import Enum
+from typing import Dict, Set, Tuple, Iterator, Optional, List, Any
 
 from src import settings
 from src.models.gender import Gender
 from src.models.wikidata_entity import WikidataEntity
 from src.helpers.entity_database_reader import EntityDatabaseReader
+
+
+class MappingName(Enum):
+    NAME_ALIASES = "name_aliases"
+    LINK_ALIASES = "link_aliases"
+    WIKIDATA_ALIASES = "wikidata_aliases"
+    SITELINKS = "sitelinks"
+    ENTITIES = "entities"
+
+
+class LoadingType(Enum):
+    FULL = "full"
+    RELEVANT_ENTITIES = "relevant_entities"
+    RESTRICTED = "restricted"
+
+
+class LoadedInfo:
+    def __init__(self, loading_type: LoadingType, info: Optional[Any] = None):
+        self.loading_type = loading_type
+        self.info = info
 
 
 class EntityDatabase:
@@ -43,6 +64,7 @@ class EntityDatabase:
         self.quantities = set()
         self.datetimes = set()
         self.wikipedia_id2wikipedia_title = dict()
+        self.loaded_info = {}
 
     def add_entity(self, entity: WikidataEntity):
         self.entities[entity.entity_id] = entity
@@ -69,11 +91,13 @@ class EntityDatabase:
         return self.get_entity(entity_id).score
 
     def load_entities_small(self, minimum_score: Optional[int] = 0):
+        self.loaded_info[MappingName.ENTITIES] = LoadedInfo(LoadingType.RESTRICTED, minimum_score)
         for entity in EntityDatabaseReader.read_entity_file():
             if entity.score >= minimum_score:
                 self.add_entity(entity)
 
     def load_entities_big(self, type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
+        self.loaded_info[MappingName.ENTITIES] = LoadedInfo(LoadingType.FULL)
         mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
         # The mapping contains Wikipedia titles. Load an additional mapping for Wikidata names.
         # Don't save the mapping because it is huge and we only need the names of entities that
@@ -85,6 +109,8 @@ class EntityDatabase:
 
     def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: Optional[int] = 0,
                       type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
+        self.loaded_info[MappingName.ENTITIES] = LoadedInfo(LoadingType.RELEVANT_ENTITIES,
+                                                            minimum_sitelink_count)
         entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, type_mapping)
         for entity in entities.values():
             if self.get_sitelink_count(entity.entity_id) >= minimum_sitelink_count:
@@ -101,12 +127,15 @@ class EntityDatabase:
         self.entities[entity_id].synonyms.append(alias)
 
     def add_synonym_aliases(self):
+        # TODO: Rename to wikidata aliases
+        self.loaded_info[MappingName.WIKIDATA_ALIASES] = LoadedInfo(LoadingType.FULL)
         for entity in EntityDatabaseReader.read_entity_file():
             if self.contains_entity(entity.entity_id):
                 for alias in entity.synonyms + [entity.name]:
                     self.add_alias(alias, entity.entity_id)
 
     def add_name_aliases(self):
+        self.loaded_info[MappingName.NAME_ALIASES] = LoadedInfo(LoadingType.FULL)
         for entity_id, name in EntityDatabaseReader.read_names():
             if self.contains_entity(entity_id) and " " in name:
                 family_name = name.split()[-1]
@@ -187,6 +216,7 @@ class EntityDatabase:
                     yield link_text, entity_id, frequency
 
     def add_link_aliases(self):
+        self.loaded_info[MappingName.LINK_ALIASES] = LoadedInfo(LoadingType.FULL)
         for link_text, entity_id, frequency in self._iterate_link_frequencies():
             self.add_alias(link_text, entity_id)
 
@@ -202,6 +232,9 @@ class EntityDatabase:
                 self.entity_frequencies[entity_id] = frequency
             else:
                 self.entity_frequencies[entity_id] += frequency
+
+    def is_link_frequencies_loaded(self) -> bool:
+        return len(self.link_frequencies) > 0
 
     def get_candidates(self, alias: str) -> Set[str]:
         if alias not in self.aliases:
@@ -293,8 +326,10 @@ class EntityDatabase:
             return 0
         return self.unigram_counts[token]
 
-    def load_sitelink_counts(self):
-        self.sitelink_counts = EntityDatabaseReader.get_sitelink_counts()
+    def load_sitelink_counts(self, min_count: Optional[int] = 1):
+        loading_type = LoadingType.RESTRICTED if min_count > 0 else LoadingType.FULL
+        self.loaded_info[MappingName.SITELINKS] = LoadedInfo(loading_type, min_count)
+        self.sitelink_counts = EntityDatabaseReader.get_sitelink_counts(min_count)
 
     def has_sitelink_counts_loaded(self) -> bool:
         return len(self.sitelink_counts) > 0

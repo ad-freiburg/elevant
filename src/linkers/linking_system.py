@@ -135,7 +135,7 @@ class LinkingSystem:
                 article_predictions_iterator(result_file)
         elif linker_type == Linkers.BASELINE.value:
             if linker_info == "max-match-ner":
-                self.linker = MaximumMatchingNER()
+                self.linker = MaximumMatchingNER(self.entity_db)
             else:
                 if linker_info not in ("links", "scores", "links-all"):
                     raise NotImplementedError("Unknown strategy '%s'." % linker_info)
@@ -158,6 +158,7 @@ class LinkingSystem:
         elif linker_type == Linkers.BERT_MODEL.value:
             self.linker = BertEntityLinker(linker_info, self.entity_db)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
+            min_count = int(linker_info)
             if not self.entity_db.has_languages_loaded():
                 print("Loading languages...")
                 self.entity_db.load_languages()
@@ -165,10 +166,9 @@ class LinkingSystem:
                 print("Loading demonyms...")
                 self.entity_db.load_demonyms()
             if not self.entity_db.has_sitelink_counts_loaded():
-                print("Loading sitelink counts...")
-                self.entity_db.load_sitelink_counts()
-            min_score = int(linker_info)
-            self.linker = PopularEntitiesLinker(min_score, self.entity_db, longest_alias_ner)
+                print("Loading sitelink counts for entities with sitelink count >= %d ..." % min_count)
+                self.entity_db.load_sitelink_counts(min_count=min_count)
+            self.linker = PopularEntitiesLinker(min_count, self.entity_db, longest_alias_ner)
             self.globally = True
         elif linker_type == Linkers.WIKIFIER.value:
             if not self.entity_db.is_mapping_loaded():

@@ -56,7 +56,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         self.min_score = min_score
         self.entity_db = entity_db
         self.longest_alias_ner = longest_alias_ner
-        self.ner = MaximumMatchingNER()
+        self.ner = MaximumMatchingNER(self.entity_db)
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
         ner_postprocessor = NERPostprocessor(self.entity_db)
         self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
@@ -140,7 +140,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         """
         highest_sitelink_count_entity = None
         highest_sitelink_count = 0
-        for entity_id in candidates:
+        for entity_id in sorted(candidates):  # Sort for reproducibility
             sitelink_count = self.entity_db.get_sitelink_count(entity_id)
             if sitelink_count >= self.min_score and sitelink_count > highest_sitelink_count:
                 highest_sitelink_count_entity = entity_id

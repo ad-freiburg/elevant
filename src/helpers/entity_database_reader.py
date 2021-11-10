@@ -172,7 +172,7 @@ class EntityDatabaseReader:
         return counts
 
     @staticmethod
-    def get_sitelink_counts(min_count=1) -> Dict[str, int]:
+    def get_sitelink_counts(min_count: Optional[int] = 1) -> Dict[str, int]:
         counts = {}
         with open(settings.QID_TO_SITELINK_FILE) as f:
             for line in f:
@@ -236,7 +236,7 @@ class EntityDatabaseReader:
         return EntityDatabaseReader.read_into_set(settings.COARSE_TYPES)
 
     @staticmethod
-    def read_item_to_qid_set_mapping(mapping_file, relevant_items):
+    def read_item_to_qid_set_mapping(mapping_file: str, relevant_items):
         mapping = {}
         with open(mapping_file) as f:
             for line in f:
