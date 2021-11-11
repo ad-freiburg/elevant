@@ -8,8 +8,8 @@ DATA_DIR = /local/data/entity-linking/
 
 WIKIPEDIA_DUMP_FILES_DIR = ${DATA_DIR}wikipedia_dump_files/
 WIKI_DUMP = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-pages-articles-multistream.xml.bz2
-EXTRACTED_WIKI_DUMP = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-articles-extracted.jsonl
-LINKED_WIKI_ARTICLES = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-articles-linked.jsonl
+EXTRACTED_WIKI_DUMP = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-extracted.jsonl
+LINKED_WIKI_ARTICLES = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-linked.jsonl
 
 # Variables for downloading wikidata files
 WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata_mappings/
@@ -50,7 +50,7 @@ download_wiki:
 # Extract Wikipedia dump only if it does not exist already at the specified location.
 extract_wiki:
 	@if ls ${EXTRACTED_WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "\033[31mExtracted Wikipedia dump already exists at ${EXTRACTED_WIKI_DUMP} . Delete or rename it first. Dump not extracted.\033[0m"; echo; else \
-	  python3 wiki_extractor/WikiExtractor.py --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
+	  python3 wiki_extractor/WikiExtractor.py --sections --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
 	fi
 
 split_wiki:
