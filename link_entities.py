@@ -74,23 +74,28 @@ def main(args):
 
         if args.multithreading > 1:
             articles.append(article)
-            if len(articles) >= args.multithreading * 5:
+            if len(articles) >= args.multithreading * 20:
                 pool.map(link_entities_tuple_argument, zip(articles,
                                                            [args.uppercase for _ in articles],
                                                            [args.only_pronouns for _ in articles]))
-                # close the pool and wait for the work to finish
+                # Close the pool and wait for the work to finish
                 pool.close()
                 pool.join()
                 for article in articles:
                     output_file.write(article.to_json() + "\n")
-                    print("\r%i articles" % (i + 1), end='')
+                # Print progress information
+                total_time = time.time() - start
+                time_per_article = total_time / (i + 1)
+                print("\r%i articles, %f s per article, %f s total time." % (i + 1, time_per_article, total_time), end='')
                 # Reset for next batch
                 articles = []
                 pool = ThreadPool(args.multithreading)
         else:
             linking_system.link_entities(article, args.uppercase, args.only_pronouns)
             output_file.write(article.to_json() + "\n")
-            print("\r%i articles" % (i + 1), end='')
+            total_time = time.time() - start
+            time_per_article = total_time / (i + 1)
+            print("\r%i articles, %f s per article, %f s total time." % (i + 1, time_per_article, total_time), end='')
 
     # Link left-over articles
     if args.multithreading > 1 and len(articles) > 0:
@@ -99,10 +104,12 @@ def main(args):
         pool.join()
         for article in articles:
             output_file.write(article.to_json() + "\n")
-            print("\r%i articles" % (i + 1), end='')
+        total_time = time.time() - start
+        time_per_article = total_time / i  # not i+1 because i is increased by one right before the loop breaks
+        print("\r%i articles, %fs per article %f s total time." % (i, time_per_article, total_time), end='')
 
     print()
-    print("Linked articles in %fs" % (time.time() - start))
+    print("Linked %d articles in %fs" % (i, time.time() - start))
     input_file.close()
     output_file.close()
 
