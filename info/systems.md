@@ -183,3 +183,17 @@ They approach this task by extracting textual relations between mentions (e.g. p
 They extract syntactico-semantic relations using (existing?) high precision classifiers.
 They extract coreference relations by clustering named entities that share tokens or are acronyms of each other when there is no ambiguity (E.g. "Al Goldman, chief market strategist at A.G. Edwards said ... Goldman told us that ..." if there is no other longer mention containing Goldman in the document, like Goldman Sachs). They then use a voting algorithm to generate candidates for the cluster.
 They also make use of nominal mentions as in "Dorothy Byrne, a state coordinator for the Florida Green Party". They use TF-IDF cosine similarity between the nominal mention and the lexical context of the candidate page, head word attributes and entity relation (i.e. between Dorothy Byrne and Florida Green Party) to find an entity candidates that are coherent with the nominal description.
+
+Mention detection:As far as I have seen they do not mention how mentions are detected or which entities or concepts are supposed to be linked by their system.
+
+### Local and Global Algorithms for Disambiguation to Wikipedia
+*Ratinov et al.*
+
+**Paper:** <https://aclanthology.org/P11-1138.pdf>
+
+**Code:** <https://cogcomp.seas.upenn.edu/page/download_view/Wikifier>
+
+**Objective:** Identifying and linking **expressions** in text to their referent Wikipedia pages.
+
+**Approach:**
+They do not talk about mention detection but assume mentions are given.

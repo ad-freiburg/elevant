@@ -38,6 +38,33 @@ For a set of ground truth annotations G and a set of predicted links S, fuzzy re
 They find that the results distinguish the systems that link common entities (Babelfy (relaxed) and TagME) from those that do not.
 The systems that link common entities outperform other systems when the definition of EL annotations is relaxed and perform worse for stricter definitions of EL annotations.
 
+### Framing Named Entity Linking Error Types
+*Bra̧soveanu et al., 2018*
+
+**Paper:** <https://aclanthology.org/L18-1040.pdf>
+
+**Objective:**
+An in-depth qualitative analysis of entity linking errors is necessary in order to rapidly improve EL systems.
+
+Bra̧soveanu et al propose a classification of EL errors into
+1) Knowledge Base errors: errors in a particular KB version, e.g. missing entities or wrong mappings
+2) Dataset errors: errors produced by the dataset annotators, e.g. missing / wrong annotations
+3) Annotator errors: errors produced by the automatic annotation (linking) system
+4) NIL clustering errors: e.g. missing surface forms for entities or new links in a more recent version of the DB
+5) Scorer / evaluation errors: errors reported by an evaluation system if the Dataset and Annotator outputs are similar
+They select different benchmarks and systems and classify errors by hand into these categories, providing additional information on the error like its cause.
+Their evaluation is very short, with their main result being that most errors are AN errors.
+
+### Visual Error Analysis for Entity Linking
+*Heinzerling and Strube, 2015*
+
+** Paper:** <https://aclanthology.org/P15-4007.pdf>
+
+**Objective:**
+Create a tool for visually exploring and analyzing entity linking results.
+
+They have more fine-grained errors than just FP, FN, ... but they don't include any evaluation.
+They simply present their tool.
 
 ### Evaluating Entity Linking: An Analysis of Current Benchmark Datasets and a Roadmap for Doing a Better Job
 *van Erp et al., 2016*
@@ -53,7 +80,7 @@ They argue that on benchmarks with low confusability, high prominence and high d
 Regarding entity types they argue that country and company names are typically unique, while this is less often the case for names of cities or persons.
 They therefore expect the entity type distribution to directly impact the difficulty of a benchmark.
 In accordance to our findings they also report that AIDA-YAGO has a strong emphasis on sports related entities such as athletes or sports teams.
-They further collect mention-annotation characteristics like mention boundaries (inclusion of determiners "the", ...), handling redundancy (annotating only the first or all occurrences of an entity), inter-annotation agreement, mention ambiguity, ..., nested entiites.
+They further collect mention-annotation characteristics like mention boundaries (inclusion of determiners "the", ...), handling redundancy (annotating only the first or all occurrences of an entity), inter-annotation agreement, mention ambiguity, ..., nested entities.
 Their suggestions for how to create better benchmarks are rather sparse.
 They suggest to focus on documentation (which decisions were made in the process of creating the dataset, e.g. initial offset count 0 or 1), standard formats (or scripts that allow the user to transform a benchmark into a standardized format) and diversity (high confusibility, low prominence, low dominance benchmarks with texts from different domains). 
 
