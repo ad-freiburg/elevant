@@ -3,4 +3,4 @@
 INPUT=$1
 OUTPUT=$2
 
-python3 WikiExtractor.py --links --bold --json --output_file $OUTPUT $INPUT
+python3 WikiExtractor.py --sections --links --bold --json --output_file $OUTPUT $INPUT
