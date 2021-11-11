@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=__doc__)
 
-    parser.add_argument("input_file", type=str,
+    parser.add_argument("-i", "--input_file", type=str, default=settings.ARTICLE_JSON_FILE,
                         help="Input file. Extracted Wikipedia dump in jsonl format.")
 
     parser.add_argument("-o", "--output_file", type=str, default=settings.QID_TO_ABSTRACTS_FILE,
