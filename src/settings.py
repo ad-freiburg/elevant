@@ -15,7 +15,9 @@ if DATA_DIRECTORY is None:
     exit(1)
 
 # Base files
-ARTICLE_JSON_FILE = DATA_DIRECTORY + "wikipedia_dump_files/enwiki-20200703-articles-extracted.jsonl"
+WIKIPEDIA_DUMP_PATH = DATA_DIRECTORY + "wikipedia_dump_files/"
+EXTRACTED_WIKIPEDIA_DUMP_NAME = "enwiki-latest-extracted.jsonl"
+EXTRACTED_WIKIPEDIA_DUMP_FILE = WIKIPEDIA_DUMP_PATH + EXTRACTED_WIKIPEDIA_DUMP_NAME
 
 
 # Article files
