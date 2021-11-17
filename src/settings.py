@@ -1,4 +1,7 @@
+import logging
 import os
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 _DATA_DIRECTORIES = [
@@ -11,7 +14,7 @@ for directory in _DATA_DIRECTORIES:
         DATA_DIRECTORY = directory
         break
 if DATA_DIRECTORY is None:
-    print("ERROR: could not find the data directory.")
+    logger.error("Could not find the data directory.")
     exit(1)
 
 # Base files
@@ -86,6 +89,10 @@ MSNBC_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc/RawText/"
 MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc/msnbc.xml"
 
 WIKI_EX_BENCHMARK_FILE = "benchmarks/benchmark_labels_wiki-ex.jsonl"
+
+
+# Other files and paths
+LOG_PATH = "logs/"
 
 
 # Other settings

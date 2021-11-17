@@ -1,4 +1,7 @@
 import argparse
+import log
+import sys
+
 import spacy
 from spacy.tokens.doc import Doc
 
@@ -16,6 +19,8 @@ def set_custom_sentence_boundaries(doc: Doc):
 
 
 def main(args):
+    logger.info("Creating QLever text files for %s" % args.input_file)
+
     model = spacy.blank("en")
     model.add_pipe(model.create_pipe("sentencizer"))
     model.add_pipe(set_custom_sentence_boundaries)
@@ -73,12 +78,13 @@ def main(args):
                 # Increase record id after each article if records are made up of articles
                 record_id += 1
 
-            print("Processed %d articles.\r" % (i+1), end="")
+            if (i + 1) % 100 == 0:
+                print("Processed %d articles.\r" % (i+1), end="")
 
     print()
-    print("Wrote articles to %s and %s ." % (wordsfile_name, docsfile_name))
+    logger.info("Wrote articles to %s and %s ." % (wordsfile_name, docsfile_name))
     if args.articlesfile:
-        print("Wrote record id to Wikipedia mapping to %s" % articlesfile_name)
+        logger.info("Wrote record id to Wikipedia mapping to %s" % articlesfile_name)
     
     wordsfile.close()
     docsfile.close()
@@ -98,5 +104,8 @@ if __name__ == "__main__":
                         help="Create an articlesfile with a mapping from record id to Wikipedia title and url.")
     parser.add_argument("--article_records", action="store_true",
                         help="A record is made up of an entire article instead of a single sentence.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

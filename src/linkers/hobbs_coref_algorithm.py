@@ -12,9 +12,12 @@ Modifcations by Natalie Prange, these include
 
 import nltk
 import queue
+import logging
 
 from src.models.gender import Gender
 from src.utils.pronoun_finder import PronounFinder
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 # Labels for nominal heads
 nominal_labels = ["NN", "NNS", "NNP", "NNPS", "PRP"]
@@ -143,7 +146,7 @@ class HobbsCorefAlgorithm:
 
     def print_debug(self, string):
         if self.debug:
-            print(string)
+            logger.debug(string)
 
     def linked_entity_from_proposal(self, proposal):
         if not proposal:

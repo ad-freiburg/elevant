@@ -1,4 +1,6 @@
 import argparse
+import log
+import sys
 
 from typing import Set
 from src import settings
@@ -11,9 +13,10 @@ def extract_relevant_types(coarse_types: Set[str]):
     (which is usually the class 'entity') or until a type that exists in the
     coarse types list, whichever comes first in the type hierarchy.
     """
+    logger.info("Iterating over all types from %s" % settings.QID_TO_ALL_TYPES_FILE)
     entity_to_relevant_types = {}
     with open(settings.QID_TO_ALL_TYPES_FILE, "r") as file:
-        for line in file:
+        for i, line in enumerate(file):
             line = line.strip('\n')
             lst = line.split("\t")
             if len(lst) < 2:
@@ -38,14 +41,18 @@ def extract_relevant_types(coarse_types: Set[str]):
                 if entity_id not in entity_to_relevant_types:
                     entity_to_relevant_types[entity_id] = []
                 entity_to_relevant_types[entity_id].append(type_id)
+
+            if (i + 1) % 100 == 0:
+                print("\rProcessed %d entities." % (i+1), end="")
+
     return entity_to_relevant_types
 
 
 def main(args):
     coarse_types = EntityDatabaseReader.get_coarse_types()
-    print("Building mapping...")
+    logger.info("Building relevant types mapping...")
     entity_to_relevant_types = extract_relevant_types(coarse_types)
-    print("Writing mapping...")
+    logger.info("Writing mapping ...")
     with open(args.output_file, "w", encoding="utf8") as outfile:
         for entity_id, types in entity_to_relevant_types.items():
             outfile.write("%s\t" % entity_id)
@@ -54,7 +61,7 @@ def main(args):
                 if i < len(types) - 1:
                     outfile.write(";")
             outfile.write("\n")
-    print("Wrote mapping to %s" % args.output_file)
+    logger.info("Wrote mapping to %s" % args.output_file)
 
 
 if __name__ == "__main__":
@@ -63,5 +70,8 @@ if __name__ == "__main__":
 
     parser.add_argument("-o", "--output_file", type=str, default=settings.QID_TO_RELEVANT_TYPES_FILE,
                         help="Output file.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

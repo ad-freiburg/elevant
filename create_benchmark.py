@@ -1,5 +1,7 @@
 import argparse
 import re
+import log
+import sys
 from typing import List, Tuple, Optional
 
 from src import settings
@@ -155,6 +157,8 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
 
 
 def main(args):
+    logger.info("Reading labels for %d articles from plain text benchmark file %s ..."
+                % (args.num_articles, args.input_file))
     labels_texts = read_labeled_texts(args.input_file, args.num_articles)
 
     skip_articles = [int(num) - 1 for num in args.skip_articles.split()]
@@ -164,10 +168,12 @@ def main(args):
 
     title_span_jsonl_file = None
     if args.title_span_jsonl_file:
+        logger.info("Reading bold title synonym span info from %s" % args.title_span_jsonl_file)
         title_span_jsonl_file = open(args.title_span_jsonl_file, "r")
 
     article_count = 0
     skip_count = 0
+    logger.info("Annotating articles in %s with label information ..." % args.article_jsonl_file)
     with open(args.article_jsonl_file) as jsonl_file:
         for i, json in enumerate(jsonl_file):
             if i + skip_count >= len(labels_texts) or \
@@ -196,6 +202,7 @@ def main(args):
         output_file.close()
     if title_span_jsonl_file:
         title_span_jsonl_file.close()
+    logger.info("Wrote %d benchmark articles to %s" % (article_count, args.output_file))
 
 
 if __name__ == "__main__":
@@ -205,7 +212,7 @@ if __name__ == "__main__":
     parser.add_argument("input_file", type=str,
                         help="Input benchmark with annotations in the format [<QID>|<original_text>].")
 
-    parser.add_argument("-out", "--output_file", type=str, default=None,
+    parser.add_argument("-o", "--output_file", type=str, default=None,
                         help="File to write the labeled benchmark to (one json article per line).")
 
     parser.add_argument("-n", "--num_articles", type=int, default=None,
@@ -229,5 +236,8 @@ if __name__ == "__main__":
                              "Only needed if the benchmark is extended."
                              "(E.g. benchmarks/benchmark_articles.all.bold.jsonl. This can't simply be used as"
                              "article_jsonl_file, since the article texts slightly differ from the benchmark version)")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

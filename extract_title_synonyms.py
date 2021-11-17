@@ -1,17 +1,19 @@
 import pickle
+import log
+import sys
 
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src import settings
 
-if __name__ == "__main__":
-    PRINT_EVERY = 100
+
+def main():
+    logger.info("Extracting title synonyms from Wikipedia training articles ...")
 
     title_synonyms = {}
 
     for a_i, article in enumerate(WikipediaCorpus.training_articles()):
-        if a_i % PRINT_EVERY == 0 or article is None:
-            print("\r%i articles, %i unique title synonyms" % (a_i, len(title_synonyms)),
-                  end='')
+        if a_i % 100 == 0 or article is None:
+            print("\r%i articles, %i unique title synonyms" % (a_i, len(title_synonyms)), end='')
         if article is None:
             print()
             break
@@ -26,4 +28,11 @@ if __name__ == "__main__":
 
     with open(settings.TITLE_SYNONYMS_FILE, "wb") as f:
         pickle.dump(title_synonyms, f)
-    print("Saved title synonyms to %s" % settings.TITLE_SYNONYMS_FILE)
+    logger.info("Wrote %d title synonyms to %s" % (len(title_synonyms), settings.TITLE_SYNONYMS_FILE))
+
+
+if __name__ == "__main__":
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main()

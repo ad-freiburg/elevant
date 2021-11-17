@@ -1,3 +1,5 @@
+import argparse
+import log
 import sys
 import spacy
 from spacy.kb import KnowledgeBase
@@ -8,54 +10,39 @@ from src.linkers.link_entity_linker import get_mapping
 from src.helpers.label_generator import LabelGenerator
 
 
-def print_help():
-    print("Usage:\n"
-          "    python3 train_spacy_entity_linker.py <name> <batches> <kb_name> [-prior]")
-
-
 def save_model(model: Language, model_name: str):
     path = settings.LINKERS_DIRECTORY + model_name
     model_bytes = model.to_bytes()
     with open(path, "wb") as f:
         f.write(model_bytes)
-    print("Saved model to", path)
+    logger.info("Saved model to %s" % path)
 
 
 PRINT_EVERY = 1
 SAVE_EVERY = 10000
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print_help()
-        exit(1)
-
-    name = sys.argv[1]
-    N_BATCHES = int(sys.argv[2])
-    kb_name = sys.argv[3]
-    use_prior = "-prior" in sys.argv
-
+def main(args):
     # make pipeline:
-    if kb_name == "0":
+    if args.kb_name == "0":
         vocab_path = settings.VOCAB_DIRECTORY
         kb_path = settings.KB_FILE
     else:
-        load_path = settings.KB_DIRECTORY + kb_name + "/"
+        load_path = settings.KB_DIRECTORY + args.kb_name + "/"
         vocab_path = load_path + "vocab"
         kb_path = load_path + "kb"
 
-    print("load model...")
+    logger.info("Loading model ...")
     nlp = spacy.load(settings.LARGE_MODEL_NAME)
     nlp.vocab.from_disk(vocab_path)
 
     # create entity linker with the knowledge base and add it to the pipeline:
-    print("load kb...")
-    entity_linker = nlp.create_pipe("entity_linker",
-                                    {"incl_prior": use_prior})
+    logger.info("Loading knowledge base ...")
+    entity_linker = nlp.create_pipe("entity_linker", {"incl_prior": args.prior})
     kb = KnowledgeBase(vocab=nlp.vocab)
     kb.load_bulk(kb_path)
-    print(kb.get_size_entities(), "entities")
-    print(kb.get_size_aliases(), "aliases")
+    logger.info("Knowledge base contains %d entities." % kb.get_size_entities())
+    logger.info("Knowledge base contains %d aliases." % kb.get_size_aliases())
     entity_linker.set_kb(kb)
     nlp.add_pipe(entity_linker, last=True)
 
@@ -70,12 +57,12 @@ if __name__ == "__main__":
     generator = LabelGenerator(nlp, kb, mapping)
 
     # iterate over training examples (batch size 1):
-    print("training...")
+    logger.info("Training ...")
     n_batches = 0
     n_articles = 0
     n_entities = 0
     loss_sum = 0
-    if N_BATCHES != 0:
+    if args.n_batches != 0:
         for doc, labels in generator.read_examples():
             batch_docs = [doc]
             batch_labels = [labels]
@@ -96,10 +83,29 @@ if __name__ == "__main__":
                 loss_mean = loss_sum / n_batches
                 print("\r%i batches\t%i articles\t%i entities\tloss: %f\tmean: %f" %
                       (n_batches, n_articles, n_entities, loss, loss_mean), end='')
-            if n_batches == N_BATCHES:
+            if n_batches == args.n_batches:
                 break
             elif n_batches % SAVE_EVERY == 0:
                 print()
-                save_model(nlp, name)
+                save_model(nlp, args.name)
         print()
-    save_model(nlp, name)
+    save_model(nlp, args.name)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
+
+    parser.add_argument("name", type=str,
+                        help="Linker name.")
+    parser.add_argument("n_batches", type=int,
+                        help="Number of batches.")
+    parser.add_argument("kb_name", type=str,
+                        help="KB name.")
+    parser.add_argument("-p", "--prior", type=str, action="store_true",
+                        help="Use prior probabilities.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main(parser.parse_args())

@@ -11,11 +11,9 @@ class SpacyNamedEntityRecognizer:
         self.nlp = spacy.load("en", disable=['parser', 'tagger', 'textcat'])
 
     def recognize(self, paragraph: Paragraph):
-        #print([(paragraph.text[entity.span[0]:entity.span[1]], entity) for entity in paragraph.entity_mentions])
         doc = self.nlp(paragraph.text)
         new_entities = []
         for ent in doc.ents:
-            #print(ent.text, ent.start_char, ent.end_char, ent.label_)
             span = (ent.start_char, ent.end_char)
             overlaps = paragraph.get_overlapping_entity(span)
             if overlaps is None:

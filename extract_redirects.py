@@ -1,3 +1,5 @@
+import argparse
+import log
 import bz2
 import re
 import pickle
@@ -11,23 +13,23 @@ TITLE_END = "</title>"
 REDIRECT = "#REDIRECT"
 PRINT_EVERY = 100
 
-if __name__ == "__main__":
-    dump_file = sys.argv[1]
+
+def main(args):
+    dump_file = args.wikipedia_dump
 
     opening_bracket_pattern = re.compile(r"\[\[")
     closing_bracket_pattern = re.compile(r"]]")
 
     redirects = {}
     a_i = 0
-    print_next = 100
-    print("Extracting...")
+    logger.info("Extracting redirects from %s ..." % dump_file)
     for line in bz2.open(dump_file):
         line = line.decode()
         line = line.strip()
         if line.startswith(TITLE_START):
             a_i += 1
             if a_i % PRINT_EVERY == 0:
-                print("\rExtracted %i redirects from %i articles" % (len(redirects), a_i), end='')
+                print("\rExtracted %d redirects from %i articles" % (len(redirects), a_i), end='')
             line = line[len(TITLE_START):]
             if line.endswith(TITLE_END):
                 line = line[:-len(TITLE_END)]
@@ -45,8 +47,22 @@ if __name__ == "__main__":
                         target = line[target_start:target_end]
                         target = target.replace('_', ' ')
                         redirects[title] = target
-    print("Extracted %i redirects." % len(redirects))
-    print("Saving...")
+    print()
+
     with open(settings.REDIRECTS_FILE, "wb") as f:
         pickle.dump(redirects, f)
-    print("Saved redirects to %s" % settings.REDIRECTS_FILE)
+
+    logger.info("Wrote %d redirects to %s" % (len(redirects), settings.REDIRECTS_FILE))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
+
+    parser.add_argument("wikipedia_dump", type=str,
+                        help="Wikipedia dump file.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main(parser.parse_args())

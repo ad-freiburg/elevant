@@ -1,4 +1,5 @@
 import torch
+import logging
 
 from typing import Optional, Dict, Tuple, List
 from os.path import isfile
@@ -13,12 +14,13 @@ from spacy.kb import KnowledgeBase, Candidate
 from src import settings
 from src.settings import NER_IGNORE_TAGS
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.models.entity_mention import EntityMention
 from src.models.entity_prediction import EntityPrediction
 from src.models.entity_database import EntityDatabase
 from src.models.bert_model import BertClassifier
 from src.ner.ner_postprocessing import NERPostprocessor
 from src.utils.dates import is_date
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class BertEntityLinker(AbstractEntityLinker):
@@ -37,22 +39,22 @@ class BertEntityLinker(AbstractEntityLinker):
         self.wikipedia_abstracts = {}
         if not isfile(wikipedia_abstracts_file):
             raise FileNotFoundError(f"Can't find Wikipedia abstracts file at {wikipedia_abstracts_file}.")
-        print("Loading Wikipedia abstracts ...")
+        logger.info("Loading Wikipedia abstracts ...")
         for line in open(wikipedia_abstracts_file):
             values = line[:-1].split('\t')
             self.wikipedia_abstracts[values[0]] = (values[1], values[2].strip())
 
-        print("Loading knowledge base ...")
+        logger.info("Loading knowledge base ...")
         vocab_path = settings.VOCAB_DIRECTORY
         kb_path = settings.KB_FILE
         vocab = Vocab().from_disk(vocab_path)
         self.kb = KnowledgeBase(vocab=vocab)
         self.kb.load_bulk(kb_path)
 
-        print("Loading tokenizer ...")
+        logger.info("Loading tokenizer ...")
         self.tokenizer = BertTokenizerFast.from_pretrained(model_path, do_lower_case=True)
 
-        print("Loading trained BERT entity linker ...")
+        logger.info("Loading trained BERT entity linker ...")
         self.linker_model = BertClassifier.from_pretrained(model_path)
         self.linker_model.eval()
         torch.set_grad_enabled(False)
@@ -61,12 +63,12 @@ class BertEntityLinker(AbstractEntityLinker):
         self.device = torch.device("cpu")
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
-            print('Using device:', torch.cuda.get_device_name(0))
+            logger.info('Using device:', torch.cuda.get_device_name(0))
         else:
-            print('Using CPU')
+            logger.info('Using CPU')
 
         self.linker_model.to(self.device)
-        print("Ready.")
+        logger.info("Ready.")
 
     def predict(self,
                 text: str,

@@ -144,15 +144,6 @@ class EntityCorefLinker(AbstractCorefLinker):
         self.entity_db = entity_db
         self.sent_start_idxs = None
         self.title_entity = None
-        if not self.entity_db.is_gender_loaded():
-            print("Load gender mapping...")
-            self.entity_db.load_gender()
-        if not self.entity_db.is_types_loaded():
-            print("Load types mapping...")
-            self.entity_db.load_types()
-        if self.entity_db.size_entities() == 0:
-            print("Load entities...")
-            self.entity_db.load_entities_big()
 
     def get_referenced_entity(self,
                               span: Tuple[int, int],
@@ -243,8 +234,8 @@ class EntityCorefLinker(AbstractCorefLinker):
                     deps = [tok.dep_ for tok in OffsetConverter.get_tokens_in_span(span, doc)]
 
                     types = set()
-                    if self.entity_db.has_types(entity_id):
-                        for type_id in self.entity_db.get_types(entity_id):
+                    if self.entity_db.has_relevant_types(entity_id):
+                        for type_id in self.entity_db.get_relevant_types(entity_id):
                             if self.entity_db.contains_entity(type_id):
                                 type_entity = self.entity_db.get_entity(type_id)
                                 names = type_entity.synonyms | {type_entity.name}

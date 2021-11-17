@@ -1,6 +1,7 @@
 from typing import Optional
 
 import spacy
+import logging
 
 from spacy.vocab import Vocab
 from spacy.language import Language
@@ -8,11 +9,13 @@ from spacy.kb import KnowledgeBase
 
 from src import settings
 
+logger = logging.getLogger("main." + __name__.split(".")[-1])
+
 
 class EntityLinkerLoader:
     @staticmethod
     def load_trained_linker(name: str, kb_name: Optional[str] = None):
-        print("loading model...")
+        logger.info("Loading linker model...")
         path = settings.LINKERS_DIRECTORY + name
         with open(path, "rb") as f:
             model_bytes = f.read()
@@ -23,8 +26,9 @@ class EntityLinkerLoader:
             pipe = model.create_pipe(pipe_name)
             model.add_pipe(pipe)
         model.from_bytes(model_bytes)
+        logger.info("-> Linker model loaded.")
 
-        print("loading knowledge base...")
+        logger.info("Loading knowledge base...")
         if kb_name is None:
             vocab_path = settings.VOCAB_DIRECTORY
             kb_path = settings.KB_FILE
@@ -36,6 +40,7 @@ class EntityLinkerLoader:
         kb = KnowledgeBase(vocab=vocab, entity_vector_length=vocab.vectors.shape[1])
         kb.load_bulk(kb_path)
         model.get_pipe("entity_linker").set_kb(kb)
+        logger.info("-> Knowledge base loaded.")
 
         model.disable_pipes(["tagger"])
 

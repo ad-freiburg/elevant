@@ -8,10 +8,12 @@ import random
 import math
 import argparse
 import gensim
+import log
+import sys
 
 from spacy.kb import KnowledgeBase
 
-from src.linkers.link_entity_linker import get_mapping
+from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.helpers.label_generator import LabelGenerator
 from src.utils.embeddings_extractor import EmbeddingsExtractor
 from src.models.neural_net import NeuralNet
@@ -56,29 +58,29 @@ class EntityLinkingTrainer:
         self.lowest_val_loss = None
         self.global_model = global_model
 
-        print("Loading spacy model...")
+        logger.info("Loading spacy model...")
         nlp = spacy.load(settings.LARGE_MODEL_NAME)
 
-        print("Loading vocabulary...")
+        logger.info("Loading vocabulary...")
         nlp.vocab.from_disk(vocab_path)
 
-        print("Loading knowledge base...")
+        logger.info("Loading knowledge base...")
         self.kb = KnowledgeBase(vocab=nlp.vocab)
         self.kb.load_bulk(kb_path)
-        print(self.kb.get_size_entities(), "entities")
-        print(self.kb.get_size_aliases(), "aliases")
+        logger.info("Knowledge base contains %d entities." % self.kb.get_size_entities())
+        logger.info("Knowledge base contains %d aliases." % self.kb.get_size_aliases())
 
         self.rdf2vec = rdf2vec
         rdf2vec_model = None
         if rdf2vec:
-            print("Loading rdf2vec model...")
+            logger.info("Loading rdf2vec model...")
             rdf2vec_model = gensim.models.Word2Vec.load(settings.RDF2VEC_MODEL_PATH, mmap='r')
 
         self.entity_vector_length = rdf2vec_model.wv.vector_size if self.rdf2vec else self.kb.entity_vector_length
         self.embedding_extractor = EmbeddingsExtractor(self.entity_vector_length, self.kb, rdf2vec_model)
 
-        print("Loading wikipedia - wikidata mapping...")
-        mapping = get_mapping()
+        logger.info("Loading Wikipedia - Wikidata mapping...")
+        mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
         self.generator = LabelGenerator(nlp, self.kb, mapping)
 
         self.model = None
@@ -278,9 +280,9 @@ class EntityLinkingTrainer:
         """
         torch.save({'model': self.model, 'prior': self.prior, 'global_model': self.global_model,
                     'rdf2vec': self.rdf2vec}, self.model_path)
-        print(f"Dictionary with trained model saved to {self.model_path}")
+        logger.info(f"Dictionary with trained model saved to {self.model_path}")
         if self.save_best:
-            print(f"Best checkpoint saved to {self.checkpoint_path}")
+            logger.info(f"Best checkpoint saved to {self.checkpoint_path}")
 
     @staticmethod
     def load_model(model_path, kb_path, vocab_path):
@@ -342,17 +344,17 @@ def main(args):
         trainer.set_model_path(model_path)
 
         # Build training and validation data
-        print("Create training (and validation) data...")
+        logger.info("Create training (and validation) data...")
         x_train, y_train, _ = trainer.create_data(n_samples + n_val_samples)
         x_val, y_val = None, None
         if n_val_samples > 0:
             x_train, x_val = x_train[:n_samples], x_train[n_samples:]
             y_train, y_val = y_train[:n_samples], y_train[n_samples:]
-        print(f"Training samples size: {x_train.size()}, training labels size: {y_train.size()}")
-        print(f"First 20 training labels: {y_train[:20]}")
+        logger.info(f"Training samples size: {x_train.size()}, training labels size: {y_train.size()}")
+        logger.info(f"First 20 training labels: {y_train[:20]}")
 
         # Train the model
-        print("Start training...")
+        logger.info("Start training...")
         trainer.initialize_model(x_train.shape[1], hidden_units, dropout)
         trainer.train(x_train, y_train, n_epochs, batch_size, learning_rate, x_val, y_val)
 
@@ -360,10 +362,10 @@ def main(args):
         trainer.save_model()
 
     # Build test data
-    print("Create test data...")
+    logger.info("Create test data...")
     x_test, y_test, conjugate_indices_test = trainer.create_data(n_test_samples, test=True)
-    print(f"Test samples size: {x_test.size()}, test labels size: {y_test.size()}")
-    print(f"First 20 test labels: {y_test[:20]}")
+    logger.info(f"Test samples size: {x_test.size()}, test labels size: {y_test.size()}")
+    logger.info(f"First 20 test labels: {y_test[:20]}")
 
     # Test the model
     trainer.evaluate(x_test, y_test, conjugate_indices_test)
@@ -419,5 +421,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--load_model", type=str, default=None,
                         help="Load model from given path instead of training a new model and evaluate over it.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

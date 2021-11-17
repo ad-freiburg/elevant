@@ -5,7 +5,7 @@ if __name__ == "__main__":
     print("reading entity database...")
     entity_db = EntityDatabase()
     entity_db.load_entities_big()
-    entity_db.load_mapping()
+    entity_db.load_wikipedia_wikidata_mapping()
     entity_db.load_redirects()
     entity_db.load_link_frequencies()
 

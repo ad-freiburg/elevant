@@ -4,6 +4,9 @@ from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
 
 import json
+import logging
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class NeuralELPredictionReader:
@@ -25,7 +28,7 @@ class NeuralELPredictionReader:
             label = label.replace("_", " ")
             entity_id = self.entity_db.link2id(label)
             if not entity_id and label != "<unk wid>":
-                print("\nNo mapping to Wikidata found for label '%s'" % label)
+                logger.warning("\nNo mapping to Wikidata found for label '%s'" % label)
                 count += 1
             start = link["start_char"]
             end = link["end_char"]
@@ -33,7 +36,7 @@ class NeuralELPredictionReader:
             candidates = {entity_id}
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         if count > 0:
-            print("\n%d entity labels could not be matched to any Wikidata id." % count)
+            logger.warning("\n%d entity labels could not be matched to any Wikidata ID." % count)
         return predictions
 
     def article_predictions_iterator(self, file_path: str) \

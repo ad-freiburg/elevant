@@ -16,7 +16,10 @@ per line.
 
 import argparse
 import os
+import sys
 import time
+
+import log
 
 from src import settings
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
@@ -45,23 +48,26 @@ def main(args):
                                    args.longest_alias_ner,
                                    args.type_mapping)
     if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
-        print("Wexea can only be used as coreference linker in combination with the Wexea linker")
+        logger.warning("Wexea can only be used as coreference linker in combination with the Wexea linker")
         exit(1)
 
+    logger.info("Linking entities in file %s" % args.input_file)
     input_file = open(args.input_file, 'r', encoding='utf8')
 
     out_dir = os.path.dirname(args.output_file)
     if out_dir and not os.path.exists(out_dir):
-        print("Creating directory %s" % out_dir)
+        logger.info("Creating directory %s" % out_dir)
         os.makedirs(out_dir)
 
     output_file = open(args.output_file, 'w', encoding='utf8')
 
     pool = None
     if args.multithreading > 1:
+        logger.info("Multithreading is active. Using %d threads." % args.multithreading)
         # Make the Pool of workers
         pool = ThreadPool(args.multithreading)
 
+    logger.info("Start linking.")
     articles = []
     start = time.time()
     for i, line in enumerate(input_file):
@@ -109,14 +115,14 @@ def main(args):
         print("\r%i articles, %fs per article %f s total time." % (i, time_per_article, total_time), end='')
 
     print()
-    print("Linked %d articles in %fs" % (i, time.time() - start))
+    logger.info("Linked %d articles in %fs" % (i, time.time() - start))
+    logger.info("Linked articles written to %s" % args.output_file)
     input_file.close()
     output_file.close()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=__doc__)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
 
     parser.add_argument("input_file", type=str, default=None,
                         help="Input file with articles in JSON format or raw text.")
@@ -155,5 +161,8 @@ if __name__ == "__main__":
                         help="For pure prior linker: Map predicted entities to types using the given mapping.")
     parser.add_argument("-m", "--multithreading", type=int, default=1,
                         help="Number of threads to use. Default is 1.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

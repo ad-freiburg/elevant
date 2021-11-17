@@ -1,3 +1,4 @@
+import logging
 from typing import List, Tuple, Optional, Dict
 
 import spacy
@@ -7,6 +8,8 @@ from src.models.entity_database import EntityDatabase, MappingName
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
 from src.models.entity_prediction import EntityPrediction
 from src.utils.dates import is_date
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 def get_split_points(text: str) -> List[int]:
@@ -34,24 +37,20 @@ class MaximumMatchingNER(AbstractEntityLinker):
         return False
 
     def __init__(self, entity_db: EntityDatabase):
+        logger.info("Loading necessary mappings for NER ...")
         if not entity_db.loaded_info.get(MappingName.NAME_ALIASES):
-            print("Load name aliases")
             entity_db.add_name_aliases()
         if not entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
-            print("Load wikidata aliases")
             entity_db.add_wikidata_aliases()
-        if not entity_db.is_mapping_loaded():
-            print("Loading wikipedia-wikidata mapping...")
-            entity_db.load_mapping()
+        if not entity_db.is_wikipedia_wikidata_mapping_loaded():
+            entity_db.load_wikipedia_wikidata_mapping()
         if not entity_db.is_redirects_loaded():
-            print("Loading redirects...")
             entity_db.load_redirects()
         if not entity_db.is_link_frequencies_loaded():
-            print("Loading redirects...")
             entity_db.load_link_frequencies()
         if len(entity_db.unigram_counts) == 0:
-            print("Load unigram counts...")
             entity_db.load_unigram_counts()
+        logger.info("Necessary mappings loaded.")
         model = spacy.load("en_core_web_sm")
         stopwords = model.Defaults.stop_words
         exclude = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
@@ -59,6 +58,8 @@ class MaximumMatchingNER(AbstractEntityLinker):
         remove_beginnings = {"a ", "an ", "the ", "in ", "at "}
         remove_ends = {"'s"}
         exclude_ends = {" the"}
+
+        logger.info("Retrieving alias frequencies ...")
         self.alias_frequencies = {}
         for alias in entity_db.aliases:
             ignore_alias = False
@@ -96,6 +97,7 @@ class MaximumMatchingNER(AbstractEntityLinker):
                     self.alias_frequencies[alias] = alias_frequency
         self.max_len = 20
         self.model = None
+        logger.info("%d alias frequencies retrieved." % len(self.alias_frequencies))
 
     def entity_mentions(self, text: str) -> List[Tuple[int, int]]:
         split_points = get_split_points(text)

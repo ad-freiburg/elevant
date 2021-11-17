@@ -1,4 +1,6 @@
 import argparse
+import log
+import sys
 
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.examples_generator import get_example_generator
@@ -6,6 +8,7 @@ from src.models.entity_prediction import EntityPrediction
 
 
 def main(args):
+    logger.info("Generating oracle links for %s ..." % args.benchmark)
     example_generator = get_example_generator(args.benchmark)
 
     output_file = open(args.output_file, 'w', encoding='utf8')
@@ -20,7 +23,7 @@ def main(args):
         article.link_entities(predicted_entities, "ORACLE", "ORACLE")
         output_file.write(article.to_json() + '\n')
 
-    print("Wrote linked articles to %s" % args.output_file)
+    logger.info("Wrote articles with oracle links to %s" % args.output_file)
     output_file.close()
 
 
@@ -33,5 +36,8 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=None,
                         help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
                              "retrieved from the given jsonl file")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

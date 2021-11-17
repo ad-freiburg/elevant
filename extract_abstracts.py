@@ -1,10 +1,14 @@
+import log
+import sys
+
 from src import settings
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 
-if __name__ == "__main__":
+def main():
+    logger.info("Extracting Wikipedia abstracts from entire Wikipedia dump ...")
     with open(settings.WIKIPEDIA_ABSTRACTS_FILE, "w", encoding="utf8") as output_file:
-        for article in WikipediaDumpReader.article_iterator():
+        for i, article in enumerate(WikipediaDumpReader.article_iterator()):
             paragraphs = article.text.split("\n\n")
             abstract = ""
             if len(paragraphs) > 1:
@@ -20,3 +24,15 @@ if __name__ == "__main__":
                 article.url,
                 abstract
             )) + "\n")
+
+        if (i + 1) % 100 == 0:
+            print("Processed %d articles.\r" % (i+1), end="")
+
+    logger.info("Wrote %d abstracts to %s" % (i+1, settings.WIKIPEDIA_ABSTRACTS_FILE))
+
+
+if __name__ == "__main__":
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main()

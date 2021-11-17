@@ -16,6 +16,8 @@ per line.
 
 import argparse
 import time
+import log
+import sys
 import os
 
 from src import settings
@@ -28,9 +30,9 @@ from src.evaluation.examples_generator import get_example_generator
 def main(args):
     if args.link_linker:
         if args.benchmark != Benchmark.WIKI_EX.value and args.benchmark != Benchmark.CONLL_PSEUDO_LINKS.value:
-            print("WARNING: Using a link linker only makes sense over benchmarks that contain hyperlinks.")
+            logger.warning("Using a link linker only makes sense over benchmarks that contain hyperlinks.")
     if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
-        print("Wexea can only be used as coreference linker in combination with the Wexea linker")
+        logger.error("Wexea can only be used as coreference linker in combination with the Wexea linker")
         exit(1)
 
     linking_system = LinkingSystem(args.linker_type,
@@ -46,10 +48,12 @@ def main(args):
 
     out_dir = os.path.dirname(args.output_file)
     if out_dir and not os.path.exists(out_dir):
-        print("Creating directory %s" % out_dir)
+        logger.info("Creating directory %s" % out_dir)
         os.makedirs(out_dir)
 
     output_file = open(args.output_file, 'w', encoding='utf8')
+
+    logger.info("Linking entities in %s benchmark ..." % args.benchmark)
 
     for i, article in enumerate(example_generator.iterate(args.n_articles)):
         article_start_time = time.time()
@@ -58,9 +62,11 @@ def main(args):
         article.set_evaluation_time(time.time() - article_start_time)
         output_file.write(article.to_json() + '\n')
         print("\r%i articles" % (i + 1), end='')
-    print("\nWrote linked articles to %s" % args.output_file)
+    print()
 
     output_file.close()
+
+    logger.info("Wrote %d linked articles to %s" % (i+1, args.output_file))
 
 
 if __name__ == "__main__":
@@ -103,5 +109,8 @@ if __name__ == "__main__":
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
                         help="For pure prior linker: Map predicted entities to types using the given mapping.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

@@ -1,10 +1,13 @@
 import os
+import logging
 
 from typing import Dict, Tuple, Iterator
 from xml.etree import ElementTree
 
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class WikifierPredictionReader:
@@ -35,8 +38,8 @@ class WikifierPredictionReader:
                 # the title extracted via the page ID
                 wiki_title = wiki_title_by_id
             else:
-                print("\nCould not resolve missing characters in '%s', title by page ID: '%s', ID: %d"
-                      % (wiki_title, wiki_title_by_id, wiki_id))
+                logger.warning("\nCould not resolve missing characters in '%s', title by page ID: '%s', ID: %d"
+                               % (wiki_title, wiki_title_by_id, wiki_id))
         return wiki_title
 
     def _get_prediction_from_file(self, file_path: str) -> Dict[Tuple[int, int], EntityPrediction]:
@@ -61,7 +64,7 @@ class WikifierPredictionReader:
             wiki_title = self.get_correct_wikipedia_title(wiki_title, wiki_id)
             entity_id = self.entity_db.link2id(wiki_title)
             if not entity_id:
-                print("\nNo mapping to Wikidata found for label '%s'" % wiki_title)
+                logger.warning("\nNo mapping to Wikidata found for label '%s'" % wiki_title)
                 count += 1
 
             candidates = set()
@@ -78,7 +81,7 @@ class WikifierPredictionReader:
             predictions[span] = EntityPrediction(span, entity_id, candidates)
 
         if count > 0:
-            print("\n%d entity labels could not be matched to any Wikidata id." % count)
+            logger.warning("\n%d entity labels could not be matched to any Wikidata ID." % count)
 
         return predictions
 

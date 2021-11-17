@@ -8,6 +8,8 @@ The evaluation results are printed.
 """
 
 import argparse
+import log
+import sys
 import json
 import re
 
@@ -20,6 +22,7 @@ from src.evaluation.evaluator import Evaluator
 
 
 def main(args):
+    logger.info("Evaluating linking results from %s ..." % args.input_file)
     input_file = open(args.input_file, 'r', encoding='utf8')
     idx = args.input_file.rfind('.')
 
@@ -30,6 +33,8 @@ def main(args):
     # Get a set of entity ids of all predicted entities and candidate entities
     # to load their information into the entity_db
     # (all necessary information about ground truth labels is already contained in the benchmark jsonl file)
+    logger.info("Extracting relevant entities (predicted entities, candidates and "
+                "groundtruth entities if a type mapping is given) ...")
     relevant_entity_ids = set()
     for line in input_file:
         article = article_from_json(line)
@@ -57,11 +62,11 @@ def main(args):
 
     whitelist_file = args.type_whitelist if args.type_whitelist else settings.WHITELIST_FILE
     if args.input_case_file:
+        logger.info("Using cases from %s" % args.input_case_file)
         case_file = open(args.input_case_file, 'r', encoding='utf8')
         evaluator = Evaluator(relevant_entity_ids, None, whitelist_file=whitelist_file, load_data=False,
                               coreference=not args.no_coreference, contains_unknowns=not args.no_unknowns)
     else:
-        print("load evaluation entities...")
         type_mapping_file = args.type_mapping if args.type_mapping else settings.WHITELIST_TYPE_MAPPING
         evaluator = Evaluator(relevant_entity_ids, type_mapping_file, whitelist_file=whitelist_file, load_data=True,
                               contains_unknowns=not args.no_unknowns)
@@ -73,8 +78,10 @@ def main(args):
     if args.benchmark:
         # If a benchmark is given, labels are retrieved from the benchmark
         # and not from the given jsonl file. The user has to make sure the files match.
+        logger.info("Retrieving labels from %s benchmark file instead of %s" % (args.benchmark, args.input_file))
         example_iterator = get_example_generator(args.benchmark).iterate()
 
+    logger.info("Evaluating linked entities ...")
     input_file.seek(0)
     for line in input_file:
         article = article_from_json(line)
@@ -135,14 +142,14 @@ def main(args):
 
     with open(results_file, "w") as f:
         f.write(json.dumps(evaluator.get_results_dict()))
-    print("\nWrote results to %s" % results_file)
+    logger.info("Wrote results to %s" % results_file)
 
     input_file.close()
     if args.input_case_file:
         case_file.close()
     else:
         output_file.close()
-        print("\nWrote evaluation cases to %s" % output_filename)
+        logger.info("Wrote evaluation cases to %s" % output_filename)
 
 
 if __name__ == "__main__":
@@ -151,10 +158,10 @@ if __name__ == "__main__":
 
     parser.add_argument("input_file", type=str,
                         help="Input file. Linked articles with ground truth labels.")
-    parser.add_argument("-out", "--output_file", type=str, default=None,
+    parser.add_argument("-o", "--output_file", type=str, default=None,
                         help="Output file for the evaluation results."
                              " The input file with .cases extension if none is specified.")
-    parser.add_argument("-in", "--input_case_file", type=str, default=None,
+    parser.add_argument("-icf", "--input_case_file", type=str, default=None,
                         help="Input file that contains the evaluation cases. Cases are not written to file.")
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evaluation.")
@@ -172,5 +179,8 @@ if __name__ == "__main__":
     parser.add_argument("--type_filter_predictions", action="store_true",
                         help="Ignore predicted links that do not have a type from the type whitelist."
                              "This has no effect if the type_whitelist argument is not provided.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

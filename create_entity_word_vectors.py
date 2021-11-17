@@ -1,3 +1,5 @@
+import argparse
+import log
 import sys
 import pickle
 
@@ -15,7 +17,7 @@ def preprocess_description(description: str) -> str:
 
 def save_vectors(vectors, file_no):
     path = settings.VECTORS_DIRECTORY + "%i.pkl" % file_no
-    print("\nsaving vectors to %s" % path)
+    logger.info("Saving vectors to %s" % path)
     with open(path, "wb") as f:
         pickle.dump(vectors, f)
 
@@ -23,18 +25,20 @@ def save_vectors(vectors, file_no):
 SAVE_EVERY = 10000
 
 
-if __name__ == "__main__":
-    minimum_score = int(sys.argv[1])
-    start_line = 0 if len(sys.argv) == 2 else int(sys.argv[2])
+def main(args):
+    minimum_score = args.min_score
+    start_line = args.start_line
 
+    logger.info("Loading entity database ...")
     entity_db = EntityDatabase()
     entity_db.load_entities_small(minimum_score)
     generator = VectorGenerator()
 
-    print("generating vectors...")
+    abstracts_file = settings.QID_TO_ABSTRACTS_FILE
     vectors = []
     file_no = start_line // SAVE_EVERY
-    for i, line in enumerate(open(settings.QID_TO_ABSTRACTS_FILE)):
+    logger.info("Generating vectors from %s ..." % abstracts_file)
+    for i, line in enumerate(open(abstracts_file)):
         if i < start_line:
             continue
         entity_id, name, description = line[:-1].split('\t')
@@ -44,6 +48,7 @@ if __name__ == "__main__":
             vectors.append((entity_id, vector))
             print("\r%i vectors" % len(vectors), end='')
             if len(vectors) == SAVE_EVERY:
+                print()
                 save_vectors(vectors, file_no)
                 file_no += 1
                 vectors = []
@@ -51,3 +56,18 @@ if __name__ == "__main__":
 
     if len(vectors) > 0:
         save_vectors(vectors, file_no)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__)
+
+    parser.add_argument("min_score", type=int, required=True,
+                        help="Minimum score.")
+    parser.add_argument("start_line", type=int, default=0,
+                        help="Start line.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main(parser.parse_args())

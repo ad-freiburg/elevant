@@ -1,3 +1,4 @@
+import logging
 from typing import List, Set, Optional
 
 from src import settings
@@ -12,15 +13,18 @@ from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
 from src.evaluation.errors import label_errors
 
+logger = logging.getLogger("main." + __name__.split(".")[-1])
+
 
 def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: str) -> EntityDatabase:
+    logger.info("Initializing entity database for evaluation ...")
     entity_db = EntityDatabase()
     mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
     mapping_entity_ids = set(mapping.values())
     relevant_entity_ids.update(mapping_entity_ids)
     entity_db.load_sitelink_counts()
     entity_db.load_entities(relevant_entity_ids, type_mapping=type_mapping_file)
-    entity_db.load_mapping()
+    entity_db.load_wikipedia_wikidata_mapping()
     entity_db.load_redirects()
     entity_db.load_demonyms()
     entity_db.load_quantities()
@@ -28,6 +32,7 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     entity_db.add_name_aliases()
     entity_db.add_wikidata_aliases()
     entity_db.add_link_aliases()
+    logger.info("-> Entity database initialized.")
     return entity_db
 
 

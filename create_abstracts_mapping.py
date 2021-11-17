@@ -1,4 +1,6 @@
 import argparse
+import sys
+import log
 
 from src import settings
 from src.helpers.wikipedia_corpus import WikipediaCorpus
@@ -6,13 +8,15 @@ from src.models.entity_database import EntityDatabase
 
 
 def main(args):
-    print("Loading wikipedia to wikidata mapping...")
+    logger.info("Loading entity database...")
     entity_db = EntityDatabase()
-    entity_db.load_mapping()
+    entity_db.load_wikipedia_wikidata_mapping()
     entity_db.load_redirects()
 
     mapping_errors = 0
+    multi_mapping_errors = 0
     entity_id_to_abstract = {}
+    logger.info("Extracting abstracts from %s" % args.input_file)
     for i, article in enumerate(WikipediaCorpus.get_articles(args.input_file)):
         abstract_span = article.get_abstract_span()
         abstract = article.text[abstract_span[0]:abstract_span[1]].strip()
@@ -21,29 +25,36 @@ def main(args):
             if entity_id in entity_id_to_abstract:
                 # Occurs little more than 100 times with the 20211001 Wikipedia dump
                 # and the 20211021 redirects
-                print("Article mapped to %s twice: %s and %s"
-                      % (entity_id, article.title, entity_id_to_abstract[entity_id][0]))
+                logger.debug("Article mapped to %s twice: %s and %s"
+                             % (entity_id, article.title, entity_id_to_abstract[entity_id][0]))
+                multi_mapping_errors += 1
             entity_id_to_abstract[entity_id] = (article.title, abstract.replace("\n", " "))
         else:
             # 115812 over enwiki-20211001-extracted.sections.jsonl
             mapping_errors += 1
-        print("\rRead %d articles" % (i+1), end='')
-    print("%d article titles could not be mapped to a QID." % mapping_errors)
-    print("Writing sorted mapping to %s" % args.output_file)
+        if (i + 1) % 100 == 0:
+            print("\rRead %d articles" % (i+1), end='')
+    print()
+    logger.info("%d Wikipedia titles could not be mapped to a QID." % mapping_errors)
+    logger.info("%d Wikipedia titles were mapped to an already mapped QID." % multi_mapping_errors)
+
+    logger.info("Writing sorted mapping to %s" % args.output_file)
     with open(args.output_file, "w", encoding="utf8") as output_file:
         for entity_id, (title, abstract) in sorted(entity_id_to_abstract.items()):
             output_file.write("%s\t%s\t%s\n" % (entity_id, title, abstract))
-    print("Wrote %d article abstracts to %s" % (len(entity_id_to_abstract), args.output_file))
+    logger.info("Wrote %d article abstracts to %s" % (len(entity_id_to_abstract), args.output_file))
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=__doc__)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
 
     parser.add_argument("-i", "--input_file", type=str, default=settings.EXTRACTED_WIKIPEDIA_DUMP_FILE,
                         help="Input file. Extracted Wikipedia dump in jsonl format.")
 
     parser.add_argument("-o", "--output_file", type=str, default=settings.QID_TO_ABSTRACTS_FILE,
                         help="Output file.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

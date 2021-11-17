@@ -4,6 +4,7 @@ from spacy.tokens import Doc
 from spacy.language import Language
 
 import spacy
+import logging
 
 from src.models.entity_database import EntityDatabase
 from src.models.entity_mention import EntityMention
@@ -11,6 +12,8 @@ from src.utils.offset_converter import OffsetConverter
 from src.utils.pronoun_finder import PronounFinder
 from src.models.wikipedia_article import WikipediaArticle
 from src import settings
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 def is_overlapping_span(covered_positions: Set[int], span: Tuple[int, int]) -> bool:
@@ -30,15 +33,6 @@ class LinkTextEntityLinker:
             self.model = model
 
         self.entity_db = entity_db
-        if not self.entity_db.is_given_names_loaded():
-            print("Load first name mapping...")
-            self.entity_db.load_names()
-        if not self.entity_db.is_title_synonyms_loaded():
-            print("Load title synonyms...")
-            self.entity_db.load_title_synonyms()
-        if not self.entity_db.is_akronyms_loaded():
-            print("Load akronyms...")
-            self.entity_db.load_akronyms()
 
     def add_synonyms(self, entity_id: str, synonym_dict: Dict):
         """Add all aliases of an entity to dictionary
@@ -169,7 +163,6 @@ class LinkTextEntityLinker:
 
                 # Add text span to entity mentions
                 covered_positions.update(range(start_idx, end_idx))
-                # print("Add entity %s for link text \"%s\"" % (entity_id, link_text))
                 entity_mention = EntityMention(span=(start_idx, end_idx),
                                                recognized_by=self.LINKER_IDENTIFIER,
                                                entity_id=entity_id,

@@ -1,3 +1,4 @@
+import logging
 import spacy
 from spacy.kb import KnowledgeBase
 
@@ -5,30 +6,34 @@ from src.models.entity_database import EntityDatabase
 from src.helpers.word_vectors import VectorLoader
 from src import settings
 
+logger = logging.getLogger("main." + __name__.split(".")[-1])
+
 
 class KnowledgeBaseCreator:
     @staticmethod
     def create_kb_wikipedia() -> KnowledgeBase:
-        print("read entity database...")
+        logger.info("Load entity database ...")
         entity_db = EntityDatabase()
         entity_db.load_entities_big()
-        entity_db.load_mapping()
+        entity_db.load_wikipedia_wikidata_mapping()
         entity_db.load_redirects()
         entity_db.load_link_frequencies()
         entity_db.add_link_aliases()
+        logger.info("-> Entity database loaded.")
 
-        print("load model...")
+        logger.info("Load Spacy model...")
         model = spacy.load(settings.LARGE_MODEL_NAME)
         kb = KnowledgeBase(vocab=model.vocab, entity_vector_length=model.vocab.vectors.shape[1])
+        logger.info("-> Spacy model loaded.")
 
-        print("read vectors...")
+        logger.info("Load vectors...")
         vector_dir = settings.VECTORS_ABSTRACTS_DIRECTORY
         for entity_id, vector in VectorLoader.iterate(vector_dir):
             frequency = entity_db.get_entity_frequency(entity_id)
             kb.add_entity(entity=entity_id, freq=frequency, entity_vector=vector)
-        print(len(kb), "entities")
+        logger.info("-> Vectors loaded. Knowledge base contains %d entities." % len(kb))
 
-        print("add aliases...")
+        logger.info("Adding aliases...")
         for alias in entity_db.aliases:
             if len(alias) > 0:
                 alias_entity_ids = [entity_id for entity_id in entity_db.get_candidates(alias)
@@ -44,7 +49,7 @@ class KnowledgeBaseCreator:
                     else:
                         probabilities = [1 / len(alias_entity_ids) for _ in alias_entity_ids]
                     kb.add_alias(alias=alias, entities=alias_entity_ids, probabilities=probabilities)
-        print(kb.get_size_aliases(), "aliases")
+        logger.info("-> %d aliases added." % kb.get_size_aliases())
 
         return kb
 
@@ -53,16 +58,14 @@ class KnowledgeBaseCreator:
         model = spacy.load(settings.LARGE_MODEL_NAME)
         kb = KnowledgeBase(vocab=model.vocab, entity_vector_length=model.vocab.vectors.shape[1])
 
-        print("reading entity vectors...")
+        logger.info("Loading entity vectors...")
         for entity_id, vector in VectorLoader.iterate():
             if entity_db.contains_entity(entity_id) and not kb.contains_entity(entity_id):
                 score = entity_db.get_score(entity_id)
                 kb.add_entity(entity=entity_id, freq=score, entity_vector=vector)
-                # print("\r%i entities" % len(kb), end='')
-        # print()
-        print(len(kb), "entities")
+        logger.info("-> Vectors loaded. Knowledge base contains %d entities." % len(kb))
 
-        print("adding aliases...")
+        logger.info("Adding aliases...")
         for alias in entity_db.aliases:
             if len(alias) > 0:
                 alias_entity_ids = [entity_id for entity_id in entity_db.get_candidates(alias)
@@ -77,8 +80,7 @@ class KnowledgeBaseCreator:
                         probabilities = [frequency / sum_frequencies for frequency in frequencies]
                     else:
                         probabilities = [1 / len(alias_entity_ids) for _ in alias_entity_ids]
-                    # print(alias, list(zip(alias_entity_ids, probabilities)))
                     kb.add_alias(alias=alias, entities=alias_entity_ids, probabilities=probabilities)
-        print(kb.get_size_aliases(), "aliases")
+        logger.info("-> %d aliases added." % kb.get_size_aliases())
 
         return kb

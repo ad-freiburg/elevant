@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Tuple, List, Optional
 
 import spacy
@@ -20,6 +21,8 @@ from src import settings
 import torch
 import gensim
 
+logger = logging.getLogger("main." + __name__.split(".")[-1])
+
 
 class TrainedEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "VANILLA_LOCAL_LINKER"
@@ -41,7 +44,7 @@ class TrainedEntityLinker(AbstractEntityLinker):
             ner_postprocessor = NERPostprocessor(entity_db)
             self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
-        print("loading knowledge base...")
+        logger.info("Loading knowledge base...")
         if kb_name is None:
             vocab_path = settings.VOCAB_DIRECTORY
             kb_path = settings.KB_FILE
@@ -58,14 +61,14 @@ class TrainedEntityLinker(AbstractEntityLinker):
 
         self.prior = prior
         self.global_model = global_model
-        print(f"Use prior probabilities: {prior}")
-        print(f"Use a global model: {global_model}")
-        print(f"Use RDF2Vec as entity vectors: {rdf2vec}")
+        logger.info(f"Use prior probabilities: {prior}")
+        logger.info(f"Use a global model: {global_model}")
+        logger.info(f"Use RDF2Vec as entity vectors: {rdf2vec}")
 
         # Load rdf2vec model
         rdf2vec_model = None
         if rdf2vec:
-            print("Loading RDF2Vec model...")
+            logger.info("Loading RDF2Vec model...")
             rdf2vec_model = gensim.models.Word2Vec.load(settings.RDF2VEC_MODEL_PATH, mmap='r')
 
         # Determine the dimensionality of an entity vector

@@ -1,12 +1,14 @@
 from itertools import chain
 import pickle
+import log
+import sys
 
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src import settings
 
 
-if __name__ == "__main__":
-    PRINT_EVERY = 100
+def main():
+    logger.info("Extracting link frequencies from Wikipedia training articles.")
 
     links = {}
 
@@ -16,9 +18,8 @@ if __name__ == "__main__":
     )
 
     for a_i, article in enumerate(article_iterator):
-        if a_i % PRINT_EVERY == 0 or article is None:
-            print("\r%i articles, %i unique link texts" % (a_i, len(links)),
-                  end='')
+        if a_i % 100 == 0 or article is None:
+            print("\r%i articles, %i unique link texts" % (a_i, len(links)), end='')
         if article is None:
             print()
             break
@@ -33,4 +34,11 @@ if __name__ == "__main__":
 
     with open(settings.LINK_FREEQUENCIES_FILE, "wb") as f:
         pickle.dump(links, f)
-    print("Saved link frequencies to %s." % settings.LINK_FREEQUENCIES_FILE)
+    logger.info("Wrote %d link frequencies to %s." % (len(links), settings.LINK_FREEQUENCIES_FILE))
+
+
+if __name__ == "__main__":
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main()

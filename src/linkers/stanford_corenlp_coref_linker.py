@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, List
 
 import stanza
@@ -7,6 +8,8 @@ from spacy.tokens import Doc
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.coref_cluster import CorefCluster
 from src.models.wikipedia_article import WikipediaArticle
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class StanfordCoreNLPCorefLinker(AbstractCorefLinker):
@@ -29,5 +32,5 @@ class StanfordCoreNLPCorefLinker(AbstractCorefLinker):
                 coref_cluster = CorefCluster(mentions[0], mentions)
                 coref_clusters.append(coref_cluster)
         except stanza.server.client.TimeoutException as e:
-            print(e)
+            logger.error(e)
         return coref_clusters

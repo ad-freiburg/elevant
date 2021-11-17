@@ -1,4 +1,5 @@
 import abc
+import logging
 from typing import Dict, Tuple, Optional
 
 from spacy.tokens import Doc
@@ -6,6 +7,8 @@ from spacy.tokens import Doc
 from src.models.entity_mention import EntityMention
 from src.models.entity_prediction import EntityPrediction
 from src.models.wikipedia_article import WikipediaArticle
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class AbstractEntityLinker(abc.ABC):
@@ -28,7 +31,7 @@ class AbstractEntityLinker(abc.ABC):
         Predict entities with regard to already linked entities in the article.
         If not supported by the entity linker, a local prediction is performed.
         """
-        print("Global prediction is not supported for the selected linker. Performing local prediction.")
+        logger.warning("Global prediction is not supported for the selected linker. Performing local prediction.")
         return self.predict(text, doc, uppercase)
 
     @abc.abstractmethod

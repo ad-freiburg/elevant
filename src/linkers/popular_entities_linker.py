@@ -65,7 +65,6 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         spans = []
         if self.longest_alias_ner:
             original_spans = self.ner.entity_mentions(text)
-            print(original_spans)
             for span in original_spans:
                 is_language = False
                 snippet = text[span[0]:span[1]]

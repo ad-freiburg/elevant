@@ -1,4 +1,6 @@
 import pickle
+import log
+import sys
 import re
 
 from src.helpers.wikipedia_corpus import WikipediaCorpus
@@ -6,15 +8,14 @@ from src import settings
 
 _akronym_re = re.compile(r" \(([A-Z]+)\).*")
 
-if __name__ == "__main__":
-    PRINT_EVERY = 100
+
+def main():
+    logger.info("Extracting akronyms from Wikipedia training articles ...")
 
     akronyms = {}
-
     for a_i, article in enumerate(WikipediaCorpus.training_articles()):
-        if a_i % PRINT_EVERY == 0 or article is None:
-            print("\r%i articles, %i unique akronyms" % (a_i, len(akronyms)),
-                  end='')
+        if a_i % 100 == 0 or article is None:
+            print("\r%d articles, %d unique akronyms" % (a_i, len(akronyms)), end='')
         if article is None:
             print()
             break
@@ -33,4 +34,12 @@ if __name__ == "__main__":
 
     with open(settings.AKRONYMS_FILE, "wb") as f:
         pickle.dump(akronyms, f)
-    print("Saved akronyms to %s" % settings.AKRONYMS_FILE)
+
+    logger.info("Wrote %d akronyms to %s" % (len(akronyms), settings.AKRONYMS_FILE))
+
+
+if __name__ == "__main__":
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main()

@@ -1,4 +1,5 @@
 import os
+import logging
 
 from typing import Iterator
 
@@ -7,6 +8,8 @@ from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
 
 from xml.etree import ElementTree
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class XMLBenchmarkParser:
@@ -29,6 +32,7 @@ class XMLBenchmarkParser:
             wiki_labels = []
         labels = []
         label_id_counter = 0
+        no_mapping_count = 0
         for span, wiki_name in wiki_labels:
             span = span[0] - offset, span[1] - offset
             # For now, simply ignore NIL-entities.
@@ -38,11 +42,14 @@ class XMLBenchmarkParser:
                     # This is the case for 3 ACE mentions one of which does not (anymore?) exist in Wikipedia either.
                     # The other two are spelling errors: "Seattke" and "USS COLE (DDG-67)" (uppercase error)
                     # For MSNBC this is the case for 87 mentions.
-                    print("\nMapping not found for wiki title: %s" % wiki_name)
+                    logger.warning("\nNo mapping to Wikidata found for label: %s" % wiki_name)
+                    no_mapping_count += 1
                 else:
                     gt_label = GroundtruthLabel(label_id_counter, span, entity_id, "Unknown")
                     labels.append(gt_label)
                     label_id_counter += 1
+        if no_mapping_count > 0:
+            logger.warning("\n%d Labels could not be matched to any Wikidata ID." % no_mapping_count)
         return WikipediaArticle(id=-1, title="", text=stripped_text, links=[], labels=labels)
 
     def get_mention_dictionary_from_file(self, xml_file: str):

@@ -12,7 +12,9 @@ from src import settings
 
 import operator
 import random
+import logging
 
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 random.seed(42)
 
@@ -193,10 +195,11 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
         elif benchmark_name == Benchmark.NEWSCRAWL.value:
             example_generator = JsonBenchmarkExampleReader(path + "benchmark_labels_newscrawl.jsonl")
         else:
-            print("Load wikipedia to wikidata mapping for example generator...")
+            logger.info("Load mappings for example generator...")
             entity_db = EntityDatabase()
-            entity_db.load_mapping()
+            entity_db.load_wikipedia_wikidata_mapping()
             entity_db.load_redirects()
+            logger.info("-> Mappings loaded.")
             if benchmark_name == Benchmark.ACE.value:
                 example_generator = AceExampleReader(entity_db)
             elif benchmark_name == Benchmark.MSNBC.value:

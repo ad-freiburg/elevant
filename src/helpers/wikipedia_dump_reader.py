@@ -1,3 +1,4 @@
+import logging
 from typing import Iterator, Dict, Tuple, List, Optional
 
 import os
@@ -7,6 +8,8 @@ from urllib.parse import unquote
 
 from src.models.wikipedia_article import WikipediaArticle, ABSTRACT_INDICATOR
 from src import settings
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class WikipediaDumpReader:
@@ -49,7 +52,7 @@ class WikipediaDumpReader:
             target = unquote(target)
             return target
         else:
-            print("WARNING: could not parse link '%s'." % link_html)
+            logger.debug("Could not parse link '%s'." % link_html)
             return ""
 
     @staticmethod

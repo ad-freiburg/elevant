@@ -3,6 +3,8 @@ from typing import Set
 import operator
 import copy
 import argparse
+import sys
+import log
 
 from src import settings
 from src.helpers.entity_database_reader import EntityDatabaseReader
@@ -46,21 +48,21 @@ class AllTypesMappingCreator:
 
 
 def main(args):
-    print("Read sitelink counts. Ignore entities with sitelink count < %d" % args.min_count)
+    logger.info("Read sitelink counts. Ignore entities with sitelink count < %d" % args.min_count)
     relevant_entities = set(EntityDatabaseReader.get_sitelink_counts(args.min_count).keys())
-    print("Number of entities with sitelink count >= %d: %d" % (args.min_count, len(relevant_entities)))
+    logger.info("Number of entities with sitelink count >= %d: %d" % (args.min_count, len(relevant_entities)))
 
-    print("Loading instance-of mapping for relevant entities...")
+    logger.info("Loading instance-of mapping for relevant entities...")
     qid_to_instance_of_mapping = EntityDatabaseReader.get_instance_of_mapping(relevant_entities)
 
-    print("Loading subclass-of mapping...")
+    logger.info("Loading subclass-of mapping...")
     qid_to_subclassof_mapping = EntityDatabaseReader.get_subclass_of_mapping()
 
     mapping_creator = AllTypesMappingCreator(qid_to_instance_of_mapping, qid_to_subclassof_mapping)
 
     output_file = open(args.output_file, "w", encoding="utf8")
 
-    print("Create mapping from entity QID to all corresponding types...")
+    logger.info("Create mapping from entity QID to all corresponding types...")
     for i, (qid, distinct_classes) in enumerate(mapping_creator.all_types_iterator()):
         output_file.write("%s" % qid)
         for cls, depth in sorted(distinct_classes.items(), key=operator.itemgetter(1, 0)):
@@ -70,7 +72,7 @@ def main(args):
             print("\rProcessed %d entities" % (i + 1), end='')
 
     print()
-    print("Wrote mapping to %s" % args.output_file)
+    logger.info("Wrote mapping for %d entities to %s" % (i+1, args.output_file))
 
 
 if __name__ == "__main__":
@@ -81,5 +83,8 @@ if __name__ == "__main__":
                         help="Output file.")
     parser.add_argument("-min", "--min_count", type=int, default=2,
                         help="Write only entities to the output file with a sitelink count >= min_count.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

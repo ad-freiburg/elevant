@@ -1,17 +1,20 @@
+import argparse
 import json
+import log
 import sys
 
+from src.evaluation.benchmark import Benchmark
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.wikipedia_article import article_from_json
 
 
-if __name__ == "__main__":
-    benchmark_name = sys.argv[1]
+def main(args):
+    benchmark_name = args.benchmark_name
     in_file = "benchmarks/benchmark_labels_%s.jsonl" % benchmark_name
+    logger.info("Analyzing entity types in %s" % in_file)
 
     # read whitelist
     whitelist = EntityDatabaseReader.read_whitelist_types()
-    print(whitelist)
 
     # read benchmark
     articles = []
@@ -23,17 +26,16 @@ if __name__ == "__main__":
             for label in article.labels:
                 entity_ids.add(label.entity_id)
 
-    # read entity names from whitelist-to-type mapping
+    # read entity labels
     entity_names = {}
     for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
         if entity_id in entity_ids:
             entity_names[entity_id] = name
 
-    labels_tsv_file = "benchmarks/" + benchmark_name + ".labels.tsv"
-    types_json_file = "benchmarks/" + benchmark_name + ".types.json"
-    labels_tsv_file = open(labels_tsv_file, "w", encoding="utf8")
+    labels_tsv_filename = "benchmarks/" + benchmark_name + ".labels.tsv"
+    types_json_filename = "benchmarks/" + benchmark_name + ".types.json"
+    labels_tsv_file = open(labels_tsv_filename, "w", encoding="utf8")
 
-    print(len(articles))
     type_counts = {}
     total_counts = {True: 0, False: 0}
     num_labels = 0
@@ -84,9 +86,22 @@ if __name__ == "__main__":
             lvl1_count = other_count = 0
         type_name_counts[type_name] = [lvl1_count, other_count]
 
-    with open(types_json_file, "w", encoding="utf8") as f:
+    with open(types_json_filename, "w", encoding="utf8") as f:
         f.write(json.dumps({"total": [total_counts[True], total_counts[False]],
                             "types": type_name_counts}))
 
-    print(f"{n_traditional_entities / known_labels * 100:.2f}% of the known mentions are covered by "
-          f"{traditional_entity_types}")
+    logger.info(f"{n_traditional_entities / known_labels * 100:.2f}% of the known mentions are covered by "
+                f"{traditional_entity_types}")
+    logger.info("Wrote analyzed entity types to %s and %s." % (labels_tsv_filename, types_json_filename))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
+
+    parser.add_argument("benchmark_name", type=str, required=True, choices=[b.value for b in Benchmark],
+                        help="Name of the benchmark to be analyzed.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
+
+    main(parser.parse_args())
