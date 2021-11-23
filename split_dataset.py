@@ -4,6 +4,7 @@ import random
 import argparse
 import log
 import sys
+import os
 
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src import settings
@@ -71,6 +72,11 @@ def main(args):
             test_ids.append(article_id)
             test_ids_set.add(article_id)
             found_test_articles[article_id] = None
+
+    dirname = os.path.dirname(settings.WIKIPEDIA_TRAINING_ARTICLES)
+    if not os.path.exists(dirname):
+        logger.info("Creating directory %s" % dirname)
+        os.makedirs(os.path.dirname(dirname))
 
     logger.info("Writing articles...")
     if not args.random_split:

@@ -124,6 +124,7 @@ setup: download_wiki extract_wiki split_wiki getmappings
 
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:
+	@[ -d ${WIKIPEDIA_DUMP_FILES_DIR} ] || mkdir ${WIKIPEDIA_DUMP_FILES_DIR}
 	@if ls ${WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "\033[31mWikipedia dump already exists at ${WIKI_DUMP} . Delete or rename it first. Dump not downloaded.\033[0m"; echo; else \
 	  wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles-multistream.xml.bz2 -O ${WIKI_DUMP}; \
 	fi
@@ -151,6 +152,7 @@ get_wikidata_mappings:
 	@echo "[get_wikidata_mappings] Get data for given queries in batches."
 	@echo
 	@echo "DATA_QUERY_NAMES = $(DATA_QUERY_NAMES)"
+	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	for QUERY_NAME in $(DATA_QUERY_NAMES); do echo; \
 	  echo $${QUERY_NAME}; \
 	  LOWER_QUERY_NAME=$$(echo $${QUERY_NAME} | tr '[:upper:]' '[:lower:]'); \
@@ -169,6 +171,7 @@ build_wikipedia_mappings:
 	@echo
 	@echo "[build_wikipedia_mappings] Build mappings from Wikipedia."
 	@echo
+	@[ -d ${DATA_DIR}wikipedia_mappings ] || mkdir ${DATA_DIR}wikipedia_mappings
 	python3 extract_akronyms.py
 	python3 extract_abstracts.py
 	python3 get_link_frequencies.py
