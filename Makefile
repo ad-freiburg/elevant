@@ -20,6 +20,16 @@ DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL
 BATCH_SIZE = 10000000
 NUM_LINKER_THREADS = 8
 
+# Variables for benchmark linking and evaluation
+EVALUATION_RESULTS_DIR = evaluation_results/
+# Adjust if you only want to link or evaluate certain benchmarks
+BENCHMARK_NAMES = wiki-ex newscrawl conll-test conll-dev msnbc ace
+# Adjust if you only want to link with certain linking systems.
+# The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
+LINKING_SYSTEMS = ambiverse baseline explosion neural_el popular_entities pos_prior spacy spacy_wikipedia tagme wikifier
+# Adjust only if the set of total available benchmarks has changed
+EXISTING_BENCHMARKS = wiki-ex newscrawl conll-test conll-dev msnbc ace
+
 
 config:
 	@echo
@@ -38,6 +48,77 @@ config:
 	@echo "training, development and test set, download all necessary Wikidata mappings"
 	@echo "and compute all necessary Wikipedia mappings."
 	@echo
+
+link_benchmarks:
+	@echo
+	@echo "[link_benchmarks] Link given benchmarks with given systems"
+	@echo
+	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
+	@echo "LINKING_SYSTEMS = $(LINKING_SYSTEMS)"
+	for BENCHMARK_NAME in $(BENCHMARK_NAMES); do echo; \
+	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} link_benchmark; done
+	@echo
+
+link_benchmark:
+	@echo "BENCHMARK: ${BENCHMARK}"
+	for SYSTEM in $(LINKING_SYSTEMS); do \
+	  echo "LINKING SYSTEM: $${SYSTEM}"; \
+	  RESULT_FILE_SUFFIX=$$(echo $${BENCHMARK} | sed -r 's|wiki-ex||' | sed -r 's|.+|.&|'); \
+	  RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none$${RESULT_FILE_SUFFIX}.jsonl; \
+	  if [ $${SYSTEM} == "ambiverse" ]; then \
+	    ARGUMENTS=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
+	  elif [ $${SYSTEM} == "baseline" ]; then \
+	    ARGUMENTS=links-all; \
+	  elif [ $${SYSTEM} == "explosion" ]; then \
+	    ARGUMENTS=/local/data/entity-linking/linker_files/explosion_linker_models/1M/; \
+	  elif [ $${SYSTEM} == "neural_el" ]; then \
+	    ARGUMENTS=/nfs/students/natalie-prange/neural-el-data/results/linked_articles_$${BENCHMARK}.jsonl; \
+	  elif [ $${SYSTEM} == "popular_entities" ]; then \
+	    ARGUMENTS="15 -ll link-text-linker -coref entity"; \
+	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.ltl.entity/$${SYSTEM}.ltl.entity$${RESULT_FILE_SUFFIX}.jsonl; \
+	  elif [ $${SYSTEM} == "pos_prior" ]; then \
+	    ARGUMENTS=wikidata-types/types.txt; \
+	  elif [ $${SYSTEM} == "spacy" ]; then \
+	    ARGUMENTS=prior_trained; \
+	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none.prior_trained$${RESULT_FILE_SUFFIX}.jsonl; \
+	  elif [ $${SYSTEM} == "spacy_wikipedia" ]; then \
+	    SYSTEM=spacy; \
+	    ARGUMENTS="wikipedia -kb wikipedia"; \
+	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none.wikipedia$${RESULT_FILE_SUFFIX}.jsonl; \
+	  elif [ $${SYSTEM} == "tagme" ]; then \
+	    ARGUMENTS=0.2; \
+	  elif [ $${SYSTEM} == "wikifier" ]; then \
+	    ARGUMENTS=/nfs/students/natalie-prange/wikifier_data/output/benchmark_$${BENCHMARK}/; \
+	  else \
+	    echo "\033[31mNo rule for linking system $${SYSTEM} found in Makefile.\033[0m"; \
+	  fi; \
+	  python3 link_benchmark_entities.py $${RESULT_PATH} $${SYSTEM} $${ARGUMENTS} -b $${BENCHMARK}; \
+	done
+
+evaluate_linked_benchmarks:
+	@echo
+	@echo "[evaluate_linked_benchmarks] Evaluate all linking results for all benchmarks"
+	@echo
+	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
+	@echo "EVALUATION_RESULTS_DIR = $(EVALUATION_RESULTS_DIR)"
+	@echo
+	for FILENAME in ${EVALUATION_RESULTS_DIR}*/*.jsonl ; do \
+	  BENCHMARK_SUFFIX=$$(echo $${FILENAME} | sed -r 's|.+\.([^\.]*)\.jsonl|\1|') ; \
+	  echo "FILENAME = $${FILENAME}"; \
+	  echo "BENCHMARK_SUFFIX = $${BENCHMARK_SUFFIX}"; \
+	  if [[ " $${BENCHMARK_NAMES[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
+		ARGUMENTS=""; \
+		if [[ "$${BENCHMARK_SUFFIX}" == "ace" ]] || [[ "$${BENCHMARK_SUFFIX}" == "msnbc" ]]; then \
+			ARGUMENTS="--no-unknowns"; \
+		fi; \
+		python3 evaluate_linked_entities.py $${FILENAME} -b $${BENCHMARK_SUFFIX} $${ARGUMENTS}; \
+	  elif [[ " $${BENCHMARK_NAMES[*]} " =~ " wiki-ex " ]] && [[ ! " $${EXISTING_BENCHMARKS[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
+		python3 evaluate_linked_entities.py $${FILENAME} -b wiki-ex $${ARGUMENTS}; \
+	  else \
+	    echo "\033[31mSkipping file because benchmark suffix is not in BENCHMARK_NAMES and benchmark is not wiki-ex\033[0m"; \
+	  fi; \
+	  echo; \
+	done
 
 setup: download_wiki extract_wiki split_wiki getmappings
 
