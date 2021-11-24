@@ -76,7 +76,7 @@ class PriorLinker(AbstractEntityLinker):
         """
         lower_mention_text = mention_text[0].lower() + mention_text[1:]
         return mention_text in self.entity_db.get_entity(entity_id).synonyms or \
-            (is_sent_start and lower_mention_text in self.entity_db.get_entity(entity_id).synonyms)
+               (is_sent_start and lower_mention_text in self.entity_db.get_entity(entity_id).synonyms)
 
     def has_whitelist_type(self, entity_id: str) -> bool:
         if self.entity_db.contains_entity(entity_id):
@@ -109,7 +109,7 @@ class PriorLinker(AbstractEntityLinker):
                     overlap_span, overlap_n_tokens = spans[annotated_chars[span[0]:span[1]][overlap_indices[0]]]
                     overlap_prediction = predictions[overlap_span]
                     overlap_mention_text = text[overlap_prediction.span[0]:overlap_prediction.span[1]]
-                    overlap_link_frequency = self.entity_db.link_frequencies[overlap_mention_text]\
+                    overlap_link_frequency = self.entity_db.link_frequencies[overlap_mention_text] \
                         [overlap_prediction.entity_id]
                     curr_link_frequency = self.entity_db.link_frequencies[mention_text][predicted_entity_id]
                     if overlap_n_tokens == n_tokens and overlap_link_frequency < curr_link_frequency:
@@ -120,6 +120,18 @@ class PriorLinker(AbstractEntityLinker):
                     else:
                         # Skip current predicted entity
                         continue
+
+                elif span[0] >= 2 and annotated_chars[span[0] - 2] != 0:
+                    # Do not allow two consecutive mentions that are only separated by a single character
+                    # (usually a whitespace or a hyphen).
+                    # Usually this means that a bigger mention could not be correctly identified.
+                    # Delete both mentions.
+                    # This does not prevent cases where a proper noun is directly preceding an entity but was not linked
+                    preceding_span, _ = spans[annotated_chars[span[0] - 2]]
+                    annotated_chars[preceding_span[0]:preceding_span[1]] = 0
+                    del predictions[preceding_span]
+                    del spans[preceding_span[0] + 1]
+                    continue
 
                 # Add new prediction
                 # +1 so we can use sum to detect overlaps (span[0] can be 0)
