@@ -18,7 +18,7 @@ API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 # casting the query name to lowercase and appending .tsv
 DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_GIVEN_NAME QID_TO_SITELINK WIKIDATA_ENTITIES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 BATCH_SIZE = 10000000
-NUM_LINKER_THREADS = 8
+NUM_LINKER_PROCESSES = 8
 
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation_results/
@@ -141,7 +141,7 @@ split_wiki:
 # Link Wikipedia dump only if it does not exist already at the specified location.
 link_wiki:
 	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "\033[Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it first. Dump not linked.\033[0m"; echo; else \
-	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_THREADS}; \
+	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
 getmappings: get_wikidata_mappings build_wikipedia_mappings build_relevant_types_mapping

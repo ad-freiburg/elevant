@@ -43,7 +43,7 @@ our popular-entities linker which links entities based on their Wikidata sitelin
 and our own coreference linker which uses type and gender information of previously linked entities and dependency parse information.
 
 NOTE: Linking the entire Wikipedia dump will take several days.
-You can adjust the number of threads used for linking via the Makefile variable `NUM_LINKER_THREADS`.
+You can adjust the number of processes used for linking via the Makefile variable `NUM_LINKER_PROCESSES`.
 You can also limit the number of articles you want to link using command line arguments.
 Type `python3 link_entities.py -h` for more information on the available command line arguments.
 
