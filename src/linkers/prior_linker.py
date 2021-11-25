@@ -46,13 +46,21 @@ class PriorLinker(AbstractEntityLinker):
                                         text: str,
                                         n_tokens: int) -> Iterator[Tuple[Tuple[int, int], str]]:
         mention_start = 0
-        while mention_start + n_tokens < len(doc):
-            span = doc[mention_start].idx, doc[mention_start + n_tokens - 1].idx + len(
-                doc[mention_start + n_tokens - 1])
+        while mention_start + n_tokens <= len(doc):
+            mention_end = mention_start + n_tokens
+            span = doc[mention_start].idx, doc[mention_end - 1].idx + len(
+                doc[mention_end - 1])
             mention_text = text[span[0]:span[1]]
+            # Don't yield mention if directly adjacent tokens are proper nouns
+            skip = False
+            if self.use_pos:
+                if mention_start > 0 and doc[mention_start - 1].pos_ == "PROPN":
+                    skip = True
+                if mention_end < len(doc) and doc[mention_end].pos_ == "PROPN":
+                    skip = True
             # For the pos_prior linker, require at least one noun in the mention tokens
-            if not self.use_pos or [True for tok in doc[mention_start:mention_start + n_tokens]
-                                    if tok.pos_ in ["PROPN", "NOUN"]]:
+            if not skip and (not self.use_pos or [True for tok in doc[mention_start:mention_end]
+                                                  if tok.pos_ in ["PROPN", "NOUN"]]):
                 # Only consider span as mention span if it contains at least one noun
                 yield span, mention_text, n_tokens
             mention_start += 1
