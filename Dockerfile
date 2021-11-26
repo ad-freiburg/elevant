@@ -20,7 +20,7 @@ COPY data data
 COPY Makefile .
 COPY *.py ./
 COPY *.sh ./
-RUN umask 000
+CMD umask 000; /bin/bash;
 
 
 # Build the container:

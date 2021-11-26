@@ -56,7 +56,7 @@ You can adjust the number of processes used for linking via the Makefile variabl
 The output file (per default `<data_directory>/wikipedia_dump_files/enwiki-latest-linked.jsonl`)
 will contain one json object representing a linked Wikipedia article per line.
 
-#### Link A More Recent Wikipedia Dump
+#### Link an Additional Recent Wikipedia Dump
 If you want to link a more recent Wikipedia dump than the one that was downloaded during the data generation step,
 first make sure your existing Wikipedia dump files are not being overwritten by either renaming your existing
 `<data_directory>/wikipedia_dump_files/enwiki-latest-pages-articles-multistream.xml.bz2`,
