@@ -25,8 +25,9 @@ def main():
                 abstract
             )) + "\n")
 
-        if (i + 1) % 100 == 0:
-            print("Processed %d articles.\r" % (i+1), end="")
+            if (i + 1) % 100 == 0:
+                print("\rProcessed %d articles." % (i+1), end="")
+    print()
 
     logger.info("Wrote %d abstracts to %s" % (i+1, settings.WIKIPEDIA_ABSTRACTS_FILE))
 

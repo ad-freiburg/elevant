@@ -2,6 +2,7 @@ SHELL = /bin/bash
 
 BOLD := \033[1m
 DIM := \033[2m
+RED := \033[31m
 RESET := \033[0m
 
 DATA_DIR = /local/data/entity-linking/
@@ -27,6 +28,8 @@ BENCHMARK_NAMES = wiki-ex newscrawl conll-test conll-dev msnbc ace
 # Adjust if you only want to link with certain linking systems.
 # The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
 LINKING_SYSTEMS = ambiverse baseline explosion neural_el popular_entities pos_prior spacy spacy_wikipedia tagme wikifier
+# Edit if you only want to evaluate a linking system that matches a certain prefix.
+EVALUATE_LINKING_SYSTEM_PREFIX =
 # Adjust only if the set of total available benchmarks has changed
 EXISTING_BENCHMARKS = wiki-ex newscrawl conll-test conll-dev msnbc ace
 
@@ -60,8 +63,8 @@ link_benchmarks:
 	@echo
 
 link_benchmark:
-	@echo "BENCHMARK: ${BENCHMARK}"
 	for SYSTEM in $(LINKING_SYSTEMS); do \
+	  echo "BENCHMARK: $${BENCHMARK}"; \
 	  echo "LINKING SYSTEM: $${SYSTEM}"; \
 	  RESULT_FILE_SUFFIX=$$(echo $${BENCHMARK} | sed -r 's|wiki-ex||' | sed -r 's|.+|.&|'); \
 	  RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none$${RESULT_FILE_SUFFIX}.jsonl; \
@@ -90,7 +93,8 @@ link_benchmark:
 	  elif [ $${SYSTEM} == "wikifier" ]; then \
 	    ARGUMENTS=/nfs/students/natalie-prange/wikifier_data/output/benchmark_$${BENCHMARK}/; \
 	  else \
-	    echo "\033[31mNo rule for linking system $${SYSTEM} found in Makefile.\033[0m"; \
+	    echo -e "$${DIM}No rule for linking system $${SYSTEM} found in Makefile.$${RESET}"; \
+	    continue; \
 	  fi; \
 	  python3 link_benchmark_entities.py $${RESULT_PATH} $${SYSTEM} $${ARGUMENTS} -b $${BENCHMARK}; \
 	done
@@ -104,6 +108,11 @@ evaluate_linked_benchmarks:
 	@echo
 	for FILENAME in ${EVALUATION_RESULTS_DIR}*/*.jsonl ; do \
 	  BENCHMARK_SUFFIX=$$(echo $${FILENAME} | sed -r 's|.+\.([^\.]*)\.jsonl|\1|') ; \
+	  HAS_SYSTEM_PREFIX=$$(echo $${FILENAME} | sed 's|${EVALUATE_LINKING_SYSTEM_PREFIX}||') ; \
+	  if [[ "$${HAS_SYSTEM_PREFIX}" == "$${FILENAME}" ]]; then \
+	    echo -e "$${DIM}Skipping $${FILENAME} because filename does not match EVALUATE_LINKING_SYSTEM_PREFIX$${RESET}"; \
+	    continue; \
+	  fi; \
 	  echo "FILENAME = $${FILENAME}"; \
 	  echo "BENCHMARK_SUFFIX = $${BENCHMARK_SUFFIX}"; \
 	  if [[ " $${BENCHMARK_NAMES[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
@@ -115,7 +124,7 @@ evaluate_linked_benchmarks:
 	  elif [[ " $${BENCHMARK_NAMES[*]} " =~ " wiki-ex " ]] && [[ ! " $${EXISTING_BENCHMARKS[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
 		python3 evaluate_linked_entities.py $${FILENAME} -b wiki-ex $${ARGUMENTS}; \
 	  else \
-	    echo "\033[31mSkipping file because benchmark suffix is not in BENCHMARK_NAMES and benchmark is not wiki-ex\033[0m"; \
+	    echo -e "$${DIM}Skipping file because benchmark suffix is not in BENCHMARK_NAMES and benchmark is not wiki-ex$${RESET}"; \
 	  fi; \
 	  echo; \
 	done
@@ -125,13 +134,13 @@ setup: download_wiki extract_wiki split_wiki getmappings
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:
 	@[ -d ${WIKIPEDIA_DUMP_FILES_DIR} ] || mkdir ${WIKIPEDIA_DUMP_FILES_DIR}
-	@if ls ${WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "\033[31mWikipedia dump already exists at ${WIKI_DUMP} . Delete or rename it first. Dump not downloaded.\033[0m"; echo; else \
+	@if ls ${WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Wikipedia dump already exists at ${WIKI_DUMP} . Delete or rename it first. Dump not downloaded.$${RESET}"; echo; else \
 	  wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles-multistream.xml.bz2 -O ${WIKI_DUMP}; \
 	fi
 
 # Extract Wikipedia dump only if it does not exist already at the specified location.
 extract_wiki:
-	@if ls ${EXTRACTED_WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "\033[31mExtracted Wikipedia dump already exists at ${EXTRACTED_WIKI_DUMP} . Delete or rename it first. Dump not extracted.\033[0m"; echo; else \
+	@if ls ${EXTRACTED_WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Extracted Wikipedia dump already exists at ${EXTRACTED_WIKI_DUMP} . Delete or rename it first. Dump not extracted.$${RESET}"; echo; else \
 	  python3 wiki_extractor/WikiExtractor.py --sections --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
 	fi
 
@@ -140,7 +149,7 @@ split_wiki:
 
 # Link Wikipedia dump only if it does not exist already at the specified location.
 link_wiki:
-	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "\033[Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it first. Dump not linked.\033[0m"; echo; else \
+	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "$${RED}Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it first. Dump not linked.$${RESET}"; echo; else \
 	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
@@ -199,6 +208,7 @@ query.batched:
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)
 #
 # Short descriptions of what the 3 sed lines do:
+# 0) Drop lines with Wikidata properties or lexemes
 # 1) Replace wikidata entity URIs by the QID
 # 2) Replace "<string>"@en for string literals by just <string>
 # 3) Replace integer literals by just the integer
@@ -207,7 +217,8 @@ query:
 	@curl -Gs $(API) \
 	    --data-urlencode "query=$$PREFIXES $${${QUERY}} $${SUFFIX}" \
 	    --data-urlencode "action=tsv_export" \
-	    | sed -r 's|<http://www\.wikidata\.org/entity/([QP][0-9]+)>|\1|g' \
+	    | sed -r '/<http:\/\/www\.wikidata\.org\/entity\/[LP][^>]*>/d' \
+	    | sed -r 's|<http://www\.wikidata\.org/entity/([Q][0-9]+)>|\1|g' \
 	    | sed -r 's|"([^\t"]*)"@en|\1|g' \
 	    | sed -r 's|"([0-9][0-9]*)"\^\^<http://www\.w3\.org/2001/XMLSchema#int>|\1|g' \
 	    | sed -r 's|<(http[s]*://[^\t ]*)>|\1|g' \

@@ -76,7 +76,7 @@ def main(args):
     dirname = os.path.dirname(settings.WIKIPEDIA_TRAINING_ARTICLES)
     if not os.path.exists(dirname):
         logger.info("Creating directory %s" % dirname)
-        os.makedirs(os.path.dirname(dirname))
+        os.makedirs(dirname)
 
     logger.info("Writing articles...")
     if not args.random_split:

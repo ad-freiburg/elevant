@@ -1,8 +1,8 @@
 FROM pytorch/pytorch:1.6.0-cuda10.1-cudnn7-runtime
 MAINTAINER Matthias Hertel hertelm@login.informatik.uni-freiburg.de
-WORKDIR /
+WORKDIR /home/
 RUN apt-get update
-RUN apt-get install -y python3 python3-pip git
+RUN apt-get install -y python3 python3-pip git wget vim curl
 RUN git clone https://github.com/huggingface/neuralcoref.git
 RUN python3 -m pip install -r neuralcoref/requirements.txt
 RUN python3 -m pip install -e neuralcoref
@@ -11,16 +11,20 @@ RUN python3 -m pip install -r requirements.txt
 RUN python3 -m spacy download en_core_web_lg
 RUN python3 -m spacy download en_core_web_sm
 COPY src src
+COPY benchmark-webapp benchmark-webapp
+COPY benchmarks benchmarks
+COPY evaluation-webapp evaluation-webapp
+COPY wiki_extractor wiki_extractor
+COPY wikidata-types wikidata-types
+COPY data data
 COPY Makefile .
 COPY *.py ./
 COPY *.sh ./
+RUN umask 000
 
 
 # Build the container:
 # docker build -t wiki-entity-linker .
 
-# Run the container on my machine:
-# docker run -it -v /home/hertel/wikipedia/wikipedia_2020-06-08:/data wiki-entity-linker
-
-# Run the container at the lab:
-# docker run -it -v /nfs/students/matthias-hertel/wiki_entity_linker:/data wiki-entity-linker
+# Run the container:
+# docker run -it -v <data_directory>:/data wiki-entity-linker

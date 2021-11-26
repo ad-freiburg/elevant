@@ -82,7 +82,7 @@ def main(args):
                 print("Processed %d articles.\r" % (i+1), end="")
 
     print()
-    logger.info("Wrote articles to %s and %s ." % (wordsfile_name, docsfile_name))
+    logger.info("Wrote %d articles to %s and %s ." % (i+1, wordsfile_name, docsfile_name))
     if args.articlesfile:
         logger.info("Wrote record id to Wikipedia mapping to %s" % articlesfile_name)
     

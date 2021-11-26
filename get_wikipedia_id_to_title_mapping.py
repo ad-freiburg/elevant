@@ -8,8 +8,11 @@ from src import settings
 def main():
     logger.info("Extracting Wikipedia ID to Wikipedia title mapping from entire Wikipedia dump ...")
     wikipedia_id2title = dict()
-    for article in WikipediaDumpReader.article_iterator():
+    for i, article in enumerate(WikipediaDumpReader.article_iterator()):
         wikipedia_id2title[article.id] = article.title
+        if (i + 1) % 100 == 0:
+            print("\rRead %d articles." % (i + 1), end="")
+    print()
 
     logger.info("Writing mapping to file ...")
     with open(settings.WIKIPEDIA_ID_TO_TITLE_FILE, "w", encoding="utf8") as output_file:
