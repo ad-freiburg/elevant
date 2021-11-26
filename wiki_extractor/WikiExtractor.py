@@ -626,7 +626,7 @@ class Extractor(object):
         """
         :param out: a memory file.
         """
-        logging.info('%s\t%s', self.id, self.title)
+        logging.debug('%s\t%s', self.id, self.title)
 
         # Separate header from text with a newline.
         if options.toHTML:
@@ -2955,7 +2955,7 @@ def extract_process(opts, jobs_queue, output_queue):
                 text = out.getvalue()
             except:
                 text = ''
-                logging.exception('Processing page: %s %s', identifier, title)
+                logging.warning('Caught an exception while processing page: %s %s', identifier, title)
 
             output_queue.put((page_num, text))
             out.truncate(0)
