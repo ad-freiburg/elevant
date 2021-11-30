@@ -13,25 +13,34 @@ or where you want to store the generated data files.
 Unless otherwise noted, all the following commands should be run inside the docker container.
 
 ## Data Generation
-If you do not already have access to existing data files, you can generate all necessary data files in two steps.
+If you do not already have access to existing data files, you can generate all necessary data files in two simple steps.
 
-As a first step, outside of the docker container go to the `wikidata-types` subdirectory and follow the instructions in
-the README there to generate the `entity-types.ttl` file.
-Copy that file to `<data_directory>/wikidata_mappings/entity-types.ttl`
-(the `<data_directory>/wikidata_mappings/` directory will be created during the following setup step,
-but you can also create it yourself) .
-This can be run in parallel to the following setup step.
+Before however, make sure to set the `DATA_DIR` variable in the Makefile to your `<data_directory>`
+(within the docker container, `DATA_DIR` is automatically set to `/data/`).
+In `src/settings.py` set the `EXTRACTED_WIKIPEDIA_DUMP_NAME` variable to `"enwiki-latest-extracted.jsonl"`
+if this is not already the case.
 
-For the setup step, make sure to set the `DATA_DIR` variable in the Makefile to `/data/` if you're using docker or to
-your `<data_directory>` otherwise.
-In `src/settings.py` set the `EXTRACTED_WIKIPEDIA_DUMP_NAME` variable to `"enwiki-latest-extracted.jsonl"` .
+Then, as a first step, outside the docker container run
 
-Then simply run
+    make get_entity_types
+
+This will run the steps described in detail in `wikidata-types/README.md`.
+Roughly, it clones the QLever code from Github and builds the QLever docker image if no such image exists on the machine already.
+It then builds a QLever index with corrections from `wikidata-types/corrections.txt`
+and issues a query for all Wikidata entities and all their types from a given whitelist of types (listed in `wikidata-types/types.txt`).
+The resulting file is copied to `<data_directory>/wikidata-mappings/entity-types.ttl` .
+
+This first step requires about 25 GB of RAM and 100 GB of disk space and assumes that there is a
+running QLever instance for Wikidata under the URL specified by the variable `API_WIKIDATA` in the `Makefile`
+(by default, this is set to https://qlever.cs.uni-freiburg.de/api/wikidata).
+The first step can be run in parallel to the following setup step.
+
+For the second step, in the docker container run
 
     make setup
     
-This will generate all necessary data files.
-The setup includes downloading and extracting the latest Wikipedia dump and will take several hours (~ 10h).
+This will generate all remaining necessary data files.
+The setup includes downloading and extracting the latest Wikipedia dump and will take several hours (< 10h).
 
 NOTE: This will overwrite existing Wikidata and Wikipedia mappings in your `<data_directory>` so make sure this is
 what you want to do.

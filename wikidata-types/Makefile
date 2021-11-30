@@ -70,11 +70,10 @@ all:
 	@echo "[index]    Build index from resulting file $(DB).ttl"
 	@echo "[start]    Start backend for that index on port $(PORT)"
 	@echo "[wait]     Wait for the backend to be up"
-	@echo "[warmup]   Launch warmup queries"
 	@echo "[gettypes] Launch the entity-types query, write result to $(ENTITY_TYPES_FILE)"
 	@echo
 	@SECONDS=0; \
-	  $(MAKE) -s getdata ttl index start wait warmup gettypes; \
+	  $(MAKE) -s getdata ttl index start wait gettypes; \
 	  echo; echo "Total time needed: $$(($$SECONDS / 60)) min"
 	@echo
 

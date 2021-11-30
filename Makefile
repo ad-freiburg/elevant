@@ -33,6 +33,9 @@ EVALUATE_LINKING_SYSTEM_PREFIX =
 # Adjust only if the set of total available benchmarks has changed
 EXISTING_BENCHMARKS = wiki-ex newscrawl conll-test conll-dev msnbc ace
 
+DOCKER_CMD = docker
+API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
+
 
 config:
 	@echo
@@ -130,6 +133,23 @@ evaluate_linked_benchmarks:
 	done
 
 setup: download_wiki extract_wiki split_wiki getmappings
+
+# Only clone or build qlever if no qlever.master docker image exists
+get_entity_types:
+	@if [[ "${DOCKER_CMD}" == "wharfer"  ]] || [[ "$$(docker images -q qlever.master 2> /dev/null)" == "" ]]; then \
+	  if [[ -d qlever ]]; then \
+	    cd qlever; git pull --recurse-submodules; cd ..; \
+	  else \
+	    git clone --recursive https://github.com/ad-freiburg/qlever; \
+	  fi; \
+	  ${DOCKER_CMD} build -t qlever.master ./qlever; \
+	else \
+	  echo -e "$${BOLD}QLever docker image already exists. Using existing image.$${RESET}"; \
+	fi
+
+	cd wikidata-types; chmod 777 index; $(MAKE) -sB DOCKER_CMD=${DOCKER_CMD} API_WIKIDATA=${API_WIKIDATA} -f Makefile; cd ..
+	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
+	mv wikidata-types/entity-types.ttl ${WIKIDATA_MAPPINGS_DIR}
 
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:

@@ -20,6 +20,9 @@ COPY data data
 COPY Makefile .
 COPY *.py ./
 COPY *.sh ./
+# Set DATA_DIR variable in Makefile to /data/ within the container
+RUN sed -i 's|^DATA_DIR =.*|DATA_DIR = /data/|' Makefile
+# Files created in the docker container should be easily accessible from the outside
 CMD umask 000; /bin/bash;
 
 
