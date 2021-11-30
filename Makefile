@@ -135,7 +135,7 @@ evaluate_linked_benchmarks:
 setup: download_wiki extract_wiki split_wiki getmappings
 
 # Only clone or build qlever if no qlever.master docker image exists
-get_entity_types:
+build_entity_types:
 	@if [[ "${DOCKER_CMD}" == "wharfer"  ]] || [[ "$$(docker images -q qlever.master 2> /dev/null)" == "" ]]; then \
 	  if [[ -d qlever ]]; then \
 	    cd qlever; git pull --recurse-submodules; cd ..; \
@@ -149,7 +149,12 @@ get_entity_types:
 
 	cd wikidata-types; chmod 777 index; $(MAKE) -sB DOCKER_CMD=${DOCKER_CMD} API_WIKIDATA=${API_WIKIDATA} -f Makefile; cd ..
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
-	mv wikidata-types/entity-types.ttl ${WIKIDATA_MAPPINGS_DIR}
+	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
+
+download_entity_types:
+	wget http://ad-research/data/entity-linking/entity-types.tsv
+	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
+	mv entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
 
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:

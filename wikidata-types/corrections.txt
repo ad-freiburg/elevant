@@ -29,6 +29,7 @@ ADD wd:Q31920 wdt:P31 wd:Q349  # swimming - sport
 ADD wd:Q7735 wdt:P31 wd:Q349  # diving - sport
 ADD wd:Q159992 wdt:P31 wd:Q349  # surfing - sport
 ADD wd:Q6531690 wdt:P31 wd:Q349  # clean and jerk - sport
+ADD wd:Q41323 wdt:P31 wd:Q349  # American football - sport
 
 # Subclass-of
 REMOVE wd:Q24229398 wdt:P279 wd:Q12737077  # agent - occupation

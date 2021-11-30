@@ -20,20 +20,24 @@ Before however, make sure to set the `DATA_DIR` variable in the Makefile to your
 In `src/settings.py` set the `EXTRACTED_WIKIPEDIA_DUMP_NAME` variable to `"enwiki-latest-extracted.jsonl"`
 if this is not already the case.
 
-Then, as a first step, outside the docker container run
+Then, as a first step, either run
 
-    make get_entity_types
+    make download_entity_types
+
+to download the `entity-types.tsv` file and move it to the required destination
+**OR** if you want to build it yourself, outside the docker container run
+
+    make build_entity_types
 
 This will run the steps described in detail in `wikidata-types/README.md`.
 Roughly, it clones the QLever code from Github and builds the QLever docker image if no such image exists on the machine already.
 It then builds a QLever index with corrections from `wikidata-types/corrections.txt`
 and issues a query for all Wikidata entities and all their types from a given whitelist of types (listed in `wikidata-types/types.txt`).
-The resulting file is copied to `<data_directory>/wikidata-mappings/entity-types.ttl` .
-
-This first step requires about 25 GB of RAM and 100 GB of disk space and assumes that there is a
+The resulting file is moved to `<data_directory>/wikidata-mappings/entity-types.tsv` .
+This build step requires about 25 GB of RAM and 100 GB of disk space and assumes that there is a
 running QLever instance for Wikidata under the URL specified by the variable `API_WIKIDATA` in the `Makefile`
 (by default, this is set to https://qlever.cs.uni-freiburg.de/api/wikidata).
-The first step can be run in parallel to the following setup step.
+This step can be run in parallel to the following setup step.
 
 For the second step, in the docker container run
 

@@ -53,7 +53,7 @@ QID_TO_ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_types.tsv
 QID_TO_RELEVANT_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_relevant_types.tsv"
 # Wikidata types files
 WHITELIST_FILE = "wikidata-types/types.txt"
-WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.ttl"
+WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.tsv"
 
 
 # Wikipedia mappings

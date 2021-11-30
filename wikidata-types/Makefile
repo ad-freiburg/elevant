@@ -16,7 +16,7 @@ PORT = 7016
 API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 CORRECTIONS_FILE = corrections.txt
 TYPES_FILE = types.txt
-ENTITY_TYPES_FILE = entity-types.ttl
+ENTITY_TYPES_FILE = entity-types.tsv
 # DATA_QUERY_NAMES = P279 P31
 DATA_QUERY_NAMES = P279 P31 LABEL SITELINKS
 
@@ -250,6 +250,8 @@ gettypes:
 	@echo "[gettypes] Get entity types via batched query to $(API_WIKIDATA_TYPES)"
 	@echo
 	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$(ENTITY_TYPES_FILE) query.batched
+	@sed -i '/wd:[^Q]/d' $(ENTITY_TYPES_FILE)
+	@sed -i -r 's|wd:([^ ]*) wd:([^ ]*) .|\1	\2|' $(ENTITY_TYPES_FILE)
 	@wc -l $(ENTITY_TYPES_FILE) | numfmt --grouping
 	@echo "First and last line of $(ENTITY_TYPES_FILE) are:"
 	@head -1 $(ENTITY_TYPES_FILE) && tail -1 $(ENTITY_TYPES_FILE)

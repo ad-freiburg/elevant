@@ -139,9 +139,7 @@ class EntityDatabaseReader:
         logger.info("Yielding type mapping from %s ..." % type_mapping_file)
         with open(type_mapping_file, "r", encoding="utf8") as file:
             for line in file:
-                lst = line.strip().split()
-                entity_id = lst[0][3:]
-                whitelist_type = lst[1][3:]
+                entity_id, whitelist_type = line.strip('\n').split('\t')
                 yield entity_id, whitelist_type
 
     @staticmethod
