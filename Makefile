@@ -256,18 +256,6 @@ count:
 	    --data-urlencode "send=0" \
 	    | grep resultsize | head -1 | sed 's/[^0-9]//g'
 
-evaluate_own_system:
-	python3 link_benchmark_entities.py evaluated_own.jsonl explosion data/linker-1M/nlp --link_linker link-text-linker -coref entity
-	python3 evaluate_linked_entities.py evaluated_own.jsonl
-
-evaluate_tagme:
-	python3 link_benchmark_entities.py evaluated_tagme.jsonl tagme 0.2
-	python3 evaluate_linked_entities.py evaluated_tagme.jsonl
-
-evaluate_baseline:
-	python3 link_benchmark_entities.py evaluated_baseline.jsonl baseline links-all
-	python3 evaluate_linked_entities.py evaluated_baseline.jsonl
-
 define PREFIXES
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -303,7 +291,6 @@ SELECT DISTINCT ?point_in_time WHERE {
 }
 endef
 
-# Retrieves only items with an instance-of*/subclass-of* path to "entity"
 define QID_TO_LABEL_QUERY
 SELECT DISTINCT ?item ?label WHERE {
   ?item @en@rdfs:label ?label

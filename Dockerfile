@@ -22,6 +22,8 @@ COPY *.py ./
 COPY *.sh ./
 # Set DATA_DIR variable in Makefile to /data/ within the container
 RUN sed -i 's|^DATA_DIR =.*|DATA_DIR = /data/|' Makefile
+# Enable Makefile target autocompletion
+RUN echo "complete -W \"\`grep -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' ?akefile | sed 's/[^a-zA-Z0-9_.-]*$//'\`\" make" >> ~/.bashrc
 # Files created in the docker container should be easily accessible from the outside
 CMD umask 000; /bin/bash;
 
