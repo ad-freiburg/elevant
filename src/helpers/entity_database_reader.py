@@ -182,14 +182,14 @@ class EntityDatabaseReader:
             yield entity_id, name
 
     @staticmethod
-    def get_relevant_types_mapping(mappings_file: str = settings.QID_TO_RELEVANT_TYPES_FILE) -> Dict[str, List[str]]:
-        logger.info("Loading relevant types from %s ..." % mappings_file)
+    def get_coreference_types_mapping(mappings_file: str = settings.QID_TO_COREF_TYPES_FILE) -> Dict[str, List[str]]:
+        logger.info("Loading coreference types from %s ..." % mappings_file)
         mapping = {}
         for i, line in enumerate(open(mappings_file)):
             line = line[:-1]
             entity_id, types = line.split("\t")
             mapping[entity_id] = types.split(";")
-        logger.info("-> %d relevant type mappings loaded." % len(mapping))
+        logger.info("-> %d coreference type mappings loaded." % len(mapping))
         return mapping
 
     @staticmethod

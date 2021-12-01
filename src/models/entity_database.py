@@ -23,7 +23,7 @@ class MappingName(Enum):
     REDIRECTS = "redirects"
     LINK_FREQUENCIES = "link_frequencies"
     GENDER = "gender"
-    RELEVANT_TYPES = "relevant_types"
+    COREFERENCE_TYPES = "coreference_types"
     LANGUAGES = "languages"
     DEMONYMS = "demonyms"
     NAMES = "names"
@@ -70,8 +70,8 @@ class EntityDatabase:
         self.given_names: Dict[str, str]
         self.family_names = {}
         self.family_names: Dict[str, str]
-        self.entity2relevant_types = {}
-        self.entity2relevant_types: Dict[str, List[str]]
+        self.entity2coreference_types = {}
+        self.entity2coreference_types: Dict[str, List[str]]
         self.unigram_counts = {}
         self.sitelink_counts = {}
         self.demonyms = {}
@@ -345,19 +345,19 @@ class EntityDatabase:
     def get_family_name(self, entity_id: str) -> str:
         return self.family_names[entity_id]
 
-    def load_relevant_types(self):
-        logger.info("Loading relevant types into entity database...")
-        self.entity2relevant_types = EntityDatabaseReader.get_relevant_types_mapping()
-        logger.info("-> Relevant types loaded into entity database.")
+    def load_coreference_types(self):
+        logger.info("Loading coreference types into entity database...")
+        self.entity2coreference_types = EntityDatabaseReader.get_coreference_types_mapping()
+        logger.info("-> Coreference types loaded into entity database.")
 
-    def is_relevant_types_loaded(self) -> bool:
-        return len(self.entity2relevant_types) > 0
+    def is_coreference_types_loaded(self) -> bool:
+        return len(self.entity2coreference_types) > 0
 
-    def has_relevant_types(self, entity_id: str) -> bool:
-        return entity_id in self.entity2relevant_types
+    def has_coreference_types(self, entity_id: str) -> bool:
+        return entity_id in self.entity2coreference_types
 
-    def get_relevant_types(self, entity_id: str) -> List[str]:
-        return self.entity2relevant_types[entity_id]
+    def get_coreference_types(self, entity_id: str) -> List[str]:
+        return self.entity2coreference_types[entity_id]
 
     def load_unigram_counts(self):
         logger.info("Loading unigram counts into entity database...")

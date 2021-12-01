@@ -197,7 +197,7 @@ class LinkingSystem:
             self.coref_linker = NeuralcorefCorefLinker()
         elif linker_type == CoreferenceLinkers.ENTITY.value:
             self.load_missing_mappings({MappingName.GENDER,
-                                        MappingName.RELEVANT_TYPES})
+                                        MappingName.COREFERENCE_TYPES})
             self.coref_linker = EntityCorefLinker(self.entity_db)
         elif linker_type == CoreferenceLinkers.STANFORD.value:
             self.coref_linker = StanfordCoreNLPCorefLinker()
@@ -282,5 +282,5 @@ class LinkingSystem:
 
         if MappingName.GENDER in mappings and not self.entity_db.is_gender_loaded():
             self.entity_db.load_gender()
-        if MappingName.RELEVANT_TYPES in mappings and not self.entity_db.is_relevant_types_loaded():
-            self.entity_db.load_relevant_types()
+        if MappingName.COREFERENCE_TYPES in mappings and not self.entity_db.is_coreference_types_loaded():
+            self.entity_db.load_coreference_types()

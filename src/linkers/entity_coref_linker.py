@@ -234,8 +234,8 @@ class EntityCorefLinker(AbstractCorefLinker):
                     deps = [tok.dep_ for tok in OffsetConverter.get_tokens_in_span(span, doc)]
 
                     types = set()
-                    if self.entity_db.has_relevant_types(entity_id):
-                        for type_id in self.entity_db.get_relevant_types(entity_id):
+                    if self.entity_db.has_coreference_types(entity_id):
+                        for type_id in self.entity_db.get_coreference_types(entity_id):
                             if self.entity_db.contains_entity(type_id):
                                 type_entity = self.entity_db.get_entity(type_id)
                                 names = type_entity.synonyms | {type_entity.name}

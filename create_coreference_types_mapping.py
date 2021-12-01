@@ -7,14 +7,14 @@ from src import settings
 from src.helpers.entity_database_reader import EntityDatabaseReader
 
 
-def extract_relevant_types(coarse_types: Set[str]):
+def extract_coreference_types(coarse_types: Set[str]):
     """
     Extract all types of an entity up until two levels below the highest level
     (which is usually the class 'entity') or until a type that exists in the
     coarse types list, whichever comes first in the type hierarchy.
     """
     logger.info("Iterating over all types from %s" % settings.QID_TO_ALL_TYPES_FILE)
-    entity_to_relevant_types = {}
+    entity_to_coreference_types = {}
     with open(settings.QID_TO_ALL_TYPES_FILE, "r") as file:
         for i, line in enumerate(file):
             line = line.strip('\n')
@@ -38,23 +38,23 @@ def extract_relevant_types(coarse_types: Set[str]):
                     max_level = level
                 elif not coarse_type_found and level > highest_level - 2:
                     max_level = level
-                if entity_id not in entity_to_relevant_types:
-                    entity_to_relevant_types[entity_id] = []
-                entity_to_relevant_types[entity_id].append(type_id)
+                if entity_id not in entity_to_coreference_types:
+                    entity_to_coreference_types[entity_id] = []
+                entity_to_coreference_types[entity_id].append(type_id)
 
             if (i + 1) % 100 == 0:
                 print("\rProcessed %d entities." % (i+1), end="")
 
-    return entity_to_relevant_types
+    return entity_to_coreference_types
 
 
 def main(args):
     coarse_types = EntityDatabaseReader.get_coarse_types()
-    logger.info("Building relevant types mapping...")
-    entity_to_relevant_types = extract_relevant_types(coarse_types)
+    logger.info("Building coreference types mapping...")
+    entity_to_coreference_types = extract_coreference_types(coarse_types)
     logger.info("Writing mapping ...")
     with open(args.output_file, "w", encoding="utf8") as outfile:
-        for entity_id, types in entity_to_relevant_types.items():
+        for entity_id, types in entity_to_coreference_types.items():
             outfile.write("%s\t" % entity_id)
             for i, cl in enumerate(types):
                 outfile.write("%s" % cl)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=__doc__)
 
-    parser.add_argument("-o", "--output_file", type=str, default=settings.QID_TO_RELEVANT_TYPES_FILE,
+    parser.add_argument("-o", "--output_file", type=str, default=settings.QID_TO_COREF_TYPES_FILE,
                         help="Output file.")
 
     logger = log.setup_logger(sys.argv[0])

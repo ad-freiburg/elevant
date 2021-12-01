@@ -178,7 +178,7 @@ link_wiki:
 	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
-getmappings: get_wikidata_mappings build_wikipedia_mappings build_relevant_types_mapping
+getmappings: get_wikidata_mappings build_wikipedia_mappings build_coreference_types_mapping
 
 # Get data for queries from $(DATA_QUERY_VARABLES) via $(API_WIKIDATA) and write to tsv files.
 get_wikidata_mappings:
@@ -193,13 +193,13 @@ get_wikidata_mappings:
 	  $(MAKE) -sB API=$${API_WIKIDATA} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query.batched; done
 	@echo
 
-build_relevant_types_mapping:
+build_coreference_types_mapping:
 	@echo
-	@echo "[build_relevant_types_mapping] Get mapping from QID to relevant types needed only for our own coref resolver."
+	@echo "[build_coreference_types_mapping] Get mapping from QID to coreference types needed only for our own coref resolver."
 	@echo "Takes <= 30 mins. If the coref resolver is not needed you can skip this step."
 	@echo
 	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
-	python3 create_relevant_types_mapping.py
+	python3 create_coreference_types_mapping.py
 
 build_wikipedia_mappings:
 	@echo
