@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, Dict, Set
 
+from src.helpers.bert_prediction_reader import BertPredictionReader
 from src.helpers.neural_el_prediction_reader import NeuralELPredictionReader
 from src.helpers.wexea_prediction_reader import WexeaPredictionReader
 from src.helpers.wikifier_prediction_reader import WikifierPredictionReader
@@ -63,7 +64,7 @@ class LinkingSystem:
 
     def _initialize_entity_db(self, linker_type: str, linker: str, link_linker: str, coref_linker: str, min_score: int):
         # Linkers for which not to load entities into the entity database
-        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.IOB.value)
+        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.IOB.value, Linkers.BERT_END2END.value)
 
         self.entity_db = EntityDatabase()
 
@@ -160,6 +161,9 @@ class LinkingSystem:
                                         MappingName.NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES})
             self.linker = PriorLinker(self.entity_db, whitelist_file, use_pos=linker_type == Linkers.POS_PRIOR.value)
+        elif linker_type == Linkers.BERT_END2END.value:
+            result_file = linker_info
+            self.prediction_iterator = BertPredictionReader().article_predictions_iterator(result_file)
         else:
             linker_exists = False
 
