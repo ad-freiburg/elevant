@@ -10,6 +10,9 @@ from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
 from src import settings
 from src.utils.offset_converter import OffsetConverter
+import logging
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class PriorLinker(AbstractEntityLinker):
@@ -32,6 +35,39 @@ class PriorLinker(AbstractEntityLinker):
     @staticmethod
     def get_whitelist_types(whitelist_type_file: str):
         return EntityDatabaseReader.read_whitelist_types(whitelist_type_file)
+
+    def fix_capitalization(self, doc, text):
+        original_text_len = len(text)
+        new_text = ""
+        lower_sents = dict()
+        for tok in doc:
+            window_start = max(tok.idx - 30, 0)
+            after = 10 if window_start > 0 else 10 + (30 - tok.idx)
+            window_end = min(tok.idx + len(tok) + after, len(text))
+            context = text[window_start:tok.idx] + text[tok.idx + len(tok):window_end]
+            num_alpha = len([c for c in context if c.isalpha()])
+            num_upperalpha = len([c for c in context if c.isalpha() and c.isupper()])
+            upper_percentage = num_upperalpha / num_alpha * 100 if num_alpha > 0 else 0
+            if tok.text.isupper() and (len(tok) > 3 or len(tok) > 1 and upper_percentage > 50):
+                sent_span = tok.sent[0].idx, tok.sent[-1].idx + len(tok.sent[-1])
+                if sent_span not in lower_sents:
+                    # Spacy tags PROPN too rigorously when text is all caps, but true
+                    # proper nouns are often recognized even when they are lowercased.
+                    lower_sent = self.model(text[sent_span[0]:sent_span[1]].lower())
+                    lower_sents[sent_span] = lower_sent
+                else:
+                    lower_sent = lower_sents[sent_span]
+                idx_in_sent = OffsetConverter.get_token_idx_in_sent(tok.idx, doc)
+                if lower_sent[idx_in_sent].pos_ == "PROPN":
+                    new_text += tok.text[0] + tok.text[1:].lower()
+                else:
+                    new_text += tok.text.lower()
+            else:
+                new_text += tok.text
+            new_text += tok.whitespace_
+        if original_text_len != len(new_text):
+            logger.warning("Length mismatch. Original length: %d, new length: %d" % (original_text_len, len(new_text)))
+        return new_text
 
     def has_entity(self, entity_id: str) -> bool:
         return self.entity_db.contains_entity(entity_id)
@@ -61,7 +97,7 @@ class PriorLinker(AbstractEntityLinker):
                     skip = True
                 contains_noun = [True for tok in doc[mention_start:mention_end] if tok.pos_ in ["PROPN", "NOUN"]]
             # For the pos_prior linker, require at least one noun in the mention tokens
-            if not skip: # and (not self.use_pos or contains_noun):
+            if not skip:
                 # Only consider span as mention span if it contains at least one noun
                 yield span, mention_text, n_tokens, contains_noun
             mention_start += 1
@@ -103,6 +139,9 @@ class PriorLinker(AbstractEntityLinker):
                 uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None:
             doc = self.model(text)
+
+        text = self.fix_capitalization(doc, text)
+        doc = self.model(text)
 
         predictions = {}
         annotated_chars = np.zeros(shape=len(text), dtype=int)
