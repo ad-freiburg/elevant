@@ -53,27 +53,30 @@ class PriorLinker(AbstractEntityLinker):
             mention_text = text[span[0]:span[1]]
             # Don't yield mention if directly adjacent tokens are proper nouns
             skip = False
+            contains_noun = False
             if self.use_pos:
                 if mention_start > 0 and doc[mention_start - 1].pos_ == "PROPN":
                     skip = True
                 if mention_end < len(doc) and doc[mention_end].pos_ == "PROPN":
                     skip = True
+                contains_noun = [True for tok in doc[mention_start:mention_end] if tok.pos_ in ["PROPN", "NOUN"]]
             # For the pos_prior linker, require at least one noun in the mention tokens
-            if not skip and (not self.use_pos or [True for tok in doc[mention_start:mention_end]
-                                                  if tok.pos_ in ["PROPN", "NOUN"]]):
+            if not skip: # and (not self.use_pos or contains_noun):
                 # Only consider span as mention span if it contains at least one noun
-                yield span, mention_text, n_tokens
+                yield span, mention_text, n_tokens, contains_noun
             mention_start += 1
 
-    def get_matching_entity_id(self, mention_text: str, is_sent_start: bool) -> Optional[str]:
+    def get_matching_entity_id(self, mention_text: str, is_sent_start: bool, contains_noun: bool) -> Optional[str]:
         if mention_text in self.entity_db.link_frequencies:
             # Get matching entity ids for given mention text in order of their link frequency
             entity_id = max(self.entity_db.link_frequencies[mention_text],
                             key=self.entity_db.link_frequencies[mention_text].get)
+            is_uppercase = mention_text[0].isupper()
             # Return the with the highest link frequency that has a whitelist type and
             # a synonym matching the mention text
             if (not self.whitelist_types or self.has_whitelist_type(entity_id)) and \
-                    self.has_synonym(entity_id, mention_text, is_sent_start):
+                    ((is_uppercase and not is_sent_start) or
+                     (self.has_synonym(entity_id, mention_text, is_sent_start) and contains_noun)):
                 return entity_id
         return None
 
@@ -104,11 +107,11 @@ class PriorLinker(AbstractEntityLinker):
         predictions = {}
         annotated_chars = np.zeros(shape=len(text), dtype=int)
         spans = {}
-        for span, mention_text, n_tokens in self.get_mention_spans(doc, text):
+        for span, mention_text, n_tokens, contains_noun in self.get_mention_spans(doc, text):
             if uppercase and mention_text.islower():
                 continue
             is_sent_start = OffsetConverter.get_token(span[0], doc).is_sent_start
-            predicted_entity_id = self.get_matching_entity_id(mention_text, is_sent_start)
+            predicted_entity_id = self.get_matching_entity_id(mention_text, is_sent_start, contains_noun)
             if predicted_entity_id:
                 if np.sum(annotated_chars[span[0]:span[1]]) != 0:
                     # Do not allow overlapping links. Prioritize links with more tokens and resolve ties by link
