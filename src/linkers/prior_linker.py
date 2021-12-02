@@ -97,7 +97,7 @@ class PriorLinker(AbstractEntityLinker):
                     skip = True
                 contains_noun = [True for tok in doc[mention_start:mention_end] if tok.pos_ in ["PROPN", "NOUN"]]
             # For the pos_prior linker, require at least one noun in the mention tokens
-            if not skip:
+            if not skip and len(mention_text) > 1:
                 # Only consider span as mention span if it contains at least one noun
                 yield span, mention_text, n_tokens, contains_noun
             mention_start += 1
