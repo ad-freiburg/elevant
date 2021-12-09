@@ -124,27 +124,16 @@ class PseudoLinkConllExampleReader:
             yield article
 
 
-class AceExampleReader:
-    def __init__(self, entity_db: EntityDatabase):
+class XMLExampleReader:
+    def __init__(self, entity_db: EntityDatabase, labels_file_or_dir: str, text_dir: str):
         self.entity_db = entity_db
+        self.labels_file_or_dir = labels_file_or_dir
+        self.text_dir = text_dir
 
     def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
         parser = XMLBenchmarkParser(self.entity_db)
-        for i, article in enumerate(parser.article_iterator(settings.ACE04_BENCHMARK_LABELS,
-                                                            settings.ACE04_BENCHMARK_TEXTS)):
-            if i == n:
-                break
-            yield article
-
-
-class MsnbcExampleReader:
-    def __init__(self, entity_db: EntityDatabase):
-        self.entity_db = entity_db
-
-    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
-        parser = XMLBenchmarkParser(self.entity_db)
-        for i, article in enumerate(parser.article_iterator(settings.MSNBC_BENCHMARK_LABELS,
-                                                            settings.MSNBC_BENCHMARK_TEXTS)):
+        for i, article in enumerate(parser.article_iterator(self.labels_file_or_dir,
+                                                            self.text_dir)):
             if i == n:
                 break
             yield article
@@ -178,6 +167,10 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
             benchmark_filename = path + "benchmark_labels_ace.jsonl"
         elif benchmark_name == Benchmark.MSNBC.value:
             benchmark_filename = path + "benchmark_labels_msnbc.jsonl"
+        elif benchmark_name == Benchmark.ACE_ORIGINAL.value:
+            benchmark_filename = path + "benchmark_labels_ace-original.jsonl"
+        elif benchmark_name == Benchmark.MSNBC_ORIGINAL.value:
+            benchmark_filename = path + "benchmark_labels_msnbc-original.jsonl"
         elif benchmark_name == Benchmark.NEWSCRAWL.value:
             benchmark_filename = path + "benchmark_labels_newscrawl.jsonl"
         else:
@@ -201,9 +194,21 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
             if benchmark_name == Benchmark.ACE.value:
-                example_generator = AceExampleReader(entity_db)
+                example_generator = XMLExampleReader(entity_db,
+                                                     settings.ACE04_BENCHMARK_LABELS,
+                                                     settings.ACE04_BENCHMARK_TEXTS)
             elif benchmark_name == Benchmark.MSNBC.value:
-                example_generator = MsnbcExampleReader(entity_db)
+                example_generator = XMLExampleReader(entity_db,
+                                                     settings.MSNBC_BENCHMARK_LABELS,
+                                                     settings.MSNBC_BENCHMARK_TEXTS)
+            elif benchmark_name == Benchmark.ACE_ORIGINAL.value:
+                example_generator = XMLExampleReader(entity_db,
+                                                     settings.ACE04_ORIGINAL_BENCHMARK_LABELS,
+                                                     settings.ACE04_ORIGINAL_BENCHMARK_TEXTS)
+            elif benchmark_name == Benchmark.MSNBC_ORIGINAL.value:
+                example_generator = XMLExampleReader(entity_db,
+                                                     settings.MSNBC_ORIGINAL_BENCHMARK_LABELS,
+                                                     settings.MSNBC_ORIGINAL_BENCHMARK_TEXTS)
             elif benchmark_name == Benchmark.CONLL_PSEUDO_LINKS.value:
                 example_generator = PseudoLinkConllExampleReader(entity_db)
             elif benchmark_name == Benchmark.WIKIPEDIA.value:

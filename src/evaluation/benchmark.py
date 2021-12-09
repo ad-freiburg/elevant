@@ -9,5 +9,7 @@ class Benchmark(Enum):
     CONLL_PSEUDO_LINKS = "conll-links"
     ACE = "ace"
     MSNBC = "msnbc"
+    ACE_ORIGINAL = "ace-original"
+    MSNBC_ORIGINAL = "msnbc-original"
     WIKIPEDIA = "wikipedia"
     NEWSCRAWL = "newscrawl"

@@ -85,8 +85,14 @@ CONLL_BENCHMARK_FILE = DATA_DIRECTORY + "benchmarks/conll/conll-wikidata-iob-ann
 ACE04_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/ace2004/RawText/"
 ACE04_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/ace2004/ace2004.xml"
 
+ACE04_ORIGINAL_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/ace2004.original/RawTextsNoTranscripts/"
+ACE04_ORIGINAL_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/ace2004.original/ProblemsNoTranscripts/"
+
 MSNBC_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc/RawText/"
 MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc/msnbc.xml"
+
+MSNBC_ORIGINAL_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc.original/RawTextsSimpleChars_utf8/"
+MSNBC_ORIGINAL_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc.original/Problems/"
 
 WIKI_EX_BENCHMARK_FILE = "benchmarks/benchmark_labels_wiki-ex.jsonl"
 

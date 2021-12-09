@@ -9,8 +9,10 @@
 *Original Dataset:* 20 articles with 756 mentions (of which 127 were linked to NIL since there was no appropriate Wikipedia article corresponding to the mention).
 This is the same as the dataset from the GERBIL download below. This dataset contains 747 non-NIL mentions.
 For 87 of these non-NIL mentions, the corresponding Wikipedia article can not be found (anymore).\
+Some of the labels are overlapping in the original dataset. E.g. [Frank [Blake]], [The [Home Depot]]
 *Updated Dataset:* A cleaned version of the MSNBC dataset with no-longer existing Wikipedia entities removed was released by [Guo & Barbosa](https://dl.acm.org/doi/pdf/10.1145/2661829.2661887) (according to [Ganea et al.](https://dl.acm.org/doi/pdf/10.1145/2872427.2882988)).
-This version contains 739 mentions in total and 656 non-NIL mentions.
+This version contains 739 mentions in total and 656 non-NIL mentions. At least 6 articles are different articles than the one in the original dataset, but revolve around the same topics.
+These articles are 16417540, 16443053, 16447720, 16452612, 16455207, 3683270.
 
 **Method:** They took the top 2 stories of the 10 MSNBC News categories (January 2, 2007), used them as input to their system and then perform a post-hoc evaluation of the disambiguations.
 From the paper: "We defined a disambiguation to be correct if it represented the best possible Wikipedia article that would satisfy a user’s need for information and incorrect otherwise.

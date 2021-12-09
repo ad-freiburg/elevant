@@ -31,7 +31,7 @@ LINKING_SYSTEMS = ambiverse baseline explosion neural_el popular_entities pos_pr
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
 # Adjust only if the set of total available benchmarks has changed
-EXISTING_BENCHMARKS = wiki-ex newscrawl conll-test conll-dev msnbc ace
+EXISTING_BENCHMARKS = wiki-ex newscrawl conll-test conll-dev msnbc ace msnbc-original ace-original
 
 DOCKER_CMD = docker
 API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
@@ -119,13 +119,9 @@ evaluate_linked_benchmarks:
 	  echo "FILENAME = $${FILENAME}"; \
 	  echo "BENCHMARK_SUFFIX = $${BENCHMARK_SUFFIX}"; \
 	  if [[ " $${BENCHMARK_NAMES[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
-		ARGUMENTS=""; \
-		if [[ "$${BENCHMARK_SUFFIX}" == "ace" ]] || [[ "$${BENCHMARK_SUFFIX}" == "msnbc" ]]; then \
-			ARGUMENTS="--no-unknowns"; \
-		fi; \
-		python3 evaluate_linked_entities.py $${FILENAME} -b $${BENCHMARK_SUFFIX} $${ARGUMENTS}; \
+		python3 evaluate_linked_entities.py $${FILENAME} -b $${BENCHMARK_SUFFIX}; \
 	  elif [[ " $${BENCHMARK_NAMES[*]} " =~ " wiki-ex " ]] && [[ ! " $${EXISTING_BENCHMARKS[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
-		python3 evaluate_linked_entities.py $${FILENAME} -b wiki-ex $${ARGUMENTS}; \
+		python3 evaluate_linked_entities.py $${FILENAME} -b wiki-ex; \
 	  else \
 	    echo -e "$${DIM}Skipping file because benchmark suffix is not in BENCHMARK_NAMES and benchmark is not wiki-ex$${RESET}"; \
 	  fi; \
