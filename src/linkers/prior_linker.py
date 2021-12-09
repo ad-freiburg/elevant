@@ -37,18 +37,15 @@ class PriorLinker(AbstractEntityLinker):
         return EntityDatabaseReader.read_whitelist_types(whitelist_type_file)
 
     def fix_capitalization(self, doc, text):
-        original_text_len = len(text)
         new_text = ""
         lower_sents = dict()
         for tok in doc:
             window_start = max(tok.idx - 30, 0)
-            after = 10 if window_start > 0 else 10 + (30 - tok.idx)
-            window_end = min(tok.idx + len(tok) + after, len(text))
-            context = text[window_start:tok.idx] + text[tok.idx + len(tok):window_end]
+            context = text[window_start:tok.idx]
             num_alpha = len([c for c in context if c.isalpha()])
             num_upperalpha = len([c for c in context if c.isalpha() and c.isupper()])
-            upper_percentage = num_upperalpha / num_alpha * 100 if num_alpha > 0 else 0
-            if tok.text.isupper() and (len(tok) > 3 or len(tok) > 1 and upper_percentage > 50):
+            upper_percentage = num_upperalpha / num_alpha * 100 if num_alpha > 0 else 100
+            if tok.text.isupper() and (len(tok) > 3 or (upper_percentage > 70)):
                 sent_span = tok.sent[0].idx, tok.sent[-1].idx + len(tok.sent[-1])
                 if sent_span not in lower_sents:
                     # Spacy tags PROPN too rigorously when text is all caps, but true
@@ -65,8 +62,6 @@ class PriorLinker(AbstractEntityLinker):
             else:
                 new_text += tok.text
             new_text += tok.whitespace_
-        if original_text_len != len(new_text):
-            logger.warning("Length mismatch. Original length: %d, new length: %d" % (original_text_len, len(new_text)))
         return new_text
 
     def has_entity(self, entity_id: str) -> bool:
@@ -91,9 +86,9 @@ class PriorLinker(AbstractEntityLinker):
             skip = False
             contains_noun = False
             if self.use_pos:
-                if mention_start > 0 and doc[mention_start - 1].pos_ == "PROPN":
+                if mention_start > 0 and doc[mention_start - 1].pos_ == "PROPN" and len(doc[mention_start - 1]) > 1:
                     skip = True
-                if mention_end < len(doc) and doc[mention_end].pos_ == "PROPN":
+                if mention_end < len(doc) and doc[mention_end].pos_ == "PROPN" and len(doc[mention_end]) > 1:
                     skip = True
                 contains_noun = [True for tok in doc[mention_start:mention_end] if tok.pos_ in ["PROPN", "NOUN"]]
             # For the pos_prior linker, require at least one noun in the mention tokens
@@ -171,17 +166,18 @@ class PriorLinker(AbstractEntityLinker):
                         # Skip current predicted entity
                         continue
 
-                elif span[0] >= 2 and annotated_chars[span[0] - 2] != 0:
+                elif n_tokens == 1 and span[0] >= 2 and annotated_chars[span[0] - 2] != 0:
                     # Do not allow two consecutive mentions that are only separated by a single character
                     # (usually a whitespace or a hyphen).
                     # Usually this means that a bigger mention could not be correctly identified.
                     # Delete both mentions.
                     # This does not prevent cases where a proper noun is directly preceding an entity but was not linked
-                    preceding_span, _ = spans[annotated_chars[span[0] - 2]]
-                    annotated_chars[preceding_span[0]:preceding_span[1]] = 0
-                    del predictions[preceding_span]
-                    del spans[preceding_span[0] + 1]
-                    continue
+                    preceding_span, preceding_n_tokens = spans[annotated_chars[span[0] - 2]]
+                    if preceding_n_tokens == 1:
+                        annotated_chars[preceding_span[0]:preceding_span[1]] = 0
+                        del predictions[preceding_span]
+                        del spans[preceding_span[0] + 1]
+                        continue
 
                 # Add new prediction
                 # +1 so we can use sum to detect overlaps (span[0] can be 0)
