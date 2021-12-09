@@ -1,0 +1,66 @@
+# Instance-of
+ADD wd:Q7187883 wdt:P31 wd:Q483394  # photoplay music - genre
+REMOVE wd:Q9584 wdt:P31 wd:Q42855995  # Honda - fabricator
+ADD wd:Q7934382 wdt:P31 wd:Q176799  # Virginia Line - military unit
+ADD wd:Q96376604 wdt:P31 wd:Q25379  # Dragon's Mouth - play
+ADD wd:Q482 wdt:P31 wd:Q223393  # poetry - literary genre
+ADD wd:Q2140388 wdt:P31 wd:Q2990946  # WGC Invitational - golf tournament
+ADD wd:Q41520 wdt:P31 wd:Q13219666  # Wimbledon - tennis tournament
+ADD wd:Q123577 wdt:P31 wd:Q13219666  # US Open - tennis tournament
+ADD wd:Q749413 wdt:P31 wd:Q2990946  # German Open - golf tournament
+ADD wd:Q2140388 wdt:P31 wd:Q2990946  # WGC Invitational - golf tournament
+ADD wd:Q854376 wdt:P31 wd:Q2990946  # Ryder Cup - golf tournament
+ADD wd:Q5374367 wdt:P31 wd:Q12737077  # employment consultant - occupation
+ADD wd:Q4795040 wdt:P31 wd:Q1497364  # Arnold Engineering Development Complex - building complex
+ADD wd:Q48444513 wdt:P31 wd:Q4164871  # People’s Commissar - position
+ADD wd:Q1178531 wdt:P31 wd:Q4022  # Mollarino - river
+ADD wd:Q20979428 wdt:P31 wd:Q7725634  # Unmeasured strength - literary work
+ADD wd:Q210272 wdt:P31 wd:Q11862829  # cultural heritage - academic discipline
+ADD wd:Q10283 wdt:P31 wd:Q15726071  # Kumbh Mela - Hindu pilgrimage
+REMOVE wd:Q9531 wdt:P31 wd:Q7094076  # BBC - online database
+ADD wd:Q49084 wdt:P31 wd:Q223393  # short story - literary genre
+ADD wd:Q65077540 wdt:P31 wd:Q56019  # Army general - military rank
+ADD wd:Q7574456 wdt:P31 wd:Q15987302  # Special Advocate - legal profession
+ADD wd:Q7088285 wdt:P31 wd:Q177518  # olleh TV - IPTV
+ADD wd:Q4627135 wdt:P31 wd:Q2990946  # Charles Schwab Cup Championship - golf tournament
+ADD wd:Q223172  wdt:P31 wd:Q232358  # Achilles tendon - tendon
+ADD wd:Q7363 wdt:P31 wd:Q4936952  # nose - anatomical structure
+ADD wd:Q31920 wdt:P31 wd:Q349  # swimming - sport
+ADD wd:Q7735 wdt:P31 wd:Q349  # diving - sport
+ADD wd:Q159992 wdt:P31 wd:Q349  # surfing - sport
+ADD wd:Q6531690 wdt:P31 wd:Q349  # clean and jerk - sport
+ADD wd:Q41323 wdt:P31 wd:Q349  # American football - sport
+
+# Subclass-of
+REMOVE wd:Q24229398 wdt:P279 wd:Q12737077  # agent - occupation
+ADD wd:Q11514315 wdt:P279 wd:Q1656682  # historical period - event
+ADD wd:Q180684 wdt:P279 wd:Q1656682  # conflict - event
+ADD wd:Q194465 wdt:P279 wd:Q1656682  # annexation - event
+ADD wd:Q381072 wdt:P279 wd:Q1656682  # crisis - event
+ADD wd:Q18603729 wdt:P279 wd:Q1656682  # dissolution of an administrative territorial entity - event
+REMOVE wd:Q376799 wdt:P279 wd:Q27096235  # transport infrastructure - artificial geographic entity
+REMOVE wd:Q786820 wdt:P279 wd:Q28640  # automobile manufacturer - profession
+REMOVE wd:Q12015335 wdt:P279 wd:Q2465832  # branch of engineering - branch of science (to break the Google - academic discipline path)
+REMOVE wd:Q482 wdt:P279 wd:Q223393  # poetry - literary genre
+REMOVE wd:Q1358344 wdt:P279 wd:Q15961987  # news program - television genre
+REMOVE wd:Q1030814 wdt:P279 wd:Q12909644   # big tent - political ideology
+REMOVE wd:Q1168287 wdt:P279 wd:Q166542  # intervention - international relations (to break the path NATO intervention in Bosnia and Herzegovina - award)
+ADD wd:Q38829 wdt:P279 wd:Q16521  # breed - taxon
+ADD wd:Q11344 wdt:P279 wd:Q43460564  # chemical element - chemical entity
+ADD wd:Q39825 wdt:P279 wd:Q1656682  # census - event
+REMOVE wd:Q14897293 wdt:P279 wd:Q17537576  # fictional entity - creative work
+REMOVE wd:Q7397 wdt:P279 wd:Q17537576  # software - creative work
+REMOVE wd:Q376799 wdt:P279 wd:Q618123  # transport infrastructure - geographic feature
+ADD wd:Q4057633 wdt:P279 wd:Q6671777  # hierarchy of administrative territorial entities - structure
+REMOVE wd:Q4057633 wdt:P279 wd:Q1531349  # hierarchy of administrative territorial entities - outline (to break the path Bratislava - creative work)
+REMOVE wd:Q210272 wdt:P279 wd:Q11862829  # cultural heritage - academic discipline
+REMOVE wd:Q96482621 wdt:P279 wd:Q1619519  # administrative territory in South Africa - geography of South Africa (break Cape Town - academic discipline)
+REMOVE wd:Q96482621 wdt:P279 wd:Q1155268  # administrative territory in South Africa - politics of South Africa
+REMOVE wd:Q192283 wdt:P279 wd:Q11032  # news agency - newspaper
+ADD wd:Q41710 wdt:P279 wd:Q33829  # ethnic group - human population
+ADD wd:Q18669875 wdt:P279 wd:Q1656682  # incident - event
+REMOVE wd:Q190122 wdt:P279 wd:Q28038717  # promissory note - negotiable instrument  (break any currency - creative work)
+ADD wd:Q1130251 wdt:P279 wd:Q15275719  # NHL Entry Draft - recurring event
+ADD wd:Q14897293 wdt:P279 wd:Q17537576  # fictional entity - creative work
+ADD wd:Q8366 wdt:P279 wd:Q47461344  # algorithm - written work
+REMOVE wd:Q25894868 wdt:P279 wd:Q2221906  # place type - geographic location

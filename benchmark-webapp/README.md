@@ -16,9 +16,9 @@ This webapp displays information about the groundtruth label types and level1 di
 
         ln -s ../benchmarks
         
-1. Link to the `wikidata-types` directory that contains the whitelist type file `types.txt`:
+1. Link to the `data` directory that contains the whitelist type file `whitelist_types.txt`:
 
-        ln -s ../wikidata-types
+        ln -s ../data
         
 1. Start a file server:
 

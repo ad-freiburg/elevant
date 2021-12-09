@@ -1,5 +1,5 @@
 $("document").ready(function() {
-    $.get("wikidata-types/types.txt", function(file_content) {
+    $.get("data/whitelist_types.txt", function(file_content) {
         // Retrieve whitelist QID to name mapping
         whitelist = {};
         for (line of file_content.split("\n")) {

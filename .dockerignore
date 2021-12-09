@@ -6,7 +6,6 @@ wikipedia_dump_files
 wikipedia_mappings
 evaluation-results
 wikidata-types/*
-!wikidata-types/types.txt
 qlever
 wikifier
 neural-el

@@ -83,7 +83,7 @@ link_benchmark:
 	    ARGUMENTS="15 -ll link-text-linker -coref entity"; \
 	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.ltl.entity/$${SYSTEM}.ltl.entity$${RESULT_FILE_SUFFIX}.jsonl; \
 	  elif [ $${SYSTEM} == "pos_prior" ]; then \
-	    ARGUMENTS=wikidata-types/types.txt; \
+	    ARGUMENTS=data/whitelist_types.txt; \
 	  elif [ $${SYSTEM} == "spacy" ]; then \
 	    ARGUMENTS=prior_trained; \
 	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none.prior_trained$${RESULT_FILE_SUFFIX}.jsonl; \
