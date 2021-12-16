@@ -20,6 +20,12 @@
 			<label for="radio_and">AND</label>
 			<input type="radio" id="radio_or" name="match_type" class="match_type">
 			<label for="radio_or">OR</label>
+			<div>
+				<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
+				<label for="checkbox_compare">Compare two systems</label>
+				<input type="checkbox" id="checkbox_groundtruth" onchange="toggle_show_groundtruth()">
+				<label for="checkbox_compare">Show Groundtruth</label>
+			</div>
 			<div id="evaluation_tables">
 				<div id="evaluation">
 					<div class="checkboxes"></div>
@@ -61,16 +67,18 @@
 					<input id="show_pronominal" type="checkbox" checked>
 					<label>Show Pronominal</label>
 				</div>
-				<div class="row">
-					<div class="column">
-						<h3>Ground truth</h3>
-						<p id="textfield_left"></p>
-					</div>
-					<div class="column">
-						<h3>Predicted</h3>
-						<p id="textfield_right"></p>
-					</div>
-				</div>
+				<table id="prediction_overview">
+					<thead>
+						<tr>
+							<th></th><th></th><th></th><th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td></td><td></td><td></td><td></td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</body>

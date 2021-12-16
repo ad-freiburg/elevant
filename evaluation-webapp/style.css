@@ -30,23 +30,10 @@ html, body {
     padding-left: 10pt;
 }
 
-.column {
-    float: left;
-    width: 50%;
-    box-sizing: border-box;
-    padding: 5pt;
-    border-style: solid;
-    border-width: 1px;
-}
-
 table, td, th {
     border: 1px solid black;
     border-collapse: collapse;
     padding: 3px;
-}
-
-.casesTable {
-    width: 100%;
 }
 
 a {
@@ -69,7 +56,7 @@ a {
 
     /* Position of the tooltip text */
     position: absolute;
-    z-index: 1;
+    z-index: 20;
     bottom: 100%;
     left: 0;
 }
@@ -177,8 +164,33 @@ td .tooltip:hover .tooltiptext {
     padding-top: 2em;
 }
 
-#article-results .row {
+#prediction_overview {
     display: none;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#prediction_overview td,
+#prediction_overview th {
+    width: 50%;
+}
+
+#prediction_overview td {
+    vertical-align: top;
+}
+
+#prediction_overview [class*="compare_"] {
+    display: none;
+}
+
+/* Make the table headers move down when scrolling so they are always visible */
+#prediction_overview th {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #E5E5E5;
 }
 
 /* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */

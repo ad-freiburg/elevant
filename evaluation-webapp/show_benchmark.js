@@ -9,6 +9,9 @@ RESULTS_EXTENSION = ".results";
 
 JOKER_LABELS = ["QUANTITY", "DATETIME"];
 
+MAX_SELECTED_APPROACHES = 2;
+MAX_CACHED_FILES = 15;
+
 ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
@@ -47,7 +50,7 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
 
 show_mentions = {"entity_named": true, "entity_other": true, "nominal": true, "pronominal": true};
 
-benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl"];
+benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl", "msnbc-original", "ace-original"];
 
 error_category_mapping = {"undetected": ["UNDETECTED"],
     "undetected_lowercase": ["UNDETECTED_LOWERCASE"],
@@ -79,15 +82,19 @@ error_category_mapping = {"undetected": ["UNDETECTED"],
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
-    textfield_left = document.getElementById("textfield_left");
-    textfield_right = document.getElementById("textfield_right");
     benchmark_select = document.getElementById("benchmark");
     article_select = document.getElementById("article");
 
     show_all_articles_flag = false;
-    selected_categories = null;
-    show_selected_type = null;
-    last_selected_cell = null;
+
+    evaluation_cases = {};
+    articles_data = {};
+
+    selected_approach_names = [];
+    selected_rows = [];
+    selected_cells = [];
+    selected_error_categories = [];
+    selected_types = [];
 
     sorting_variables = {"evaluation": {}, "type_evaluation": {}}
     for (div in sorting_variables) {
@@ -124,8 +131,7 @@ $("document").ready(function() {
                 show_mentions[key] = checked;
             }
         });
-        show_ground_truth_entities();
-        show_linked_entities();
+        show_article(selected_approach_names);
     });
 
     // Highlight error category cells on hover
@@ -140,26 +146,6 @@ $("document").ready(function() {
 
     $("#evaluation").on("mouseleave", "td", function() {
         $(this).removeClass("hovered");
-    });
-
-    // Highlight error category cells on click and un-highlight previously clicked cell
-    $("#evaluation").on("click", "td", function() {
-        if (last_selected_cell) {
-            var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
-            // last_selected_cell could be in type_evaluation table as well
-            // where multiple cells need to be deselected
-            $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
-                $(this).removeClass("selected");
-            });
-        }
-        last_selected_cell = null;
-        if ($(this).attr('class')) {  // System column has no class attribute
-            var classes = $(this).attr('class').split(/\s+/);
-            if (classes.length > 1 && classes[1] in error_category_mapping) {
-                $(this).addClass("selected");
-                last_selected_cell = this;
-            }
-        }
     });
 
     // Highlight all cells in a row belonging to the same type on hover
@@ -182,27 +168,8 @@ $("document").ready(function() {
         }
     });
 
-    // Highlight type cells on click and un-highlight previously clicked cells
-    $("#type_evaluation").on("click", "td", function() {
-        if (last_selected_cell) {
-            var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
-            $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
-                $(this).removeClass("selected");
-            });
-        }
-        last_selected_cell = null;
-        if ($(this).attr('class')) {  // System column has no class attribute
-            var cls = $(this).attr('class').split(/\s+/)[0];
-            $(this).closest('tr').find('.' + cls).each(function(index) {
-                $(this).addClass("selected");
-                last_selected_cell = this;
-            });
-        }
-    });
-
-
     // Show tooltips on both sides when the corresponding span on the other side is hovered
-    $("#textfield_left, #textfield_right").on("mouseenter", ".tooltip", function() {
+    $("#prediction_overview td").on("mouseenter", ".tooltip", function() {
         var hovered_tooltiptext = $(this).find(".tooltiptext");
         var hovered_tooltiptext_id = $(hovered_tooltiptext).attr("id");
         $(hovered_tooltiptext).css("visibility", "visible");
@@ -222,7 +189,7 @@ $("document").ready(function() {
         }
     });
 
-    $("#textfield_left, #textfield_right").on("mouseleave", ".tooltip", function() {
+    $("#prediction_overview td").on("mouseleave", ".tooltip", function() {
         var hovered_tooltiptext = $(this).find(".tooltiptext");
         var hovered_tooltiptext_id = $(hovered_tooltiptext).attr("id");
         $(hovered_tooltiptext).css("visibility", "hidden");
@@ -233,6 +200,19 @@ $("document").ready(function() {
         }
     });
 });
+
+function get_selected_category(element) {
+    data_attribute = $(element).data("category");
+    if (data_attribute) {
+        var match = data_attribute.match(/Q[0-9]+:.*/);
+        if (data_attribute in error_category_mapping) {
+            return error_category_mapping[data_attribute];
+        } else if (match || data_attribute == "OTHER") {
+            return data_attribute.replace(/(Q[0-9]+):.*/g, "$1");
+        }
+    }
+    return null;
+}
 
 function set_benchmark_select_options() {
     /* Set the options for the benchmark selector element to the names of the benchmarks in the given directory. */
@@ -276,7 +256,7 @@ function show_benchmark_results() {
     $("#evaluation_tables table tbody").empty();
 
     // Remove previous article evaluation content
-    $("#article-results .row").hide();
+    $("#prediction_overview").hide();
     evaluation_cases = [];
 
     // Build an overview table over all .results-files from the evaluation-results folder.
@@ -304,11 +284,10 @@ function filter_table_rows() {
 function parse_benchmark(benchmark_file) {
     /*
     Read the articles and ground truth labels from the benchmark.
-    
+
     Reads the file benchmarks/<benchmark_file> and adds each article to the list 'articles'.
-    Each article is an object indentical to the parsed JSON-object, with an additional property 'labelled_text',
-    which is the article text with HTML-hyperlinks for the ground truth entity mentions.
-    
+    Each article is an object indentical to the parsed JSON-object.
+
     Calls set_article_select_options(), which sets the options for the article selector element.
     */
     // List of articles with ground truth information from the benchmark.
@@ -319,27 +298,6 @@ function parse_benchmark(benchmark_file) {
             for (line of lines) {
                 if (line.length > 0) {
                     json = JSON.parse(line);
-                    labelled_text = json.text;
-                    for (label of json.labels.reverse()) {
-                        if ("span" in label) {
-                            span = label["span"];
-                            entity_id = label["entity_id"];
-                        } else {
-                            span = label[0];
-                            entity_id = label[1];
-                        }
-                        begin = span[0];
-                        end = span[1];
-                        wikidata_url = "https://www.wikidata.org/wiki/" + entity_id;
-                        before = labelled_text.substring(0, begin);
-                        after = labelled_text.substring(end);
-                        entity_text = labelled_text.substring(begin, end);
-                        entity_representation = entity_text + " [" + entity_id + "]";
-                        link = "<a href=\"" + wikidata_url + "\">" + entity_representation +"</a>";
-                        labelled_text = before + link + after;
-                    }
-                    labelled_text = labelled_text.replaceAll("\n", "<br>");
-                    json.labelled_text = labelled_text;
                     articles.push(json);
                 }
             }
@@ -384,7 +342,7 @@ function show_article_link() {
     $("#article_link").show();
 }
 
-function show_ground_truth_entities() {
+function show_ground_truth_entities(approach_name, textfield, selected_error_categories, selected_type) {
     /*
     Generate tooltips for the ground truth entities of the selected article
     and show them in the left textfield.
@@ -392,8 +350,8 @@ function show_ground_truth_entities() {
     if (show_all_articles_flag) {
         var ground_truth_texts = [];
         for (var i=0; i < articles.length; i++) {
-            var annotations = get_ground_truth_annotations(i);
-            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, true, i));
+            var annotations = get_ground_truth_annotations(i, approach_name);
+            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, true, i, selected_error_categories, selected_type, approach_name));
         }
         ground_truth_text = "";
         for (var i=0; i < ground_truth_texts.length; i++) {
@@ -401,10 +359,10 @@ function show_ground_truth_entities() {
             ground_truth_text += ground_truth_texts[i];
         }
     } else {
-        var annotations = get_ground_truth_annotations(selected_article_index);
-        var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], true, 0);
+        var annotations = get_ground_truth_annotations(selected_article_index, approach_name);
+        var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], true, 0, selected_error_categories, selected_type, approach_name);
     }
-    textfield_left.innerHTML = ground_truth_text;
+    textfield.html(ground_truth_text);
 }
 
 function is_correct_optional_case(eval_case) {
@@ -430,7 +388,7 @@ function is_correct_optional_case(eval_case) {
     return false;
 }
 
-function get_ground_truth_annotations(article_index) {
+function get_ground_truth_annotations(article_index, approach_name) {
     /*
     Generate annotations for the ground truth entities of the selected article.
     */
@@ -438,7 +396,7 @@ function get_ground_truth_annotations(article_index) {
 
     var child_label_to_parent = {};
     var label_id_to_label = {};
-    for (eval_case of evaluation_cases[article_index]) {
+    for (eval_case of evaluation_cases[approach_name][article_index]) {
         // Build the parent mapping
         if ("true_entity" in eval_case && eval_case.true_entity.children) {
             label_id_to_label[eval_case.true_entity.id] = eval_case.true_entity;
@@ -448,7 +406,7 @@ function get_ground_truth_annotations(article_index) {
         }
     }
 
-    for (eval_case of evaluation_cases[article_index]) {
+    for (eval_case of evaluation_cases[approach_name][article_index]) {
         if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
             if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
                 continue;
@@ -501,7 +459,7 @@ function get_ground_truth_annotations(article_index) {
     return annotations
 }
 
-function show_linked_entities() {
+function show_linked_entities(approach_name, textfield, selected_error_categories, selected_type) {
     /*
     Generate tooltips for the predicted entities of the selected approach and article
     and show them in the right textfield.
@@ -509,8 +467,8 @@ function show_linked_entities() {
     if (show_all_articles_flag) {
         var predicted_texts = [];
         for (var i=0; i < articles.length; i++) {
-            var annotations = get_predicted_annotations(i);
-            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, false, i));
+            var annotations = get_predicted_annotations(i, approach_name);
+            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, false, i, selected_error_categories, selected_type, approach_name));
         }
         predicted_text = "";
         for (var i=0; i < predicted_texts.length; i++) {
@@ -518,13 +476,13 @@ function show_linked_entities() {
             predicted_text += predicted_texts[i];
         }
     } else {
-        var annotations = get_predicted_annotations(selected_article_index);
-        var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], false, 0);
+        var annotations = get_predicted_annotations(selected_article_index, approach_name);
+        var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], false, 0, selected_error_categories, selected_type, approach_name);
     }
-    textfield_right.innerHTML = predicted_text;
+    textfield.html(predicted_text);
 }
 
-function get_predicted_annotations(article_index) {
+function get_predicted_annotations(article_index, approach_name) {
     /*
     Generate annotations for the predicted entities of the selected approach and article.
 
@@ -532,8 +490,8 @@ function get_predicted_annotations(article_index) {
     with the evaluated predictions inside the evaluation span (from the file <approach>.cases),
     and then generates annotations for all of them.
     */
-    var article_cases = evaluation_cases[article_index];  // information from the .cases file
-    var article_data = articles_data[article_index];  // information from the .jsonl file
+    var article_cases = evaluation_cases[approach_name][article_index];  // information from the .cases file
+    var article_data = articles_data[approach_name][article_index];  // information from the .jsonl file
 
     var child_label_to_parent = {};
     var label_id_to_label = {};
@@ -669,21 +627,21 @@ function deep_copy_array(array) {
     return copied_array;
 }
 
-function annotate_text(text, annotations, links, evaluation_span, evaluation, article_num) {
+function annotate_text(text, annotations, links, evaluation_span, evaluation, article_num, selected_error_categories, selected_type, approach_name) {
     /*
     Generate tooltips for the given annotations and hyperlinks for the given links.
     Tooltips and hyperlinks can overlap.
-    
+
     Arguments:
     - text: The original text without tooltips or hyperlinks.
     - annotations: A sorted (by span) list of objects containing the following tooltip information:
         annotation.span: start and end character offset of the entity mention
-        annotation.color: 
+        annotation.color:
         annotation.entity_id: wikidata ID of the mentioned entity
         annotation.entity_name: name of the mentioned entity (or null)
         annotation.predicted_by: identifier of the entity linker (optional)
     - links: A sorted (by span) list of tuples (span, target_article).
-    
+
     First the overlapping annotations and links get combined to annotations_with_links.
     Second, the annotations with links are added to the text.
     */
@@ -756,8 +714,8 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
     // STEP 2: Add the combined annotations and links to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
     id_counter = 0;
-    if (evaluation && annotation_spans[0].length - 1 < article_num) annotation_spans[0].push([]);
-    else if (prediction && annotation_spans[1].length - 1 < article_num) annotation_spans[1].push([]);
+    if (evaluation && annotation_spans[approach_name][0].length - 1 < article_num) annotation_spans[approach_name][0].push([]);
+    else if (prediction && annotation_spans[approach_name][1].length - 1 < article_num) annotation_spans[approach_name][1].push([]);
     for (annotation of annotations_with_links.reverse()) {
         // annotation is a tuple with (span, annotation_info)
         span = annotation[0];
@@ -783,9 +741,6 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
             } else {
                 tooltip_text = entity_link;
             }
-            if (annotation.hasOwnProperty("span")) {
-                tooltip_text += "<br>span=(" + annotation.span[0] + ", " + annotation.span[1] + ")";
-            }
             if (annotation.hasOwnProperty("predicted_by")) {
                 tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
             }
@@ -803,30 +758,30 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
             }
             // Only show selected error category
             var color = annotation.color[0];
-            if (selected_categories && annotation.error_labels) {
+            if (selected_error_categories && annotation.error_labels) {
                 // Use transparent version of the color, if an error category is selected
                 // And the current annotation does not have a corresponding category label
                 var has_category = false;
-                for (selected_category of selected_categories) {
+                for (selected_category of selected_error_categories) {
                     if (annotation.error_labels.includes(selected_category)) {
                         has_category = true;
                         break;
                     }
                 }
                 if (!has_category) color = annotation.color[1];
-            } else if (show_selected_type && annotation.entity_type &&
-                       !annotation.entity_type.split("|").includes(show_selected_type)) {
+            } else if (selected_type && annotation.entity_type &&
+                       !annotation.entity_type.split("|").includes(selected_type)) {
                 color = annotation.color[1];
             }
             replacement = "<div class=\"tooltip\" style=\"background-color:" + color + "\">";
             replacement += snippet;
             tooltiptext_id = "tooltiptext_";
             tooltiptext_id += evaluation ? "evaluation" : "prediction";
-            tooltiptext_id += "_" + article_num + "_" + id_counter;
+            tooltiptext_id += "_" + approach_name.replaceAll(".", "_") + "_" + article_num + "_" + id_counter;
             replacement += "<span id=\"" + tooltiptext_id + "\" class=\"tooltiptext\">" + tooltip_text + "</span>";
             replacement += "</div>";
-            if (evaluation) annotation_spans[0][article_num].push([annotation.span, tooltiptext_id]);
-            else annotation_spans[1][article_num].push([annotation.span, tooltiptext_id]);
+            if (evaluation) annotation_spans[approach_name][0][article_num].push([annotation.span, tooltiptext_id]);
+            else annotation_spans[approach_name][1][article_num].push([annotation.span, tooltiptext_id]);
             id_counter++;
         } else {
             // no tooltip (just a link)
@@ -834,97 +789,20 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
         }
         text = before + replacement + after;
     }
-    if (evaluation) annotation_spans[0][article_num].reverse();  // Annotations are added in reverse order
-    else annotation_spans[1][article_num].reverse();
+    if (evaluation) annotation_spans[approach_name][0][article_num].reverse();  // Annotations are added in reverse order
+    else annotation_spans[approach_name][1][article_num].reverse();
     text = text.substring(evaluation_span[0], text.length);
     text = text.replaceAll("\n", "<br>");
     return text;
 }
 
-function show_table() {
-    /* Generate the table with all cases. */
-    table = "<table class=\"casesTable\">\n";
-    
-    table += "<tr>";
-    table += "<th>span</th>";
-    table += "<th>text</th>";
-    table += "<th>true ID</th>";
-    table += "<th>true name</th>";
-    table += "<th>detected</th>";
-    table += "<th>predicted ID</th>";
-    table += "<th>predicted name</th>";
-    table += "<th>case</th>";
-    table += "</tr>";
-    
-    for (eval_case of evaluation_cases[selected_article_index]) {
-        if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
-            if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
-                continue;
-            }
-        }
-
-        if ("true_entity" in eval_case) {
-            has_true_entity = true;
-            true_entity_id = eval_case.true_entity.entity_id;
-            true_entity_name = eval_case.true_entity.name;
-        } else {
-            has_true_entity = false;
-            true_entity_id = "-";
-            true_entity_name = "-";
-        }
-        
-        if (has_true_entity) {
-            if (eval_case.detected) {
-                detected = "true positive";
-            } else {
-                detected = "false negative";
-            }
-        } else {
-            detected = "false positive";
-        }
-        
-        if ("predicted_entity" in eval_case) {
-            has_prediction_entity = true;
-            predicted_entity_id = eval_case.predicted_entity.entity_id;
-            predicted_entity_name = eval_case.predicted_entity.name;
-        } else {
-            has_prediction_entity = false;
-            predicted_entity_id = "-";
-            predicted_entity_name = "-";
-        }
-        
-        if (has_prediction_entity && has_true_entity) {
-            if (predicted_entity_id == true_entity_id) {
-                case_type = "true positive";
-            } else {
-                case_type = "wrong entity";
-            }
-        } else if (has_prediction_entity) {
-            case_type = "false positive";
-        } else {
-            case_type = "false negative";
-        }
-    
-        table += "<tr>";
-        table += "<td>" + eval_case.span[0] + ", " + eval_case.span[1] + "</td>";
-        table += "<td>" + article.text.substring(eval_case.span[0], eval_case.span[1]) + "</td>";
-        table += "<td>" + true_entity_id + "</td>";
-        table += "<td>" + true_entity_name + "</td>";
-        table += "<td>" + detected + "</td>";
-        table += "<td>" + predicted_entity_id + "</td>";
-        table += "<td>" + predicted_entity_name + "</td>";
-        table += "<td>" + case_type + "</td>";
-        table += "</tr>\n";
-    }
-    table += "</table>";
-    $("#table").html(table);
-}
-
-function show_article() {
+async function show_article(selected_approaches) {
     /*
-    Generate the ground truth textfield, predicted text field and cases table for the selected article
+    Generate the ground truth textfield and predicted text field for the selected article
     (or all articles if this option is selected) and approach.
     */
+    console.log("show_article() called for selected approaches", selected_approaches, "and evaluation cases for", Object.keys(evaluation_cases));
+
     selected_article_index = article_select.value;
 
     if (selected_article_index == -1) {
@@ -941,50 +819,105 @@ function show_article() {
         }
     }
 
-    $("#article-results .row").show();
+    $("#prediction_overview").show();
+    var columns = $("#prediction_overview tbody tr td");
+    var column_headers = $("#prediction_overview thead tr th");
+    var column_idx = 0;
 
-    if (evaluation_cases.length == 0) {
-        textfield_left.innerHTML = article.labelled_text;
-        textfield_right.innerHTML = "<b class='warning'>No approach selected or no file with cases found.</b>";
-        return;
+    var iteration = 0;
+    while (!(selected_approaches[0] in evaluation_cases) || evaluation_cases[selected_approaches[0]].length == 0) {
+        if (iteration >= 10) {
+            console.log("ERROR: Stop waiting for result.");
+            $(columns[column_idx]).html("<b class='warning'>No approach selected or no file with cases found.</b>");
+            return;
+        }
+        console.log("WARNING: selected approach[0]", selected_approaches[0], "not in evaluation cases. Waiting for result.");
+        $(column_headers[column_idx]).text("");
+        $(columns[column_idx]).html("<b>Waiting for results...</b>");
+        column_idx++;
+        for (var i=column_idx; i<columns.length; i++) {
+            hide_table_column("prediction_overview", i);
+        }
+        column_idx = 0;
+        await new Promise(r => setTimeout(r, 1000));
+        iteration++;
     }
 
     // Reset / initialize span pair variables
-    annotation_spans = [[], []];
+    annotation_spans = {};
+    annotation_spans[selected_approaches[0]] = [[], []];
     span_pairs = {};
 
-    show_ground_truth_entities();
-    show_linked_entities();
+    // Show columns
+    if (is_show_groundtruth_checked()) {
+        // Show first groundtruth column
+        show_ground_truth_entities(selected_approaches[0], $(columns[column_idx]), selected_error_categories[0], selected_types[0]);
+        $(column_headers[column_idx]).text(selected_approaches[0] + " (groundtruth)")
+        show_table_column("prediction_overview", column_idx);
+        column_idx++;
+    }
+    // Show first prediction column
+    show_linked_entities(selected_approaches[0], $(columns[column_idx]), selected_error_categories[0], selected_types[0]);
+    $(column_headers[column_idx]).text(selected_approaches[0] + " (prediction)")
+    show_table_column("prediction_overview", column_idx);
+    column_idx++;
+    if(is_compare_checked() && selected_approaches.length > 1) {
+        // Show second prediction column
+        annotation_spans[selected_approaches[1]] = [[], []];
+        show_linked_entities(selected_approaches[1], $(columns[column_idx]), selected_error_categories[1], selected_types[1]);
+        $(column_headers[column_idx]).text(selected_approaches[1] + " (prediction)")
+        show_table_column("prediction_overview", column_idx);
+        column_idx++;
+        if (is_show_groundtruth_checked()) {
+            // Show second groundtruth column
+            show_ground_truth_entities(selected_approaches[1], $(columns[column_idx]), selected_error_categories[1], selected_types[1]);
+            $(column_headers[column_idx]).text(selected_approaches[1] + " (groundtruth)")
+            show_table_column("prediction_overview", column_idx);
+            column_idx++;
+        }
+    }
+
+    // Hide unused columns
+    for (var i=column_idx; i<columns.length; i++) {
+        hide_table_column("prediction_overview", i);
+    }
+
+    // Set column width
+    var width_percentage = 100 / column_idx;
+    $("#prediction_overview th, #prediction_overview td").css("width", width_percentage + "%");
 
     // Create annotation span pairs to be able to show the tooltips on both sides when hovering over one
-    for (var i = 0; i < annotation_spans[0].length; i++) {
-        prediction_span_index = 0;
-        evaluation_span_index = 0;
-        overlap_set = [new Set(), new Set()];
-        while (evaluation_span_index < annotation_spans[0][i].length && prediction_span_index < annotation_spans[1][i].length) {
-            var [evaluation_span, evaluation_span_id] = annotation_spans[0][i][evaluation_span_index];
-            var [prediction_span, prediction_span_id] = annotation_spans[1][i][prediction_span_index];
-            if (evaluation_span[1] <= prediction_span[0]) {
-                // evaluation span comes before prediction span, no overlap
-                evaluation_span_index++;
-                add_overlap_spans_to_mapping(overlap_set);
-                overlap_set = [new Set(), new Set()];
-            } else if (evaluation_span[0] >= prediction_span[1]) {
-                // evaluation span comes after prediction span, no overlap
-                prediction_span_index++;
-                add_overlap_spans_to_mapping(overlap_set);
-                overlap_set = [new Set(), new Set()];
-            } else {
-                // Overlap
-                overlap_set[0].add(evaluation_span_id);
-                overlap_set[1].add(prediction_span_id);
-                // A single span on one side can overlap with multiple on the other side
-                // Therefore only increase index of span that ends first
-                if (evaluation_span[1] > prediction_span[1]) prediction_span_index++;
-                else evaluation_span_index++;
+    for (var j=0; j<selected_approaches.length; j++) {
+        var approach_name = selected_approaches[j]
+        for (var i = 0; i < annotation_spans[approach_name][0].length; i++) {
+            prediction_span_index = 0;
+            evaluation_span_index = 0;
+            overlap_set = [new Set(), new Set()];
+            while (evaluation_span_index < annotation_spans[approach_name][0][i].length && prediction_span_index < annotation_spans[approach_name][1][i].length) {
+                var [evaluation_span, evaluation_span_id] = annotation_spans[approach_name][0][i][evaluation_span_index];
+                var [prediction_span, prediction_span_id] = annotation_spans[approach_name][1][i][prediction_span_index];
+                if (evaluation_span[1] <= prediction_span[0]) {
+                    // evaluation span comes before prediction span, no overlap
+                    evaluation_span_index++;
+                    add_overlap_spans_to_mapping(overlap_set);
+                    overlap_set = [new Set(), new Set()];
+                } else if (evaluation_span[0] >= prediction_span[1]) {
+                    // evaluation span comes after prediction span, no overlap
+                    prediction_span_index++;
+                    add_overlap_spans_to_mapping(overlap_set);
+                    overlap_set = [new Set(), new Set()];
+                } else {
+                    // Overlap
+                    overlap_set[0].add(evaluation_span_id);
+                    overlap_set[1].add(prediction_span_id);
+                    // A single span on one side can overlap with multiple on the other side
+                    // Therefore only increase index of span that ends first
+                    if (evaluation_span[1] > prediction_span[1]) prediction_span_index++;
+                    else evaluation_span_index++;
+                }
             }
+            add_overlap_spans_to_mapping(overlap_set);
         }
-        add_overlap_spans_to_mapping(overlap_set);
     }
 }
 
@@ -1180,7 +1113,8 @@ function get_table_row(approach_name, json_obj, div_id) {
     Get html for the table row with the given approach name and result values.
     */
     var row = "<tr onclick='on_row_click(this)'>";
-    row += "<td onclick=\"show_selected_errors('system')\">" + approach_name + "</td>";
+    var onclick_str = " onclick='on_cell_click(this)'";
+    row += "<td " + onclick_str + ">" + approach_name + "</td>";
     $.each(json_obj, function(key) {
         if (key == "by_type") return;
         var class_name = get_class_name(key);
@@ -1214,32 +1148,16 @@ function get_table_row(approach_name, json_obj, div_id) {
                 }
                 var subclass_name = get_class_name(subkey);
                 if (div_id == "type_evaluation") {
-                    var onclick_string = "onclick=\"show_selected_errors('" + key + "')\"";
+                    var data_string = "data-category='" + key + "'";
                 } else {
-                    var onclick_string = "onclick=\"show_selected_errors('" + subclass_name + "')\"";
+                    var data_string = "data-category='" + subclass_name + "'";
                 }
-                row += "<td class='" + class_name + " " + subclass_name + "' " + onclick_string + ">" + value + "</td>";
+                row += "<td class='" + class_name + " " + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
             }
         });
     })
     row += "</tr>";
     return row;
-}
-
-function show_selected_errors(error_category) {
-    var match = error_category.match(/Q[0-9]+:.*/);
-    if (error_category in error_category_mapping) {
-        show_selected_type = null;
-        selected_categories = error_category_mapping[error_category];
-        show_article();
-    } else if (match || error_category == "OTHER") {
-        selected_categories = null;
-        show_selected_type = error_category.replace(/(Q[0-9]+):.*/g, "$1");
-        show_article();
-    } else {
-        selected_categories = null;
-        show_selected_type = null;
-    }
 }
 
 function get_tooltip_text(json_obj) {
@@ -1289,13 +1207,13 @@ function sort_table(column_header, div_id) {
     var subkey = $(column_header).data("array-subkey");
     var col_values = [];
     var index = 0;
-    var selected_approach_index = -1;
-    var selected_approach_name = $('#' + div_id + ' table tbody tr.selected td:nth-child(1)').text();
+    var selected_approach_indices = [null, null];
     result_array.forEach(function(result_tuple) {
         var approach_name = result_tuple[0];
-        if (approach_name == selected_approach_name) {
+        if (selected_approach_names.includes(approach_name) && selected_rows.length > 0 && $(selected_rows[0]).closest("table").parent().attr("id") == div_id) {
             // Store the index in the result_array of the currently selected row
-            selected_approach_index = index;
+            // Keep the order in which the rows were selected
+            selected_approach_indices[$.inArray(approach_name, selected_approach_names)] = index;
         }
         index += 1;
         var results = result_tuple[1];
@@ -1316,11 +1234,15 @@ function sort_table(column_header, div_id) {
      });
 
     // Store class name of currently selected cell
-    var selected_cell_classes = $("#" + div_id + " table tbody td.selected").attr("class");
-    if (selected_cell_classes) {
-        selected_cell_classes = selected_cell_classes.split(/\s+/);
-        selected_cell_classes.pop();  // We don't want the "selected" class
-        selected_cell_classes = "." + selected_cell_classes.join(".");
+    var selected_cells_classes = [];
+    for (var i=0;i<selected_rows.length; i++) {
+        var cell_classes = $(selected_rows[i]).find("td.selected").attr("class");
+        if (cell_classes) {
+            cell_classes = cell_classes.split(/\s+/);
+            cell_classes.pop();  // We don't want the "selected" class
+            cell_classes = "." + cell_classes.join(".");
+            selected_cells_classes.push(cell_classes)
+        }
     }
 
     // Check if sorting should be ascending or descending
@@ -1367,20 +1289,24 @@ function sort_table(column_header, div_id) {
     build_evaluation_table_body(result_array, div_id);
 
     // Re-add selected class if row or cell was previously selected
-    if (selected_approach_index > -1) {
+    if (selected_approach_indices.length > 0) {
+        selected_cells = [];
         // Re-add selected class to previously selected row
-        var new_selected_approach_index = order.indexOf(selected_approach_index) + 1;  // +1 because nth-child is 1-based
-        $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
+        for (var i=0;i<selected_approach_indices.length; i++) {
+            if (selected_approach_indices[i] === null) break;
+            var new_selected_approach_index = order.indexOf(selected_approach_indices[i]) + 1;  // +1 because nth-child is 1-based
+            $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
 
-        if (last_selected_cell) {
-            // Re-add selected class to previously selected cell
-            last_selected_cell = $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cell_classes);
-            $(last_selected_cell).addClass("selected");
-            if (div_id == "type_evaluation") {
-                var cls = $(last_selected_cell).attr('class').split(/\s+/)[0];
-                $(last_selected_cell).closest('tr').find('.' + cls).each(function(index) {
-                    $(this).addClass("selected");
-                });
+            if (selected_cells_classes.length > i) {
+                // Re-add selected class to previously selected cell
+                selected_cells.push($("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cells_classes[i]));
+                $(selected_cells[i]).addClass("selected");
+                if (div_id == "type_evaluation") {
+                    var cls = $(selected_cells[i]).attr('class').split(/\s+/)[0];
+                    $(selected_cells[i]).closest('tr').find('.' + cls).each(function(index) {
+                        $(this).addClass("selected");
+                    });
+                }
             }
         }
     }
@@ -1419,28 +1345,50 @@ function coref_linker_key(approach_name) {
     else return 10;
 }
 
-function read_evaluation_cases(path) {
+function read_evaluation_cases(path, approach_name, selected_approaches) {
     /*
     Retrieve evaluation cases from the given file and show the linked currently selected article.
     */
-    evaluation_cases = [];
+    console.log("read_evaluation_cases() called for", path, approach_name, selected_approaches);
 
-    $.get(path, function(data) {
-        lines = data.split("\n");
-        for (line of lines) {
-            if (line.length > 0) {
-                cases = JSON.parse(line);
-                evaluation_cases.push(cases);
+    // Clear evaluation case cache
+    if (Object.keys(evaluation_cases).length >= MAX_CACHED_FILES) {
+        var position = 0;
+        var key = null;
+        while (position < Object.keys(evaluation_cases).length) {
+            key = Object.keys(evaluation_cases)[position];
+            if (key != approach_name && !selected_approach_names.includes(key)) {
+                break;
             }
+            position++;
         }
-        show_article();
-    }).fail(function() {
-        $("#evaluation").html("ERROR: no file with cases found.");
-        show_article();
-    });
+        delete evaluation_cases[key];
+        console.log("Deleting " + key + " from evaluation_cases cache.");
+    }
+
+    // Read new evaluation cases
+    if (approach_name in evaluation_cases && evaluation_cases[approach_name].length > 0) {
+        show_article(selected_approaches)
+    } else {
+        $.get(path, function(data) {
+            evaluation_cases[approach_name] = [];
+            lines = data.split("\n");
+            for (line of lines) {
+                if (line.length > 0) {
+                    cases = JSON.parse(line);
+                    evaluation_cases[approach_name].push(cases);
+                }
+            }
+            show_article(selected_approaches);
+        }).fail(function() {
+            $("#evaluation").html("ERROR: no file with cases found.");
+            console.log("FAIL NOW CALL SHOW ARTICLE");
+            show_article(selected_approaches);
+        });
+    }
 }
 
-function read_articles_data(path) {
+function read_articles_data(path, approach_name) {
     /*
     Read the predictions of the selected approach for all articles.
     They are needed later to visualise the predictions outside the evaluation span of an article.
@@ -1448,19 +1396,49 @@ function read_articles_data(path) {
     Arguments:
     - path: the .jsonl file of the selected approach
     */
-    console.log(path);
-    
-    articles_data = [];
-    
-    promise = $.get(path, function(data) {
-        lines = data.split("\n");
-        for (line of lines) {
-            if (line.length > 0) {
-                articles_data.push(JSON.parse(line));
+    // Clear articles data cache
+    if (Object.keys(articles_data).length >= MAX_CACHED_FILES) {
+        var position = 0;
+        var key = null;
+        while (position < Object.keys(articles_data).length) {
+            key = Object.keys(articles_data)[position];
+            if (key != approach_name && !selected_approach_names.includes(key)) {
+                break;
             }
+            position++;
         }
+        delete articles_data[key];
+        console.log("Deleting " + key + " from articles_data cache.");
+    }
+
+    if (!(approach_name in articles_data) || articles_data[approach_name].length == 0) {
+        articles_data[approach_name] = [];
+        promise = $.get(path, function(data) {
+            lines = data.split("\n");
+            for (line of lines) {
+                if (line.length > 0) {
+                    articles_data[approach_name].push(JSON.parse(line));
+                }
+            }
+        });
+        return promise;
+    } else {
+        return Promise.resolve(1);
+    }
+}
+
+function read_evaluation(approach_name, selected_approaches) {
+    /*
+    Read the predictions and evaluation cases for the selected approach for all articles.
+    */
+    console.log("read_evaluation() called for ", approach_name, "and ", selected_approaches);
+    var cases_path = result_files[approach_name] + ".cases";
+    var articles_path = result_files[approach_name] + ".jsonl";
+
+    reading_promise = read_articles_data(articles_path, approach_name);
+    reading_promise.then(function() {  // wait until the predictions from the .jsonl file are read, because run_evaluation updates the prediction textfield
+        read_evaluation_cases(cases_path, approach_name, selected_approaches);
     });
-    return promise;
 }
 
 function on_row_click(el) {
@@ -1468,25 +1446,162 @@ function on_row_click(el) {
     This method is called when a table body row was clicked.
     This marks the row as selected and reads the evaluation cases.
     */
-    $("#evaluation_tables tbody tr").each(function() {
-        $(this).removeClass("selected");
-    });
-    $(el).addClass("selected");
+    console.log("on_row_click()");
     var approach_name = $(el).find('td:first').text();
-    read_evaluation(approach_name);
+
+    // De-select all current rows if a row in a different table was selected before
+    var former_parent_table = $("#evaluation_tables table tbody tr.selected").closest("table").parent().attr("id");
+    var new_parent_table = $(el).closest("table").parent().attr("id");
+    if (former_parent_table && former_parent_table != new_parent_table) {
+        deselect_all_table_rows(former_parent_table);
+        selected_approach_names = [];
+    }
+
+    // De-select previously selected rows
+    if (!is_compare_checked() || selected_approach_names.length >= MAX_SELECTED_APPROACHES) {
+        deselect_all_table_rows(new_parent_table);
+    }
+
+    // Select clicked row
+    $(el).addClass("selected");
+    selected_rows.push(el);
+
+    if (!is_compare_checked() || selected_approach_names.length == MAX_SELECTED_APPROACHES) {
+        selected_approach_names = [];
+    }
+    if (!selected_approach_names.includes(approach_name)) {
+        selected_approach_names.push(approach_name);
+    }
+    var selected_approaches = [...selected_approach_names];
+
+    read_evaluation(approach_name, selected_approaches);
 }
 
-function read_evaluation(approach_name) {
+function on_cell_click(el) {
     /*
-    Read the predictions and evaluation cases for the selected approach for all articles.
+    Highlight error category / type cells on click and un-highlight previously clicked cell.
+    Add or remove error categories and types to/from current selection.
     */
-    cases_path = result_files[approach_name] + ".cases";
-    articles_path = result_files[approach_name] + ".jsonl";
+    // De-select current selection if necessary
+    console.log("on_cell_click() for selected cells: ", selected_cells);
+    var div_id = $(el).closest('table').parent().attr('id');
+    if (div_id == "evaluation") { selected_types = []; } else { selected_error_categories = []; }
 
-    reading_promise = read_articles_data(articles_path);
-    reading_promise.then(function() {  // wait until the predictions from the .jsonl file are read, because run_evaluation updates the prediction textfield
-        read_evaluation_cases(cases_path);
+    if (selected_cells.length > 0) {
+        var same_table = $(selected_cells[0]).closest('table').parent().attr('id') == div_id;
+        if (!is_compare_checked() || selected_cells.length >= MAX_SELECTED_APPROACHES || !same_table) {
+            // Remove selected classes for all currently selected cells
+            console.log("Removing all previously selected cells:", selected_cells);
+            for (var i=0; i<selected_cells.length; i++) {
+                remove_selected_classes(selected_cells[i]);
+            }
+            selected_cells = [];
+            if (div_id == "evaluation") { selected_error_categories = []; } else { selected_types = []; }
+        } else {
+            // Remove selected class for cells in the same row
+            var curr_row = $(el).closest("tr").index();
+            var last_rows = $.map(selected_cells, function(sel_cell) { return $(sel_cell).closest('tr').index(); });
+            var index = $.inArray(curr_row, last_rows);
+            if (index >= 0) {
+                remove_selected_classes(selected_cells[index]);
+                selected_cells.splice(index, 1);
+                if (div_id == "evaluation") { selected_error_categories.splice(index, 1); } else { selected_types.splice(index, 1); }
+            }
+        }
+    }
+
+    // Make new selection
+    if ($(el).attr('class')) {  // System column has no class attribute
+        if (div_id == "evaluation") {
+            var classes = $(el).attr('class').split(/\s+/);
+            if (classes.length > 1 && classes[1] in error_category_mapping) {
+                $(el).addClass("selected");
+                selected_cells.push(el);
+            }
+        } else {
+            // Mark all cells in the corresponding row with the corresponding class
+            var cls = $(el).attr('class').split(/\s+/)[0];
+            $(el).closest('tr').find('.' + cls).each(function() {
+                $(this).addClass("selected");
+            });
+            selected_cells.push(el);
+        }
+    }
+    if (div_id == "evaluation") { selected_error_categories.push(get_selected_category(el)); } else { selected_types.push(get_selected_category(el)); }
+
+    console.log("on_cell_click(): Finished with selected types", selected_types, "and selected errors", selected_error_categories);
+}
+
+function deselect_all_table_rows(div_id) {
+    /*
+    Deselect all rows in all evaluation tables
+    */
+    $("#" + div_id + " tbody tr").each(function() {
+        $(this).removeClass("selected");
     });
+    selected_rows = [];
+}
+
+function remove_selected_classes(el) {
+    var cls = $(el).attr('class').split(/\s+/)[0];
+    $(el).closest('tr').find('.' + cls).each(function(index) {
+        $(this).removeClass("selected");
+    });
+}
+
+function show_table_column(table_id, index) {
+    /*
+    Show the column with the given index in the table with the given id.
+    */
+    $("#" + table_id + " th:nth-child(" + (index + 1) + ")").show();
+    $("#" + table_id + " td:nth-child(" + (index + 1) + ")").show();
+}
+
+function hide_table_column(table_id, index) {
+    /*
+    Show the column with the given index in the table with the given id.
+    */
+    $("#" + table_id + " th:nth-child(" + (index + 1) + ")").hide();
+    $("#" + table_id + " td:nth-child(" + (index + 1) + ")").hide();
+}
+
+function toggle_compare() {
+    /*
+    Toggle compare checkbox.
+    */
+    if (!is_compare_checked()) {
+        if (selected_approach_names.length > 1) {
+            selected_approach_names = [selected_approach_names[1]];
+        }
+
+        // De-select evaluation table row
+        if (selected_rows.length > 1) {
+            deselected_row = selected_rows.shift();  // Remove first element in array
+            $(deselected_row).removeClass("selected");
+            deselected_cell = selected_cells.shift();
+            remove_selected_classes(deselected_cell);
+        }
+
+        if (is_show_groundtruth_checked()) {
+            hide_table_column("prediction_overview", 2);
+            hide_table_column("prediction_overview", 3);
+        } else {
+            hide_table_column("prediction_overview", 1);
+        }
+        show_article(selected_approach_names);
+    }
+}
+
+function toggle_show_groundtruth() {
+    show_article(selected_approach_names);
+}
+
+function is_show_groundtruth_checked() {
+    return $("#checkbox_groundtruth").is(":checked");
+}
+
+function is_compare_checked() {
+    return $("#checkbox_compare").is(":checked");
 }
 
 function produce_latex(div_id) {
