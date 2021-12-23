@@ -3,6 +3,18 @@
     --row-selected-color: #C8C7C7;
     --cell-hover-color: #F9E29B;
     --cell-selected-color: #F6CF59;
+    --annotation-tp-color: rgb(125,206,160);
+    --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
+    --annotation-fp-color: rgb(241,148,138);
+    --annotation-fp-color-lowlight: rgba(241,148,138,0.3);
+    --annotation-fn-color: rgb(241,190,138);
+    --annotation-fn-color-lowlight: rgba(241,190,138,0.3);
+    --annotation-unknown-color: rgb(138,220,241);
+    --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
+    --annotation-optional-color: rgb(211,211,211);
+    --annotation-optional-color-lowlight: rgba(211,211,211,0.3);
+    --annotation-border-size: 5px;
+    --cell-hover-color-dark: #463604;
 }
 
 html, input, select {
@@ -40,19 +52,21 @@ a {
     color: black;
 }
 
-.tooltip {
+.tooltip, .annotation {
     position: relative;
     display: inline;
 }
 
 /* Tooltip text */
-.tooltip .tooltiptext {
+.tooltip .tooltiptext,
+.annotation .tooltiptext {
     visibility: hidden;
     background-color: lightgrey;
     text-align: left;
     padding: 5px;
     border-radius: 6px;
     border: 2px solid white;
+    line-height: 120%;
 
     /* Position of the tooltip text */
     position: absolute;
@@ -150,49 +164,6 @@ td .tooltip:hover .tooltiptext {
     color: white;
 }
 
-/* Checkboxes for showing / hiding table columns */
-.checkboxes label {
-    padding-right: 1em;
-}
-
-.checkboxes {
-    margin-bottom: 1em;
-}
-
-/* Area containing the results per article */
-#article-results {
-    padding-top: 2em;
-}
-
-#prediction_overview {
-    display: none;
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-#prediction_overview td,
-#prediction_overview th {
-    width: 50%;
-}
-
-#prediction_overview td {
-    vertical-align: top;
-}
-
-#prediction_overview [class*="compare_"] {
-    display: none;
-}
-
-/* Make the table headers move down when scrolling so they are always visible */
-#prediction_overview th {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #E5E5E5;
-}
-
 /* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */
 div.latex {
     display: none;
@@ -210,3 +181,189 @@ div.latex textarea {
     color: red;
     font-site: 120%;
 }
+
+/* Checkboxes for showing / hiding table columns */
+.checkboxes label {
+    padding-right: 1em;
+}
+
+.checkboxes {
+    margin-bottom: 1em;
+}
+
+/* Area containing the results per article */
+#article-results {
+    padding-top: 2em;
+}
+
+/* ----------------------------------------- */
+/* Begin prediction overview */
+
+#prediction_overview {
+    display: none;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#prediction_overview td,
+#prediction_overview th {
+    width: 50%;
+}
+
+#prediction_overview td {
+    vertical-align: top;
+    line-height: 180%;
+}
+
+#prediction_overview [class*="compare_"] {
+    display: none;
+}
+
+/* Make the table headers move down when scrolling so they are always visible */
+#prediction_overview th {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #E5E5E5;
+}
+
+/* ----------------------------------------- */
+/* Begin annotations */
+
+.annotation {
+    /* Make sure the background extends only up to the border start.
+    Otherwise, if the border color is opaque and it overlaps with the background color, the border color is changed */
+    background-clip: content-box;
+}
+/* Set annotation colors according to annotation type */
+.annotation.tp {
+    background-color: var(--annotation-tp-color);
+    border-bottom: var(--annotation-border-size) solid var(--annotation-tp-color);
+}
+.annotation.tp.gt_lowlight {
+    border-bottom-color: var(--annotation-tp-color-lowlight);
+}
+.annotation.tp.pred_lowlight {
+    background-color: var(--annotation-tp-color-lowlight);
+}
+.annotation.fp {
+    background-color: var(--annotation-fp-color);
+}
+.annotation.fp.pred_lowlight {
+    background-color: var(--annotation-fp-color-lowlight);
+}
+.annotation.fn {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-fn-color);
+}
+.annotation.fn.gt_lowlight {
+    border-bottom-color: var(--annotation-fn-color-lowlight);
+}
+.annotation.unknown {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-unknown-color);
+}
+.annotation.unknown.gt_lowlight {
+    border-bottom-color: var(--annotation-unknown-color-lowlight);
+}
+.annotation.optional {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-optional-color);
+}
+.annotation.optional.gt_lowlight {
+    border-bottom-color: var(--annotation-optional-color-lowlight);
+}
+.annotation.unevaluated {
+    background-color: var(--annotation-optional-color);
+}
+.annotation.unevaluated.pred_lowlight {
+    background-color: var(--annotation-optional-color-lowlight);
+}
+
+/* ----------------------------------------- */
+/* Begin annotation tooltips */
+
+/* Show the tooltip text when you mouse over the tooltip container */
+#prediction_overview .annotation:hover .tooltiptext {
+    visibility: visible;
+}
+
+.annotation .tooltiptext {
+    background-color: white;
+    white-space: nowrap;
+    border-color: lightgrey;
+}
+/* Set Tooltip border color according to case type */
+.annotation .tooltiptext.tp {
+    border-color: var(--annotation-tp-color);
+}
+.annotation .tooltiptext.fn {
+    border-color: var(--annotation-fn-color);
+}
+.annotation .tooltiptext.fp {
+    border-color: var(--annotation-fp-color);
+}
+
+.annotation .tooltiptext .header {
+    display: flex;
+    justify-content: space-between; /* Put left child at the left end and right child at the right end */
+    position: relative;
+}
+.annotation .tooltiptext .header .right {
+    margin-left: 1em;
+}
+.annotation .tooltiptext .body {
+    position: relative;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: 80%;
+}
+.annotation .tooltiptext .footer {
+    position: relative;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    white-space: normal;
+}
+
+/* Show some tooltips below the mention to avoid overlap */
+.annotation .tooltiptext.below {
+    position: absolute;
+    z-index: 20;
+    /* Set top edge of element (height of the parent element plus border width) below top edge of parent */
+    top: calc(100% + var(--annotation-border-size));
+    bottom: auto;
+    left: 0;
+}
+
+.annotation .tooltiptext .error_category_tag {
+    display: inline-block;  /* To allow setting a margin */
+    border-radius: 10px;
+    font-size: 80%;
+    color: var(--cell-hover-color-dark);
+    background-color: var(--cell-hover-color);
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 2px;
+    white-space: nowrap;  /* Do not allow a line break within a tag */
+}
+
+.annotation .tooltiptext .case_type_box {
+    display: inline;
+    border-radius: 30%;
+    background-color: lightgrey;
+    color: white;
+    margin-left: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+/* Set case type box color */
+.annotation .tooltiptext .case_type_box.tp {
+    background-color: var(--annotation-tp-color);
+}
+.annotation .tooltiptext .case_type_box.fp {
+    background-color: var(--annotation-fp-color);
+}
+.annotation .tooltiptext .case_type_box.fn {
+    background-color: var(--annotation-fn-color);
+}
+
+/* ----------------------------------------- */

@@ -23,8 +23,6 @@
 			<div>
 				<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
 				<label for="checkbox_compare">Compare two systems</label>
-				<input type="checkbox" id="checkbox_groundtruth" onchange="toggle_show_groundtruth()">
-				<label for="checkbox_compare">Show Groundtruth</label>
 			</div>
 			<div id="evaluation_tables">
 				<div id="evaluation">
@@ -54,7 +52,7 @@
 			<div id="article-results">
 				<h3>Results per article</h3>
 				<p>
-					Select article: <select id="article" onchange="show_article()"></select>
+					Select article: <select id="article" onchange="on_article_select()"></select>
 					<span id="article_link"></span>
 				</p>
 				<div id="article_checkboxes">
@@ -70,12 +68,12 @@
 				<table id="prediction_overview">
 					<thead>
 						<tr>
-							<th></th><th></th><th></th><th></th>
+							<th></th><th></th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-							<td></td><td></td><td></td><td></td>
+							<td></td><td></td>
 						</tr>
 					</tbody>
 				</table>

@@ -1,9 +1,9 @@
-// Colors for the tooltips.
-GREEN = ["rgb(125,206,160)", "rgba(125,206,160, 0.3)"]; // "#7dcea0";
-RED = ["rgb(241,148,138)", "rgba(241,148,138, 0.3)"];  // "#f1948a";
-BLUE = ["rgb(187,143,206)", "rgba(187,143,206, 0.3)"]; // "#bb8fce";
-GREY = ["rgb(211,211,211)", "rgba(211,211,211, 0.3)"]; // "lightgrey";
-YELLOW = ["rgb(241,200,138)", "rgba(241,200,138, 0.3)"];
+ANNOTATION_CLASS_TP = "tp"
+ANNOTATION_CLASS_FP = "fp"
+ANNOTATION_CLASS_FN = "fn"
+ANNOTATION_CLASS_UNKNOWN = "unknown"
+ANNOTATION_CLASS_OPTIONAL = "optional"
+ANNOTATION_CLASS_UNEVALUATED = "unevaluated"
 
 RESULTS_EXTENSION = ".results";
 
@@ -143,7 +143,6 @@ $("document").ready(function() {
             }
         }
     });
-
     $("#evaluation").on("mouseleave", "td", function() {
         $(this).removeClass("hovered");
     });
@@ -158,7 +157,6 @@ $("document").ready(function() {
             });
         }
     });
-
     $("#type_evaluation").on("mouseleave", "td", function() {
         if ($(this).attr('class')) {  // System column has no class attribute
             var cls = $(this).attr('class').split(/\s+/)[0];
@@ -167,55 +165,12 @@ $("document").ready(function() {
             });
         }
     });
-
-    // Show tooltips on both sides when the corresponding span on the other side is hovered
-    $("#prediction_overview td").on("mouseenter", ".tooltip", function() {
-        var hovered_tooltiptext = $(this).find(".tooltiptext");
-        var hovered_tooltiptext_id = $(hovered_tooltiptext).attr("id");
-        $(hovered_tooltiptext).css("visibility", "visible");
-        // Get corresponding span(s) on the prediction side and show them too
-        if (hovered_tooltiptext_id in span_pairs) {
-            var tooltip_num = 0;
-            for (corresponding_span_id of span_pairs[hovered_tooltiptext_id]) {
-                $("#" + corresponding_span_id).css("visibility", "visible");
-                if (tooltip_num % 2 == 1) {
-                    // Try to avoid overlapping tooltips if a mention on one side corresponds
-                    // to multiple mentions on the other side.
-                    $("#" + corresponding_span_id).css("top", "100%");
-                    $("#" + corresponding_span_id).css("bottom", "auto");
-                }
-                tooltip_num++;
-            }
-        }
-    });
-
-    $("#prediction_overview td").on("mouseleave", ".tooltip", function() {
-        var hovered_tooltiptext = $(this).find(".tooltiptext");
-        var hovered_tooltiptext_id = $(hovered_tooltiptext).attr("id");
-        $(hovered_tooltiptext).css("visibility", "hidden");
-        if (hovered_tooltiptext_id in span_pairs) {
-            for (corresponding_span_id of span_pairs[hovered_tooltiptext_id]) {
-                $("#" + corresponding_span_id).css("visibility", "hidden");
-            }
-        }
-    });
 });
 
-function get_selected_category(element) {
-    data_attribute = $(element).data("category");
-    if (data_attribute) {
-        var match = data_attribute.match(/Q[0-9]+:.*/);
-        if (data_attribute in error_category_mapping) {
-            return error_category_mapping[data_attribute];
-        } else if (match || data_attribute == "OTHER") {
-            return data_attribute.replace(/(Q[0-9]+):.*/g, "$1");
-        }
-    }
-    return null;
-}
-
 function set_benchmark_select_options() {
-    /* Set the options for the benchmark selector element to the names of the benchmarks in the given directory. */
+    /*
+    Set the options for the benchmark selector element to the names of the benchmarks in the given directory.
+    */
     // Retrieve file path of .results files in each folder
     benchmarks = [];
     $.get("benchmarks", function(folder_data) {
@@ -308,7 +263,9 @@ function parse_benchmark(benchmark_file) {
 }
 
 function set_article_select_options() {
-    /* Set the options for the article selector element to the names of the articles from the list 'articles'. */
+    /*
+    Set the options for the article selector element to the names of the articles from the list 'articles'.
+    */
     // Empty previous options
     $("#article").empty();
 
@@ -337,35 +294,17 @@ function set_article_select_options() {
 }
 
 function show_article_link() {
-    /* Link the currently selected article in the element #article_link. */
+    /*
+    Link the currently selected article in the element #article_link.
+    */
     $("#article_link").html("<a href=\"" + article.url + "\" target=\"_blank\">Wikipedia article</a>");
     $("#article_link").show();
 }
 
-function show_ground_truth_entities(approach_name, textfield, selected_error_categories, selected_type) {
-    /*
-    Generate tooltips for the ground truth entities of the selected article
-    and show them in the left textfield.
-    */
-    if (show_all_articles_flag) {
-        var ground_truth_texts = [];
-        for (var i=0; i < articles.length; i++) {
-            var annotations = get_ground_truth_annotations(i, approach_name);
-            ground_truth_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, true, i, selected_error_categories, selected_type, approach_name));
-        }
-        ground_truth_text = "";
-        for (var i=0; i < ground_truth_texts.length; i++) {
-            ground_truth_text += "<br><br>" + "********** " + articles[i].title + " **********<br>";
-            ground_truth_text += ground_truth_texts[i];
-        }
-    } else {
-        var annotations = get_ground_truth_annotations(selected_article_index, approach_name);
-        var ground_truth_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], true, 0, selected_error_categories, selected_type, approach_name);
-    }
-    textfield.html(ground_truth_text);
-}
-
 function is_correct_optional_case(eval_case) {
+    /*
+    Return true iff the given evaluation case is a correctly linked optional case.
+    */
     if ("true_entity" in eval_case) {
         if ("optional" in eval_case.true_entity && eval_case.true_entity.optional) {
             if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
@@ -388,101 +327,30 @@ function is_correct_optional_case(eval_case) {
     return false;
 }
 
-function get_ground_truth_annotations(article_index, approach_name) {
+function show_annotated_text(approach_name, textfield, selected_error_categories, selected_type) {
     /*
-    Generate annotations for the ground truth entities of the selected article.
-    */
-    var annotations = [];
-
-    var child_label_to_parent = {};
-    var label_id_to_label = {};
-    for (eval_case of evaluation_cases[approach_name][article_index]) {
-        // Build the parent mapping
-        if ("true_entity" in eval_case && eval_case.true_entity.children) {
-            label_id_to_label[eval_case.true_entity.id] = eval_case.true_entity;
-            for (child_id of eval_case.true_entity.children) {
-                child_label_to_parent[child_id] = eval_case.true_entity.id;
-            }
-        }
-    }
-
-    for (eval_case of evaluation_cases[approach_name][article_index]) {
-        if (eval_case.mention_type && eval_case.mention_type.toLowerCase() in show_mentions) {
-            if (!show_mentions[eval_case.mention_type.toLowerCase()]) {
-                continue;
-            }
-        }
-        // Ensure backwards compatibility by allowing eval_case.factor to be null.
-        // If a factor is given it needs to be > 0 in order for the gt case to be displayed.
-        if ("true_entity" in eval_case && (eval_case.factor == null || eval_case.factor > 0)) {
-            if (eval_case.true_entity.entity_id.startsWith("Unknown")) {
-                // GT entity is NIL
-                color = YELLOW;
-            } else if (is_correct_optional_case(eval_case)) {
-                color = GREY;
-            } else if ("predicted_entity" in eval_case) {
-                if (eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
-                    // predicted the true entity
-                    color = GREEN;
-                } else {
-                    // predicted the wrong entity
-                    color = RED;
-                }
-            } else {
-                // wrong span
-                color = BLUE;
-            }
-            // Use the type of the parent entity because this is the type that counts in the evaluation.
-            var curr_label_id = eval_case.true_entity.id;
-            while (curr_label_id in child_label_to_parent) {
-                curr_label_id = child_label_to_parent[curr_label_id];
-            }
-            var entity_type = label_id_to_label[curr_label_id].type;
-            // Get text of parent span
-            var parent_text = null;
-            if (curr_label_id != eval_case.true_entity.id) {
-                parent_span = label_id_to_label[curr_label_id].span;
-                parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
-            }
-            var annotation = {
-                "span": eval_case.span,
-                "color": color,
-                "entity_name": eval_case.true_entity.name,
-                "entity_id": eval_case.true_entity.entity_id,
-                "entity_type": entity_type,
-                "error_labels": eval_case.error_labels,
-                "parent_text": parent_text
-            };
-            annotations.push(annotation);
-        }
-    }
-    return annotations
-}
-
-function show_linked_entities(approach_name, textfield, selected_error_categories, selected_type) {
-    /*
-    Generate tooltips for the predicted entities of the selected approach and article
-    and show them in the right textfield.
+    Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
+    and show them in the textfield.
     */
     if (show_all_articles_flag) {
-        var predicted_texts = [];
+        var annotated_texts = [];
         for (var i=0; i < articles.length; i++) {
-            var annotations = get_predicted_annotations(i, approach_name);
-            predicted_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, false, i, selected_error_categories, selected_type, approach_name));
+            var annotations = get_annotations(i, approach_name);
+            annotated_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, selected_error_categories, selected_type));
         }
-        predicted_text = "";
-        for (var i=0; i < predicted_texts.length; i++) {
-            predicted_text += "<br><br>" + "********** " + articles[i].title + " **********<br>";
-            predicted_text += predicted_texts[i];
+        annotated_text = "";
+        for (var i=0; i < annotated_texts.length; i++) {
+            annotated_text += "<br><br>" + "********** " + articles[i].title + " **********<br>";
+            annotated_text += annotated_texts[i];
         }
     } else {
-        var annotations = get_predicted_annotations(selected_article_index, approach_name);
-        var predicted_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], false, 0, selected_error_categories, selected_type, approach_name);
+        var annotations = get_annotations(selected_article_index, approach_name);
+        var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_error_categories, selected_type);
     }
-    textfield.html(predicted_text);
+    textfield.html(annotated_text);
 }
 
-function get_predicted_annotations(article_index, approach_name) {
+function get_annotations(article_index, approach_name) {
     /*
     Generate annotations for the predicted entities of the selected approach and article.
 
@@ -518,11 +386,9 @@ function get_predicted_annotations(article_index, approach_name) {
             mentions.push(prediction);
         }
     }
-    // get the predicted entities inside the evaluation span from the cases list
+    // get the cases inside the evaluation span from the cases list
     for (eval_case of article_cases) {
-        if ("predicted_entity" in eval_case) {  // no false negatives
-            mentions.push(eval_case);
-        }
+        mentions.push(eval_case);
     }
     // get the mentions after the evaluation span
     for (prediction of article_data.entity_mentions) {
@@ -533,8 +399,9 @@ function get_predicted_annotations(article_index, approach_name) {
 
     // list with tooltip information for each mention
     var annotations = {};
-    var spans = [];
+    var prediction_spans = [];
     for (mention of mentions) {
+        // TODO: Remove this once this can be controlled via selecting the columns
         if (mention.mention_type && mention.mention_type.toLowerCase() in show_mentions) {
             if (!show_mentions[mention.mention_type.toLowerCase()]) {
                 continue;
@@ -544,68 +411,115 @@ function get_predicted_annotations(article_index, approach_name) {
             // Do not display overlapping mentions
             continue;
         }
-        if ("predicted_entity" in mention) {
-            // Avoid overlapping spans: Keep the larger one.
+
+        var gt_entity_id = null;
+        var gt_entity_name = null;
+        var gt_entity_type = null;
+        var parent_text = null;
+
+        var pred_entity_id = null;
+        var pred_entity_name = null;
+        var pred_entity_type = null;
+        var pred_by = null;
+
+        var classes = [];
+
+        // mention is an evaluated case
+        if ("predicted_entity" in mention || "true_entity" in mention) {
+            // Avoid overlapping prediction_spans: Keep the larger one.
             // Assume that predictions are sorted by span start (but not by span end)
-            var last_index = spans.length - 1;
-            if (spans.length > 0 && spans[last_index][1] > mention.span[0]) {
-                // Overlap detected.
-                var previous_span_length = spans[last_index][1] - spans[last_index][0];
-                var current_span_length = mention.span[1] - mention.span[0];
-                if (previous_span_length >= current_span_length) {
-                    // Previous span is longer than current span so discard current prediction
-                    continue
-                } else {
-                    delete annotations[spans[last_index]];
-                    spans.splice(-1);
+            if ("predicted_entity" in mention) {
+                var last_index = prediction_spans.length - 1;
+                if (prediction_spans.length > 0 && prediction_spans[last_index][1] > mention.span[0]) {
+                    // Overlap detected.
+                    var previous_span_length = prediction_spans[last_index][1] - prediction_spans[last_index][0];
+                    var current_span_length = mention.span[1] - mention.span[0];
+                    if (previous_span_length >= current_span_length) {
+                        // Previous span is longer than current span so discard current prediction
+                        continue
+                    } else {
+                        delete annotations[prediction_spans[last_index]];
+                        prediction_spans.splice(-1);
+                    }
                 }
+                prediction_spans.push(mention.span);
             }
 
-            spans.push(mention.span)
-
-            // mention is inside the evaluation span and therefore an evaluated case
-            if (is_correct_optional_case(mention)) {
-                color = GREY;
-            } else if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
-                 if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
-                    // predicted the true entity
-                    color = GREEN;
-                } else {
-                    // predicted the wrong entity
-                    color = RED;
+            if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
+                // GT entity is NIL
+                classes.push(ANNOTATION_CLASS_UNKNOWN);
+                if ("predicted_entity" in mention) {
+                    classes.push(ANNOTATION_CLASS_FP);
                 }
+            } else if (is_correct_optional_case(mention)) {
+                classes.push(ANNOTATION_CLASS_OPTIONAL);
+            } else if ("predicted_entity" in mention) {
+                 if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
+                     if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
+                        // predicted the true entity
+                        classes.push(ANNOTATION_CLASS_TP);
+                    } else {
+                        // predicted the wrong entity
+                        classes.push(ANNOTATION_CLASS_FP);
+                        if (["QUANTITY", "DATETIME"].includes(mention.true_entity.type) || mention.true_entity.optional) {
+                            classes.push(ANNOTATION_CLASS_OPTIONAL);
+                        } else {
+                            classes.push(ANNOTATION_CLASS_FN);
+                        }
+                    }
+                } else {
+                    // wrong span
+                    classes.push(ANNOTATION_CLASS_FP);
+                }
+            } else {
+                classes.push(ANNOTATION_CLASS_FN);
             }
-            else {
-                // wrong span
-                color = BLUE;
-            }
-            entity_id = mention.predicted_entity.entity_id;
-            entity_name = mention.predicted_entity.name;
-            entity_type = mention.predicted_entity.type;
-            predicted_by = mention.predicted_by;
-            if (color == GREEN) {
+
+            if ("true_entity" in mention) {
                 // Use the type of the parent entity because this is the type that counts in the evaluation.
                 var curr_label_id = mention.true_entity.id;
                 while (curr_label_id in child_label_to_parent) {
                     curr_label_id = child_label_to_parent[curr_label_id];
                 }
-                entity_type = label_id_to_label[curr_label_id].type;
+                gt_entity_type = label_id_to_label[curr_label_id].type;
+                // Get text of parent span
+                if (curr_label_id != mention.true_entity.id) {
+                    parent_span = label_id_to_label[curr_label_id].span;
+                    parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
+                }
+                gt_entity_id = mention.true_entity.entity_id;
+                gt_entity_name = mention.true_entity.name;
             }
-        } else {  // mention is outside the evaluation span
-            color = GREY;
-            entity_id = mention.id;
-            entity_name = null;
-            entity_type = null;
-            predicted_by = mention.linked_by;
+            if ("predicted_entity" in mention) {
+                pred_entity_id = mention.predicted_entity.entity_id;
+                pred_entity_name = mention.predicted_entity.name;
+                pred_entity_type = mention.predicted_entity.type;
+                pred_by = mention.predicted_by;
+                if (classes.includes(ANNOTATION_CLASS_TP)) {
+                    // Use the type of the parent entity because this is the type that counts in the evaluation.
+                    pred_entity_type = gt_entity_type;
+                }
+            }
+        } else {
+            // mention is outside the evaluation span
+            classes.push(ANNOTATION_CLASS_UNEVALUATED);
+            pred_entity_id = mention.id;
+            pred_entity_name = null;
+            pred_entity_type = null;
+            pred_by = mention.linked_by;
         }
         var annotation = {
             "span": mention.span,
-            "color": color,
-            "entity_id": entity_id,
-            "entity_name": entity_name,
-            "entity_type": entity_type,
-            "predicted_by": predicted_by,
-            "error_labels": mention.error_labels
+            "classes": classes,
+            "error_labels": mention.error_labels,
+            "gt_entity_id": gt_entity_id,
+            "gt_entity_name": gt_entity_name,
+            "gt_entity_type": gt_entity_type,
+            "parent_text": parent_text,
+            "pred_entity_id": pred_entity_id,
+            "pred_entity_name": pred_entity_name,
+            "pred_entity_type": pred_entity_type,
+            "predicted_by": pred_by,
         };
         annotations[mention.span] = annotation;
     }
@@ -614,98 +528,52 @@ function get_predicted_annotations(article_index, approach_name) {
 }
 
 function copy(object) {
-    /* get a copy of the given object */
+    /*
+    Get a copy of the given object
+    */
     return JSON.parse(JSON.stringify(object));
 }
 
-function deep_copy_array(array) {
-    /* get a copy of an array and its elements */
-    copied_array = [];
-    for (element of array) {
-        copied_array.push(copy(element));
-    }
-    return copied_array;
-}
-
-function annotate_text(text, annotations, links, evaluation_span, evaluation, article_num, selected_error_categories, selected_type, approach_name) {
+function annotate_text(text, annotations, links, evaluation_span, selected_error_categories, selected_type) {
     /*
     Generate tooltips for the given annotations and hyperlinks for the given links.
     Tooltips and hyperlinks can overlap.
 
     Arguments:
     - text: The original text without tooltips or hyperlinks.
-    - annotations: A sorted (by span) list of objects containing the following tooltip information:
-        annotation.span: start and end character offset of the entity mention
-        annotation.color:
-        annotation.entity_id: wikidata ID of the mentioned entity
-        annotation.entity_name: name of the mentioned entity (or null)
-        annotation.predicted_by: identifier of the entity linker (optional)
-    - links: A sorted (by span) list of tuples (span, target_article).
+    - annotations: A sorted (by span) list of objects containing tooltip information
+    - links: A sorted (by span) list of tuples (span, target_article)
+    - evaluation_span: The span of the article that can be evaluated
+    - selected_error_categores: selected error categories for the corresponding approach
+    - selected_type: selected type for the corresponding approach
 
-    First the overlapping annotations and links get combined to annotations_with_links.
-    Second, the annotations with links are added to the text.
+    First the overlapping annotations and links get combined to combined_annotations.
+    Second, the annotations with links are added to the text and a tooltip is generated for each annotation.
     */
-    // STEP 1: Combine overlapping annotations and links.
-    // Consumes the first element from the link list or annotation list,
-    // or a part from both if they overlap.
-    links = deep_copy_array(links);
-    annotations = deep_copy_array(annotations);
-    annotations_with_links = [];
-    while (annotations.length > 0 || links.length > 0) {
-        if (annotations.length == 0) {
-            link = links.shift();
-            link_span = link[0];
-            link_annotation = {
-                "link": link[1]
-            };
-            annotations_with_links.push([link_span, link_annotation]);
-        } else if (links.length == 0) {
-            annotation = annotations.shift();
-            annotations_with_links.push([annotation.span, annotation]);
+    // Separate mention annotations into two distinct lists such that any one list does not contain annotations that
+    // overlap.
+    var only_groundtruth_annotations = [];
+    var non_groundtruth_annotations = [];
+    for (var i=0; i<annotations.length; i++) {
+        var ann = annotations[i];
+        if (ann.gt_entity_id) {
+            only_groundtruth_annotations.push([copy(ann.span), ann]);
         } else {
-            annotation = annotations[0];
-            link = links[0];
-            link_span = link[0];
-            if (link_span[0] < annotation.span[0]) {
-                // add link
-                link_annotation = {
-                    "link": link[1]
-                };
-                link_end = Math.min(link_span[1], annotation.span[0]);
-                annotations_with_links.push([[link_span[0], link_end], link_annotation]);
-                if (link_end == link_span[1]) {
-                    links.shift();
-                } else {
-                    links[0][0][0] = link_end;
-                }
-            } else if (annotation.span[0] < link_span[0]) {
-                // add annotation
-                annotation_end = Math.min(annotation.span[1], link_span[0]);
-                annotations_with_links.push([[annotation.span[0], annotation_end], annotation]);
-                if (annotation_end == annotation.span[1]) {
-                    annotations.shift();
-                } else {
-                    annotation.span[0] = annotation_end;
-                }
-            } else {
-                // add both
-                annotation = copy(annotation);
-                annotation["link"] = link[1];
-                annotation_end = Math.min(annotation.span[1], link_span[1]);
-                annotations_with_links.push([[annotation.span[0], annotation_end], annotation]);
-                if (annotation_end == link_span[1]) {
-                    links.shift();
-                } else {
-                    links[0][0][0] = annotation_end;
-                }
-                if (annotation_end == annotation.span[1]) {
-                    annotations.shift();
-                } else {
-                    annotations[0].span[0] = annotation_end;
-                }
-            }
+            non_groundtruth_annotations.push([copy(ann.span), ann]);
         }
     }
+
+    // Transform hyperlinks into a similar format as the mention annotations
+    var new_links = [];
+    for (link of links) { new_links.push([copy(link[0]), {"span": link[0], "link": link[1]}]); }
+
+    // STEP 1: Combine overlapping annotations and links.
+    // Consumes the first element from the link list or annotation list, or a part from both if they overlap.
+    var combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations, selected_error_categories, selected_type);
+    // Links must be the last list that is added such that they can only be the inner most annotations, because <div>
+    // tags are not allowed within <a> tags, but the other way round is valid.
+    combined_annotations = combine_overlapping_annotations(combined_annotations, new_links, selected_error_categories, selected_type);
+
     // Text should only be the text within the given evaluation span (Careful: This is the entire article if a
     // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
     // shown)
@@ -713,87 +581,197 @@ function annotate_text(text, annotations, links, evaluation_span, evaluation, ar
 
     // STEP 2: Add the combined annotations and links to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
-    id_counter = 0;
-    if (evaluation && annotation_spans[approach_name][0].length - 1 < article_num) annotation_spans[approach_name][0].push([]);
-    else if (prediction && annotation_spans[approach_name][1].length - 1 < article_num) annotation_spans[approach_name][1].push([]);
-    for (annotation of annotations_with_links.reverse()) {
-        // annotation is a tuple with (span, annotation_info)
+    for (annotation of combined_annotations.reverse()) {
         span = annotation[0];
         if (span[1] > evaluation_span[1]) {
             continue;
         } else if (span[0] < evaluation_span[0]) {
             break;
         }
+        // annotation is a tuple with (span, annotation_info)
         annotation = annotation[1];
         before = text.substring(0, span[0]);
         snippet = text.substring(span[0], span[1]);
         after = text.substring(span[1]);
-        if (annotation.hasOwnProperty("link")) {
-            // add link
-            snippet = "<a href=\"https://en.wikipedia.org/wiki/" + annotation.link + "\" target=\"_blank\">" + snippet + "</a>";
-        }
-        if (annotation.hasOwnProperty("entity_id")) {
-            // add tooltip
-            wikidata_url = "https://www.wikidata.org/wiki/" + annotation.entity_id;
-            entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.entity_id + "</a>";
-            if (annotation.entity_name != null) {
-                tooltip_text = annotation.entity_name + " (" + entity_link + ")";
-            } else {
-                tooltip_text = entity_link;
-            }
-            if (annotation.hasOwnProperty("predicted_by")) {
-                tooltip_text += "<br>predicted_by=" + annotation.predicted_by;
-            }
-            if (annotation.hasOwnProperty("parent_text") && annotation.parent_text != null) {
-                tooltip_text += "<br>parent=\"" + annotation.parent_text + "\"";
-            }
-            if (annotation.hasOwnProperty("error_labels") && annotation.error_labels.length > 0) {
-                tooltip_text += "<br>category=";
-                for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
-                    if (e_i > 0) {
-                        tooltip_text += ",";
-                    }
-                    tooltip_text += annotation.error_labels[e_i];
-                }
-            }
-            // Only show selected error category
-            var color = annotation.color[0];
-            if (selected_error_categories && annotation.error_labels) {
-                // Use transparent version of the color, if an error category is selected
-                // And the current annotation does not have a corresponding category label
-                var has_category = false;
-                for (selected_category of selected_error_categories) {
-                    if (annotation.error_labels.includes(selected_category)) {
-                        has_category = true;
-                        break;
-                    }
-                }
-                if (!has_category) color = annotation.color[1];
-            } else if (selected_type && annotation.entity_type &&
-                       !annotation.entity_type.split("|").includes(selected_type)) {
-                color = annotation.color[1];
-            }
-            replacement = "<div class=\"tooltip\" style=\"background-color:" + color + "\">";
-            replacement += snippet;
-            tooltiptext_id = "tooltiptext_";
-            tooltiptext_id += evaluation ? "evaluation" : "prediction";
-            tooltiptext_id += "_" + approach_name.replaceAll(".", "_") + "_" + article_num + "_" + id_counter;
-            replacement += "<span id=\"" + tooltiptext_id + "\" class=\"tooltiptext\">" + tooltip_text + "</span>";
-            replacement += "</div>";
-            if (evaluation) annotation_spans[approach_name][0][article_num].push([annotation.span, tooltiptext_id]);
-            else annotation_spans[approach_name][1][article_num].push([annotation.span, tooltiptext_id]);
-            id_counter++;
-        } else {
-            // no tooltip (just a link)
-            replacement = snippet;
-        }
+        replacement = generate_annotation_html(snippet, annotation, selected_error_categories, selected_type);
         text = before + replacement + after;
     }
-    if (evaluation) annotation_spans[approach_name][0][article_num].reverse();  // Annotations are added in reverse order
-    else annotation_spans[approach_name][1][article_num].reverse();
     text = text.substring(evaluation_span[0], text.length);
     text = text.replaceAll("\n", "<br>");
     return text;
+}
+
+function generate_annotation_html(snippet, annotation, selected_error_categories, selected_type) {
+    /*
+    Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
+    and can be identified by the property "link". Inner annotations, e.g. hyperlinks contained in
+    a mention annotation, nested mention annotations are contained given by the property "inner_annotation".
+    */
+    var inner_annotation = snippet;
+
+    if ("inner_annotation" in annotation) {
+        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_error_categories, selected_type);
+    }
+
+    if ("link" in annotation) {
+        return "<a href=\"https://en.wikipedia.org/wiki/" + annotation.link + "\" target=\"_blank\">" + inner_annotation + "</a>";
+    }
+
+    // Add tooltip
+    var tooltip_classes = "tooltiptext";
+    var tooltip_header_text = "";
+    var tooltip_case_type_html = "";
+    var tooltip_body_text = "";
+    var tooltip_footer_html = "";
+    if (annotation.classes.includes(ANNOTATION_CLASS_TP)) {
+        wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
+        entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+        if (annotation.gt_entity_name != null) {
+            tooltip_header_text += annotation.gt_entity_name + " (" + entity_link + ")";
+        } else {
+            tooltip_header_text += entity_link;
+        }
+    } else {
+        if (annotation.pred_entity_id) {
+            var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+            var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+            tooltip_header_text += "Prediction: " + annotation.pred_entity_name + " (" + entity_link + ")";
+        }
+        if (annotation.gt_entity_id) {
+            var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
+            var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+            if (tooltip_header_text) { tooltip_header_text += "<br>"; }
+            tooltip_header_text += "Groundtruth: " + annotation.gt_entity_name + " (" + entity_link + ")";
+            if (!annotation.pred_entity_id) { tooltip_classes += " below"; }
+        }
+    }
+    // Add case type boxes and annotation case type class to tooltip
+    for (ann_class of annotation.classes) {
+        if ([ANNOTATION_CLASS_TP, ANNOTATION_CLASS_FN, ANNOTATION_CLASS_FP].includes(ann_class)) {
+            tooltip_case_type_html += "<div class=\"case_type_box " + ann_class + "\">" + ann_class.toUpperCase() + "</div>";
+            tooltip_classes += " " + ann_class;
+        }
+    }
+    if (annotation.predicted_by) {
+        tooltip_body_text += "predicted by " + annotation.predicted_by + "<br>";
+    }
+    if (annotation.parent_text) {
+        tooltip_body_text += "parent text: \"" + annotation.parent_text + "\"<br>";
+    }
+    // Add error category tags
+    if (annotation.error_labels && annotation.error_labels.length > 0) {
+        for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
+            var error_label = annotation.error_labels[e_i];
+            error_label = error_label.replace(/_/g, " ").toLowerCase();
+            if (e_i > 0) {
+                tooltip_footer_html += " ";
+            }
+            tooltip_footer_html += "<span class=\"error_category_tag\">" + error_label + "</span>";
+        }
+    }
+    // Use transparent version of the color, if an error category or type is selected
+    // and the current annotation does not have a corresponding error category or type label
+    var lowlight_classes = "";
+    if (selected_error_categories && annotation.error_labels) {
+        lowlight_classes = "gt_lowlight pred_lowlight";
+        for (selected_category of selected_error_categories) {
+            if (annotation.error_labels.includes(selected_category)) {
+                lowlight_classes = "";
+                break;
+            }
+        }
+    } else if (selected_type) {
+        var pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.split("|").includes(selected_type);
+        var gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.split("|").includes(selected_type);
+        if (!pred_type_selected) {
+            lowlight_classes += "pred_lowlight ";
+        }
+        if (!gt_type_selected) {
+            lowlight_classes += "gt_lowlight ";
+        }
+    }
+
+    var replacement = "<span class=\"annotation " + annotation.classes.join(" ") + " " + lowlight_classes + "\">";
+    replacement += inner_annotation;
+    replacement += "<div class=\"" + tooltip_classes + "\">";
+    replacement += "<div class=\"header\">";
+    replacement += "<div class=\"left\">" + tooltip_header_text + "</div>";
+    replacement += "<div class=\"right\">" + tooltip_case_type_html + "</div>";
+    replacement += "</div>";
+    replacement += "<div class=\"body\">" + tooltip_body_text + "</div>";
+    replacement += "<div class=\"footer\">" + tooltip_footer_html + "</div>";
+    replacement += "</div>";
+    replacement += "</span>";
+
+    return replacement;
+}
+
+function combine_overlapping_annotations(list1, list2) {
+    /*
+    Combine two lists of potentially overlapping and nested annotations into a single list.
+    Overlaps are resolved by splitting annotations at the overlap into two.
+    Nestings are resolved by adding the inner annotation to the outer annotation via the
+    property "inner_annotation".
+
+    NOTE: Links must be the last list that is added such that they can only be the inner-most
+    annotations, because <div> tags are not allowed within <a> tags.
+    */
+    var combined_annotations = [];
+    while (list1.length > 0 || list2.length > 0) {
+        if (list1.length == 0) {
+            var list2_item = list2.shift();
+            combined_annotations.push([list2_item[0], list2_item[1]]);
+        } else if (list2.length == 0) {
+            var list1_item = list1.shift();
+            combined_annotations.push([list1_item[0], list1_item[1]]);
+        } else {
+            var list1_item = list1[0];
+            var list2_item = list2[0];
+            var list1_item_span = list1_item[0];
+            var list2_item_span = list2_item[0];
+            if (list2_item_span[0] < list1_item_span[0]) {
+                // Add element from second list
+                var list2_item_end = Math.min(list2_item_span[1], list1_item_span[0]);
+                combined_annotations.push([[list2_item_span[0], list2_item_end], list2_item[1]]);
+                if (list2_item_end == list2_item_span[1]) {
+                    list2.shift();
+                } else {
+                    list2[0][0][0] = list2_item_end;
+                }
+            } else if (list1_item_span[0] < list2_item_span[0]) {
+                // Add element from first list
+                var list1_item_end = Math.min(list1_item_span[1], list2_item_span[0]);
+                combined_annotations.push([[list1_item_span[0], list1_item_end], list1_item[1]]);
+                if (list1_item_end == list1_item_span[1]) {
+                    list1.shift();
+                } else {
+                    list1_item_span[0] = list1_item_end;
+                }
+            } else {
+                // Add both
+                var list1_item_ann = copy(list1_item[1]);
+                var most_inner_ann = list1_item_ann;
+                // Add element from second list as inner-most annotation of element from first list
+                while ("inner_annotation" in most_inner_ann) {
+                    most_inner_ann = most_inner_ann["inner_annotation"];
+                }
+                most_inner_ann["inner_annotation"] = list2_item[1];
+                var list1_item_end = Math.min(list1_item_span[1], list2_item_span[1]);
+                combined_annotations.push([[list1_item_span[0], list1_item_end], list1_item_ann]);
+                if (list1_item_end == list2_item_span[1]) {
+                    list2.shift();
+                } else {
+                    list2[0][0][0] = list1_item_end;
+                }
+                if (list1_item_end == list1_item_span[1]) {
+                    list1.shift();
+                } else {
+                    list1[0][0][0] = list1_item_end;
+                }
+            }
+        }
+    }
+    return combined_annotations;
 }
 
 async function show_article(selected_approaches) {
@@ -843,38 +821,18 @@ async function show_article(selected_approaches) {
         iteration++;
     }
 
-    // Reset / initialize span pair variables
-    annotation_spans = {};
-    annotation_spans[selected_approaches[0]] = [[], []];
-    span_pairs = {};
-
     // Show columns
-    if (is_show_groundtruth_checked()) {
-        // Show first groundtruth column
-        show_ground_truth_entities(selected_approaches[0], $(columns[column_idx]), selected_error_categories[0], selected_types[0]);
-        $(column_headers[column_idx]).text(selected_approaches[0] + " (groundtruth)")
-        show_table_column("prediction_overview", column_idx);
-        column_idx++;
-    }
     // Show first prediction column
-    show_linked_entities(selected_approaches[0], $(columns[column_idx]), selected_error_categories[0], selected_types[0]);
-    $(column_headers[column_idx]).text(selected_approaches[0] + " (prediction)")
+    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_error_categories[0], selected_types[0]);
+    $(column_headers[column_idx]).text(selected_approaches[0]);
     show_table_column("prediction_overview", column_idx);
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
         // Show second prediction column
-        annotation_spans[selected_approaches[1]] = [[], []];
-        show_linked_entities(selected_approaches[1], $(columns[column_idx]), selected_error_categories[1], selected_types[1]);
-        $(column_headers[column_idx]).text(selected_approaches[1] + " (prediction)")
+        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_error_categories[1], selected_types[1]);
+        $(column_headers[column_idx]).text(selected_approaches[1]);
         show_table_column("prediction_overview", column_idx);
         column_idx++;
-        if (is_show_groundtruth_checked()) {
-            // Show second groundtruth column
-            show_ground_truth_entities(selected_approaches[1], $(columns[column_idx]), selected_error_categories[1], selected_types[1]);
-            $(column_headers[column_idx]).text(selected_approaches[1] + " (groundtruth)")
-            show_table_column("prediction_overview", column_idx);
-            column_idx++;
-        }
     }
 
     // Hide unused columns
@@ -885,50 +843,6 @@ async function show_article(selected_approaches) {
     // Set column width
     var width_percentage = 100 / column_idx;
     $("#prediction_overview th, #prediction_overview td").css("width", width_percentage + "%");
-
-    // Create annotation span pairs to be able to show the tooltips on both sides when hovering over one
-    for (var j=0; j<selected_approaches.length; j++) {
-        var approach_name = selected_approaches[j]
-        for (var i = 0; i < annotation_spans[approach_name][0].length; i++) {
-            prediction_span_index = 0;
-            evaluation_span_index = 0;
-            overlap_set = [new Set(), new Set()];
-            while (evaluation_span_index < annotation_spans[approach_name][0][i].length && prediction_span_index < annotation_spans[approach_name][1][i].length) {
-                var [evaluation_span, evaluation_span_id] = annotation_spans[approach_name][0][i][evaluation_span_index];
-                var [prediction_span, prediction_span_id] = annotation_spans[approach_name][1][i][prediction_span_index];
-                if (evaluation_span[1] <= prediction_span[0]) {
-                    // evaluation span comes before prediction span, no overlap
-                    evaluation_span_index++;
-                    add_overlap_spans_to_mapping(overlap_set);
-                    overlap_set = [new Set(), new Set()];
-                } else if (evaluation_span[0] >= prediction_span[1]) {
-                    // evaluation span comes after prediction span, no overlap
-                    prediction_span_index++;
-                    add_overlap_spans_to_mapping(overlap_set);
-                    overlap_set = [new Set(), new Set()];
-                } else {
-                    // Overlap
-                    overlap_set[0].add(evaluation_span_id);
-                    overlap_set[1].add(prediction_span_id);
-                    // A single span on one side can overlap with multiple on the other side
-                    // Therefore only increase index of span that ends first
-                    if (evaluation_span[1] > prediction_span[1]) prediction_span_index++;
-                    else evaluation_span_index++;
-                }
-            }
-            add_overlap_spans_to_mapping(overlap_set);
-        }
-    }
-}
-
-function add_overlap_spans_to_mapping(overlap_set) {
-    // Add previous overlapping spans to mappings
-    for (evaluation_overlap_span_id of overlap_set[0]) {
-        if (overlap_set[1].size > 0) span_pairs[evaluation_overlap_span_id] = overlap_set[1];
-    }
-    for (prediction_overlap_span_id of overlap_set[1]) {
-        if (overlap_set[0].size > 0) span_pairs[prediction_overlap_span_id] = overlap_set[0];
-    }
 }
 
 function build_overview_table(path, benchmark_name) {
@@ -1446,7 +1360,6 @@ function on_row_click(el) {
     This method is called when a table body row was clicked.
     This marks the row as selected and reads the evaluation cases.
     */
-    console.log("on_row_click()");
     var approach_name = $(el).find('td:first').text();
 
     // De-select all current rows if a row in a different table was selected before
@@ -1483,7 +1396,6 @@ function on_cell_click(el) {
     Add or remove error categories and types to/from current selection.
     */
     // De-select current selection if necessary
-    console.log("on_cell_click() for selected cells: ", selected_cells);
     var div_id = $(el).closest('table').parent().attr('id');
     if (div_id == "evaluation") { selected_types = []; } else { selected_error_categories = []; }
 
@@ -1491,7 +1403,6 @@ function on_cell_click(el) {
         var same_table = $(selected_cells[0]).closest('table').parent().attr('id') == div_id;
         if (!is_compare_checked() || selected_cells.length >= MAX_SELECTED_APPROACHES || !same_table) {
             // Remove selected classes for all currently selected cells
-            console.log("Removing all previously selected cells:", selected_cells);
             for (var i=0; i<selected_cells.length; i++) {
                 remove_selected_classes(selected_cells[i]);
             }
@@ -1527,9 +1438,7 @@ function on_cell_click(el) {
             selected_cells.push(el);
         }
     }
-    if (div_id == "evaluation") { selected_error_categories.push(get_selected_category(el)); } else { selected_types.push(get_selected_category(el)); }
-
-    console.log("on_cell_click(): Finished with selected types", selected_types, "and selected errors", selected_error_categories);
+    if (div_id == "evaluation") { selected_error_categories.push(get_error_category_or_type(el)); } else { selected_types.push(get_error_category_or_type(el)); }
 }
 
 function deselect_all_table_rows(div_id) {
@@ -1547,6 +1456,22 @@ function remove_selected_classes(el) {
     $(el).closest('tr').find('.' + cls).each(function(index) {
         $(this).removeClass("selected");
     });
+}
+
+function get_error_category_or_type(element) {
+    /*
+    For a given cell return the error category or type it belongs to, or null otherwise.
+    */
+    data_attribute = $(element).data("category");
+    if (data_attribute) {
+        var match = data_attribute.match(/Q[0-9]+:.*/);
+        if (data_attribute in error_category_mapping) {
+            return error_category_mapping[data_attribute];
+        } else if (match || data_attribute == "OTHER") {
+            return data_attribute.replace(/(Q[0-9]+):.*/g, "$1");
+        }
+    }
+    return null;
 }
 
 function show_table_column(table_id, index) {
@@ -1582,26 +1507,18 @@ function toggle_compare() {
             remove_selected_classes(deselected_cell);
         }
 
-        if (is_show_groundtruth_checked()) {
-            hide_table_column("prediction_overview", 2);
-            hide_table_column("prediction_overview", 3);
-        } else {
-            hide_table_column("prediction_overview", 1);
-        }
+        hide_table_column("prediction_overview", 1);
+
         show_article(selected_approach_names);
     }
 }
 
-function toggle_show_groundtruth() {
-    show_article(selected_approach_names);
-}
-
-function is_show_groundtruth_checked() {
-    return $("#checkbox_groundtruth").is(":checked");
-}
-
 function is_compare_checked() {
     return $("#checkbox_compare").is(":checked");
+}
+
+function on_article_select() {
+    show_article(selected_approach_names);
 }
 
 function produce_latex(div_id) {
