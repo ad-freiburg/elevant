@@ -3,11 +3,10 @@ ANNOTATION_CLASS_FP = "fp"
 ANNOTATION_CLASS_FN = "fn"
 ANNOTATION_CLASS_UNKNOWN = "unknown"
 ANNOTATION_CLASS_OPTIONAL = "optional"
+ANNOTATION_CLASS_CORRECT_OPTIONAL = "correct_optional"
 ANNOTATION_CLASS_UNEVALUATED = "unevaluated"
 
 RESULTS_EXTENSION = ".results";
-
-JOKER_LABELS = ["QUANTITY", "DATETIME"];
 
 MAX_SELECTED_APPROACHES = 2;
 MAX_CACHED_FILES = 15;
@@ -327,6 +326,14 @@ function is_correct_optional_case(eval_case) {
     return false;
 }
 
+function is_optional_case(eval_case) {
+    /*
+    Returns true iff the given evaluation case is optional, a datetime or a quantity.
+    */
+     return "true_entity" in eval_case && (eval_case.true_entity.optional ||
+                                           ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type));
+}
+
 function show_annotated_text(approach_name, textfield, selected_error_categories, selected_type) {
     /*
     Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
@@ -453,6 +460,9 @@ function get_annotations(article_index, approach_name) {
                 }
             } else if (is_correct_optional_case(mention)) {
                 classes.push(ANNOTATION_CLASS_OPTIONAL);
+                if ("predicted_entity" in mention) {
+                    classes.push(ANNOTATION_CLASS_CORRECT_OPTIONAL);
+                }
             } else if ("predicted_entity" in mention) {
                  if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
                      if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
@@ -461,7 +471,7 @@ function get_annotations(article_index, approach_name) {
                     } else {
                         // predicted the wrong entity
                         classes.push(ANNOTATION_CLASS_FP);
-                        if (["QUANTITY", "DATETIME"].includes(mention.true_entity.type) || mention.true_entity.optional) {
+                        if (is_optional_case(mention)) {
                             classes.push(ANNOTATION_CLASS_OPTIONAL);
                         } else {
                             classes.push(ANNOTATION_CLASS_FN);

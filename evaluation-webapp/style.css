@@ -13,6 +13,8 @@
     --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
     --annotation-optional-color: rgb(211,211,211);
     --annotation-optional-color-lowlight: rgba(211,211,211,0.3);
+    --annotation-correct-optional-color: rgb(189,189,189);
+    --annotation-correct-optional-color-lowlight: rgba(189,189,189,0.3);
     --annotation-border-size: 5px;
     --cell-hover-color-dark: #463604;
 }
@@ -272,11 +274,11 @@ div.latex textarea {
 .annotation.optional.gt_lowlight {
     border-bottom-color: var(--annotation-optional-color-lowlight);
 }
-.annotation.unevaluated {
-    background-color: var(--annotation-optional-color);
+.annotation.unevaluated, .annotation.correct_optional {
+    background-color: var(--annotation-correct-optional-color);
 }
-.annotation.unevaluated.pred_lowlight {
-    background-color: var(--annotation-optional-color-lowlight);
+.annotation.unevaluated.pred_lowlight .annotation.correct_optional.pred_lowlight {
+    background-color: var(--annotation-correct-optional-color-lowlight);
 }
 
 /* ----------------------------------------- */
