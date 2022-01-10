@@ -19,7 +19,7 @@ API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 # casting the query name to lowercase and appending .tsv
 DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_GIVEN_NAME QID_TO_SITELINK WIKIDATA_ENTITIES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 BATCH_SIZE = 10000000
-NUM_LINKER_PROCESSES = 8
+NUM_LINKER_PROCESSES = 1
 
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation_results/
