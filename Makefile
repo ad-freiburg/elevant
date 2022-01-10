@@ -34,7 +34,6 @@ EVALUATE_LINKING_SYSTEM_PREFIX =
 EXISTING_BENCHMARKS = wiki-ex newscrawl conll-test conll-dev msnbc ace msnbc-original ace-original
 
 DOCKER_CMD = docker
-API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 
 
 config:
