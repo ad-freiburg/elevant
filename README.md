@@ -13,14 +13,20 @@ or where you want to store the generated data files.
 Unless otherwise noted, all the following commands should be run inside the docker container.
 
 ## Data Generation
-If you do not already have access to existing data files, you can generate all necessary data files in two simple steps.
+For linking entities in a text or evaluating the output of a linker, our system needs information about entities and mention texts,
+e.g. entity labels, aliases, popularity scores, types, the frequency with which a mention is linked to a certain article in Wikipedia, etc.
+This information is stored in and read from several files.
+This section describes how you can easily generate all the necessary data files.
 
 Before however, make sure to set the `DATA_DIR` variable in the Makefile to your `<data_directory>`
 (within the docker container, `DATA_DIR` is automatically set to `/data/`).
 In `src/settings.py` set the `EXTRACTED_WIKIPEDIA_DUMP_NAME` variable to `"enwiki-latest-extracted.jsonl"`
 if this is not already the case.
 
-Then, as a first step, either run
+If you do not already have access to the necessary data files, you can generate all files in two simple steps.
+Otherwise, e.g. if you have run these two steps before, you can skip the following steps and jump straight to *Usage* section.
+
+As a first step, either run
 
     make download_entity_types
 
