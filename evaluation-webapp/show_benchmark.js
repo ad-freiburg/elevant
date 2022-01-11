@@ -92,8 +92,8 @@ $("document").ready(function() {
     selected_approach_names = [];
     selected_rows = [];
     selected_cells = [];
-    selected_error_categories = [];
-    selected_types = [];
+    reset_selected_error_categories();
+    reset_selected_types();
 
     sorting_variables = {"evaluation": {}, "type_evaluation": {}}
     for (div in sorting_variables) {
@@ -192,6 +192,22 @@ function set_benchmark_select_options() {
         $('#benchmark option:contains("wiki-ex")').prop('selected',true);
         show_benchmark_results();
     });
+}
+
+function reset_selected_error_categories() {
+    /*
+    Initialize or reset the selected error categories.
+    The array contains one entry for each approach that can be compared.
+    */
+    selected_error_categories = new Array(MAX_SELECTED_APPROACHES).fill(null);
+}
+
+function reset_selected_types() {
+    /*
+    Initialize or reset the selected types.
+    The array contains one entry for each approach that can be compared.
+    */
+    selected_types = new Array(MAX_SELECTED_APPROACHES).fill(null);
 }
 
 function show_benchmark_results() {
@@ -334,7 +350,7 @@ function is_optional_case(eval_case) {
                                            ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type));
 }
 
-function show_annotated_text(approach_name, textfield, selected_error_categories, selected_type) {
+function show_annotated_text(approach_name, textfield, selected_error_category, selected_type) {
     /*
     Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
     and show them in the textfield.
@@ -343,7 +359,7 @@ function show_annotated_text(approach_name, textfield, selected_error_categories
         var annotated_texts = [];
         for (var i=0; i < articles.length; i++) {
             var annotations = get_annotations(i, approach_name);
-            annotated_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, selected_error_categories, selected_type));
+            annotated_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, selected_error_category, selected_type));
         }
         annotated_text = "";
         for (var i=0; i < annotated_texts.length; i++) {
@@ -352,7 +368,7 @@ function show_annotated_text(approach_name, textfield, selected_error_categories
         }
     } else {
         var annotations = get_annotations(selected_article_index, approach_name);
-        var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_error_categories, selected_type);
+        var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_error_category, selected_type);
     }
     textfield.html(annotated_text);
 }
@@ -544,7 +560,7 @@ function copy(object) {
     return JSON.parse(JSON.stringify(object));
 }
 
-function annotate_text(text, annotations, links, evaluation_span, selected_error_categories, selected_type) {
+function annotate_text(text, annotations, links, evaluation_span, selected_error_category, selected_type) {
     /*
     Generate tooltips for the given annotations and hyperlinks for the given links.
     Tooltips and hyperlinks can overlap.
@@ -579,10 +595,10 @@ function annotate_text(text, annotations, links, evaluation_span, selected_error
 
     // STEP 1: Combine overlapping annotations and links.
     // Consumes the first element from the link list or annotation list, or a part from both if they overlap.
-    var combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations, selected_error_categories, selected_type);
+    var combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations, selected_error_category, selected_type);
     // Links must be the last list that is added such that they can only be the inner most annotations, because <div>
     // tags are not allowed within <a> tags, but the other way round is valid.
-    combined_annotations = combine_overlapping_annotations(combined_annotations, new_links, selected_error_categories, selected_type);
+    combined_annotations = combine_overlapping_annotations(combined_annotations, new_links, selected_error_category, selected_type);
 
     // Text should only be the text within the given evaluation span (Careful: This is the entire article if a
     // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
@@ -603,7 +619,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_error
         before = text.substring(0, span[0]);
         snippet = text.substring(span[0], span[1]);
         after = text.substring(span[1]);
-        replacement = generate_annotation_html(snippet, annotation, selected_error_categories, selected_type);
+        replacement = generate_annotation_html(snippet, annotation, selected_error_category, selected_type);
         text = before + replacement + after;
     }
     text = text.substring(evaluation_span[0], text.length);
@@ -611,7 +627,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_error
     return text;
 }
 
-function generate_annotation_html(snippet, annotation, selected_error_categories, selected_type) {
+function generate_annotation_html(snippet, annotation, selected_error_category, selected_type) {
     /*
     Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
     and can be identified by the property "link". Inner annotations, e.g. hyperlinks contained in
@@ -620,7 +636,7 @@ function generate_annotation_html(snippet, annotation, selected_error_categories
     var inner_annotation = snippet;
 
     if ("inner_annotation" in annotation) {
-        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_error_categories, selected_type);
+        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_error_category, selected_type);
     }
 
     if ("link" in annotation) {
@@ -682,9 +698,9 @@ function generate_annotation_html(snippet, annotation, selected_error_categories
     // Use transparent version of the color, if an error category or type is selected
     // and the current annotation does not have a corresponding error category or type label
     var lowlight_classes = "";
-    if (selected_error_categories && annotation.error_labels) {
+    if (selected_error_category && annotation.error_labels) {
         lowlight_classes = "gt_lowlight pred_lowlight";
-        for (selected_category of selected_error_categories) {
+        for (selected_category of selected_error_category) {
             if (annotation.error_labels.includes(selected_category)) {
                 lowlight_classes = "";
                 break;
@@ -1383,17 +1399,14 @@ function on_row_click(el) {
     // De-select previously selected rows
     if (!is_compare_checked() || selected_approach_names.length >= MAX_SELECTED_APPROACHES) {
         deselect_all_table_rows(new_parent_table);
-    }
-
-    // Select clicked row
-    $(el).addClass("selected");
-    selected_rows.push(el);
-
-    if (!is_compare_checked() || selected_approach_names.length == MAX_SELECTED_APPROACHES) {
         selected_approach_names = [];
     }
+
     if (!selected_approach_names.includes(approach_name)) {
         selected_approach_names.push(approach_name);
+        // Select clicked row
+        $(el).addClass("selected");
+        selected_rows.push(el);
     }
     var selected_approaches = [...selected_approach_names];
 
@@ -1407,26 +1420,30 @@ function on_cell_click(el) {
     */
     // De-select current selection if necessary
     var div_id = $(el).closest('table').parent().attr('id');
-    if (div_id == "evaluation") { selected_types = []; } else { selected_error_categories = []; }
+    if (div_id == "evaluation") { reset_selected_types(); } else { reset_selected_error_categories(); }
+
+    // Determine whether an already selected cell has been clicked
+    var curr_row = $(el).closest("tr").index();
+    var prev_selected_rows = $.map(selected_rows, function(sel_row) { return $(sel_row).index(); });
+    var already_selected_row_clicked = $.inArray(curr_row, prev_selected_rows);
 
     if (selected_cells.length > 0) {
         var same_table = $(selected_cells[0]).closest('table').parent().attr('id') == div_id;
-        if (!is_compare_checked() || selected_cells.length >= MAX_SELECTED_APPROACHES || !same_table) {
+        if (!is_compare_checked() || selected_rows.length >= MAX_SELECTED_APPROACHES || !same_table) {
             // Remove selected classes for all currently selected cells
             for (var i=0; i<selected_cells.length; i++) {
                 remove_selected_classes(selected_cells[i]);
             }
             selected_cells = [];
-            if (div_id == "evaluation") { selected_error_categories = []; } else { selected_types = []; }
+            if (div_id == "evaluation") { reset_selected_error_categories(); } else { reset_selected_types(); }
         } else {
             // Remove selected class for cells in the same row
-            var curr_row = $(el).closest("tr").index();
             var last_rows = $.map(selected_cells, function(sel_cell) { return $(sel_cell).closest('tr').index(); });
             var index = $.inArray(curr_row, last_rows);
             if (index >= 0) {
                 remove_selected_classes(selected_cells[index]);
                 selected_cells.splice(index, 1);
-                if (div_id == "evaluation") { selected_error_categories.splice(index, 1); } else { selected_types.splice(index, 1); }
+                if (div_id == "evaluation") { selected_error_categories[index] = null; } else { selected_types[index] = null; }
             }
         }
     }
@@ -1448,7 +1465,14 @@ function on_cell_click(el) {
             selected_cells.push(el);
         }
     }
-    if (div_id == "evaluation") { selected_error_categories.push(get_error_category_or_type(el)); } else { selected_types.push(get_error_category_or_type(el)); }
+
+    // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
+    var approach_index = (already_selected_row_clicked >= 0) ? 0 : selected_rows.length % MAX_SELECTED_APPROACHES;
+    if (div_id == "evaluation") {
+        selected_error_categories[approach_index] = get_error_category_or_type(el);
+    } else {
+        selected_types[approach_index] = get_error_category_or_type(el);
+    }
 }
 
 function deselect_all_table_rows(div_id) {
