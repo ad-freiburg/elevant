@@ -47,6 +47,13 @@ header_descriptions = {"undetected": "The span of a GT mention was not linked (=
                        "errors": "Error categories",
                        "coreference_errors": "Coreference error categories"};
 
+mention_type_headers = {"entity": ["entity_named", "entity_other"],
+                        "coref": ["nominal", "pronominal"],
+                        "entity_named": ["entity_named"],
+                        "entity_other": ["entity_other"],
+                        "nominal": ["nominal"],
+                        "pronominal": ["pronominal"]};
+
 show_mentions = {"entity_named": true, "entity_other": true, "nominal": true, "pronominal": true};
 
 benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl", "msnbc-original", "ace-original"];
@@ -144,6 +151,29 @@ $("document").ready(function() {
     });
     $("#evaluation").on("mouseleave", "td", function() {
         $(this).removeClass("hovered");
+    });
+
+    // Highlight all cells in a row belonging to the same mention_type on hover
+    $("#evaluation").on("mouseenter", "td", function() {
+        if ($(this).attr('class')) {  // System column has no class attribute
+            var cls = $(this).attr('class').split(/\s+/)[0];
+            if (cls in mention_type_headers) {
+                // Mark all cells in the corresponding row with the corresponding class
+                $(this).closest('tr').find('.' + cls).each(function(index) {
+                    $(this).addClass("hovered");
+                });
+            }
+        }
+    });
+    $("#evaluation").on("mouseleave", "td", function() {
+        if ($(this).attr('class')) {  // System column has no class attribute
+            var cls = $(this).attr('class').split(/\s+/)[0];
+            if (cls in mention_type_headers) {
+                $(this).closest('tr').find('.' + cls).each(function(index) {
+                    $(this).removeClass("hovered");
+                });
+            }
+        }
     });
 
     // Highlight all cells in a row belonging to the same type on hover
@@ -534,6 +564,7 @@ function get_annotations(article_index, approach_name) {
             pred_entity_type = null;
             pred_by = mention.linked_by;
         }
+        var mention_type = (mention.mention_type) ? mention.mention_type.toLowerCase() : null;
         var annotation = {
             "span": mention.span,
             "classes": classes,
@@ -546,6 +577,7 @@ function get_annotations(article_index, approach_name) {
             "pred_entity_name": pred_entity_name,
             "pred_entity_type": pred_entity_type,
             "predicted_by": pred_by,
+            "mention_type": mention_type
         };
         annotations[mention.span] = annotation;
     }
@@ -701,7 +733,7 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
     if (selected_error_category && annotation.error_labels) {
         lowlight_classes = "gt_lowlight pred_lowlight";
         for (selected_category of selected_error_category) {
-            if (annotation.error_labels.includes(selected_category)) {
+            if (annotation.error_labels.includes(selected_category) || annotation.mention_type == selected_category) {
                 lowlight_classes = "";
                 break;
             }
@@ -1090,7 +1122,11 @@ function get_table_row(approach_name, json_obj, div_id) {
                 if (div_id == "type_evaluation") {
                     var data_string = "data-category='" + key + "'";
                 } else {
-                    var data_string = "data-category='" + subclass_name + "'";
+                    if (key in mention_type_headers) {
+                        var data_string = "data-category='" + class_name + "'";
+                    } else {
+                        var data_string = "data-category='" + subclass_name + "'";
+                    }
                 }
                 row += "<td class='" + class_name + " " + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
             }
@@ -1455,6 +1491,11 @@ function on_cell_click(el) {
             if (classes.length > 1 && classes[1] in error_category_mapping) {
                 $(el).addClass("selected");
                 selected_cells.push(el);
+            } else if (classes.length > 0 && classes[0] in mention_type_headers) {
+                $(el).closest('tr').find('.' + classes[0]).each(function() {
+                    $(this).addClass("selected");
+                });
+                selected_cells.push(el);
             }
         } else {
             // Mark all cells in the corresponding row with the corresponding class
@@ -1501,6 +1542,8 @@ function get_error_category_or_type(element) {
         var match = data_attribute.match(/Q[0-9]+:.*/);
         if (data_attribute in error_category_mapping) {
             return error_category_mapping[data_attribute];
+        } else if (data_attribute in mention_type_headers) {
+            return mention_type_headers[data_attribute];
         } else if (match || data_attribute == "OTHER") {
             return data_attribute.replace(/(Q[0-9]+):.*/g, "$1");
         }
