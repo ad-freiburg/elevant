@@ -7,8 +7,6 @@
     --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
     --annotation-fp-color: rgb(241,148,138);
     --annotation-fp-color-lowlight: rgba(241,148,138,0.3);
-    --annotation-fn-color: rgb(233,86,70) ;
-    --annotation-fn-color-lowlight: rgba(233,86,70, 0.3) ;
     --annotation-unknown-color: rgb(138,220,241);
     --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
     --annotation-optional-color: rgb(211,211,211);
@@ -215,7 +213,7 @@ div.latex textarea {
 
 #prediction_overview td {
     vertical-align: top;
-    line-height: 180%;
+    line-height: 200%;
 }
 
 #prediction_overview [class*="compare_"] {
@@ -256,6 +254,7 @@ div.latex textarea {
     /* Make sure the background extends only up to the border start.
     Otherwise, if the border color is opaque and it overlaps with the background color, the border color is changed */
     background-clip: content-box;
+    padding-bottom: 1px;
 }
 /* Set annotation colors according to annotation type */
 .annotation.tp {
@@ -275,10 +274,10 @@ div.latex textarea {
     background-color: var(--annotation-fp-color-lowlight);
 }
 .annotation.fn {
-    border-bottom: var(--annotation-border-size) solid var(--annotation-fn-color);
+    border-bottom: var(--annotation-border-size) solid var(--annotation-fp-color);
 }
 .annotation.fn.gt_lowlight {
-    border-bottom-color: var(--annotation-fn-color-lowlight);
+    border-bottom-color: var(--annotation-fp-color-lowlight);
 }
 .annotation.unknown {
     border-bottom: var(--annotation-border-size) solid var(--annotation-unknown-color);
@@ -316,9 +315,7 @@ div.latex textarea {
 .annotation .tooltiptext.tp {
     border-color: var(--annotation-tp-color);
 }
-.annotation .tooltiptext.fn {
-    border-color: var(--annotation-fn-color);
-}
+.annotation .tooltiptext.fn,
 .annotation .tooltiptext.fp {
     border-color: var(--annotation-fp-color);
 }
@@ -379,11 +376,9 @@ div.latex textarea {
 .annotation .tooltiptext .case_type_box.tp {
     background-color: var(--annotation-tp-color);
 }
-.annotation .tooltiptext .case_type_box.fp {
-    background-color: var(--annotation-fp-color);
-}
+.annotation .tooltiptext .case_type_box.fp,
 .annotation .tooltiptext .case_type_box.fn {
-    background-color: var(--annotation-fn-color);
+    background-color: var(--annotation-fp-color);
 }
 
 /* ----------------------------------------- */
