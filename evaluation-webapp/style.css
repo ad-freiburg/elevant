@@ -7,8 +7,8 @@
     --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
     --annotation-fp-color: rgb(241,148,138);
     --annotation-fp-color-lowlight: rgba(241,148,138,0.3);
-    --annotation-fn-color: rgb(241,190,138);
-    --annotation-fn-color-lowlight: rgba(241,190,138,0.3);
+    --annotation-fn-color: rgb(233,86,70) ;
+    --annotation-fn-color-lowlight: rgba(233,86,70, 0.3) ;
     --annotation-unknown-color: rgb(138,220,241);
     --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
     --annotation-optional-color: rgb(211,211,211);
@@ -229,6 +229,24 @@ div.latex textarea {
     top: 0;
     z-index: 10;
     background: #E5E5E5;
+}
+
+#prediction_overview hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 2em 0em;
+    padding: 0;
+}
+
+#prediction_overview tbody td {
+    padding-top: 2em;
+    padding-bottom: 2em;
+}
+
+#prediction_overview tbody .title {
+    font-weight: 1000;
 }
 
 /* ----------------------------------------- */

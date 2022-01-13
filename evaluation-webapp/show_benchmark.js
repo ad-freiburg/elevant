@@ -393,7 +393,8 @@ function show_annotated_text(approach_name, textfield, selected_error_category, 
         }
         annotated_text = "";
         for (var i=0; i < annotated_texts.length; i++) {
-            annotated_text += "<br><br>" + "********** " + articles[i].title + " **********<br>";
+            if (i != 0) annotated_text += "<hr/>";
+            if (articles[i].title) annotated_text += "<span class='title'>" + articles[i].title + "</span><br>";
             annotated_text += annotated_texts[i];
         }
     } else {
