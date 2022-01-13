@@ -55,15 +55,62 @@
 					Select article: <select id="article" onchange="on_article_select()"></select>
 					<span id="article_link"></span>
 				</p>
-				<div id="article_checkboxes">
-					<input id="show_entity_named" type="checkbox" checked>
-					<label>Show Entity Named</label>
-					<input id="show_entity_other" type="checkbox" checked>
-					<label>Show Entity Other</label>
-					<input id="show_nominal" type="checkbox" checked>
-					<label>Show Nominal</label>
-					<input id="show_pronominal" type="checkbox" checked>
-					<label>Show Pronominal</label>
+				<div id="over-table-row">
+					<div id="article_checkboxes">
+						<input id="show_entity_named" type="checkbox" checked>
+						<label>Show Entity Named</label>
+						<input id="show_entity_other" type="checkbox" checked>
+						<label>Show Entity Other</label>
+						<input id="show_nominal" type="checkbox" checked>
+						<label>Show Nominal</label>
+						<input id="show_pronominal" type="checkbox" checked>
+						<label>Show Pronominal</label>
+					</div>
+					<div id="annotation_explanation">Annotation explanations
+						<div class="tooltiptext">
+							<table>
+								<tbody>
+									<tr>
+										<td colspan="2"><i><span class="annotation optional">Underlined text</span> corresponds to a groundtruth mention,
+											<span class="annotation correct_optional">highlighted text</span> to a predicted mention.<br>
+											If a groundtruth mention and a predicted mention overlap, these annotations overlap, too.</i></td>
+									</tr>
+									<tr>
+										<td><span class="annotation tp">Mention Text</span></td>
+										<td><b>True positive:</b> Predicted mention span and entity matches a groundtruth mention span and entity</td>
+									</tr>
+									<tr>
+										<td><span class="annotation fp">Mention Text</span></td>
+										<td><b>False positive:</b> Predicted mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity</td>
+									</tr>
+									<tr>
+										<td><span class="annotation fn">Mention Text</span></td>
+										<td><b>False negative:</b> Groundtruth mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity</td>
+									</tr>
+									<tr>
+										<td><span class="annotation unknown">Mention Text</span></td>
+										<td>Groundtruth entity that could not be mapped to an entity in the knowledge base</td>
+									</tr>
+									<tr>
+										<td><span class="annotation optional">Mention Text</span></td>
+										<td>Optional groundtruth mention</td>
+									</tr>
+									<tr>
+										<td><span class="annotation optional correct_optional">Mention Text</span></td>
+										<td>Predicted mention span and entity match an optional groundtruth mention span and entity</td>
+									</tr>
+									<tr>
+										<td><span class="annotation unevaluated">Mention Text</span></td>
+										<td>Unevaluated prediction</td>
+									</tr>
+									<tr>
+										<td><u>Some Text</u></td>
+										<td>Hyperlink in the groundtruth text</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
 				</div>
 				<table id="prediction_overview">
 					<thead>
