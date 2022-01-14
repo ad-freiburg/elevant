@@ -1526,7 +1526,7 @@ function on_cell_click(el) {
     }
 
     // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
-    var approach_index = (already_selected_row_clicked >= 0) ? 0 : selected_rows.length % MAX_SELECTED_APPROACHES;
+    approach_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : selected_rows.length % MAX_SELECTED_APPROACHES;
     if (div_id == "evaluation") {
         selected_error_categories[approach_index] = get_error_category_or_type(el);
     } else {
