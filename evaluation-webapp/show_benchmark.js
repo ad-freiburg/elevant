@@ -11,6 +11,9 @@ RESULTS_EXTENSION = ".results";
 MAX_SELECTED_APPROACHES = 2;
 MAX_CACHED_FILES = 15;
 
+MISSING_LABEL_TEXT = "[MISSING LABEL]";
+NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", "Unknown"];
+
 ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
@@ -686,22 +689,36 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
         wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
         entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
         if (annotation.gt_entity_name != null) {
-            tooltip_header_text += annotation.gt_entity_name + " (" + entity_link + ")";
+            var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
+            tooltip_header_text += entity_name + " (" + entity_link + ")";
         } else {
             tooltip_header_text += entity_link;
         }
     } else {
         if (annotation.pred_entity_id) {
+            var entity_name = (annotation.pred_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
             var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
             var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
-            tooltip_header_text += "Prediction: " + annotation.pred_entity_name + " (" + entity_link + ")";
+            tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
         }
-        if (annotation.gt_entity_id) {
-            var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
-            var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+        if (annotation.gt_entity_id ) {
             if (tooltip_header_text) { tooltip_header_text += "<br>"; }
-            tooltip_header_text += "Groundtruth: " + annotation.gt_entity_name + " (" + entity_link + ")";
+            if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
+                // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
+                // instead display "DATETIME"/"QUANTITY" or "Unknown #xy"
+                var entity_name = annotation.gt_entity_id;
+                if (annotation.gt_entity_id.startsWith("Unknown")) {
+                    entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
+                }
+                tooltip_header_text += "Groundtruth: [" + entity_name + "]";
+            } else {
+                var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
+                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
+                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+                tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
+            }
             if (!annotation.pred_entity_id) { tooltip_classes += " below"; }
+
         }
     }
     // Add case type boxes and annotation case type class to tooltip
