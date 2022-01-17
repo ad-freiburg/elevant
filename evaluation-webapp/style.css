@@ -57,8 +57,7 @@ a {
 }
 
 /* Tooltip text */
-.tooltip .tooltiptext,
-.annotation .tooltiptext {
+.tooltip .tooltiptext {
     visibility: hidden;
     background-color: lightgrey;
     text-align: left;
@@ -242,10 +241,6 @@ div.latex textarea {
     padding-bottom: 2em;
 }
 
-#prediction_overview tbody .title {
-    font-weight: 1000;
-}
-
 /* ----------------------------------------- */
 /* Begin annotations */
 
@@ -309,10 +304,32 @@ div.latex textarea {
 }
 
 .annotation .tooltiptext {
+    visibility: hidden;
+    text-align: left;
+    padding: 5px;
+    border-radius: 6px;
+    border: 2px solid white;
+    line-height: 120%;
     background-color: white;
     white-space: nowrap;
     border-color: lightgrey;
+
+    /* Position of the tooltip text.
+    Don't set position absolute yet because tooltips for annotations at the right table edge would stretch
+    the inner window. Using display: none to prevent this does not work, because once display is set to a
+    non-none value, some mentions before punctuation somehow get slightly wider on mouseover. */
+    position: fixed;
+    z-index: 20;
+    bottom: 100%;
 }
+
+/* Show some tooltips below the mention to avoid overlap */
+.annotation .tooltiptext.below {
+    /* Set top edge of element (height of the parent element plus border width) below top edge of parent */
+    top: calc(100% + var(--annotation-border-size));
+    bottom: auto;
+}
+
 /* Set Tooltip border color according to case type */
 .annotation .tooltiptext.tp {
     border-color: var(--annotation-tp-color);
@@ -341,16 +358,6 @@ div.latex textarea {
     padding-top: 3px;
     padding-bottom: 3px;
     white-space: normal;
-}
-
-/* Show some tooltips below the mention to avoid overlap */
-.annotation .tooltiptext.below {
-    position: absolute;
-    z-index: 20;
-    /* Set top edge of element (height of the parent element plus border width) below top edge of parent */
-    top: calc(100% + var(--annotation-border-size));
-    bottom: auto;
-    left: 0;
 }
 
 .annotation .tooltiptext .error_category_tag {

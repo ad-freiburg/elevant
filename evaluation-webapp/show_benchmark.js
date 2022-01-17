@@ -397,7 +397,7 @@ function show_annotated_text(approach_name, textfield, selected_error_category, 
         annotated_text = "";
         for (var i=0; i < annotated_texts.length; i++) {
             if (i != 0) annotated_text += "<hr/>";
-            if (articles[i].title) annotated_text += "<span class='title'>" + articles[i].title + "</span><br>";
+            if (articles[i].title) annotated_text += "<b>" + articles[i].title + "</b><br>";
             annotated_text += annotated_texts[i];
         }
     } else {
@@ -689,14 +689,14 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
         wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
         entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
         if (annotation.gt_entity_name != null) {
-            var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
+            var entity_name = (["Unknown", "null"].includes(annotation.gt_entity_name)) ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
             tooltip_header_text += entity_name + " (" + entity_link + ")";
         } else {
             tooltip_header_text += entity_link;
         }
     } else {
         if (annotation.pred_entity_id) {
-            var entity_name = (annotation.pred_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+            var entity_name = (["Unknown", "null"].includes(annotation.gt_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
             var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
             var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
             tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
@@ -767,7 +767,7 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
         }
     }
 
-    var replacement = "<span class=\"annotation " + annotation.classes.join(" ") + " " + lowlight_classes + "\">";
+    var replacement = "<span class=\"annotation " + annotation.classes.join(" ") + " " + lowlight_classes + "\" onmouseover=\"reposition_tooltip(this)\">";
     replacement += inner_annotation;
     replacement += "<div class=\"" + tooltip_classes + "\">";
     replacement += "<div class=\"header\">";
@@ -780,6 +780,29 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
     replacement += "</span>";
 
     return replacement;
+}
+
+function reposition_tooltip(annotation_el) {
+    /*
+    Re-position all tooltips of an annotation such that they don't go outside the window.
+    */
+    var annotation_rect = annotation_el.getBoundingClientRect();
+    // Check whether the annotation contains a line break by checking whether its height is bigger than the line height
+    var line_height = parseInt($(annotation_el).css('line-height').replace('px',''));
+    var line_break = (annotation_rect.height > line_height + 5);
+    $(annotation_el).find(".tooltiptext").each(function() {
+        var tooltip_rect = this.getBoundingClientRect();
+        // Correct the tooltip position if it overlaps with the right edge of the window (approximated by table width)
+        // If the annotation contains a line break, check the right
+        if ((annotation_rect.left + tooltip_rect.width) > $("#prediction_overview").width() || line_break)  {
+            // Align right tooltip edge with right edge of the annotation.
+            // Left needs to be set to auto since it is otherwise still 0.
+            $(this).css({"right": 0, "left": "auto"});
+        } else {
+            $(this).css({"right": "auto", "left": 0});
+        }
+        $(this).css({"position": "absolute"})
+    });
 }
 
 function combine_overlapping_annotations(list1, list2) {
