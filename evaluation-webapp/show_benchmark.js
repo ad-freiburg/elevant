@@ -99,6 +99,8 @@ $("document").ready(function() {
     evaluation_cases = {};
     articles_data = {};
 
+    last_show_article_request_timestamp = 0;
+
     selected_approach_names = [];
     selected_rows = [];
     selected_cells = [];
@@ -132,6 +134,9 @@ $("document").ready(function() {
 
     // On article results checkbox change
     $("#article_checkboxes input").change(function() {
+        var timestamp = new Date().getTime();
+        last_show_article_request_timestamp = timestamp;
+
         var id = $(this).attr("id");
         var suffix = id.substring(id.indexOf("_") + 1, id.length);
         var checked = $(this).is(":checked");
@@ -140,7 +145,7 @@ $("document").ready(function() {
                 show_mentions[key] = checked;
             }
         });
-        show_article(selected_approach_names);
+        show_article(selected_approach_names, timestamp);
     });
 
     // Highlight error category cells on hover
@@ -260,7 +265,12 @@ function show_benchmark_results() {
 
     // Remove previous article evaluation content
     $("#prediction_overview").hide();
-    evaluation_cases = [];
+    evaluation_cases = {};
+    selected_approach_names = [];
+    selected_rows = [];
+    selected_cells = [];
+    reset_selected_error_categories();
+    reset_selected_types();
 
     // Build an overview table over all .results-files from the evaluation-results folder.
     build_overview_table("evaluation-results", benchmark_name);
@@ -873,12 +883,17 @@ function combine_overlapping_annotations(list1, list2) {
     return combined_annotations;
 }
 
-async function show_article(selected_approaches) {
+async function show_article(selected_approaches, timestamp) {
     /*
     Generate the ground truth textfield and predicted text field for the selected article
     (or all articles if this option is selected) and approach.
     */
     console.log("show_article() called for selected approaches", selected_approaches, "and evaluation cases for", Object.keys(evaluation_cases));
+
+    if (timestamp < last_show_article_request_timestamp) {
+        console.log("Dropping function call since newer call exists.");
+        return
+    }
 
     selected_article_index = article_select.value;
 
@@ -1362,7 +1377,7 @@ function coref_linker_key(approach_name) {
     else return 10;
 }
 
-function read_evaluation_cases(path, approach_name, selected_approaches) {
+function read_evaluation_cases(path, approach_name, selected_approaches, timestamp) {
     /*
     Retrieve evaluation cases from the given file and show the linked currently selected article.
     */
@@ -1385,7 +1400,7 @@ function read_evaluation_cases(path, approach_name, selected_approaches) {
 
     // Read new evaluation cases
     if (approach_name in evaluation_cases && evaluation_cases[approach_name].length > 0) {
-        show_article(selected_approaches)
+        show_article(selected_approaches, timestamp)
     } else {
         $.get(path, function(data) {
             evaluation_cases[approach_name] = [];
@@ -1396,11 +1411,11 @@ function read_evaluation_cases(path, approach_name, selected_approaches) {
                     evaluation_cases[approach_name].push(cases);
                 }
             }
-            show_article(selected_approaches);
+            show_article(selected_approaches, timestamp);
         }).fail(function() {
             $("#evaluation").html("ERROR: no file with cases found.");
             console.log("FAIL NOW CALL SHOW ARTICLE");
-            show_article(selected_approaches);
+            show_article(selected_approaches, timestamp);
         });
     }
 }
@@ -1444,7 +1459,7 @@ function read_articles_data(path, approach_name) {
     }
 }
 
-function read_evaluation(approach_name, selected_approaches) {
+function read_evaluation(approach_name, selected_approaches, timestamp) {
     /*
     Read the predictions and evaluation cases for the selected approach for all articles.
     */
@@ -1454,7 +1469,7 @@ function read_evaluation(approach_name, selected_approaches) {
 
     reading_promise = read_articles_data(articles_path, approach_name);
     reading_promise.then(function() {  // wait until the predictions from the .jsonl file are read, because run_evaluation updates the prediction textfield
-        read_evaluation_cases(cases_path, approach_name, selected_approaches);
+        read_evaluation_cases(cases_path, approach_name, selected_approaches, timestamp);
     });
 }
 
@@ -1463,6 +1478,10 @@ function on_row_click(el) {
     This method is called when a table body row was clicked.
     This marks the row as selected and reads the evaluation cases.
     */
+    // Get a timestamp for the click to help maintain the order in which evaluation cases are loaded
+    var timestamp = new Date().getTime();
+    last_show_article_request_timestamp = timestamp;
+
     var approach_name = $(el).find('td:first').text();
 
     // De-select all current rows if a row in a different table was selected before
@@ -1487,7 +1506,7 @@ function on_row_click(el) {
     }
     var selected_approaches = [...selected_approach_names];
 
-    read_evaluation(approach_name, selected_approaches);
+    read_evaluation(approach_name, selected_approaches, timestamp);
 }
 
 function on_cell_click(el) {
@@ -1613,6 +1632,9 @@ function toggle_compare() {
     Toggle compare checkbox.
     */
     if (!is_compare_checked()) {
+        var timestamp = new Date().getTime();
+        last_show_article_request_timestamp = timestamp;
+
         if (selected_approach_names.length > 1) {
             selected_approach_names = [selected_approach_names[1]];
         }
@@ -1627,7 +1649,7 @@ function toggle_compare() {
 
         hide_table_column("prediction_overview", 1);
 
-        show_article(selected_approach_names);
+        show_article(selected_approach_names, timestamp);
     }
 }
 
@@ -1636,7 +1658,9 @@ function is_compare_checked() {
 }
 
 function on_article_select() {
-    show_article(selected_approach_names);
+    var timestamp = new Date().getTime();
+    last_show_article_request_timestamp = timestamp;
+    show_article(selected_approach_names, timestamp);
 }
 
 function produce_latex(div_id) {
