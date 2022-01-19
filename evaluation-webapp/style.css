@@ -5,8 +5,10 @@
     --cell-selected-color: #F6CF59;
     --annotation-tp-color: rgb(125,206,160);
     --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
+    --annotation-tp-color-dark: rgb(21,55,35);
     --annotation-fp-color: rgb(241,148,138);
     --annotation-fp-color-lowlight: rgba(241,148,138,0.3);
+    --annotation-fp-color-dark: rgb(69,25,21);
     --annotation-unknown-color: rgb(138,220,241);
     --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
     --annotation-optional-color: rgb(211,211,211);
@@ -370,6 +372,15 @@ div.latex textarea {
     padding-right: 5px;
     margin-bottom: 2px;
     white-space: nowrap;  /* Do not allow a line break within a tag */
+}
+.annotation .tooltiptext.fp .error_category_tag,
+.annotation .tooltiptext.fn .error_category_tag {
+    color: var(--annotation-fp-color-dark);
+    background-color: var(--annotation-fp-color);
+}
+.annotation .tooltiptext.tp .error_category_tag {
+    color: var(----annotation-tp-color-dark);
+    background-color: var(--annotation-tp-color);
 }
 
 .annotation .tooltiptext .case_type_box {
