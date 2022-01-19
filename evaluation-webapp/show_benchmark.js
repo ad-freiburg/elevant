@@ -1266,7 +1266,7 @@ function sort_table(column_header, div_id) {
             value = (value["errors"] / value["total"] * 100).toFixed(2);
         }
         col_values.push(value);
-     });
+    });
 
     // Store class name of currently selected cell
     var selected_cells_classes = [];
@@ -1326,11 +1326,13 @@ function sort_table(column_header, div_id) {
     // Re-add selected class if row or cell was previously selected
     if (selected_approach_indices.length > 0) {
         selected_cells = [];
+        selected_rows = [];
         // Re-add selected class to previously selected row
         for (var i=0;i<selected_approach_indices.length; i++) {
             if (selected_approach_indices[i] === null) break;
             var new_selected_approach_index = order.indexOf(selected_approach_indices[i]) + 1;  // +1 because nth-child is 1-based
-            $("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")").addClass("selected");
+            selected_rows.push($("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")"))
+            selected_rows[i].addClass("selected");
 
             if (selected_cells_classes.length > i) {
                 // Re-add selected class to previously selected cell
