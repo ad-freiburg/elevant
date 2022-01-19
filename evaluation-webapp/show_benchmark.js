@@ -706,7 +706,7 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
         }
     } else {
         if (annotation.pred_entity_id) {
-            var entity_name = (["Unknown", "null"].includes(annotation.gt_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+            var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
             var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
             var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
             tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
