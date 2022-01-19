@@ -1649,7 +1649,7 @@ function toggle_compare() {
             deselected_row = selected_rows.shift();  // Remove first element in array
             $(deselected_row).removeClass("selected");
             deselected_cell = selected_cells.shift();
-            remove_selected_classes(deselected_cell);
+            if (deselected_cell) remove_selected_classes(deselected_cell);
         }
 
         hide_table_column("prediction_overview", 1);
