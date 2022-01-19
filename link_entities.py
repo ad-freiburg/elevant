@@ -28,10 +28,10 @@ from src.models.wikipedia_article import WikipediaArticle
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src.models.neural_net import NeuralNet
 
-from concurrent.futures import ProcessPoolExecutor
+import multiprocessing
 
 CHUNK_SIZE = 10  # Number of articles submitted to one process as a single task
-BATCH_SIZE = CHUNK_SIZE * 100  # Number of articles that are being prefetched and submitted to the executor map
+MAX_TASKS_PER_CHILD = 1
 
 
 def link_entities_tuple_argument(args_tuple):
@@ -54,27 +54,6 @@ def article_iterator(filename):
             yield article, args.uppercase, args.only_pronouns
 
 
-def article_batch_iterator(iterator):
-    """ProcessPoolExecutor.map will not begin yielding until all tasks have
-    been submitted, i.e. until all articles have been assigned to a process.
-    This means, for the entire Wikipedia dump one will run out of memory long
-    before the first article is linked. Therefore, pass batches of articles to
-    the executor map, not the entire article iterator.
-    See also https://bugs.python.org/issue29842
-    """
-    tuples = []
-    for res_tuple in iterator:
-        tuples.append(res_tuple)
-        if len(tuples) >= BATCH_SIZE:
-            # Yield chunk and reset
-            yield tuples
-            tuples = []
-
-    # Yield remaining article tuples
-    if len(tuples) > 0:
-        yield tuples
-
-
 def main():
     if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
         logger.warning("Wexea can only be used as coreference linker in combination with the Wexea linker")
@@ -92,19 +71,17 @@ def main():
     logger.info("Start linking using %d processes." % args.multiprocessing)
     start = time.time()
     iterator = article_iterator(args.input_file)
+    i = 0
     if args.multiprocessing > 1:
-        with ProcessPoolExecutor(max_workers=args.multiprocessing) as executor:
-            batch_iterator = article_batch_iterator(iterator)
-            i = 0
-            for article_batch in batch_iterator:
-                res = executor.map(link_entities_tuple_argument, article_batch, chunksize=CHUNK_SIZE)
-                for article in res:
-                    output_file.write(article.to_json() + "\n")
-                    total_time = time.time() - start
-                    time_per_article = total_time / (i + 1)
+        with multiprocessing.Pool(processes=args.multiprocessing, maxtasksperchild=MAX_TASKS_PER_CHILD) as executor:
+            for article in executor.imap(link_entities_tuple_argument, iterator, chunksize=CHUNK_SIZE):
+                output_file.write(article.to_json() + "\n")
+                total_time = time.time() - start
+                time_per_article = total_time / (i + 1)
+                if (i + 1) % 100 == 0:
                     print("\r%i articles, %f s per article, %f s total time." %
                           (i + 1, time_per_article, total_time), end='')
-                    i += 1
+                i += 1
             i -= 1  # So final log reports correct number of linked articles with and without multiprocessing
     else:
         for i, tupl in enumerate(iterator):
