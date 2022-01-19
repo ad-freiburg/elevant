@@ -90,8 +90,11 @@ class LinkingSystem:
             path = linker_info
             self.prediction_iterator = ConllIobPredictionReader.document_predictions_iterator(path)
         elif linker_type == Linkers.AMBIVERSE.value:
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
             result_dir = linker_info
-            self.prediction_iterator = AmbiversePredictionReader.article_predictions_iterator(result_dir)
+            self.prediction_iterator = AmbiversePredictionReader(self.entity_db).\
+                article_predictions_iterator(result_dir)
         elif linker_type == Linkers.TAGME.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
