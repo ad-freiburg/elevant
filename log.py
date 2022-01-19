@@ -11,7 +11,7 @@ def setup_logger(script_name, stdout_level=logging.INFO, file_level=logging.DEBU
     logger.setLevel(logging.DEBUG)
 
     # Create formatter
-    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     # Create console handler
     stdout_handler = logging.StreamHandler()
