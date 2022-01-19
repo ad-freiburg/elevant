@@ -922,6 +922,9 @@ async function show_article(selected_approaches, timestamp) {
             console.log("ERROR: Stop waiting for result.");
             $(columns[column_idx]).html("<b class='warning'>No approach selected or no file with cases found.</b>");
             return;
+        } else if (timestamp < last_show_article_request_timestamp) {
+            console.log("ERROR: Stop waiting for result.");
+            return;
         }
         console.log("WARNING: selected approach[0]", selected_approaches[0], "not in evaluation cases. Waiting for result.");
         $(column_headers[column_idx]).text("");
