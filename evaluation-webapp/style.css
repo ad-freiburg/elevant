@@ -23,7 +23,8 @@ html, input, select {
 }
 
 header {
-    background-color: DodgerBlue;
+    background-color: #004A99;
+    color: white;
     margin: 0;
     padding: 5pt;
 }
