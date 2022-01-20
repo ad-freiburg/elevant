@@ -3,7 +3,6 @@ ANNOTATION_CLASS_FP = "fp"
 ANNOTATION_CLASS_FN = "fn"
 ANNOTATION_CLASS_UNKNOWN = "unknown"
 ANNOTATION_CLASS_OPTIONAL = "optional"
-ANNOTATION_CLASS_CORRECT_OPTIONAL = "correct_optional"
 ANNOTATION_CLASS_UNEVALUATED = "unevaluated"
 
 RESULTS_EXTENSION = ".results";
@@ -521,7 +520,8 @@ function get_annotations(article_index, approach_name) {
             } else if (is_correct_optional_case(mention)) {
                 classes.push(ANNOTATION_CLASS_OPTIONAL);
                 if ("predicted_entity" in mention) {
-                    classes.push(ANNOTATION_CLASS_CORRECT_OPTIONAL);
+                    // Prediction is a correct optional, i.e. unevaluated.
+                    classes.push(ANNOTATION_CLASS_UNEVALUATED);
                 }
             } else if ("predicted_entity" in mention) {
                  if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
