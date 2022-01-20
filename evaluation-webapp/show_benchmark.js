@@ -56,8 +56,6 @@ mention_type_headers = {"entity": ["entity_named", "entity_other"],
                         "nominal": ["nominal"],
                         "pronominal": ["pronominal"]};
 
-show_mentions = {"entity_named": true, "entity_other": true, "nominal": true, "pronominal": true};
-
 benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl", "msnbc-original", "ace-original"];
 
 error_category_mapping = {"undetected": ["UNDETECTED"],
@@ -91,7 +89,7 @@ error_category_mapping = {"undetected": ["UNDETECTED"],
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
     benchmark_select = document.getElementById("benchmark");
-    article_select = document.getElementById("article");
+    article_select = document.getElementById("article_select");
 
     show_all_articles_flag = false;
 
@@ -124,28 +122,6 @@ $("document").ready(function() {
     $("input.match_type").change(function() {
         filter_table_rows();
     })
-
-    // Show/Hide certain mentions in linked articles
-    // Set flags according to current checkbox status
-    $.each(show_mentions, function(key) {
-        show_mentions[key] = $("#show_" + key).is(":checked");
-    });
-
-    // On article results checkbox change
-    $("#article_checkboxes input").change(function() {
-        var timestamp = new Date().getTime();
-        last_show_article_request_timestamp = timestamp;
-
-        var id = $(this).attr("id");
-        var suffix = id.substring(id.indexOf("_") + 1, id.length);
-        var checked = $(this).is(":checked");
-        $.each(show_mentions, function(key) {
-            if (key == suffix) {
-                show_mentions[key] = checked;
-            }
-        });
-        show_article(selected_approach_names, timestamp);
-    });
 
     // Highlight error category cells on hover
     $("#evaluation").on("mouseenter", "td", function() {
@@ -324,7 +300,7 @@ function set_article_select_options() {
     Set the options for the article selector element to the names of the articles from the list 'articles'.
     */
     // Empty previous options
-    $("#article").empty();
+    $("#article_select").empty();
 
     // Add default "All articles" option
     var option = document.createElement("option");
@@ -467,12 +443,6 @@ function get_annotations(article_index, approach_name) {
     var annotations = {};
     var prediction_spans = [];
     for (mention of mentions) {
-        // TODO: Remove this once this can be controlled via selecting the columns
-        if (mention.mention_type && mention.mention_type.toLowerCase() in show_mentions) {
-            if (!show_mentions[mention.mention_type.toLowerCase()]) {
-                continue;
-            }
-        }
         if (mention.factor == 0) {
             // Do not display overlapping mentions
             continue;

@@ -411,13 +411,14 @@ div.latex textarea {
     background: var(--cell-hover-color);
 }
 
-#article_checkboxes {
+#select_article {
     display: inline;
     padding: 5px 0px;
+    margin: 0;
 }
 
-article_checkboxes .checkboxes {
-    margin-bottom: 0;
+#article_link {
+    margin-left: 1em;
 }
 
 #annotation_explanation {
