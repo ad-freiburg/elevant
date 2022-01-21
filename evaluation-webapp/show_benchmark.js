@@ -988,7 +988,7 @@ function build_overview_table(path, benchmark_name) {
                         $('#evaluation table thead').html(table_header);
                     }
 
-                    if (!$('#evaluation .checkboxes').html()) {
+                    if (!$('#evaluation_tables .checkboxes').html()) {
                         // Add checkboxes if they have not yet been added
                         add_checkboxes(results);
                     }

@@ -1,6 +1,10 @@
 :root {
-    --row-hover-color: #e1e0e0;
-    --row-selected-color: #C8C7C7;
+    --row-hover-color: #E0E0E0;
+    --row-selected-color: #D1D1D1;
+    --cell-first-header-color: #999999;
+    --cell-header-color: #BBBBBB;
+    --cell-first-column-color: #BBBBBB;
+    --cell-color: #EEEEEE;
     --cell-hover-color: #F9E29B;
     --cell-selected-color: #F6CF59;
     --annotation-tp-color: rgb(125,206,160);
@@ -14,7 +18,6 @@
     --annotation-optional-color: rgb(211,211,211);
     --annotation-optional-color-lowlight: rgba(211,211,211,0.3);
     --annotation-border-size: 5px;
-    --cell-hover-color-dark: #463604;
 }
 
 html, input, select {
@@ -44,8 +47,6 @@ html, body {
 }
 
 table, td, th {
-    border: 1px solid black;
-    border-collapse: collapse;
     padding: 3px;
 }
 
@@ -91,12 +92,20 @@ td .tooltip:hover .tooltiptext {
 }
 #evaluation_tables table {
     cursor: default;
+    border: none;
 }
 #evaluation_tables table thead tr:nth-child(2) {
     cursor: pointer;
 }
+#evaluation_tables table th {
+    background-color: var(--cell-header-color);
+}
+#evaluation_tables table thead tr:nth-child(1) th {
+    background-color: var(--cell-first-header-color);
+}
 #evaluation_tables table td {
     width: 5em;
+    background-color: var(--cell-color);
 }
 #evaluation_tables table tbody tr {
     border: 2px solid black;
@@ -106,10 +115,10 @@ td .tooltip:hover .tooltiptext {
 #evaluation_tables table tbody tr td:nth-child(1) {
     text-align: left;
 }
-#evaluation_tables table tbody tr:hover {
+#evaluation_tables table tbody tr:hover td {
     background-color: var(--row-hover-color);
 }
-#evaluation_tables table tbody tr.selected {
+#evaluation_tables table tbody tr.selected td {
     background-color: var(--row-selected-color);
 }
 /* Sorting indicator */
@@ -123,10 +132,10 @@ td .tooltip:hover .tooltiptext {
 #evaluation_tables table thead .desc .sort_symbol {
     visibility: visible;
 }
-#evaluation_tables table tbody td.hovered {
+#evaluation_tables table tbody tr td.hovered {
     background-color: var(--cell-hover-color);
 }
-#evaluation_tables table tbody td.selected {
+#evaluation_tables table tbody tr td.selected {
     background-color: var(--cell-selected-color);
 }
 
@@ -151,6 +160,23 @@ td .tooltip:hover .tooltiptext {
     bottom: 140%;
     left: -20%;
     border: 2px solid white;
+}
+
+/* Make evaluation table horizontally scrollable*/
+#evaluation {
+    width: 100%;
+    overflow: auto;
+}
+/* Make the first column of the evaluation table sticky when scrolling */
+#evaluation table th:first-child,
+#evaluation table td:first-child {
+    position: -webkit-sticky;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+}
+#evaluation table td:first-child {
+    background: var(--cell-first-column-color);
 }
 
 /* Table cell for copying latex code */
@@ -204,6 +230,7 @@ div.latex textarea {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    border: 1px solid black;;
 }
 
 #prediction_overview td,
@@ -226,7 +253,7 @@ div.latex textarea {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: #E5E5E5;
+    background: var(--cell-header-color);
 }
 
 #prediction_overview hr {
@@ -363,8 +390,6 @@ div.latex textarea {
     display: inline-block;  /* To allow setting a margin */
     border-radius: 10px;
     font-size: 80%;
-    color: var(--cell-hover-color-dark);
-    background-color: var(--cell-hover-color);
     padding-left: 5px;
     padding-right: 5px;
     margin-bottom: 2px;
