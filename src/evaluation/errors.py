@@ -64,7 +64,7 @@ def label_undetected_errors(cases: List[Case]):
             if not is_level_one(case.text):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
             elif is_specificity_error(case, false_positive_spans):
-                case.add_error_label(ErrorLabel.SPECIFICITY)
+                case.add_error_label(ErrorLabel.UNDETECTED_SPECIFICITY)
             elif overlaps_any(case.span, false_positive_spans):
                 case.add_error_label(ErrorLabel.UNDETECTED_OVERLAP)
             else:
@@ -111,13 +111,13 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase):
     for case in cases:
         if case.is_not_coreference() and case.is_correct():
             if is_demonym(case, entity_db):
-                case.add_error_label(ErrorLabel.DEMONYM_CORRECT)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_DEMONYM_CORRECT)
             elif is_metonymy(case, entity_db):
-                case.add_error_label(ErrorLabel.METONYMY_CORRECT)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_METONYMY_CORRECT)
             elif is_partial_name(case):
-                case.add_error_label(ErrorLabel.PARTIAL_NAME_CORRECT)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_CORRECT)
             elif is_rare_case(case, entity_db):
-                case.add_error_label(ErrorLabel.RARE_CORRECT)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_RARE_CORRECT)
 
 
 LOCATION_TYPE_ID = "Q27096213"
@@ -186,18 +186,18 @@ def label_disambiguation_errors(cases: List[Case],
     """
     for case in cases:
         if case.is_not_coreference() and case.is_false_negative() and case.is_false_positive():
-            case.add_error_label(ErrorLabel.DISAMBIGUATION)
+            case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG)
             if is_demonym(case, entity_db):
-                case.add_error_label(ErrorLabel.DEMONYM_WRONG)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG)
             elif is_metonymy_error(case, entity_db):
-                case.add_error_label(ErrorLabel.METONYMY_WRONG)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_METONYMY_WRONG)
             elif is_partial_name(case):
-                case.add_error_label(ErrorLabel.PARTIAL_NAME_WRONG)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_WRONG)
             elif is_rare_case(case, entity_db) and \
                     case.predicted_entity.entity_id == get_most_popular_candidate(entity_db, case.text):
-                case.add_error_label(ErrorLabel.RARE_WRONG)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_RARE_WRONG)
             else:
-                case.add_error_label(ErrorLabel.DISAMBIGUATION_OTHER)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG_OTHER)
 
 
 NONENTITY_PRONOUNS = {"it", "this", "that", "its"}
@@ -210,24 +210,24 @@ def label_nonentity_coreference_errors(text: str, cases: List[Case]):
         if not case.has_ground_truth():
             snippet = text[case.span[0]:case.span[1]]
             if len(snippet) > 1 and snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
-                case.add_error_label(ErrorLabel.NON_ENTITY_COREFERENCE)
+                case.add_error_label(ErrorLabel.COREFERENCE_FALSE_DETECTION)
 
 
 def label_candidate_errors(cases: List[Case]):
     for case in cases:
         if case.is_false_negative() and not case.is_coreference() and case.is_detected() and \
                 not case.true_entity_is_candidate():
-            case.add_error_label(ErrorLabel.WRONG_CANDIDATES)
+            case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG_CANDIDATES)
 
 
 def label_multi_candidates(cases: List[Case]):
     for case in cases:
         if case.has_ground_truth() and len(case.candidates) > 1 and case.true_entity_is_candidate():
             if case.is_correct():
-                case.add_error_label(ErrorLabel.MULTI_CANDIDATES_CORRECT)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT)
             elif not case.is_optional() or case.is_false_positive():
                 # If the case is optional and not correct, but a "FN", don't add error label, just ignore it
-                case.add_error_label(ErrorLabel.MULTI_CANDIDATES_WRONG)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG)
 
 
 def overlaps(span1: Tuple[int, int], span2: Tuple[int, int]) -> bool:
@@ -275,10 +275,10 @@ def label_false_detections(cases: List[Case],
                     break
             contains_upper = contains_uppercase_word(case.text)
             if not overlap and not contains_upper:
-                case.add_error_label(ErrorLabel.ABSTRACTION)
+                case.add_error_label(ErrorLabel.FALSE_DETECTION_ABSTRACTION)
             elif contains_upper and \
                     ((not overlap and not contains_unknowns) or case.span in unknown_ground_truth_spans):
-                case.add_error_label(ErrorLabel.UNKNOWN_NAMED_ENTITY)
+                case.add_error_label(ErrorLabel.FALSE_DETECTION_UNKNOWN_NAMED_ENTITY)
             else:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER)
 
@@ -288,18 +288,20 @@ def label_hyperlink_errors(article: WikipediaArticle, cases: List[Case]):
     for case in cases:
         if case.span in hyperlink_spans and case.has_ground_truth() and case.is_known_entity():
             if case.is_correct() or case.is_true_quantity_or_datetime():
-                case.add_error_label(ErrorLabel.HYPERLINK_CORRECT)
+                case.add_error_label(ErrorLabel.OTHER_HYPERLINK_CORRECT)
             elif not case.is_optional() or case.is_false_positive():
                 # If the case is optional and not correct, but a "FN", don't add error label, just ignore it
-                case.add_error_label(ErrorLabel.HYPERLINK_WRONG)
+                case.add_error_label(ErrorLabel.OTHER_HYPERLINK_WRONG)
 
 
 def label_coreference_errors(cases: List[Case]):
     for i, case in enumerate(cases):
         if case.is_coreference() and case.is_false_negative():
             if not case.has_predicted_entity():
-                case.add_error_label(ErrorLabel.COREFERENCE_NO_REFERENCE)
+                # Coreference FN
+                case.add_error_label(ErrorLabel.COREFERENCE_UNDETECTED)
             else:
+                # Coreference FN + FP = disambiguation error
                 true_reference = None
                 for j in range(i - 1, -1, -1):
                     if cases[j].mention_type == MentionType.ENTITY_NAMED and cases[j].has_ground_truth() and \
@@ -309,9 +311,9 @@ def label_coreference_errors(cases: List[Case]):
                 if true_reference is not None:
                     if true_reference.has_predicted_entity() and \
                             true_reference.predicted_entity.entity_id == case.predicted_entity.entity_id:
-                        case.add_error_label(ErrorLabel.COREFERENCE_REFERENCED_WRONG)
+                        case.add_error_label(ErrorLabel.COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED)
                     else:
-                        case.add_error_label(ErrorLabel.COREFERENCE_WRONG_REFERENCE)
+                        case.add_error_label(ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED)
 
 
 def label_span_errors(cases: List[Case]):
@@ -329,7 +331,7 @@ def label_span_errors(cases: List[Case]):
                 if overlaps(case.span, gt_span) and (case.predicted_entity.entity_id == gt_label.entity_id or
                                                      is_true_quantity_or_datetime(case.predicted_entity, gt_label)):
                     # Span is wrong and entity id is correct or it's a true quantity or datetime.
-                    case.add_error_label(ErrorLabel.SPAN_WRONG)
+                    case.add_error_label(ErrorLabel.FALSE_DETECTION_SPAN_WRONG)
                     break
 
 

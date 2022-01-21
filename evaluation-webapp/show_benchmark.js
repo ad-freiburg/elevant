@@ -17,37 +17,85 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
-header_descriptions = {"undetected": "The span of a GT mention was not linked (= NER FN) / Named GT mentions",
-                       "undetected_lowercase": "The span of a lowercase GT mention was not linked / Named lowercase GT mentions",
-                       "undetected_specificity": "FN and a part of the GT mention was linked to an arbitrary entity / Named GT mentions containing whitespace(s)",
-                       "undetected_overlap": "FN and the GT span overlaps with a predicted span / Named uppercase GT mentions",
-                       "undetected_other": "Other detection error / Named uppercase GT mentions",
-                       "disambiguation": "Detected, but wrong entity linked / Detected",
-                       "disambiguation_demonym": "FN from a list of demonyms (German, Germans, ...) / All demonym GT mentions",
-                       "disambiguation_partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
-                       "disambiguation_metonymy": "Predicted and most popular candidate are locations, but ground truth is not / Most popular candidate is a location, but ground truth is not",
-                       "disambiguation_rare": "Most popular candidate is wrongly predicted / Detected mentions where the most popular candidate is not the correct entity",
-                       "disambiguation_other": "Other disambiguation error",
-                       "false_detection": "Prediction of a span which has no ground truth entity",
-                       "abstraction": "Lowercase named FP that does not overlap with a GT mention",
-                       "unknown_named_entity": "Uppercase mention wrongly linked, where the ground truth is either Unknown or has no label at all",
-                       "false_detection_other": "Other false detection",
-                       "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks",
-                       "span_wrong": "FP where the predicted span overlaps with a GT mention with the same entity id / Predicted mentions",
-                       "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
-                       "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates",
-                       "non_entity_coreference": "FP mentions in {It, it, This, this, That, that, Its, its}",
-                       "referenced_wrong": "FN, the last named GT mention of the GT entity was linked to the same, wrong entity / Correct references",
-                       "wrong_reference": "FN, the last named GT mention of the GT entity was not linked or linked to a wrong entity / Linked GT coreference mentions",
-                       "no_reference": "FN, mention was not linked / GT coreference mentions",
-                       "all": "All errors. TP: correct span, correct link; FP: incorrect span or correct span but wrong link; FN: GT span was not recognized or wrong link",
-                       "NER": "Named mention span errors. TP: correct span; FP: predicted span does not match any GT span; FN: GT span does not match any predicted span",
-                       "coreference": "All coreference errors (the &lt;type&gt; and pronouns)",
-                       "named": "All errors excluding coreference",
-                       "nominal": "'the &lt;type&gt;' errors",
-                       "pronominal": "Pronoun errors",
-                       "errors": "Error categories",
-                       "coreference_errors": "Coreference error categories"};
+header_descriptions = {
+    "undetected": {
+        "all": "The span of a GT mention was not linked (= NER FN) / Named GT mentions",
+        "lowercase": "The span of a lowercase GT mention was not linked / Named lowercase GT mentions",
+        "specificity": "FN and a part of the GT mention was linked to an arbitrary entity / Named GT mentions containing whitespace(s)",
+        "overlap": "FN and the GT span overlaps with a predicted span / Named uppercase GT mentions",
+        "other": "Other detection error / Named uppercase GT mentions"
+    },
+    "disambiguation_errors": {
+        "all": "Detected, but wrong entity linked / Detected",
+        "demonym": "FN from a list of demonyms (German, Germans, ...) / All demonym GT mentions",
+        "partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
+        "metonymy": "Predicted and most popular candidate are locations, but ground truth is not / Most popular candidate is a location, but ground truth is not",
+        "rare": "Most popular candidate is wrongly predicted / Detected mentions where the most popular candidate is not the correct entity",
+        "other": "Other disambiguation error",
+        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates / Named detected",
+        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected / Named detected where the GT entity is one of multiple candidates"
+    },
+    "false_detection": {
+        "all": "Predicted mention that does not match a groundtruth mention span",
+        "abstraction": "Lowercase named FP that does not overlap with a GT mention",
+        "unknown_named_entity": "Uppercase mention wrongly linked, where the ground truth is either Unknown or has no label at all",
+        "other": "Other false detection",
+        "span_wrong": "Predicted mention whose span does not match, but overlaps with a GT mention with a matching entity / Predicted mentions"
+    },
+    "other_errors": {
+        "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks"
+    },
+    "coreference_errors": {
+        "false_detection": "FP mentions in {It, it, This, this, That, that, Its, its}",
+        "reference_wrongly_disambiguated": "FN + FP, the reference was wrongly disambiguated / Coreference mentions where correct GT mention was referenced",
+        "wrong_mention_referenced": "FN + FP, wrong mention was referenced / Linked GT coreference mentions",
+        "undetected": "FN, mention was not linked / GT coreference mentions"
+    },
+    "all": "All results. TP: correct span, correct link; FP: incorrect span or correct span but wrong link; FN: GT span was not recognized or wrong link",
+    "NER": "Named mention span errors. TP: correct span; FP: predicted span does not match any GT span; FN: GT span does not match any predicted span",
+    "coref": "All coreference results: nominal (the &lt;type&gt) and pronominal (pronouns)",
+    "entity": "All entity results (i.e. results excluding coreference)",
+    "entity_named": "All results for named entities",
+    "entity_other": "All results for non-named entities",
+    "nominal": "All nominal coreference ('the &lt;type&gt;') results",
+    "pronominal": "All pronominal coreference (pronoun) results"
+};
+
+error_category_mapping = {
+    "undetected": {
+        "all": ["UNDETECTED"],
+        "lowercase": ["UNDETECTED_LOWERCASE"],
+        "specificity": ["UNDETECTED_SPECIFICITY"],
+        "overlap": ["UNDETECTED_OVERLAP"],
+        "other": ["UNDETECTED_OTHER"]
+    },
+    "disambiguation_errors": {
+        "all": ["DISAMBIGUATION_WRONG"],
+        "demonym": ["DISAMBIGUATION_DEMONYM_CORRECT", "DISAMBIGUATION_DEMONYM_WRONG"],
+        "partial_name": ["DISAMBIGUATION_PARTIAL_NAME_CORRECT", "DISAMBIGUATION_PARTIAL_NAME_WRONG"],
+        "metonymy": ["DISAMBIGUATION_METONYMY_CORRECT", "DISAMBIGUATION_METONYMY_WRONG"],
+        "rare": ["DISAMBIGUATION_RARE_CORRECT", "DISAMBIGUATION_RARE_WRONG"],
+        "other": ["DISAMBIGUATION_WRONG_OTHER"],
+        "wrong_candidates": ["DISAMBIGUATION_WRONG_CANDIDATES"],
+        "multi_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_CORRECT", "DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
+    },
+    "false_detection": {
+        "all": ["FALSE_DETECTION"],
+        "abstraction": ["FALSE_DETECTION_ABSTRACTION"],
+        "unknown_named_entity": ["FALSE_DETECTION_UNKNOWN_NAMED_ENTITY"],
+        "other": ["FALSE_DETECTION_OTHER"],
+        "span_wrong": ["FALSE_DETECTION_SPAN_WRONG"]
+    },
+    "other_errors": {
+        "hyperlink": ["OTHER_HYPERLINK_WRONG"]
+    },
+    "coreference_errors": {
+        "false_detection": ["COREFERENCE_FALSE_DETECTION"],
+        "reference_wrongly_disambiguated": ["COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED"],
+        "wrong_mention_referenced": ["COREFERENCE_WRONG_MENTION_REFERENCED"],
+        "undetected": ["COREFERENCE_UNDETECTED"]
+    }
+};
 
 mention_type_headers = {"entity": ["entity_named", "entity_other"],
                         "coref": ["nominal", "pronominal"],
@@ -58,33 +106,6 @@ mention_type_headers = {"entity": ["entity_named", "entity_other"],
 
 benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl", "msnbc-original", "ace-original"];
 
-error_category_mapping = {"undetected": ["UNDETECTED"],
-    "undetected_lowercase": ["UNDETECTED_LOWERCASE"],
-    "wrong_candidates": ["WRONG_CANDIDATES"],
-    "":  ["MULTI_CANDIDATES_CORRECT"],
-    "multi_candidates": ["MULTI_CANDIDATES_WRONG"],
-    "undetected_specificity": ["SPECIFICITY"],
-    "undetected_overlap": ["UNDETECTED_OVERLAP"],
-    "undetected_other": ["UNDETECTED_OTHER"],
-    "disambiguation": ["DISAMBIGUATION"],
-    "": ["DEMONYM_CORRECT"],
-    "disambiguation_demonym": ["DEMONYM_CORRECT", "DEMONYM_WRONG"],
-    "": ["PARTIAL_NAME_CORRECT"],
-    "disambiguation_metonymy": ["METONYMY_CORRECT", "METONYMY_WRONG"],
-    "disambiguation_partial_name": ["PARTIAL_NAME_CORRECT", "PARTIAL_NAME_WRONG"],
-    "disambiguation_rare": ["RARE_CORRECT", "RARE_WRONG"],
-    "disambiguation_other": ["DISAMBIGUATION_OTHER"],
-    "false_detection": ["FALSE_DETECTION"],
-    "abstraction": ["ABSTRACTION"],
-    "unknown_named_entity": ["UNKNOWN_NAMED_ENTITY"],
-    "false_detection_other": ["FALSE_DETECTION_OTHER"],
-    "": ["HYPERLINK_CORRECT"],
-    "hyperlink": ["HYPERLINK_WRONG"],
-    "span_wrong": ["SPAN_WRONG"],
-    "non_entity_coreference": ["NON_ENTITY_COREFERENCE"],
-    "referenced_wrong": ["COREFERENCE_REFERENCED_WRONG"],
-    "wrong_reference": ["COREFERENCE_WRONG_REFERENCE"],
-    "no_reference": ["COREFERENCE_NO_REFERENCE"]}
 
 $("document").ready(function() {
     // Elements from the HTML document for later usage.
@@ -101,14 +122,9 @@ $("document").ready(function() {
     selected_approach_names = [];
     selected_rows = [];
     selected_cells = [];
-    reset_selected_error_categories();
-    reset_selected_types();
+    reset_selected_cell_categories();
 
-    sorting_variables = {"evaluation": {}, "type_evaluation": {}}
-    for (div in sorting_variables) {
-        sorting_variables[div]["column_index"] = null;
-        sorting_variables[div]["descending"] = true;
-    }
+    sorting_variables = {"column_index": null, "desc": true}
 
     set_benchmark_select_options();
 
@@ -125,22 +141,19 @@ $("document").ready(function() {
 
     // Highlight error category cells on hover
     $("#evaluation").on("mouseenter", "td", function() {
-        if ($(this).attr('class')) {  // System column has no class attribute
-            var classes = $(this).attr('class').split(/\s+/);
-            if (classes.length > 1 && classes[1] in error_category_mapping) {
-                $(this).addClass("hovered");
-            }
+        if (is_error_cell(this)) {
+            $(this).addClass("hovered");
         }
     });
     $("#evaluation").on("mouseleave", "td", function() {
         $(this).removeClass("hovered");
     });
 
-    // Highlight all cells in a row belonging to the same mention_type on hover
+    // Highlight all cells in a row belonging to the same mention_type or type on hover
     $("#evaluation").on("mouseenter", "td", function() {
-        if ($(this).attr('class')) {  // System column has no class attribute
+        if ($(this).attr('class')) {
             var cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in mention_type_headers) {
+            if (cls in mention_type_headers || is_type_string(cls)) {
                 // Mark all cells in the corresponding row with the corresponding class
                 $(this).closest('tr').find('.' + cls).each(function(index) {
                     $(this).addClass("hovered");
@@ -149,35 +162,32 @@ $("document").ready(function() {
         }
     });
     $("#evaluation").on("mouseleave", "td", function() {
-        if ($(this).attr('class')) {  // System column has no class attribute
+        if ($(this).attr('class')) {
             var cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in mention_type_headers) {
+            if (cls in mention_type_headers || is_type_string(cls)) {
                 $(this).closest('tr').find('.' + cls).each(function(index) {
                     $(this).removeClass("hovered");
                 });
             }
         }
     });
-
-    // Highlight all cells in a row belonging to the same type on hover
-    $("#type_evaluation").on("mouseenter", "td", function() {
-        if ($(this).attr('class')) {  // System column has no class attribute
-            var cls = $(this).attr('class').split(/\s+/)[0];
-            // Mark all cells in the corresponding row with the corresponding class
-            $(this).closest('tr').find('.' + cls).each(function(index) {
-                $(this).addClass("hovered");
-            });
-        }
-    });
-    $("#type_evaluation").on("mouseleave", "td", function() {
-        if ($(this).attr('class')) {  // System column has no class attribute
-            var cls = $(this).attr('class').split(/\s+/)[0];
-            $(this).closest('tr').find('.' + cls).each(function(index) {
-                $(this).removeClass("hovered");
-            });
-        }
-    });
 });
+
+function is_error_cell(el) {
+    if ($(el).attr('class')) {  // System column has no class attribute
+        var classes = $(el).attr('class').split(/\s+/);
+        if (classes.length > 1) {
+            // The second class of a cell is its header and subheader (as class name) connected by "-"
+            var keys = classes[1].split("-");
+            if (keys[0] in error_category_mapping) {
+                if (keys[1] in error_category_mapping[keys[0]]) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
 
 function set_benchmark_select_options() {
     /*
@@ -207,20 +217,12 @@ function set_benchmark_select_options() {
     });
 }
 
-function reset_selected_error_categories() {
+function reset_selected_cell_categories() {
     /*
     Initialize or reset the selected error categories.
     The array contains one entry for each approach that can be compared.
     */
-    selected_error_categories = new Array(MAX_SELECTED_APPROACHES).fill(null);
-}
-
-function reset_selected_types() {
-    /*
-    Initialize or reset the selected types.
-    The array contains one entry for each approach that can be compared.
-    */
-    selected_types = new Array(MAX_SELECTED_APPROACHES).fill(null);
+    selected_cell_categories = new Array(MAX_SELECTED_APPROACHES).fill(null);
 }
 
 function show_benchmark_results() {
@@ -244,8 +246,7 @@ function show_benchmark_results() {
     selected_approach_names = [];
     selected_rows = [];
     selected_cells = [];
-    reset_selected_error_categories();
-    reset_selected_types();
+    reset_selected_cell_categories();
 
     // Build an overview table over all .results-files from the evaluation-results folder.
     build_overview_table("evaluation-results", benchmark_name);
@@ -368,7 +369,7 @@ function is_optional_case(eval_case) {
                                            ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type));
 }
 
-function show_annotated_text(approach_name, textfield, selected_error_category, selected_type) {
+function show_annotated_text(approach_name, textfield, selected_cell_category) {
     /*
     Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
     and show them in the textfield.
@@ -377,7 +378,7 @@ function show_annotated_text(approach_name, textfield, selected_error_category, 
         var annotated_texts = [];
         for (var i=0; i < articles.length; i++) {
             var annotations = get_annotations(i, approach_name);
-            annotated_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, selected_error_category, selected_type));
+            annotated_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, selected_cell_category));
         }
         annotated_text = "";
         for (var i=0; i < annotated_texts.length; i++) {
@@ -387,7 +388,7 @@ function show_annotated_text(approach_name, textfield, selected_error_category, 
         }
     } else {
         var annotations = get_annotations(selected_article_index, approach_name);
-        var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_error_category, selected_type);
+        var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_cell_category);
     }
     textfield.html(annotated_text);
 }
@@ -576,7 +577,7 @@ function copy(object) {
     return JSON.parse(JSON.stringify(object));
 }
 
-function annotate_text(text, annotations, links, evaluation_span, selected_error_category, selected_type) {
+function annotate_text(text, annotations, links, evaluation_span, selected_cell_category) {
     /*
     Generate tooltips for the given annotations and hyperlinks for the given links.
     Tooltips and hyperlinks can overlap.
@@ -586,8 +587,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_error
     - annotations: A sorted (by span) list of objects containing tooltip information
     - links: A sorted (by span) list of tuples (span, target_article)
     - evaluation_span: The span of the article that can be evaluated
-    - selected_error_categores: selected error categories for the corresponding approach
-    - selected_type: selected type for the corresponding approach
+    - selected_cell_categories: categories of the selected cell for the corresponding approach
 
     First the overlapping annotations and links get combined to combined_annotations.
     Second, the annotations with links are added to the text and a tooltip is generated for each annotation.
@@ -611,10 +611,10 @@ function annotate_text(text, annotations, links, evaluation_span, selected_error
 
     // STEP 1: Combine overlapping annotations and links.
     // Consumes the first element from the link list or annotation list, or a part from both if they overlap.
-    var combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations, selected_error_category, selected_type);
+    var combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations);
     // Links must be the last list that is added such that they can only be the inner most annotations, because <div>
     // tags are not allowed within <a> tags, but the other way round is valid.
-    combined_annotations = combine_overlapping_annotations(combined_annotations, new_links, selected_error_category, selected_type);
+    combined_annotations = combine_overlapping_annotations(combined_annotations, new_links);
 
     // Text should only be the text within the given evaluation span (Careful: This is the entire article if a
     // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
@@ -635,7 +635,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_error
         before = text.substring(0, span[0]);
         snippet = text.substring(span[0], span[1]);
         after = text.substring(span[1]);
-        replacement = generate_annotation_html(snippet, annotation, selected_error_category, selected_type);
+        replacement = generate_annotation_html(snippet, annotation, selected_cell_category);
         text = before + replacement + after;
     }
     text = text.substring(evaluation_span[0], text.length);
@@ -643,7 +643,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_error
     return text;
 }
 
-function generate_annotation_html(snippet, annotation, selected_error_category, selected_type) {
+function generate_annotation_html(snippet, annotation, selected_cell_category) {
     /*
     Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
     and can be identified by the property "link". Inner annotations, e.g. hyperlinks contained in
@@ -652,7 +652,7 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
     var inner_annotation = snippet;
 
     if ("inner_annotation" in annotation) {
-        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_error_category, selected_type);
+        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category);
     }
 
     if ("link" in annotation) {
@@ -728,23 +728,27 @@ function generate_annotation_html(snippet, annotation, selected_error_category, 
     // Use transparent version of the color, if an error category or type is selected
     // and the current annotation does not have a corresponding error category or type label
     var lowlight_classes = "";
-    if (selected_error_category && annotation.error_labels) {
-        lowlight_classes = "gt_lowlight pred_lowlight";
-        for (selected_category of selected_error_category) {
-            if (annotation.error_labels.includes(selected_category) || annotation.mention_type == selected_category) {
-                lowlight_classes = "";
-                break;
+    if (selected_cell_category) {
+        var lowlight_mention = true;
+        for (selected_category of selected_cell_category) {
+            if (is_type_string(selected_category)) {
+                var pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.toLowerCase().split("|").includes(selected_category);
+                var gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.toLowerCase().split("|").includes(selected_category);
+                if (!pred_type_selected) {
+                    lowlight_classes += "pred_lowlight ";
+                }
+                if (!gt_type_selected) {
+                    lowlight_classes += "gt_lowlight ";
+                }
+                lowlight_mention = false;
+            } else {
+                if (annotation.error_labels.includes(selected_category) || annotation.mention_type == selected_category) {
+                    lowlight_mention = false;
+                    break;
+                }
             }
         }
-    } else if (selected_type) {
-        var pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.split("|").includes(selected_type);
-        var gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.split("|").includes(selected_type);
-        if (!pred_type_selected) {
-            lowlight_classes += "pred_lowlight ";
-        }
-        if (!gt_type_selected) {
-            lowlight_classes += "gt_lowlight ";
-        }
+        if (lowlight_mention) lowlight_classes = "gt_lowlight pred_lowlight";
     }
 
     var replacement = "<span class=\"annotation " + annotation.classes.join(" ") + " " + lowlight_classes + "\" onmouseover=\"reposition_tooltip(this)\">";
@@ -910,13 +914,13 @@ async function show_article(selected_approaches, timestamp) {
 
     // Show columns
     // Show first prediction column
-    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_error_categories[0], selected_types[0]);
+    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0]);
     $(column_headers[column_idx]).text(selected_approaches[0]);
     show_table_column("prediction_overview", column_idx);
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
         // Show second prediction column
-        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_error_categories[1], selected_types[1]);
+        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1]);
         $(column_headers[column_idx]).text(selected_approaches[1]);
         show_table_column("prediction_overview", column_idx);
         column_idx++;
@@ -983,43 +987,31 @@ function build_overview_table(path, benchmark_name) {
                         var table_header = get_table_header(results, "evaluation");
                         $('#evaluation table thead').html(table_header);
                     }
-                    if (!$('#type_evaluation table thead').html() && results["by_type"]) {
-                        // Add table header for type evaluation table if it has not yet been added
-                        var table_header = get_table_header(results["by_type"], "type_evaluation");
-                        $('#type_evaluation table thead').html(table_header);
-                    }
 
                     if (!$('#evaluation .checkboxes').html()) {
                         // Add checkboxes if they have not yet been added
-                        add_checkboxes(results, "evaluation");
-                    }
-                    if (!$('#type_evaluation .checkboxes').html() && results["by_type"]) {
-                        // Add checkboxes if they have not yet been added
-                        add_checkboxes(results["by_type"], "type_evaluation");
+                        add_checkboxes(results);
                     }
                 });
                 // Add table body
-                build_evaluation_table_body(result_array, "evaluation");
-                build_evaluation_table_body(result_array, "type_evaluation");
+                build_evaluation_table_body(result_array);
 
                 // Sort the table according to previously chosen sorting
-                for (div in sorting_variables) {
-                    var sort_column_index = sorting_variables[div]["column_index"];
-                    var sort_descending = sorting_variables[div]["sort_descending"];
-                    if (sort_column_index != null) {
-                        var sort_column_header = $('#' + div + ' table thead tr:nth-child(2) th:nth-child(' + sort_column_index + ')');
-                        // Hack to get the right sort order which is determined by
-                        // whether the column header already has the class "descending"
-                        if (!sort_descending) sort_column_header.addClass("desc");
-                        sort_table(sort_column_header, div);
-                    }
+                var sort_column_index = sorting_variables["column_index"];
+                var sort_descending = sorting_variables["desc"];
+                if (sort_column_index != null) {
+                    var sort_column_header = $('#evaluation table thead tr:nth-child(2) th:nth-child(' + sort_column_index + ')');
+                    // Hack to get the right sort order which is determined by
+                    // whether the column header already has the class "desc"
+                    if (!sort_descending) sort_column_header.addClass("desc");
+                    sort_table(sort_column_header);
                 }
             });
         });
     });
 }
 
-function build_evaluation_table_body(result_list, div_id) {
+function build_evaluation_table_body(result_list) {
     /*
     Build the table body.
     Show / Hide rows and columns according to checkbox state and filter-result input field.
@@ -1028,46 +1020,54 @@ function build_evaluation_table_body(result_list, div_id) {
     result_list.forEach(function(result_tuple) {
         var approach_name = result_tuple[0];
         var results = result_tuple[1];
-        if (div_id == "type_evaluation") results = results["by_type"];
         if (results) {
-            var row = get_table_row(approach_name, results, div_id);
-            $('#' + div_id + ' table tbody').append(row);
+            var row = get_table_row(approach_name, results);
+            $('#evaluation table tbody').append(row);
         }
     });
 
     // Show / Hide columns according to checkbox state
     $("input[class^='checkbox_']").each(function() {
-        show_hide_columns(this, div_id);
+        show_hide_columns(this);
     })
 
     // Show / Hide rows according to filter-result input field
     filter_table_rows();
 }
 
-function add_checkboxes(json_obj, div_id) {
+function add_checkboxes(json_obj) {
     /*
     Add checkboxes for showing / hiding columns.
     */
     $.each(json_obj, function(key) {
-        var class_name = get_class_name(key);
-        if (key != "by_type") {
+        if (key == "by_type" || key == "errors") {
+            $.each(json_obj[key], function(subkey) {
+                var class_name = get_class_name(subkey);
+                var title = get_title_from_key(subkey);
+                var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\">";
+                checkbox_html += "<label>" + title + "</label>";
+                var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
+                $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
+            });
+        } else {
+            var class_name = get_class_name(key);
             var title = get_title_from_key(key);
             var checked = (class_name == "all") ? "checked" : ""
-            var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, '" + div_id + "')\" " + checked + ">";
+            var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" " + checked + ">";
             checkbox_html += "<label>" + title + "</label>";
-            $("#" + div_id + " .checkboxes").append(checkbox_html);
+            $("#general_checkboxes.checkboxes").append(checkbox_html);
         }
     });
 }
 
-function show_hide_columns(element, div_id) {
+function show_hide_columns(element) {
     /*
     This function should be called when the state of a checkbox is changed.
     This can't be simply added in on document ready, because checkboxes are added dynamically.
     */
     var col_class = $(element).attr("class");
     col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
-    var column = $("#" + div_id + " ." + col_class);
+    var column = $("#evaluation ." + col_class);
     if($(element).is(":checked")) {
         column.show();
     } else {
@@ -1075,41 +1075,57 @@ function show_hide_columns(element, div_id) {
     }
 }
 
-function get_table_header(json_obj, div_id) {
+function get_table_header(json_obj) {
     /*
     Get html for the table header.
     */
-    var num_first_cols = json_obj.length;
-    var first_row = "<tr><th onclick='produce_latex(\"" + div_id + "\")' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr><th onclick='sort_table(this, \"" + div_id + "\")'>System<span class='sort_symbol'>&#9660</span></th>";
+    var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
+    var second_row = "<tr><th onclick='sort_table(this)'>System<span class='sort_symbol'>&#9660</span></th>";
     $.each(json_obj, function(key) {
-        if (key == "by_type") return;
-        var colspan = 0;
-        var class_name = get_class_name(key);
-        $.each(json_obj[key], function(subkey) {
-            if (!(ignore_headers.includes(subkey))) {
-                second_row += "<th class='" + class_name + "' onclick='sort_table(this, \"" + div_id + "\")' data-array-key='" + key + "' data-array-subkey='" + subkey + "'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
-                var tooltip_text = get_header_tooltip_text(subkey);
-                if (tooltip_text) {
-                    second_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-                }
-                second_row += "</div></th>";
-                colspan += 1;
-            }
-        });
-        first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'><div class='tooltip'>" + get_title_from_key(key);
-        var tooltip_text = get_header_tooltip_text(key);
-        if (tooltip_text) {
-            first_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+        if (key == "by_type" || key == "errors") {
+            $.each(json_obj[key], function(subkey) {
+                var row_additions = get_table_header_by_json_key(json_obj[key], subkey);
+                first_row += row_additions[0];
+                second_row += row_additions[1];
+            });
+        } else {
+            var row_additions = get_table_header_by_json_key(json_obj, key);
+            first_row += row_additions[0];
+            second_row += row_additions[1];
         }
-        first_row += "</div></th>";
     });
     first_row += "</tr>";
     second_row += "</tr>";
     return first_row + second_row;
 }
 
-function get_table_row(approach_name, json_obj, div_id) {
+function get_table_header_by_json_key(json_obj, key) {
+    var first_row_addition = "";
+    var second_row_addition = "";
+    var colspan = 0;
+    var class_name = get_class_name(key);
+    $.each(json_obj[key], function(subkey) {
+        if (!(ignore_headers.includes(subkey))) {
+            var subclass_name = get_class_name(subkey);
+            second_row_addition += "<th class='" + class_name + "' onclick='sort_table(this)' data-array-key='" + key + "' data-array-subkey='" + subkey + "'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
+            var tooltip_text = get_header_tooltip_text(key, subkey);
+            if (tooltip_text) {
+                second_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+            }
+            second_row_addition += "</div></th>";
+            colspan += 1;
+        }
+    });
+    first_row_addition += "<th colspan=\"" + colspan + "\" class='" + class_name + "'><div class='tooltip'>" + get_title_from_key(key);
+    var tooltip_text = get_header_tooltip_text(key, null);
+    if (tooltip_text) {
+        first_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+    }
+    first_row_addition += "</div></th>";
+    return [first_row_addition, second_row_addition];
+}
+
+function get_table_row(approach_name, json_obj) {
     /*
     Get html for the table row with the given approach name and result values.
     */
@@ -1117,52 +1133,55 @@ function get_table_row(approach_name, json_obj, div_id) {
     var onclick_str = " onclick='on_cell_click(this)'";
     row += "<td " + onclick_str + ">" + approach_name + "</td>";
     $.each(json_obj, function(key) {
-        if (key == "by_type") return;
-        var class_name = get_class_name(key);
-        var tooltip_text = "";
-        $.each(json_obj[key], function(subkey) {
-            // Include only keys in the table, that are not on the ignore list
-            if (!(ignore_headers.includes(subkey))) {
-                var value = json_obj[key][subkey];
-                if (value == null) {
-                    // This means, the category does not apply to the given approach
-                    value = "-";
-                } else if (Object.keys(value).length > 0) {
-                    // Values that consist not of a single number but of multiple
-                    // key-value pairs are displayed in a single column.
-                    var processed_value = "<div class='" + class_name + " tooltip'>";
-                    var percentage = (value["errors"] / value["total"] * 100).toFixed(2);
-                    processed_value += percentage + "%";
-                    processed_value += "<span class='tooltiptext'>";
-                    processed_value += value["errors"] + " / " + value["total"];
-                    processed_value += "</span></div>";
-                    value = processed_value;
-                } else if (percentage_headers.includes(subkey)) {
-                    // Get rounded percentage but only if number is a decimal < 1
-                    processed_value = "<div class='" + class_name + " tooltip'>";
-                    processed_value += (value * 100).toFixed(2) + "%";
-                    // Create tooltip text
-                    processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>";
-                    value = processed_value;
-                } else {
-                    Math.round(json_obj[key][subkey] * 100) / 100
-                }
-                var subclass_name = get_class_name(subkey);
-                if (div_id == "type_evaluation") {
-                    var data_string = "data-category='" + key + "'";
-                } else {
-                    if (key in mention_type_headers) {
-                        var data_string = "data-category='" + class_name + "'";
-                    } else {
-                        var data_string = "data-category='" + subclass_name + "'";
-                    }
-                }
-                row += "<td class='" + class_name + " " + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
-            }
-        });
-    })
+        if (key == "by_type" || key == "errors") {
+            $.each(json_obj[key], function(subkey) {
+                row += get_table_row_by_json_key(json_obj[key], subkey, onclick_str);
+            });
+        } else {
+            row += get_table_row_by_json_key(json_obj, key, onclick_str);
+        }
+    });
     row += "</tr>";
     return row;
+}
+
+function get_table_row_by_json_key(json_obj, key, onclick_str) {
+    var row_addition = "";
+    var class_name = get_class_name(key);
+    var tooltip_text = "";
+    $.each(json_obj[key], function(subkey) {
+        // Include only keys in the table, that are not on the ignore list
+        if (!(ignore_headers.includes(subkey))) {
+            var value = json_obj[key][subkey];
+            if (value == null) {
+                // This means, the category does not apply to the given approach
+                value = "-";
+            } else if (Object.keys(value).length > 0) {
+                // Values that consist not of a single number but of multiple
+                // key-value pairs are displayed in a single column.
+                var processed_value = "<div class='" + class_name + " tooltip'>";
+                var percentage = (value["errors"] / value["total"] * 100).toFixed(2);
+                processed_value += percentage + "%";
+                processed_value += "<span class='tooltiptext'>";
+                processed_value += value["errors"] + " / " + value["total"];
+                processed_value += "</span></div>";
+                value = processed_value;
+            } else if (percentage_headers.includes(subkey)) {
+                // Get rounded percentage but only if number is a decimal < 1
+                processed_value = "<div class='" + class_name + " tooltip'>";
+                processed_value += (value * 100).toFixed(2) + "%";
+                // Create tooltip text
+                processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>";
+                value = processed_value;
+            } else {
+                Math.round(json_obj[key][subkey] * 100) / 100
+            }
+            var subclass_name = get_class_name(subkey);
+            var data_string = "data-category='" + class_name + "," + subclass_name + "'";
+            row_addition += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
+        }
+    });
+    return row_addition;
 }
 
 function get_tooltip_text(json_obj) {
@@ -1173,9 +1192,14 @@ function get_tooltip_text(json_obj) {
     return tooltip_text;
 }
 
-function get_header_tooltip_text(header_title) {
-    if (header_title in header_descriptions) {
-        return header_descriptions[header_title];
+function get_header_tooltip_text(key, subkey) {
+    if (key in header_descriptions) {
+        if (subkey) {
+            return header_descriptions[key][subkey];
+        }
+        if (typeof header_descriptions[key] == "string") {
+            return header_descriptions[key];
+        }
     }
     return "";
 }
@@ -1195,7 +1219,7 @@ function to_title_case(str) {
     });
 }
 
-function sort_table(column_header, div_id) {
+function sort_table(column_header) {
     /*
     Sort table rows with respect to the selected column.
     This sorts the result_array, removes old table rows and adds them in the new ordering.
@@ -1206,7 +1230,7 @@ function sort_table(column_header, div_id) {
 
     // Store the column index to apply the same sorting when selecting a different benchmark
     // Can't just store and use the column header itself since it's the header of the old table
-    sorting_variables[div_id]["column_index"] = col_index;
+    sorting_variables["column_index"] = col_index;
 
     var key = $(column_header).data("array-key");
     var subkey = $(column_header).data("array-subkey");
@@ -1215,7 +1239,7 @@ function sort_table(column_header, div_id) {
     var selected_approach_indices = [null, null];
     result_array.forEach(function(result_tuple) {
         var approach_name = result_tuple[0];
-        if (selected_approach_names.includes(approach_name) && selected_rows.length > 0 && $(selected_rows[0]).closest("table").parent().attr("id") == div_id) {
+        if (selected_approach_names.includes(approach_name) && selected_rows.length > 0) {
             // Store the index in the result_array of the currently selected row
             // Keep the order in which the rows were selected
             selected_approach_indices[$.inArray(approach_name, selected_approach_names)] = index;
@@ -1227,8 +1251,10 @@ function sort_table(column_header, div_id) {
             col_values.push(approach_name);
             return;
         }
-        if (div_id == "type_evaluation") {
+        if (is_type_string(key)) {
             results = results["by_type"];
+        } else if (key in error_category_mapping && subkey in error_category_mapping[key]) {
+            results = results["errors"];
         }
         var value = results[key][subkey]
         if (Object.keys(results[key][subkey]).length > 0) {
@@ -1252,7 +1278,7 @@ function sort_table(column_header, div_id) {
 
     // Check if sorting should be ascending or descending
     var descending = !$(column_header).hasClass("desc");
-    sorting_variables[div_id]["sort_descending"] = descending;
+    sorting_variables["desc"] = descending;
 
     // Get new sorting order of the row indices and create a new result array according to the new sorting
     if (col_index == 1) {
@@ -1267,7 +1293,7 @@ function sort_table(column_header, div_id) {
     result_array = order.map(i => result_array[i]);
 
     // Remove asc/desc classes from all columns
-    $("#" + div_id + " table th").each(function() {
+    $("#evaluation table th").each(function() {
         $(this).removeClass("desc");
         $(this).removeClass("asc");
     })
@@ -1288,10 +1314,10 @@ function sort_table(column_header, div_id) {
     }
 
     // Remove old table rows
-    $("#" + div_id + " table tbody").empty();
+    $("#evaluation table tbody").empty();
 
     // Add table rows in new order to the table body
-    build_evaluation_table_body(result_array, div_id);
+    build_evaluation_table_body(result_array);
 
     // Re-add selected class if row or cell was previously selected
     if (selected_approach_indices.length > 0) {
@@ -1301,18 +1327,21 @@ function sort_table(column_header, div_id) {
         for (var i=0;i<selected_approach_indices.length; i++) {
             if (selected_approach_indices[i] === null) break;
             var new_selected_approach_index = order.indexOf(selected_approach_indices[i]) + 1;  // +1 because nth-child is 1-based
-            selected_rows.push($("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ")"))
+            selected_rows.push($("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ")"))
             selected_rows[i].addClass("selected");
 
             if (selected_cells_classes.length > i) {
                 // Re-add selected class to previously selected cell
-                selected_cells.push($("#" + div_id + " table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cells_classes[i]));
+                selected_cells.push($("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cells_classes[i]));
                 $(selected_cells[i]).addClass("selected");
-                if (div_id == "type_evaluation") {
-                    var cls = $(selected_cells[i]).attr('class').split(/\s+/)[0];
-                    $(selected_cells[i]).closest('tr').find('.' + cls).each(function(index) {
-                        $(this).addClass("selected");
-                    });
+                if ($(selected_cells[i]).attr('class')) {
+                    var selected_cell_class = $(selected_cells[i]).attr('class').split(/\s+/)[0];
+                    if (selected_cell_class in mention_type_headers || is_type_string(selected_cell_class)) {
+                        var cls = $(selected_cells[i]).attr('class').split(/\s+/)[0];
+                        $(selected_cells[i]).closest('tr').find('.' + cls).each(function(index) {
+                            $(this).addClass("selected");
+                        });
+                    }
                 }
             }
         }
@@ -1459,17 +1488,9 @@ function on_row_click(el) {
 
     var approach_name = $(el).find('td:first').text();
 
-    // De-select all current rows if a row in a different table was selected before
-    var former_parent_table = $("#evaluation_tables table tbody tr.selected").closest("table").parent().attr("id");
-    var new_parent_table = $(el).closest("table").parent().attr("id");
-    if (former_parent_table && former_parent_table != new_parent_table) {
-        deselect_all_table_rows(former_parent_table);
-        selected_approach_names = [];
-    }
-
     // De-select previously selected rows
     if (!is_compare_checked() || selected_approach_names.length >= MAX_SELECTED_APPROACHES) {
-        deselect_all_table_rows(new_parent_table);
+        deselect_all_table_rows();
         selected_approach_names = [];
     }
 
@@ -1489,24 +1510,19 @@ function on_cell_click(el) {
     Highlight error category / type cells on click and un-highlight previously clicked cell.
     Add or remove error categories and types to/from current selection.
     */
-    // De-select current selection if necessary
-    var div_id = $(el).closest('table').parent().attr('id');
-    if (div_id == "evaluation") { reset_selected_types(); } else { reset_selected_error_categories(); }
-
     // Determine whether an already selected cell has been clicked
     var curr_row = $(el).closest("tr").index();
     var prev_selected_rows = $.map(selected_rows, function(sel_row) { return $(sel_row).index(); });
     var already_selected_row_clicked = $.inArray(curr_row, prev_selected_rows);
 
     if (selected_cells.length > 0) {
-        var same_table = $(selected_cells[0]).closest('table').parent().attr('id') == div_id;
-        if (!is_compare_checked() || selected_rows.length >= MAX_SELECTED_APPROACHES || !same_table) {
+        if (!is_compare_checked() || selected_rows.length >= MAX_SELECTED_APPROACHES) {
             // Remove selected classes for all currently selected cells
             for (var i=0; i<selected_cells.length; i++) {
                 remove_selected_classes(selected_cells[i]);
             }
             selected_cells = [];
-            if (div_id == "evaluation") { reset_selected_error_categories(); } else { reset_selected_types(); }
+            reset_selected_cell_categories();
         } else {
             // Remove selected class for cells in the same row
             var last_rows = $.map(selected_cells, function(sel_cell) { return $(sel_cell).closest('tr').index(); });
@@ -1514,48 +1530,36 @@ function on_cell_click(el) {
             if (index >= 0) {
                 remove_selected_classes(selected_cells[index]);
                 selected_cells.splice(index, 1);
-                if (div_id == "evaluation") { selected_error_categories[index] = null; } else { selected_types[index] = null; }
+                selected_cell_categories[index] = null;
             }
         }
     }
 
     // Make new selection
     if ($(el).attr('class')) {  // System column has no class attribute
-        if (div_id == "evaluation") {
-            var classes = $(el).attr('class').split(/\s+/);
-            if (classes.length > 1 && classes[1] in error_category_mapping) {
-                $(el).addClass("selected");
-                selected_cells.push(el);
-            } else if (classes.length > 0 && classes[0] in mention_type_headers) {
-                $(el).closest('tr').find('.' + classes[0]).each(function() {
-                    $(this).addClass("selected");
-                });
-                selected_cells.push(el);
-            }
-        } else {
-            // Mark all cells in the corresponding row with the corresponding class
-            var cls = $(el).attr('class').split(/\s+/)[0];
-            $(el).closest('tr').find('.' + cls).each(function() {
+        var classes = $(el).attr('class').split(/\s+/);
+        if (is_error_cell(el)) {
+            $(el).addClass("selected");
+            selected_cells.push(el);
+        } else if (classes.length > 0 && (classes[0] in mention_type_headers || is_type_string(classes[0]))) {
+            $(el).closest('tr').find('.' + classes[0]).each(function() {
                 $(this).addClass("selected");
             });
             selected_cells.push(el);
         }
     }
 
+    // Updated selected cell categories
     // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
     approach_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : selected_rows.length % MAX_SELECTED_APPROACHES;
-    if (div_id == "evaluation") {
-        selected_error_categories[approach_index] = get_error_category_or_type(el);
-    } else {
-        selected_types[approach_index] = get_error_category_or_type(el);
-    }
+    selected_cell_categories[approach_index] = get_error_category_or_type(el);
 }
 
-function deselect_all_table_rows(div_id) {
+function deselect_all_table_rows() {
     /*
     Deselect all rows in all evaluation tables
     */
-    $("#" + div_id + " tbody tr").each(function() {
+    $("#evaluation tbody tr").each(function() {
         $(this).removeClass("selected");
     });
     selected_rows = [];
@@ -1568,22 +1572,30 @@ function remove_selected_classes(el) {
     });
 }
 
-function get_error_category_or_type(element) {
+function get_error_category_or_type(el) {
     /*
     For a given cell return the error category or type it belongs to, or null otherwise.
     */
-    data_attribute = $(element).data("category");
-    if (data_attribute) {
-        var match = data_attribute.match(/Q[0-9]+:.*/);
-        if (data_attribute in error_category_mapping) {
-            return error_category_mapping[data_attribute];
-        } else if (data_attribute in mention_type_headers) {
-            return mention_type_headers[data_attribute];
-        } else if (match || data_attribute == "OTHER") {
-            return data_attribute.replace(/(Q[0-9]+):.*/g, "$1");
+    if ($(el).attr('class')) {
+        var classes = $(el).attr('class').split(/\s+/);
+        if (is_error_cell(el)) {
+            var keys = classes[1].split("-");
+            return error_category_mapping[keys[0]][keys[1]];
+        } if (is_type_string(classes[0])) {
+            return [classes[0].replace(/(q[0-9]+)_.*/g, "$1")];
+        } else if (classes[0] in mention_type_headers) {
+            console.log("mention type category:", mention_type_headers[classes[0]]);
+            return mention_type_headers[classes[0]];
         }
     }
     return null;
+}
+
+function is_type_string(class_name) {
+    var match = class_name.match(/[Qq][0-9]+.*/);
+    if (match || class_name == "other") {
+        return true;
+    }
 }
 
 function show_table_column(table_id, index) {
@@ -1638,7 +1650,7 @@ function on_article_select() {
     show_article(selected_approach_names, timestamp);
 }
 
-function produce_latex(div_id) {
+function produce_latex() {
     /*
     Produce LaTeX source code for the overview table and copy it to the clipboard.
     */
@@ -1652,7 +1664,7 @@ function produce_latex(div_id) {
     var num_cols = 0;
     var row_count = 0;
     var header_string = "";
-    $('#' + div_id + ' table thead tr').each(function(){
+    $('#evaluation table thead tr').each(function(){
         $(this).find('th').each(function() {
             if (!$(this).is(":hidden")) {
                 // Do not add hidden table columns
@@ -1687,7 +1699,7 @@ function produce_latex(div_id) {
     latex.push("\\hline");
 
     // Generate the rows of the table body
-    $("#" + div_id + " table tbody tr").each(function() {
+    $("#evaluation table tbody tr").each(function() {
         var col_idx = 0;
         var row_string = "";
         $(this).find("td").each(function() {
@@ -1723,15 +1735,15 @@ function produce_latex(div_id) {
     // Join lines, copy to textarea and from there to the clipboard.
     var latex_text = latex.join("\n");
     console.log(latex_text);
-    $('#' + div_id + " .latex").show();
-    $('#' + div_id + " .latex textarea").val(latex_text);
-    $('#' + div_id + " .latex textarea").show();  // Text is not selected or copied if it is hidden
-    $('#' + div_id + " .latex textarea").select();
+    $("evaluation .latex").show();
+    $("evaluation .latex textarea").val(latex_text);
+    $("evaluation .latex textarea").show();  // Text is not selected or copied if it is hidden
+    $("evaluation .latex textarea").select();
     document.execCommand("copy");
-    $('#' + div_id + " .latex textarea").hide();
+    $("evaluation .latex textarea").hide();
 
     // Show the notification for the specified number of seconds
     var show_duration_seconds = 5;
-    setTimeout(function() { $('#' + div_id + " .latex").hide(); }, show_duration_seconds * 1000);
+    setTimeout(function() { $("#evaluation .latex").hide(); }, show_duration_seconds * 1000);
 }
 

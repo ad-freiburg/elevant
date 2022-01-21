@@ -192,101 +192,106 @@ class Evaluator:
         results_dict = {
             category: create_f1_dict_from_counts(self.counts[category]) for category in EVALUATION_CATEGORIES
         }
-        results_dict["errors"] = {
-            # DETECTION
-            "undetected": {
+        results_dict["errors"] = {}
+        results_dict["errors"]["undetected"] = {
+            # Undetected
+            "all": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED],
                 "total": results_dict["NER"]["ground_truth"]
             },
-            "undetected_lowercase": {
+            "lowercase": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_LOWERCASE],
                 "total": self.n_entity_lowercase
             },
-            "undetected_specificity": {
-                "errors": self.error_counts[ErrorLabel.SPECIFICITY],
+            "specificity": {
+                "errors": self.error_counts[ErrorLabel.UNDETECTED_SPECIFICITY],
                 "total": self.n_entity_contains_space
             },
-            "undetected_overlap": {
+            "overlap": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_OVERLAP],
                 "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
             },
-            "undetected_other": {
+            "other": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_OTHER],
                 "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
-            },
-            # DISAMBIGUATION
-            "disambiguation": {
-                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION],
+            }
+        }
+        results_dict["errors"]["disambiguation_errors"] = {
+            # Disambiguation errors
+            "all": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_WRONG],
                 "total": self.counts["NER"]["tp"]
             },
-            "disambiguation_demonym": {
-                "errors": self.error_counts[ErrorLabel.DEMONYM_WRONG],
-                "total": self.error_counts[ErrorLabel.DEMONYM_CORRECT] +
-                         self.error_counts[ErrorLabel.DEMONYM_WRONG]
+            "demonym": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG],
+                "total": self.error_counts[ErrorLabel.DISAMBIGUATION_DEMONYM_CORRECT] +
+                         self.error_counts[ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG]
             },
-            "disambiguation_metonymy": {
-                "errors": self.error_counts[ErrorLabel.METONYMY_WRONG],
-                "total": self.error_counts[ErrorLabel.METONYMY_CORRECT] +
-                         self.error_counts[ErrorLabel.METONYMY_WRONG]
+            "metonymy": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_METONYMY_WRONG],
+                "total": self.error_counts[ErrorLabel.DISAMBIGUATION_METONYMY_CORRECT] +
+                         self.error_counts[ErrorLabel.DISAMBIGUATION_METONYMY_WRONG]
             },
-            "disambiguation_partial_name": {
-                "errors": self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG],
-                "total": self.error_counts[ErrorLabel.PARTIAL_NAME_CORRECT] +
-                         self.error_counts[ErrorLabel.PARTIAL_NAME_WRONG]
+            "partial_name": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_WRONG],
+                "total": self.error_counts[ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_CORRECT] +
+                         self.error_counts[ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_WRONG]
             },
-            "disambiguation_rare": {
-                "errors": self.error_counts[ErrorLabel.RARE_WRONG],
-                "total": self.error_counts[ErrorLabel.RARE_CORRECT] +
-                         self.error_counts[ErrorLabel.RARE_WRONG]
+            "rare": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_RARE_WRONG],
+                "total": self.error_counts[ErrorLabel.DISAMBIGUATION_RARE_CORRECT] +
+                         self.error_counts[ErrorLabel.DISAMBIGUATION_RARE_WRONG]
             },
-            "disambiguation_other": self.error_counts[ErrorLabel.DISAMBIGUATION_OTHER],
-            # FALSE DETECTION
-            "false_detection": self.error_counts[ErrorLabel.FALSE_DETECTION],
-            "abstraction": self.error_counts[ErrorLabel.ABSTRACTION],
-            "unknown_named_entity": self.error_counts[ErrorLabel.UNKNOWN_NAMED_ENTITY],
-            "false_detection_other": self.error_counts[ErrorLabel.FALSE_DETECTION_OTHER],
-            # OTHER
+            "other": self.error_counts[ErrorLabel.DISAMBIGUATION_WRONG_OTHER],
+            "wrong_candidates": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_WRONG_CANDIDATES],
+                "total": self.counts["NER"]["tp"]
+            } if self.has_candidates else None,
+            "multi_candidates": {
+                "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG],
+                "total": self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG] +
+                         self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT]
+            } if self.has_candidates else None
+        }
+        results_dict["errors"]["false_detection"] = {
+            # False detection
+            "all": self.error_counts[ErrorLabel.FALSE_DETECTION],
+            "abstraction": self.error_counts[ErrorLabel.FALSE_DETECTION_ABSTRACTION],
+            "unknown_named_entity": self.error_counts[ErrorLabel.FALSE_DETECTION_UNKNOWN_NAMED_ENTITY],
+            "other": self.error_counts[ErrorLabel.FALSE_DETECTION_OTHER],
             "span_wrong": {
-                "errors": self.error_counts[ErrorLabel.SPAN_WRONG],
+                "errors": self.error_counts[ErrorLabel.FALSE_DETECTION_SPAN_WRONG],
                 "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
-            },
+            }
+        }
+        results_dict["errors"]["other_errors"] = {
+            # Other errors
             "hyperlink": {
-                "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
-                "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
-                         self.error_counts[ErrorLabel.HYPERLINK_WRONG]
+                "errors": self.error_counts[ErrorLabel.OTHER_HYPERLINK_WRONG],
+                "total": self.error_counts[ErrorLabel.OTHER_HYPERLINK_CORRECT] +
+                         self.error_counts[ErrorLabel.OTHER_HYPERLINK_WRONG]
             },
         }
-        if not self.has_candidates:
-            results_dict["errors"]["wrong_candidates"] = None
-            results_dict["errors"]["multi_candidates"] = None
-        else:
-            results_dict["errors"]["wrong_candidates"] = {
-                "errors": self.error_counts[ErrorLabel.WRONG_CANDIDATES],
-                "total": self.counts["NER"]["tp"]
-            }
-            results_dict["errors"]["multi_candidates"] = {
-                "errors": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG],
-                "total": self.error_counts[ErrorLabel.MULTI_CANDIDATES_WRONG] +
-                         self.error_counts[ErrorLabel.MULTI_CANDIDATES_CORRECT]
-            }
-        results_dict["coreference_errors"] = {
-            "no_reference": {
-                "errors": self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE],
+        results_dict["errors"]["coreference_errors"] = {
+            # Coreference errors
+            "undetected": {
+                "errors": self.error_counts[ErrorLabel.COREFERENCE_UNDETECTED],
                 "total": results_dict["coref"]["ground_truth"]
             },
-            "wrong_reference": {
-                "errors": self.error_counts[ErrorLabel.COREFERENCE_WRONG_REFERENCE],
+            "wrong_mention_referenced": {
+                "errors": self.error_counts[ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED],
                 "total": results_dict["coref"]["ground_truth"] -
-                         self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE]
+                         self.error_counts[ErrorLabel.COREFERENCE_UNDETECTED]
             },
-            "referenced_wrong": {
-                "errors": self.error_counts[ErrorLabel.COREFERENCE_REFERENCED_WRONG],
+            "reference_wrongly_disambiguated": {
+                "errors": self.error_counts[ErrorLabel.COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED],
                 "total": results_dict["coref"]["ground_truth"] -
-                         self.error_counts[ErrorLabel.COREFERENCE_NO_REFERENCE] -
-                         self.error_counts[ErrorLabel.COREFERENCE_WRONG_REFERENCE]
+                         self.error_counts[ErrorLabel.COREFERENCE_UNDETECTED] -
+                         self.error_counts[ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED]
             },
-            "non_entity_coreference": self.error_counts[ErrorLabel.NON_ENTITY_COREFERENCE]
+            "false_detection": self.error_counts[ErrorLabel.COREFERENCE_FALSE_DETECTION]
         }
+        # Type results
         results_dict["by_type"] = {}
         for type_key in self.type_counts:
             results_dict["by_type"][type_key] = create_f1_dict_from_counts(self.type_counts[type_key])
