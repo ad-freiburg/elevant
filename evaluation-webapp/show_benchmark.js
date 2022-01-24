@@ -235,8 +235,17 @@ function set_benchmark_select_options() {
             option.value = benchmark;
             benchmark_select.add(option);
         }
-        // Set default value to "wiki-ex".
-        $('#benchmark option:contains("wiki-ex")').prop('selected',true);
+
+        // Set benchmark
+        var benchmark_string = get_url_parameter("benchmark");
+        var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == benchmark_string; });
+        if (benchmark_string && benchmark_by_url.length > 0) {
+            // Set the benchmark according to URL parameter if one with a valid benchmark name exists
+            $(benchmark_by_url).prop('selected',true);
+        } else {
+            // Set default value to "wiki-ex".
+            $('#benchmark option:contains("wiki-ex")').prop('selected',true);
+        }
         show_benchmark_results();
     });
 }
