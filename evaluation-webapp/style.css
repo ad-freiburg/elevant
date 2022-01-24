@@ -43,7 +43,7 @@ html, body {
 }
 
 .content {
-    padding-left: 10pt;
+    padding: 10px;
 }
 
 table, td, th {
