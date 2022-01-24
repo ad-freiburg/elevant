@@ -171,7 +171,31 @@ $("document").ready(function() {
             }
         }
     });
+
+    // Set the result filter string according to the URL parameter
+    var filter_string = get_url_parameter("filter");
+    if (filter_string) {
+        $("input#result-filter").val(filter_string);
+        filter_table_rows();
+    }
 });
+
+function get_url_parameter(parameter_name) {
+    /*
+    Retrieve URL parameter.
+    See https://stackoverflow.com/a/21903119/7097579.
+    */
+    var page_url = window.location.search.substring(1);
+    var url_variables = page_url.split('&');
+
+    for (var i = 0; i < url_variables.length; i++) {
+        var curr_parameter = url_variables[i].split('=');
+        if (curr_parameter[0] === parameter_name) {
+            return curr_parameter[1] === undefined ? true : decodeURIComponent(curr_parameter[1]);
+        }
+    }
+    return false;
+};
 
 function is_error_cell(el) {
     if ($(el).attr('class')) {  // System column has no class attribute
@@ -257,15 +281,9 @@ function show_benchmark_results() {
 
 function filter_table_rows() {
     var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
-    var match_type_and = $("#radio_and").is(":checked");
     $("#evaluation_tables tbody tr").each(function() {
         var name = $(this).children(":first-child").text();
-        var show_row;
-        if (match_type_and) {
-            show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
-        } else {
-            show_row = filter_keywords.some(keyword => name.search(keyword) != -1);
-        }
+        var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
         if (show_row) $(this).show(); else $(this).hide();
     });
 }
