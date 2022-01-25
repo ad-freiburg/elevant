@@ -46,32 +46,32 @@
 							<table>
 								<tbody>
 									<tr>
-										<td colspan="2"><i><span class="annotation optional">Underlined text</span> corresponds to a groundtruth mention,
-											<span class="annotation unevaluated">highlighted text</span> to a predicted mention.<br>
+										<td colspan="2"><i><span class="annotation gt optional">Underlined text</span> corresponds to a groundtruth mention,
+											<span class="annotation pred unevaluated">highlighted text</span> to a predicted mention.<br>
 											If a groundtruth mention and a predicted mention overlap, these annotations overlap, too.</i></td>
 									</tr>
 									<tr>
-										<td><span class="annotation tp">Mention Text</span></td>
+										<td><span class="annotation gt tp"><span class="annotation pred tp">Mention Text</span></span></td>
 										<td><b>True positive:</b> Predicted mention span and entity match a groundtruth mention span and entity</td>
 									</tr>
 									<tr>
-										<td><span class="annotation fp">Mention Text</span></td>
+										<td><span class="annotation pred fp">Mention Text</span></td>
 										<td><b>False positive:</b> Predicted mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity</td>
 									</tr>
 									<tr>
-										<td><span class="annotation fn">Mention Text</span></td>
+										<td><span class="annotation gt fn">Mention Text</span></td>
 										<td><b>False negative:</b> Groundtruth mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity</td>
 									</tr>
 									<tr>
-										<td><span class="annotation unknown">Mention Text</span></td>
+										<td><span class="annotation gt unknown">Mention Text</span></td>
 										<td>Groundtruth entity that could not be mapped to an entity in the knowledge base</td>
 									</tr>
 									<tr>
-										<td><span class="annotation optional">Mention Text</span></td>
+										<td><span class="annotation gt optional">Mention Text</span></td>
 										<td>Optional groundtruth mention</td>
 									</tr>
 									<tr>
-										<td><span class="annotation unevaluated">Mention Text</span></td>
+										<td><span class="annotation pred unevaluated">Mention Text</span></td>
 										<td>Prediction is unevaluated either because it matches an optional groundtruth mention span and entity or because it is outside of the evaluation span</td>
 									</tr>
 									<tr>

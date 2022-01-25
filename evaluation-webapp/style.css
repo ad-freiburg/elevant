@@ -277,47 +277,50 @@ div.latex textarea {
     /* Make sure the background extends only up to the border start.
     Otherwise, if the border color is opaque and it overlaps with the background color, the border color is changed */
     background-clip: content-box;
-    padding-bottom: 1px;
+    -webkit-background-clip: content-box;
+    padding-bottom: 2px;
 }
 /* Set annotation colors according to annotation type */
-.annotation.tp {
+.annotation.pred.tp {
     background-color: var(--annotation-tp-color);
+}
+.annotation.gt.tp {
     border-bottom: var(--annotation-border-size) solid var(--annotation-tp-color);
 }
-.annotation.tp.gt_lowlight {
+.annotation.gt.tp.lowlight {
     border-bottom-color: var(--annotation-tp-color-lowlight);
 }
-.annotation.tp.pred_lowlight {
+.annotation.pred.tp.lowlight {
     background-color: var(--annotation-tp-color-lowlight);
 }
 .annotation.fp {
     background-color: var(--annotation-fp-color);
 }
-.annotation.fp.pred_lowlight {
+.annotation.fp.lowlight {
     background-color: var(--annotation-fp-color-lowlight);
 }
 .annotation.fn {
     border-bottom: var(--annotation-border-size) solid var(--annotation-fp-color);
 }
-.annotation.fn.gt_lowlight {
+.annotation.fn.lowlight {
     border-bottom-color: var(--annotation-fp-color-lowlight);
 }
-.annotation.unknown {
+.annotation.gt.unknown {
     border-bottom: var(--annotation-border-size) solid var(--annotation-unknown-color);
 }
-.annotation.unknown.gt_lowlight {
+.annotation.gt.unknown.lowlight {
     border-bottom-color: var(--annotation-unknown-color-lowlight);
 }
-.annotation.optional {
+.annotation.gt.optional {
     border-bottom: var(--annotation-border-size) solid var(--annotation-optional-color);
 }
-.annotation.optional.gt_lowlight {
+.annotation.gt.optional.lowlight {
     border-bottom-color: var(--annotation-optional-color-lowlight);
 }
-.annotation.unevaluated {
+.annotation.pred.unevaluated {
     background-color: var(--annotation-optional-color);
 }
-.annotation.unevaluated.pred_lowlight {
+.annotation.pred.unevaluated.lowlight {
     background-color: var(--annotation-optional-color-lowlight);
 }
 

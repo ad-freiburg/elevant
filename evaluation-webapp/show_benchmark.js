@@ -1,9 +1,9 @@
-ANNOTATION_CLASS_TP = "tp"
-ANNOTATION_CLASS_FP = "fp"
-ANNOTATION_CLASS_FN = "fn"
-ANNOTATION_CLASS_UNKNOWN = "unknown"
-ANNOTATION_CLASS_OPTIONAL = "optional"
-ANNOTATION_CLASS_UNEVALUATED = "unevaluated"
+ANNOTATION_CLASS_TP = "tp";
+ANNOTATION_CLASS_FP = "fp";
+ANNOTATION_CLASS_FN = "fn";
+ANNOTATION_CLASS_UNKNOWN = "unknown";
+ANNOTATION_CLASS_OPTIONAL = "optional";
+ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 
 RESULTS_EXTENSION = ".results";
 
@@ -476,17 +476,8 @@ function get_annotations(article_index, approach_name) {
             continue;
         }
 
-        var gt_entity_id = null;
-        var gt_entity_name = null;
-        var gt_entity_type = null;
-        var parent_text = null;
-
-        var pred_entity_id = null;
-        var pred_entity_name = null;
-        var pred_entity_type = null;
-        var pred_by = null;
-
-        var classes = [];
+        var gt_annotation = {};
+        var pred_annotation = {};
 
         // mention is an evaluated case
         if ("predicted_entity" in mention || "true_entity" in mention) {
@@ -511,36 +502,37 @@ function get_annotations(article_index, approach_name) {
 
             if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
                 // GT entity is NIL
-                classes.push(ANNOTATION_CLASS_UNKNOWN);
+                gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 if ("predicted_entity" in mention) {
-                    classes.push(ANNOTATION_CLASS_FP);
+                    pred_annotation.class = ANNOTATION_CLASS_FP;
                 }
             } else if (is_correct_optional_case(mention)) {
-                classes.push(ANNOTATION_CLASS_OPTIONAL);
+                gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
                 if ("predicted_entity" in mention) {
                     // Prediction is a correct optional, i.e. unevaluated.
-                    classes.push(ANNOTATION_CLASS_UNEVALUATED);
+                    pred_annotation.class = ANNOTATION_CLASS_UNEVALUATED;
                 }
             } else if ("predicted_entity" in mention) {
                  if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
                      if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
                         // predicted the true entity
-                        classes.push(ANNOTATION_CLASS_TP);
+                        gt_annotation.class = ANNOTATION_CLASS_TP;
+                        pred_annotation.class = ANNOTATION_CLASS_TP;
                     } else {
                         // predicted the wrong entity
-                        classes.push(ANNOTATION_CLASS_FP);
+                        pred_annotation.class = ANNOTATION_CLASS_FP;
                         if (is_optional_case(mention)) {
-                            classes.push(ANNOTATION_CLASS_OPTIONAL);
+                            gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
                         } else {
-                            classes.push(ANNOTATION_CLASS_FN);
+                            gt_annotation.class = ANNOTATION_CLASS_FN;
                         }
                     }
                 } else {
                     // wrong span
-                    classes.push(ANNOTATION_CLASS_FP);
+                    pred_annotation.class = ANNOTATION_CLASS_FP;
                 }
             } else {
-                classes.push(ANNOTATION_CLASS_FN);
+                gt_annotation.class = ANNOTATION_CLASS_FN;
             }
 
             if ("true_entity" in mention) {
@@ -549,49 +541,67 @@ function get_annotations(article_index, approach_name) {
                 while (curr_label_id in child_label_to_parent) {
                     curr_label_id = child_label_to_parent[curr_label_id];
                 }
-                gt_entity_type = label_id_to_label[curr_label_id].type;
+                gt_annotation.gt_entity_type = label_id_to_label[curr_label_id].type;
                 // Get text of parent span
                 if (curr_label_id != mention.true_entity.id) {
-                    parent_span = label_id_to_label[curr_label_id].span;
-                    parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
+                    var parent_span = label_id_to_label[curr_label_id].span;
+                    gt_annotation.parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
                 }
-                gt_entity_id = mention.true_entity.entity_id;
-                gt_entity_name = mention.true_entity.name;
+                gt_annotation.gt_entity_id = mention.true_entity.entity_id;
+                gt_annotation.gt_entity_name = mention.true_entity.name;
             }
+
             if ("predicted_entity" in mention) {
-                pred_entity_id = mention.predicted_entity.entity_id;
-                pred_entity_name = mention.predicted_entity.name;
-                pred_entity_type = mention.predicted_entity.type;
-                pred_by = mention.predicted_by;
-                if (classes.includes(ANNOTATION_CLASS_TP)) {
+                pred_annotation.pred_entity_id = mention.predicted_entity.entity_id;
+                pred_annotation.pred_entity_name = mention.predicted_entity.name;
+                pred_annotation.pred_entity_type = mention.predicted_entity.type;
+                pred_annotation.predicted_by = mention.predicted_by;
+                if (pred_annotation.class == ANNOTATION_CLASS_TP) {
                     // Use the type of the parent entity because this is the type that counts in the evaluation.
-                    pred_entity_type = gt_entity_type;
+                    pred_annotation.pred_entity_type = gt_annotation.gt_entity_type;
                 }
             }
         } else {
             // mention is outside the evaluation span
-            classes.push(ANNOTATION_CLASS_UNEVALUATED);
-            pred_entity_id = mention.id;
-            pred_entity_name = null;
-            pred_entity_type = null;
-            pred_by = mention.linked_by;
+            pred_annotation.class = ANNOTATION_CLASS_UNEVALUATED;
+            pred_annotation.pred_entity_id = mention.id;
+            pred_annotation.pred_entity_name = null;
+            pred_annotation.pred_entity_type = null;
+            pred_annotation.predicted_by = mention.linked_by;
         }
+
         var mention_type = (mention.mention_type) ? mention.mention_type.toLowerCase() : null;
         var annotation = {
             "span": mention.span,
-            "classes": classes,
-            "error_labels": mention.error_labels,
-            "gt_entity_id": gt_entity_id,
-            "gt_entity_name": gt_entity_name,
-            "gt_entity_type": gt_entity_type,
-            "parent_text": parent_text,
-            "pred_entity_id": pred_entity_id,
-            "pred_entity_name": pred_entity_name,
-            "pred_entity_type": pred_entity_type,
-            "predicted_by": pred_by,
-            "mention_type": mention_type
+            "mention_type": mention_type,
+            "error_labels": []
         };
-        annotations[mention.span] = annotation;
+        // If the case has a GT and a prediction, don't add error cases to GT if it's an unknown or optional case
+        if (!$.isEmptyObject(gt_annotation) && !$.isEmptyObject(pred_annotation)) {
+            if (gt_annotation.class == ANNOTATION_CLASS_OPTIONAL || gt_annotation.class == ANNOTATION_CLASS_UNKNOWN) {
+                pred_annotation.error_labels = mention.error_labels;
+            } else {
+                gt_annotation.error_labels = mention.error_labels;
+                pred_annotation.error_labels = mention.error_labels;
+
+            }
+        } else {
+            annotation.error_labels = mention.error_labels;
+        }
+        // Merge basic annotations and case specific annotations into a single annotation object
+        // If the annotation contains both a groundtruth and a prediction, make the prediction the inner annotation of
+        // the groundtruth annotation in order not to create overlapping annotations.
+        if (!$.isEmptyObject(gt_annotation)) {
+            var gt_annotation = {...annotation, ...gt_annotation};
+            annotations[mention.span] = gt_annotation;
+            if (!$.isEmptyObject(pred_annotation)) {
+                var pred_annotation = {...annotation, ...pred_annotation};
+                gt_annotation.inner_annotation = pred_annotation;
+            }
+        } else if (!$.isEmptyObject(pred_annotation)) {
+            var pred_annotation = {...annotation, ...pred_annotation};
+            annotations[mention.span] = pred_annotation;
+        }
     }
     annotations = Object.values(annotations);
     return annotations
@@ -662,7 +672,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_cell_
         before = text.substring(0, span[0]);
         snippet = text.substring(span[0], span[1]);
         after = text.substring(span[1]);
-        replacement = generate_annotation_html(snippet, annotation, selected_cell_category);
+        replacement = generate_annotation_html(snippet, annotation, selected_cell_category, null);
         text = before + replacement + after;
     }
     text = text.substring(evaluation_span[0], text.length);
@@ -670,7 +680,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_cell_
     return text;
 }
 
-function generate_annotation_html(snippet, annotation, selected_cell_category) {
+function generate_annotation_html(snippet, annotation, selected_cell_category, parent_text) {
     /*
     Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
     and can be identified by the property "link". Inner annotations, e.g. hyperlinks contained in
@@ -679,7 +689,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     var inner_annotation = snippet;
 
     if ("inner_annotation" in annotation) {
-        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category);
+        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category, annotation.parent_text);
     }
 
     if ("link" in annotation) {
@@ -692,82 +702,80 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     var tooltip_case_type_html = "";
     var tooltip_body_text = "";
     var tooltip_footer_html = "";
-    if (annotation.classes.includes(ANNOTATION_CLASS_TP)) {
-        wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
-        entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
-        if (annotation.gt_entity_name != null) {
-            var entity_name = (["Unknown", "null"].includes(annotation.gt_entity_name)) ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
-            tooltip_header_text += entity_name + " (" + entity_link + ")";
-        } else {
-            tooltip_header_text += entity_link;
-        }
-    } else {
-        if (annotation.pred_entity_id) {
-            var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
-            var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-            var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
-            tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
-        }
-        if (annotation.gt_entity_id ) {
-            if (tooltip_header_text) { tooltip_header_text += "<br>"; }
-            if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
-                // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
-                // instead display "DATETIME"/"QUANTITY" or "Unknown #xy"
-                var entity_name = annotation.gt_entity_id;
-                if (annotation.gt_entity_id.startsWith("Unknown")) {
-                    entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
-                }
-                tooltip_header_text += "Groundtruth: [" + entity_name + "]";
+    if (!(annotation.class == ANNOTATION_CLASS_TP && annotation.gt_entity_id)) {
+        // Don't generate tooltips for the groundtruth part of a TP. A single tooltip is enough in this case
+        if (annotation.class == ANNOTATION_CLASS_TP) {
+            wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+            entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+            if (annotation.pred_entity_name != null) {
+                var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+                tooltip_header_text += entity_name + " (" + entity_link + ")";
             } else {
-                var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
-                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
-                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
-                tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
+                tooltip_header_text += entity_link;
             }
-            if (!annotation.pred_entity_id) { tooltip_classes += " below"; }
+            if (parent_text) tooltip_body_text += "parent text: \"" + parent_text + "\"<br>";
+        } else {
+            if (annotation.pred_entity_id) {
+                var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+                tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
+            }
+            if (annotation.gt_entity_id ) {
+                if (tooltip_header_text) { tooltip_header_text += "<br>"; }
+                if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
+                    // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
+                    // instead display "DATETIME"/"QUANTITY" or "Unknown #xy"
+                    var entity_name = annotation.gt_entity_id;
+                    if (annotation.gt_entity_id.startsWith("Unknown")) {
+                        entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
+                    }
+                    tooltip_header_text += "Groundtruth: [" + entity_name + "]";
+                } else {
+                    var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
+                    var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
+                    var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+                    tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
+                }
+                tooltip_classes += " below";
+            }
+        }
+        // Add case type boxes and annotation case type class to tooltip
+        if ([ANNOTATION_CLASS_TP, ANNOTATION_CLASS_FN, ANNOTATION_CLASS_FP].includes(annotation.class)) {
+            tooltip_case_type_html += "<div class=\"case_type_box " + annotation.class + "\">" + annotation.class.toUpperCase() + "</div>";
+            tooltip_classes += " " + annotation.class;
+        }
+        if (annotation.predicted_by) {
+            tooltip_body_text += "predicted by " + annotation.predicted_by + "<br>";
+        }
+        if (annotation.parent_text) {
+            tooltip_body_text += "parent text: \"" + annotation.parent_text + "\"<br>";
+        }
+        // Add error category tags
+        if (annotation.error_labels && annotation.error_labels.length > 0) {
+            for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
+                var error_label = annotation.error_labels[e_i];
+                error_label = error_label.replace(/_/g, " ").toLowerCase();
+                if (e_i > 0) {
+                    tooltip_footer_html += " ";
+                }
+                tooltip_footer_html += "<span class=\"error_category_tag\">" + error_label + "</span>";
+            }
+        }
+    }
 
-        }
-    }
-    // Add case type boxes and annotation case type class to tooltip
-    for (ann_class of annotation.classes) {
-        if ([ANNOTATION_CLASS_TP, ANNOTATION_CLASS_FN, ANNOTATION_CLASS_FP].includes(ann_class)) {
-            tooltip_case_type_html += "<div class=\"case_type_box " + ann_class + "\">" + ann_class.toUpperCase() + "</div>";
-            tooltip_classes += " " + ann_class;
-        }
-    }
-    if (annotation.predicted_by) {
-        tooltip_body_text += "predicted by " + annotation.predicted_by + "<br>";
-    }
-    if (annotation.parent_text) {
-        tooltip_body_text += "parent text: \"" + annotation.parent_text + "\"<br>";
-    }
-    // Add error category tags
-    if (annotation.error_labels && annotation.error_labels.length > 0) {
-        for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
-            var error_label = annotation.error_labels[e_i];
-            error_label = error_label.replace(/_/g, " ").toLowerCase();
-            if (e_i > 0) {
-                tooltip_footer_html += " ";
-            }
-            tooltip_footer_html += "<span class=\"error_category_tag\">" + error_label + "</span>";
-        }
-    }
     // Use transparent version of the color, if an error category or type is selected
     // and the current annotation does not have a corresponding error category or type label
-    var lowlight_classes = "";
     if (selected_cell_category) {
         var lowlight_mention = true;
         for (selected_category of selected_cell_category) {
             if (is_type_string(selected_category)) {
                 var pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.toLowerCase().split("|").includes(selected_category);
                 var gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.toLowerCase().split("|").includes(selected_category);
-                if (!pred_type_selected) {
-                    lowlight_classes += "pred_lowlight ";
+                if (pred_type_selected || gt_type_selected) {
+                    lowlight_mention = false;
+                    break;
                 }
-                if (!gt_type_selected) {
-                    lowlight_classes += "gt_lowlight ";
-                }
-                lowlight_mention = false;
             } else {
                 if (annotation.error_labels.includes(selected_category) || annotation.mention_type == selected_category) {
                     lowlight_mention = false;
@@ -775,19 +783,26 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
                 }
             }
         }
-        if (lowlight_mention) lowlight_classes = "gt_lowlight pred_lowlight";
+        var lowlight = (lowlight_mention) ? "lowlight" : "";
     }
 
-    var replacement = "<span class=\"annotation " + annotation.classes.join(" ") + " " + lowlight_classes + "\" onmouseover=\"reposition_tooltip(this)\">";
-    replacement += inner_annotation;
-    replacement += "<div class=\"" + tooltip_classes + "\">";
-    replacement += "<div class=\"header\">";
-    replacement += "<div class=\"left\">" + tooltip_header_text + "</div>";
-    replacement += "<div class=\"right\">" + tooltip_case_type_html + "</div>";
-    replacement += "</div>";
-    replacement += "<div class=\"body\">" + tooltip_body_text + "</div>";
-    replacement += "<div class=\"footer\">" + tooltip_footer_html + "</div>";
-    replacement += "</div>";
+    var annotation_kind = (annotation.gt_entity_id) ? "gt" : "pred";
+    var replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + " " + lowlight + "\"";
+    if (tooltip_header_text) {
+        replacement += " onmouseover=\"reposition_tooltip(this)\">";
+        replacement += inner_annotation;
+        replacement += "<div class=\"" + tooltip_classes + "\">";
+        replacement += "<div class=\"header\">";
+        replacement += "<div class=\"left\">" + tooltip_header_text + "</div>";
+        replacement += "<div class=\"right\">" + tooltip_case_type_html + "</div>";
+        replacement += "</div>";
+        replacement += "<div class=\"body\">" + tooltip_body_text + "</div>";
+        replacement += "<div class=\"footer\">" + tooltip_footer_html + "</div>";
+        replacement += "</div>";
+    } else {
+        replacement += ">";
+        replacement += inner_annotation;
+    }
     replacement += "</span>";
 
     return replacement;
