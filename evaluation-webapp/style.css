@@ -220,6 +220,8 @@ div.latex textarea {
 /* Area containing the results per article */
 #article-results {
     padding-top: 2em;
+    padding-bottom: 3em;
+    overflow: hidden;
 }
 
 /* ----------------------------------------- */
@@ -347,7 +349,9 @@ div.latex textarea {
     Don't set position absolute yet because tooltips for annotations at the right table edge would stretch
     the inner window. Using display: none to prevent this does not work, because once display is set to a
     non-none value, some mentions before punctuation somehow get slightly wider on mouseover. */
-    position: fixed;
+    position: absolute;
+    left: 0;
+    right: auto;
     z-index: 20;
     bottom: 100%;
 }

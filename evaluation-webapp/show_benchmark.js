@@ -178,7 +178,40 @@ $("document").ready(function() {
         $("input#result-filter").val(filter_string);
         filter_table_rows();
     }
+
+    // Reposition tooltips on the right edge of the window on mouseenter
+    $("#prediction_overview").on("mouseenter", ".annotation", function() {
+        reposition_tooltip(this);
+    });
+
+    // Tooltips need to be repositioned on window resize
+    // otherwise some might overlap with the left window edge.
+    $(window).on('resize', function(){
+        $("#prediction_overview").find(".tooltiptext").each(function() {
+            if ($(this).css("right") == "0px") $(this).css({"right": "auto", "left": "0px"});
+        });
+    });
 });
+
+function reposition_tooltip(annotation_el) {
+    /*
+    Re-position all tooltips of an annotation such that they don't go outside the window.
+    */
+    var annotation_rect = annotation_el.getBoundingClientRect();
+    // Check whether the annotation contains a line break by checking whether its height is bigger than the line height
+    var line_height = parseInt($(annotation_el).css('line-height').replace('px',''));
+    var line_break = (annotation_rect.height > line_height + 5);
+    $(annotation_el).find(".tooltiptext").each(function() {
+        var tooltip_rect = this.getBoundingClientRect();
+        // Correct the tooltip position if it overlaps with the right edge of the window (approximated by table width)
+        // If the annotation contains a line break, check the right
+        if ((annotation_rect.left + tooltip_rect.width) > $("#prediction_overview").width() || line_break)  {
+            // Align right tooltip edge with right edge of the annotation.
+            // Left needs to be set to auto since it is otherwise still 0.
+            $(this).css({"right": "0px", "left": "auto"});
+        }
+    });
+}
 
 function get_url_parameter(parameter_name) {
     /*
@@ -789,10 +822,9 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
     }
 
     var annotation_kind = (annotation.gt_entity_id) ? "gt" : "pred";
-    var replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + " " + lowlight + "\"";
+    var replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + " " + lowlight + "\">";
+    replacement += inner_annotation;
     if (tooltip_header_text) {
-        replacement += " onmouseover=\"reposition_tooltip(this)\">";
-        replacement += inner_annotation;
         replacement += "<div class=\"" + tooltip_classes + "\">";
         replacement += "<div class=\"header\">";
         replacement += "<div class=\"left\">" + tooltip_header_text + "</div>";
@@ -801,36 +833,10 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
         replacement += "<div class=\"body\">" + tooltip_body_text + "</div>";
         replacement += "<div class=\"footer\">" + tooltip_footer_html + "</div>";
         replacement += "</div>";
-    } else {
-        replacement += ">";
-        replacement += inner_annotation;
     }
     replacement += "</span>";
 
     return replacement;
-}
-
-function reposition_tooltip(annotation_el) {
-    /*
-    Re-position all tooltips of an annotation such that they don't go outside the window.
-    */
-    var annotation_rect = annotation_el.getBoundingClientRect();
-    // Check whether the annotation contains a line break by checking whether its height is bigger than the line height
-    var line_height = parseInt($(annotation_el).css('line-height').replace('px',''));
-    var line_break = (annotation_rect.height > line_height + 5);
-    $(annotation_el).find(".tooltiptext").each(function() {
-        var tooltip_rect = this.getBoundingClientRect();
-        // Correct the tooltip position if it overlaps with the right edge of the window (approximated by table width)
-        // If the annotation contains a line break, check the right
-        if ((annotation_rect.left + tooltip_rect.width) > $("#prediction_overview").width() || line_break)  {
-            // Align right tooltip edge with right edge of the annotation.
-            // Left needs to be set to auto since it is otherwise still 0.
-            $(this).css({"right": 0, "left": "auto"});
-        } else {
-            $(this).css({"right": "auto", "left": 0});
-        }
-        $(this).css({"position": "absolute"})
-    });
 }
 
 function combine_overlapping_annotations(list1, list2) {
