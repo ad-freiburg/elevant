@@ -493,3 +493,16 @@ div.latex textarea {
 #annotation_explanation .tooltiptext table tr:nth-child(1) td {
     line-height: 160%;
 }
+
+#loading {
+    background: transparent url('spinner_50px.gif') center no-repeat;
+    height: 50px;
+    width: 50px;
+    left: 50%;
+    margin: auto;
+    visibility: hidden;
+}
+
+#loading.show {
+    visibility: visible;
+}

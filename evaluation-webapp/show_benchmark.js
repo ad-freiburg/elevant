@@ -978,6 +978,9 @@ async function show_article(selected_approaches, timestamp) {
     // Set column width
     var width_percentage = 100 / column_idx;
     $("#prediction_overview th, #prediction_overview td").css("width", width_percentage + "%");
+
+    // Hide the loading GIF
+    if (timestamp >= last_show_article_request_timestamp) $("#loading").removeClass("show");
 }
 
 function build_overview_table(path, benchmark_name) {
@@ -1529,6 +1532,9 @@ function on_row_click(el) {
     // Get a timestamp for the click to help maintain the order in which evaluation cases are loaded
     var timestamp = new Date().getTime();
     last_show_article_request_timestamp = timestamp;
+
+    // Show the loading GIF
+    $("#loading").addClass("show");
 
     var approach_name = $(el).find('td:first').text();
 
