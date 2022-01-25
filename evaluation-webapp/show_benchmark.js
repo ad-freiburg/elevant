@@ -725,9 +725,11 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
                 if (tooltip_header_text) { tooltip_header_text += "<br>"; }
                 if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
                     // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
-                    // instead display "DATETIME"/"QUANTITY" or "Unknown #xy"
+                    // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN #xy]" or "[UNKNOWN]"
                     var entity_name = annotation.gt_entity_id;
-                    if (annotation.gt_entity_id.startsWith("Unknown")) {
+                    if (annotation.gt_entity_id == "Unknown") {
+                        entity_name = "UNKNOWN";
+                    } else if (annotation.gt_entity_id.startsWith("Unknown")) {
                         entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
                     }
                     tooltip_header_text += "Groundtruth: [" + entity_name + "]";
