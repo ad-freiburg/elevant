@@ -15,6 +15,8 @@
 				Select a benchmark: <select id="benchmark" onchange="show_benchmark_results()"></select>
 			</div>
 			<span>Filter results by keywords: <input id="result-filter"></span>
+			<input type="checkbox" id="checkbox_deprecated" onchange="filter_table_rows()">
+				<label for="checkbox_deprecated">Show deprecated</label>
 			<div>
 				<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
 				<label for="checkbox_compare">Compare two systems</label>

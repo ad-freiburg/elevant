@@ -192,10 +192,13 @@ $("document").ready(function() {
         });
     });
 
-    // Set the result filter string according to the URL parameter
+    // Set the result filter string and show-deprecated checkbox according to the URL parameters
     var filter_string = get_url_parameter("filter");
-    if (filter_string) {
-        $("input#result-filter").val(filter_string);
+    if (filter_string) $("input#result-filter").val(filter_string);
+    var show_deprecated_param = get_url_parameter("show_deprecated");
+    var show_deprecated = (["true", "1"].includes(show_deprecated_param)) ? true : false;
+    if (show_deprecated) $("#checkbox_deprecated").prop('checked', show_deprecated);
+    if (filter_string || !show_deprecated) {
         filter_table_rows();
     }
 
@@ -360,7 +363,13 @@ function filter_table_rows() {
     var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
     $("#evaluation_tables tbody tr").each(function() {
         var name = $(this).children(":first-child").text();
+        // Filter row according to filter keywords
         var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
+
+        // Filter row according to show-deprecated checkbox
+        if (!$("#checkbox_deprecated").is(":checked")) {
+            show_row = show_row && !name.startsWith("deprecated");
+        }
         if (show_row) $(this).show(); else $(this).hide();
     });
 }
