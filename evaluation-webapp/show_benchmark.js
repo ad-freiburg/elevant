@@ -172,14 +172,7 @@ $("document").ready(function() {
         }
     });
 
-    // Set the result filter string according to the URL parameter
-    var filter_string = get_url_parameter("filter");
-    if (filter_string) {
-        $("input#result-filter").val(filter_string);
-        filter_table_rows();
-    }
-
-    // Reposition tooltips on the right edge of the window on mouseenter
+    // Reposition annotation tooltips on the right edge of the window on mouseenter
     $("#prediction_overview").on("mouseenter", ".annotation", function() {
         reposition_annotation_tooltip(this);
     });
@@ -197,6 +190,21 @@ $("document").ready(function() {
         $("#prediction_overview").find(".tooltiptext").each(function() {
             if ($(this).css("right") == "0px") $(this).css({"right": "auto", "left": "0px"});
         });
+    });
+
+    // Set the result filter string according to the URL parameter
+    var filter_string = get_url_parameter("filter");
+    if (filter_string) {
+        $("input#result-filter").val(filter_string);
+        filter_table_rows();
+    }
+
+    // Synchronize the top and bottom scrollbar of the evaluation table
+    $("#evaluation").scroll(function(){
+        $("#top_scrollbar_wrapper").scrollLeft($("#evaluation").scrollLeft());
+    });
+    $("#top_scrollbar_wrapper").scroll(function(){
+        $("#evaluation").scrollLeft($("#top_scrollbar_wrapper").scrollLeft());
     });
 });
 
@@ -1153,6 +1161,10 @@ function show_hide_columns(element) {
     } else {
         column.hide();
     }
+
+    // The table width has changed therefore change the width of the top scrollbar div accordingly
+    var width = $("#evaluation table")[0].getBoundingClientRect().width;
+    $("#top_scrollbar").css({"width": width + "px"});
 }
 
 function get_table_header(json_obj) {

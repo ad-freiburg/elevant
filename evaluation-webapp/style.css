@@ -81,6 +81,16 @@ a {
     padding-bottom: 2em;
 }
 
+#top_scrollbar_wrapper {
+    width: 100%;
+    overflow-x: auto;
+    height: 20px:
+}
+
+#top_scrollbar {
+    height: 20px;
+}
+
 /* ----------------------------------------- */
 /* Begin evaluation results table  */
 
@@ -140,7 +150,7 @@ a {
 /* Make evaluation table horizontally scrollable*/
 #evaluation {
     width: 100%;
-    overflow: auto;
+    overflow-x: auto;
 }
 /* Make the first column of the evaluation table sticky when scrolling */
 #evaluation table th:first-child,
