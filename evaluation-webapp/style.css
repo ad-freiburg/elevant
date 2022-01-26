@@ -54,30 +54,25 @@ a {
     color: black;
 }
 
-.tooltip, .annotation {
+/* Class for warnings */
+.warning {
+    color: red;
+    font-site: 120%;
+}
+
+/* Checkboxes for showing / hiding table columns */
+.checkboxes label {
+    padding-right: 1em;
+}
+
+.checkboxes {
+    margin-bottom: 1em;
+}
+
+.tooltip,
+.annotation {
     position: relative;
     display: inline;
-}
-
-/* Tooltip text */
-.tooltip .tooltiptext {
-    visibility: hidden;
-    background-color: lightgrey;
-    text-align: left;
-    padding: 5px;
-    border-radius: 6px;
-    border: 2px solid white;
-    line-height: 120%;
-
-    /* Position of the tooltip text */
-    position: absolute;
-    z-index: 20;
-    bottom: 100%;
-    left: 0;
-}
-
-td .tooltip:hover .tooltiptext {
-    visibility: visible;
 }
 
 /* Benchmark selector*/
@@ -85,6 +80,9 @@ td .tooltip:hover .tooltiptext {
     padding-top: 1em;
     padding-bottom: 2em;
 }
+
+/* ----------------------------------------- */
+/* Begin evaluation results table  */
 
 /* Evaluation overview area */
 #evaluation_tables {
@@ -139,29 +137,6 @@ td .tooltip:hover .tooltiptext {
     background-color: var(--cell-selected-color);
 }
 
-/* Show the tooltip text when you mouse over a table header cell that comes with a description */
-#evaluation_tables table thead .tooltip .tooltiptext {
-    width: 7em;
-    bottom: 140%;
-    left: 0%;
-    border: 2px solid white;
-    font-size: 0.8em;
-    font-weight: 300;
-}
-
-/* Show the tooltip text when you mouse over the tooltip container */
-#evaluation_tables table thead .tooltip:hover .tooltiptext {
-    visibility: visible;
-}
-
-/* Cell tooltip for precision / recall / F1 cells */
-#evaluation_tables td .tooltiptext {
-    width: 4em;
-    bottom: 140%;
-    left: -20%;
-    border: 2px solid white;
-}
-
 /* Make evaluation table horizontally scrollable*/
 #evaluation {
     width: 100%;
@@ -178,6 +153,48 @@ td .tooltip:hover .tooltiptext {
 #evaluation table td:first-child {
     background: var(--cell-first-column-color);
 }
+
+/* ----------------------------------------- */
+/* Begin table tooltips */
+
+/* Tooltip text */
+table .tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: white;
+    text-align: left;
+    padding: 5px;
+    border-radius: 6px;
+    border: 2px solid lightgrey;
+    line-height: 120%;
+    z-index: 20;
+
+    /* Position of the tooltip. Left and top are set dynamically because due to
+    overflow != visible in the containing div the position of the tooltips must
+    be fixed instead of absolute so they are not cut off */
+    position: fixed;
+    right: auto;
+    bottom: auto;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+table .tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+/* Show the tooltip text when you mouse over a table header cell that comes with a description */
+#evaluation_tables table th .tooltiptext {
+    width: 7em;
+    font-size: 0.8em;
+    font-weight: 300;
+}
+
+/* Cell tooltip for precision / recall / F1 cells */
+#evaluation_tables table td .tooltiptext {
+    width: 5em;
+}
+
+/* ----------------------------------------- */
+/* Begin latex */
 
 /* Table cell for copying latex code */
 .produce_latex {
@@ -202,20 +219,92 @@ div.latex textarea {
     display: none;
 }
 
-/* Class for warnings */
-.warning {
-    color: red;
-    font-site: 120%;
+/* ----------------------------------------- */
+/* Begin article results */
+
+#loading {
+    background: transparent url('spinner_50px.gif') center no-repeat;
+    height: 50px;
+    width: 50px;
+    left: 50%;
+    margin: auto;
+    visibility: hidden;
 }
 
-/* Checkboxes for showing / hiding table columns */
-.checkboxes label {
-    padding-right: 1em;
+#loading.show {
+    visibility: visible;
 }
 
-.checkboxes {
+#over-table-row {
+    display: flex;
+    justify-content: space-between; /* Put left child at the left end and right child at the right end */
     margin-bottom: 1em;
 }
+
+#select_article {
+    display: inline;
+    padding: 5px 0px;
+    margin: 0;
+}
+
+#article_link {
+    margin-left: 1em;
+}
+
+/* ----------------------------------------- */
+/* Begin annotation explanation */
+
+#annotation_explanation {
+    display: inline;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    background: var(--row-hover-color);
+    position: relative;
+    margin-right: 1em;
+}
+
+#annotation_explanation:hover {
+    background: var(--cell-hover-color);
+}
+
+#annotation_explanation .tooltiptext {
+    visibility: hidden;
+    background-color: white;
+    text-align: left;
+    padding: 5px;
+    border-radius: 6px;
+    border: 2px solid lightgrey;
+    line-height: 140%;
+    min-width: 40em;
+
+    /* Position of the tooltip text */
+    position: fixed;
+    z-index: 20;
+    right: auto;
+    bottom: auto;
+}
+
+#annotation_explanation:hover .tooltiptext {
+    visibility: visible;
+}
+
+#annotation_explanation .tooltiptext table,
+#annotation_explanation .tooltiptext table td {
+    border: none;
+    padding: 0.5em;
+}
+
+#annotation_explanation .tooltiptext table td:nth-child(1) {
+    white-space: nowrap;
+}
+
+#annotation_explanation .tooltiptext table tr:nth-child(1) td {
+    line-height: 160%;
+}
+
+/* ----------------------------------------- */
+/* Begin prediction overview */
 
 /* Area containing the results per article */
 #article-results {
@@ -223,9 +312,6 @@ div.latex textarea {
     padding-bottom: 3em;
     overflow: hidden;
 }
-
-/* ----------------------------------------- */
-/* Begin prediction overview */
 
 #prediction_overview {
     display: none;
@@ -428,85 +514,4 @@ div.latex textarea {
 .annotation .tooltiptext .case_type_box.fp,
 .annotation .tooltiptext .case_type_box.fn {
     background-color: var(--annotation-fp-color);
-}
-
-/* ----------------------------------------- */
-/* Begin annotation explanation */
-
-#over-table-row {
-    display: flex;
-    justify-content: space-between; /* Put left child at the left end and right child at the right end */
-    margin-bottom: 1em;
-}
-
-#over-table-row #annotation_explanation:hover {
-    background: var(--cell-hover-color);
-}
-
-#select_article {
-    display: inline;
-    padding: 5px 0px;
-    margin: 0;
-}
-
-#article_link {
-    margin-left: 1em;
-}
-
-#annotation_explanation {
-    display: inline;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 5px;
-    background: var(--row-hover-color);
-    position: relative;
-    margin-right: 1em;
-}
-
-#annotation_explanation .tooltiptext {
-    visibility: hidden;
-    background-color: white;
-    text-align: left;
-    padding: 5px;
-    border-radius: 6px;
-    border: 2px solid lightgrey;
-    line-height: 140%;
-    min-width: 40em;
-
-    /* Position of the tooltip text */
-    position: absolute;
-    z-index: 20;
-    bottom: 100%;
-    right: 0%;
-}
-
-#annotation_explanation:hover .tooltiptext {
-    visibility: visible;
-}
-
-#annotation_explanation .tooltiptext table,
-#annotation_explanation .tooltiptext table td {
-    border: none;
-    padding: 0.5em;
-}
-
-#annotation_explanation .tooltiptext table td:nth-child(1) {
-    white-space: nowrap;
-}
-
-#annotation_explanation .tooltiptext table tr:nth-child(1) td {
-    line-height: 160%;
-}
-
-#loading {
-    background: transparent url('spinner_50px.gif') center no-repeat;
-    height: 50px;
-    width: 50px;
-    left: 50%;
-    margin: auto;
-    visibility: hidden;
-}
-
-#loading.show {
-    visibility: visible;
 }

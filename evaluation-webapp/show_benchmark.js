@@ -181,7 +181,14 @@ $("document").ready(function() {
 
     // Reposition tooltips on the right edge of the window on mouseenter
     $("#prediction_overview").on("mouseenter", ".annotation", function() {
-        reposition_tooltip(this);
+        reposition_annotation_tooltip(this);
+    });
+
+    // Position table tooltips
+    $("#evaluation").on("mouseenter", "td,th", function() {
+        $(this).find(".tooltip").each(function() {
+            position_table_tooltip(this);
+        });
     });
 
     // Tooltips need to be repositioned on window resize
@@ -193,7 +200,27 @@ $("document").ready(function() {
     });
 });
 
-function reposition_tooltip(annotation_el) {
+function position_annotation_explanation_tooltip(anchor_el) {
+    var anchor_el_rect = anchor_el.getBoundingClientRect();
+    $(anchor_el).find(".tooltiptext").each(function() {
+        var tooltip_rect = this.getBoundingClientRect();
+        var top = anchor_el_rect.top - tooltip_rect.height;
+        var left = anchor_el_rect.right - tooltip_rect.width;
+        $(this).css({"left": left + "px", "top": top + "px", "width": $(this).css("width")});
+    });
+}
+
+function position_table_tooltip(anchor_el) {
+    var anchor_el_rect = anchor_el.getBoundingClientRect();
+    $(anchor_el).find(".tooltiptext").each(function() {
+        var tooltip_rect = this.getBoundingClientRect();
+        var font_size = $(this).css("font-size").replace("px", "");
+        var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
+        $(this).css({"left": anchor_el_rect.left + "px", "top": top + "px"});
+    });
+}
+
+function reposition_annotation_tooltip(annotation_el) {
     /*
     Re-position all tooltips of an annotation such that they don't go outside the window.
     */
