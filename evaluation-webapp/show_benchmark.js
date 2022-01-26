@@ -1163,8 +1163,13 @@ function show_hide_columns(element) {
     }
 
     // The table width has changed therefore change the width of the top scrollbar div accordingly
-    var width = $("#evaluation table")[0].getBoundingClientRect().width;
+    var width = $("#evaluation table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
     $("#top_scrollbar").css({"width": width + "px"});
+
+    // Adjust the top position of the sticky second table header row according to the
+    // height of the first table header row
+    var top = $("#evaluation table thead tr:nth-child(1)")[0].getBoundingClientRect().height;
+    $("#evaluation table thead tr:nth-child(2)").css({"top": top});
 }
 
 function get_table_header(json_obj) {

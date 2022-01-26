@@ -149,9 +149,23 @@ a {
 
 /* Make evaluation table horizontally scrollable*/
 #evaluation {
-    width: 100%;
-    overflow-x: auto;
+    max-width: 100%;
+    height: 80%;
+    overflow: auto;
+    display: inline-block;
 }
+
+/* Make the evaluation table header sticky when scrolling */
+#evaluation table thead tr {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 15;
+}
+#evaluation table thead tr:nth-child(2) {
+    top: 1.8em;
+}
+
 /* Make the first column of the evaluation table sticky when scrolling */
 #evaluation table th:first-child,
 #evaluation table td:first-child {
