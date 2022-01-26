@@ -1257,7 +1257,7 @@ function get_table_row_by_json_key(json_obj, key, onclick_str) {
                 // Values that consist not of a single number but of multiple
                 // key-value pairs are displayed in a single column.
                 var processed_value = "<div class='" + class_name + " tooltip'>";
-                var percentage = (value["errors"] / value["total"] * 100).toFixed(2);
+                var percentage = get_error_percentage(value);
                 processed_value += percentage + "%";
                 processed_value += "<span class='tooltiptext'>";
                 processed_value += value["errors"] + " / " + value["total"];
@@ -1279,6 +1279,13 @@ function get_table_row_by_json_key(json_obj, key, onclick_str) {
         }
     });
     return row_addition;
+}
+
+function get_error_percentage(value) {
+    if (value["total"] == 0) {
+        return 0.00;
+    }
+    return (value["errors"] / value["total"] * 100).toFixed(2);
 }
 
 function get_tooltip_text(json_obj) {
@@ -1356,7 +1363,7 @@ function sort_table(column_header) {
         var value = results[key][subkey]
         if (Object.keys(results[key][subkey]).length > 0) {
             // An error category contains two keys and the percentage is displayed, so sort by percentage
-            value = (value["errors"] / value["total"] * 100).toFixed(2);
+            value = get_error_percentage(value);
         }
         col_values.push(value);
     });
