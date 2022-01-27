@@ -1037,15 +1037,15 @@ function build_overview_table(path, benchmark_name) {
     /*
     Build the overview table from the .results files found in the subdirectories of the given path.
     */
-    folders = [];
+    var folders = [];
     result_files = {};
     result_array = [];
     var urls = [];
     $.get(path, function(data) {
         // Get all folders from the evaluation results directory
         $(data).find("a").each(function() {
-            name = $(this).attr("href");
-            name = name.substring(0, name.length - 1);
+            var name = $(this).attr("href");
+            var name = name.substring(0, name.length - 1);
             folders.push(name);
         });
     }).done(function() {
@@ -1053,11 +1053,11 @@ function build_overview_table(path, benchmark_name) {
         $.when.apply($, folders.map(function(folder) {
             return $.get(path + "/" + folder, function(folder_data) {
                 $(folder_data).find("a").each(function() {
-                    file_name = $(this).attr("href");
+                    var file_name = $(this).attr("href");
                     // This assumes the benchmark is specified in the last dot separated column before the
                     // file extension if it is not our wiki-ex benchmark.
-                    benchmark = file_name.split(".").slice(-2)[0];
-                    benchmark_match = ((benchmark_name == "wiki-ex" && !benchmark_names.includes(benchmark)) || benchmark == benchmark_name);
+                    var benchmark = file_name.split(".").slice(-2)[0];
+                    var benchmark_match = ((benchmark_name == "wiki-ex" && !benchmark_names.includes(benchmark)) || benchmark == benchmark_name);
                     if (file_name.endsWith(RESULTS_EXTENSION) && benchmark_match) {
                         var url = path + "/" + folder + "/" + file_name;
                         urls.push(url);
@@ -1069,6 +1069,8 @@ function build_overview_table(path, benchmark_name) {
             $.when.apply($, urls.map(function(url) {
                 return $.getJSON(url, function(results) {
                     var approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
+                    // Remove the benchmark extension from the approach name
+                    if (approach_name.endsWith("." + benchmark_name)) approach_name = approach_name.substring(0, approach_name.lastIndexOf("."))
                     result_files[approach_name] = url.substring(0, url.length - RESULTS_EXTENSION.length);
                     result_array.push([approach_name, results]);
                 });
