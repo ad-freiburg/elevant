@@ -368,7 +368,7 @@ function filter_table_rows() {
 
         // Filter row according to show-deprecated checkbox
         if (!$("#checkbox_deprecated").is(":checked")) {
-            show_row = show_row && !name.startsWith("deprecated");
+            show_row = show_row && !name.includes("deprecated");
         }
         if (show_row) $(this).show(); else $(this).hide();
     });
