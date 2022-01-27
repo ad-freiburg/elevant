@@ -6,6 +6,7 @@ ANNOTATION_CLASS_OPTIONAL = "optional";
 ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 
 RESULTS_EXTENSION = ".results";
+EVALUATION_RESULT_PATH = "evaluation-results";
 
 MAX_SELECTED_APPROACHES = 2;
 MAX_CACHED_FILES = 15;
@@ -124,7 +125,7 @@ $("document").ready(function() {
     selected_cells = [];
     reset_selected_cell_categories();
 
-    sorting_variables = {"column_index": null, "desc": true}
+    sorting_variables = {"column_index": null, "desc": true};
 
     set_benchmark_select_options();
 
@@ -317,7 +318,9 @@ function set_benchmark_select_options() {
             // Set default value to "wiki-ex".
             $('#benchmark option:contains("wiki-ex")').prop('selected',true);
         }
-        show_benchmark_results();
+        // If URL parameter is set, select approach name according to URL parameter
+        var approach_name_url_param = get_url_parameter("approach");
+        show_benchmark_results(approach_name_url_param);
     });
 }
 
@@ -329,7 +332,7 @@ function reset_selected_cell_categories() {
     selected_cell_categories = new Array(MAX_SELECTED_APPROACHES).fill(null);
 }
 
-function show_benchmark_results() {
+function show_benchmark_results(default_approach_name) {
     /*
     Show overview table and set up the article selector for a selected benchmark.
     */
@@ -353,7 +356,7 @@ function show_benchmark_results() {
     reset_selected_cell_categories();
 
     // Build an overview table over all .results-files from the evaluation-results folder.
-    build_overview_table("evaluation-results", benchmark_name);
+    build_overview_table(benchmark_name, default_approach_name);
 
     // Read the article and ground truth information from the benchmark.
     parse_benchmark(benchmark_file);
@@ -1033,10 +1036,11 @@ async function show_article(selected_approaches, timestamp) {
     if (timestamp >= last_show_article_request_timestamp) $("#loading").removeClass("show");
 }
 
-function build_overview_table(path, benchmark_name) {
+function build_overview_table(benchmark_name, default_approach_name) {
     /*
     Build the overview table from the .results files found in the subdirectories of the given path.
     */
+    var path = EVALUATION_RESULT_PATH;
     var folders = [];
     result_files = {};
     result_array = [];
@@ -1104,6 +1108,11 @@ function build_overview_table(path, benchmark_name) {
                     // whether the column header already has the class "desc"
                     if (!sort_descending) sort_column_header.addClass("desc");
                     sort_table(sort_column_header);
+                }
+
+                if (default_approach_name) {
+                    var row = $('#evaluation table tbody tr').filter(function(){ return $(this).children(":first-child").text() === default_approach_name;});
+                    if (row.length > 0) on_row_click(row[0]);
                 }
             });
         });
@@ -1564,7 +1573,7 @@ function read_articles_data(path, approach_name) {
 
     if (!(approach_name in articles_data) || articles_data[approach_name].length == 0) {
         articles_data[approach_name] = [];
-        promise = $.get(path, function(data) {
+        var promise = $.get(path, function(data) {
             lines = data.split("\n");
             for (line of lines) {
                 if (line.length > 0) {
@@ -1702,7 +1711,6 @@ function get_error_category_or_type(el) {
         } if (is_type_string(classes[0])) {
             return [classes[0].replace(/(q[0-9]+)_.*/g, "$1")];
         } else if (classes[0] in mention_type_headers) {
-            console.log("mention type category:", mention_type_headers[classes[0]]);
             return mention_type_headers[classes[0]];
         }
     }
