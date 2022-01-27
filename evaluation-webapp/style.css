@@ -348,14 +348,14 @@ div.latex textarea {
 #prediction_overview {
     display: none;
     width: 100%;
-    border-collapse: separate;
     border-spacing: 0;
-    border: 1px solid black;;
+    border-collapse: separate;
 }
 
 #prediction_overview td,
 #prediction_overview th {
     width: 50%;
+    border: 1px solid #aaa;
 }
 
 #prediction_overview td {
