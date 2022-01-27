@@ -14,7 +14,7 @@ LINKED_WIKI_ARTICLES = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-linked.jsonl
 
 # Variables for downloading wikidata files
 WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata_mappings/
-API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
+WIKIDATA_SPARQL_ENDPOINT = https://qlever.cs.uni-freiburg.de/api/wikidata
 # Note that the query names are also used for generating the file name by
 # casting the query name to lowercase and appending .tsv
 DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_GIVEN_NAME QID_TO_SITELINK WIKIDATA_ENTITIES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
@@ -24,7 +24,7 @@ NUM_LINKER_PROCESSES = 1
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation_results/
 # Adjust if you only want to link or evaluate certain benchmarks
-BENCHMARK_NAMES = wiki-ex newscrawl conll-test conll-dev msnbc ace
+BENCHMARK_NAMES = wiki-ex newscrawl conll-test conll-dev msnbc ace msnbc-original ace-original
 # Adjust if you only want to link with certain linking systems.
 # The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
 LINKING_SYSTEMS = ambiverse baseline explosion neural_el popular_entities pos_prior spacy spacy_wikipedia tagme wikifier
@@ -41,7 +41,7 @@ config:
 	@echo "Basic configuration variables:"
 	@echo
 	@for VAR in DATA_DIR WIKIPEDIA_DUMP_FILES_DIR WIKI_DUMP EXTRACTED_WIKI_DUMP LINKED_WIKI_ARTICLES \
-	    WIKIDATA_MAPPINGS_DIR API_WIKIDATA DATA_QUERY_NAMES BATCH_SIZE; do \
+	    WIKIDATA_MAPPINGS_DIR WIKIDATA_SPARQL_ENDPOINT DATA_QUERY_NAMES BATCH_SIZE; do \
 	  printf "%-30s = %s\n" "$$VAR" "$${!VAR}"; done
 	@echo
 	@printf "All targets: "
@@ -142,7 +142,7 @@ build_entity_types:
 	  echo -e "$${BOLD}QLever docker image already exists. Using existing image.$${RESET}"; \
 	fi
 
-	cd wikidata-types; chmod 777 index; $(MAKE) -sB DOCKER_CMD=${DOCKER_CMD} API_WIKIDATA=${API_WIKIDATA} -f Makefile; cd ..
+	cd wikidata-types; chmod 777 index; $(MAKE) -sB DOCKER_CMD=${DOCKER_CMD} WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
 
@@ -175,19 +175,6 @@ link_wiki:
 
 getmappings: get_wikidata_mappings build_wikipedia_mappings build_coreference_types_mapping
 
-# Get data for queries from $(DATA_QUERY_VARABLES) via $(API_WIKIDATA) and write to tsv files.
-get_wikidata_mappings:
-	@echo
-	@echo "[get_wikidata_mappings] Get data for given queries in batches."
-	@echo
-	@echo "DATA_QUERY_NAMES = $(DATA_QUERY_NAMES)"
-	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
-	for QUERY_NAME in $(DATA_QUERY_NAMES); do echo; \
-	  echo $${QUERY_NAME}; \
-	  LOWER_QUERY_NAME=$$(echo $${QUERY_NAME} | tr '[:upper:]' '[:lower:]'); \
-	  $(MAKE) -sB API=$${API_WIKIDATA} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query.batched; done
-	@echo
-
 build_coreference_types_mapping:
 	@echo
 	@echo "[build_coreference_types_mapping] Get mapping from QID to coreference types needed only for our own coref resolver."
@@ -210,20 +197,18 @@ build_wikipedia_mappings:
 	python3 get_wikipedia_id_to_title_mapping.py
 	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.tsv
 
-# Get result for $(QUERY) in batches of size $(BATCH_SIZE), using query: target
-query.batched:
-	@echo "API = $(API)"
-	@echo "OUTFILE = $(OUTFILE)"
-	@true > $(OUTFILE)
-	@echo "$$PREFIXES $${${QUERY_VARIABLE}}"
-	@RESULT_SIZE=$$($(MAKE) -s QUERY=$${QUERY_VARIABLE} count); \
-	echo "Result size = $$(echo $$RESULT_SIZE | numfmt --grouping)"; \
-	for OFFSET in `seq 0 $$BATCH_SIZE $$RESULT_SIZE`; do \
-	  echo "LIMIT $$BATCH_SIZE OFFSET $$OFFSET"; \
-	  $(MAKE) -s QUERY=$${QUERY_VARIABLE} SUFFIX="LIMIT $$BATCH_SIZE OFFSET $$OFFSET" query; \
-	done
-	@echo "First line and last line of $(OUTFILE) are:"
-	@head -1 $(OUTFILE) && tail -1 $(OUTFILE)
+# Get data for queries from $(DATA_QUERY_VARABLES) via $(WIKIDATA_SPARQL_ENDPOINT) and write to tsv files.
+get_wikidata_mappings:
+	@echo
+	@echo "[get_wikidata_mappings] Get data for given queries in batches."
+	@echo
+	@echo "DATA_QUERY_NAMES = $(DATA_QUERY_NAMES)"
+	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
+	for QUERY_NAME in $(DATA_QUERY_NAMES); do echo; \
+	  echo $${QUERY_NAME}; \
+	  LOWER_QUERY_NAME=$$(echo $${QUERY_NAME} | tr '[:upper:]' '[:lower:]'); \
+	  $(MAKE) -sB API=$${WIKIDATA_SPARQL_ENDPOINT} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query; done
+	@echo
 
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)
 #
@@ -234,22 +219,21 @@ query.batched:
 # 3) Replace integer literals by just the integer
 # 4) Remove the <> around wikipedia urls
 query:
-	@curl -Gs $(API) \
-	    --data-urlencode "query=$$PREFIXES $${${QUERY}} $${SUFFIX}" \
-	    --data-urlencode "action=tsv_export" \
+	@echo "API = ${API}"
+	@echo "OUTFILE = ${OUTFILE}"
+	@echo "$$PREFIXES $${${QUERY_VARIABLE}}"
+	@curl -Gs ${API} -H "Accept: text/tab-separated-values"\
+	    --data-urlencode "query=$$PREFIXES $${${QUERY_VARIABLE}} LIMIT 200000000" \
 	    | sed -r '/<http:\/\/www\.wikidata\.org\/entity\/[LP][^>]*>/d' \
 	    | sed -r 's|<http://www\.wikidata\.org/entity/([Q][0-9]+)>|\1|g' \
 	    | sed -r 's|"([^\t"]*)"@en|\1|g' \
 	    | sed -r 's|"([0-9][0-9]*)"\^\^<http://www\.w3\.org/2001/XMLSchema#int>|\1|g' \
 	    | sed -r 's|<(http[s]*://[^\t ]*)>|\1|g' \
-	    >> $(OUTFILE)
-
-# Get result size for $(QUERY), without downloading anything of the result yet
-count:
-	curl -Gs $(API) \
-	    --data-urlencode "query=$$PREFIXES $${${QUERY}} LIMIT 0" \
-	    --data-urlencode "send=0" \
-	    | grep resultsize | head -1 | sed 's/[^0-9]//g'
+	    > ${OUTFILE}
+	@echo "Number of lines in ${OUTFILE}:"
+	@wc -l ${OUTFILE} | cut -f 1 -d " "
+	@echo "First and last line:"
+	@head -1 ${OUTFILE} && tail -1 ${OUTFILE}
 
 define PREFIXES
 PREFIX wd: <http://www.wikidata.org/entity/>
