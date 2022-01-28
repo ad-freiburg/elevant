@@ -1370,8 +1370,8 @@ function sort_table(column_header) {
         } else if (key in error_category_mapping && subkey in error_category_mapping[key]) {
             results = results["errors"];
         }
-        var value = results[key][subkey]
-        if (Object.keys(results[key][subkey]).length > 0) {
+        var value = results[key][subkey];
+        if (value && Object.keys(value).length > 0) {
             // An error category contains two keys and the percentage is displayed, so sort by percentage
             value = get_error_percentage(value);
         }
