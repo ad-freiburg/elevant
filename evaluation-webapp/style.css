@@ -311,10 +311,10 @@ div.latex textarea {
     min-width: 40em;
 
     /* Position of the tooltip text */
-    position: fixed;
+    position: absolute;
     z-index: 20;
-    right: auto;
-    bottom: auto;
+    bottom: 100%;
+    right: 0%;
 }
 
 #annotation_explanation:hover .tooltiptext {
@@ -341,8 +341,6 @@ div.latex textarea {
 /* Area containing the results per article */
 #article-results {
     padding-top: 2em;
-    padding-bottom: 3em;
-    overflow: hidden;
 }
 
 #prediction_overview {
@@ -350,6 +348,9 @@ div.latex textarea {
     width: 100%;
     border-spacing: 0;
     border-collapse: separate;
+    overflow: hidden;
+    padding-top: 3em;
+    padding-bottom: 4em;
 }
 
 #prediction_overview td,
@@ -361,6 +362,8 @@ div.latex textarea {
 #prediction_overview td {
     vertical-align: top;
     line-height: 200%;
+    padding-top: 3em;
+    padding-bottom: 3em;
 }
 
 #prediction_overview [class*="compare_"] {
@@ -383,11 +386,6 @@ div.latex textarea {
     border-top: 1px solid #ccc;
     margin: 2em 0em;
     padding: 0;
-}
-
-#prediction_overview tbody td {
-    padding-top: 2em;
-    padding-bottom: 2em;
 }
 
 /* ----------------------------------------- */

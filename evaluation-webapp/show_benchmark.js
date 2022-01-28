@@ -212,16 +212,6 @@ $("document").ready(function() {
     });
 });
 
-function position_annotation_explanation_tooltip(anchor_el) {
-    var anchor_el_rect = anchor_el.getBoundingClientRect();
-    $(anchor_el).find(".tooltiptext").each(function() {
-        var tooltip_rect = this.getBoundingClientRect();
-        var top = anchor_el_rect.top - tooltip_rect.height;
-        var left = anchor_el_rect.right - tooltip_rect.width;
-        $(this).css({"left": left + "px", "top": top + "px", "width": $(this).css("width")});
-    });
-}
-
 function position_table_tooltip(anchor_el) {
     var anchor_el_rect = anchor_el.getBoundingClientRect();
     $(anchor_el).find(".tooltiptext").each(function() {
