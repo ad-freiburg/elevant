@@ -1,8 +1,7 @@
 :root {
     --row-hover-color: #E0E0E0;
     --row-selected-color: #D1D1D1;
-    --cell-first-header-color: #999999;
-    --cell-header-color: #BBBBBB;
+    --cell-header-color: #999999;
     --cell-first-column-color: #BBBBBB;
     --cell-color: #EEEEEE;
     --cell-hover-color: #F9E29B;
@@ -63,7 +62,7 @@ a {
 #evaluation_tables p {
     padding: 0;
     margin: 0;
-    color: var(--cell-first-header-color);
+    color: var(--cell-header-color);
 }
 
 /* Checkboxes for showing / hiding table columns */
@@ -116,9 +115,6 @@ a {
 #evaluation_tables table th {
     background-color: var(--cell-header-color);
 }
-#evaluation_tables table thead tr:nth-child(1) th {
-    background-color: var(--cell-first-header-color);
-}
 #evaluation_tables table td {
     width: 5em;
     background-color: var(--cell-color);
@@ -130,6 +126,7 @@ a {
 }
 #evaluation_tables table tbody tr td:nth-child(1) {
     text-align: left;
+    white-space: nowrap;
 }
 #evaluation_tables table tbody tr:hover td {
     background-color: var(--row-hover-color);
@@ -186,6 +183,18 @@ a {
     background: var(--cell-first-column-color);
 }
 
+#table_loading {
+    background: transparent url('spinner_50px.gif') center no-repeat;
+    height: 50px;
+    width: 50px;
+    left: 50%;
+    margin: auto;
+    display: none;
+}
+#table_loading.show {
+    display: block;
+}
+
 /* ----------------------------------------- */
 /* Begin table tooltips */
 
@@ -198,7 +207,7 @@ table .tooltip .tooltiptext {
     border-radius: 6px;
     border: 2px solid lightgrey;
     line-height: 120%;
-    z-index: 20;
+    z-index: 30;
 
     /* Position of the tooltip. Left and top are set dynamically because due to
     overflow != visible in the containing div the position of the tooltips must
@@ -361,7 +370,7 @@ div.latex textarea {
 
 #prediction_overview td {
     vertical-align: top;
-    line-height: 200%;
+    line-height: 220%;
     padding-top: 3em;
     padding-bottom: 3em;
 }
@@ -455,7 +464,7 @@ div.latex textarea {
     text-align: left;
     padding: 5px;
     border-radius: 6px;
-    border: 2px solid white;
+    border: 3px solid white;
     line-height: 120%;
     background-color: white;
     white-space: nowrap;

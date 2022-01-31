@@ -194,7 +194,7 @@ $("document").ready(function() {
     });
 
     // Set the result filter string and show-deprecated checkbox according to the URL parameters
-    var filter_string = get_url_parameter("filter");
+    var filter_string = get_url_parameter("system_filter");
     if (filter_string) $("input#result-filter").val(filter_string);
     var show_deprecated_param = get_url_parameter("show_deprecated");
     var show_deprecated = (["true", "1"].includes(show_deprecated_param)) ? true : false;
@@ -217,7 +217,11 @@ function position_table_tooltip(anchor_el) {
     $(anchor_el).find(".tooltiptext").each(function() {
         var tooltip_rect = this.getBoundingClientRect();
         var font_size = $(this).css("font-size").replace("px", "");
-        var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
+        if ($(anchor_el).parent().is("th")) {
+            var top = anchor_el_rect.bottom + 10;
+        } else {
+            var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
+        }
         $(this).css({"left": anchor_el_rect.left + "px", "top": top + "px"});
     });
 }
@@ -279,6 +283,9 @@ function set_benchmark_select_options() {
     /*
     Set the options for the benchmark selector element to the names of the benchmarks in the given directory.
     */
+    // Show loading GIF
+    $("#table_loading").addClass("show");
+
     // Retrieve file path of .results files in each folder
     benchmarks = [];
     $.get("benchmarks", function(folder_data) {
@@ -309,7 +316,7 @@ function set_benchmark_select_options() {
             $('#benchmark option:contains("wiki-ex")').prop('selected',true);
         }
         // If URL parameter is set, select approach name according to URL parameter
-        var approach_name_url_param = get_url_parameter("approach");
+        var approach_name_url_param = get_url_parameter("system");
         show_benchmark_results(approach_name_url_param);
     });
 }
@@ -326,6 +333,7 @@ function show_benchmark_results(default_approach_name) {
     /*
     Show overview table and set up the article selector for a selected benchmark.
     */
+    $("#table_loading").addClass("show");
     benchmark_file = benchmark_select.value;
     benchmark_name = $("#benchmark option:selected").text();
 
@@ -772,67 +780,74 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
     var tooltip_case_type_html = "";
     var tooltip_body_text = "";
     var tooltip_footer_html = "";
-    if (!(annotation.class == ANNOTATION_CLASS_TP && annotation.gt_entity_id)) {
-        // Don't generate tooltips for the groundtruth part of a TP. A single tooltip is enough in this case
-        if (annotation.class == ANNOTATION_CLASS_TP) {
-            wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-            entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
-            if (annotation.pred_entity_name != null) {
-                var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
-                tooltip_header_text += entity_name + " (" + entity_link + ")";
-            } else {
-                tooltip_header_text += entity_link;
-            }
-            if (parent_text) tooltip_body_text += "parent text: \"" + parent_text + "\"<br>";
+    if (annotation.class == ANNOTATION_CLASS_TP && annotation.pred_entity_id) {
+        wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+        entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+        if (annotation.pred_entity_name != null) {
+            var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+            entity_name = entity_name + " (" + entity_link + ")";
         } else {
-            if (annotation.pred_entity_id) {
-                var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
-                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
-                tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
-            }
-            if (annotation.gt_entity_id ) {
-                if (tooltip_header_text) { tooltip_header_text += "<br>"; }
-                if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
-                    // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
-                    // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN #xy]" or "[UNKNOWN]"
-                    var entity_name = annotation.gt_entity_id;
-                    if (annotation.gt_entity_id == "Unknown") {
-                        entity_name = "UNKNOWN";
-                    } else if (annotation.gt_entity_id.startsWith("Unknown")) {
-                        entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
-                    }
-                    tooltip_header_text += "Groundtruth: [" + entity_name + "]";
-                } else {
-                    var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
-                    var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
-                    var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
-                    tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
-                }
-                tooltip_classes += " below";
-            }
+            entity_name = entity_link;
         }
-        // Add case type boxes and annotation case type class to tooltip
-        if ([ANNOTATION_CLASS_TP, ANNOTATION_CLASS_FN, ANNOTATION_CLASS_FP].includes(annotation.class)) {
+        tooltip_header_text += entity_name;
+    } else if (annotation.class == ANNOTATION_CLASS_TP && annotation.gt_entity_id) {
+        tooltip_classes += " below";
+    } else {
+        if (annotation.pred_entity_id) {
+            var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+            var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+            var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+            tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
+        }
+        if (annotation.gt_entity_id ) {
+            if (tooltip_header_text) { tooltip_header_text += "<br>"; }
+            if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
+                // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
+                // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN #xy]" or "[UNKNOWN]"
+                var entity_name = annotation.gt_entity_id;
+                if (annotation.gt_entity_id == "Unknown") {
+                    entity_name = "UNKNOWN";
+                } else if (annotation.gt_entity_id.startsWith("Unknown")) {
+                    entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
+                }
+                tooltip_header_text += "Groundtruth: [" + entity_name + "]";
+            } else {
+                var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
+                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
+                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+                tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
+            }
+            if (annotation.class == ANNOTATION_CLASS_OPTIONAL) tooltip_body_text += "Note: Detection is optional<br>";
+            if (annotation.class == ANNOTATION_CLASS_UNKNOWN) tooltip_body_text += "Note: Entity not found in the knowledge base<br>"
+            tooltip_classes += " below";
+        }
+    }
+    // Add case type boxes and annotation case type class to tooltip
+    if ([ANNOTATION_CLASS_TP, ANNOTATION_CLASS_FN, ANNOTATION_CLASS_FP].includes(annotation.class)) {
+        if (tooltip_header_text) {
             tooltip_case_type_html += "<div class=\"case_type_box " + annotation.class + "\">" + annotation.class.toUpperCase() + "</div>";
-            tooltip_classes += " " + annotation.class;
         }
-        if (annotation.predicted_by) {
-            tooltip_body_text += "predicted by " + annotation.predicted_by + "<br>";
-        }
-        if (annotation.parent_text) {
-            tooltip_body_text += "parent text: \"" + annotation.parent_text + "\"<br>";
-        }
-        // Add error category tags
-        if (annotation.error_labels && annotation.error_labels.length > 0) {
-            for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
-                var error_label = annotation.error_labels[e_i];
-                error_label = error_label.replace(/_/g, " ").toLowerCase();
-                if (e_i > 0) {
-                    tooltip_footer_html += " ";
-                }
-                tooltip_footer_html += "<span class=\"error_category_tag\">" + error_label + "</span>";
+        tooltip_classes += " " + annotation.class;
+    }
+    if (annotation.predicted_by) {
+        tooltip_body_text += "Predicted by " + annotation.predicted_by + "<br>";
+    }
+    if (annotation.parent_text) {
+        tooltip_body_text += "Alternative span: \"" + annotation.parent_text + "\"<br>";
+    }
+    // Add error category tags
+    // Only show error category tags for once in the FP tooltip, i.e. don't double them in the GT tooltip for TP
+    // and for disambiguation errors
+    var correct_ner = (annotation.inner_annotation && annotation.inner_annotation.pred_entity_id && annotation.inner_annotation.span[0] == annotation.span[0] && annotation.inner_annotation.span[1] == annotation.span[1]);
+    if (annotation.error_labels && annotation.error_labels.length > 0 && !correct_ner) {
+        // if (annotation.class == ANNOTATION_CLASS_TP && annotation.inner_annotation && annotation.inner_annotation.pred_entity_id) console.log(annotation.inner_annotation, annotation.span, annotation.inner_annotation.span == annotation.span);
+        for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
+            var error_label = annotation.error_labels[e_i];
+            error_label = error_label.replace(/_/g, " ").toLowerCase();
+            if (e_i > 0) {
+                tooltip_footer_html += " ";
             }
+            tooltip_footer_html += "<span class=\"error_category_tag\">" + error_label + "</span>";
         }
     }
 
@@ -855,13 +870,13 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
                 }
             }
         }
-        var lowlight = (lowlight_mention) ? "lowlight" : "";
     }
+    var lowlight = (lowlight_mention) ? "lowlight" : "";
 
     var annotation_kind = (annotation.gt_entity_id) ? "gt" : "pred";
     var replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + " " + lowlight + "\">";
     replacement += inner_annotation;
-    if (tooltip_header_text) {
+    if (tooltip_header_text || tooltip_body_text) {
         replacement += "<div class=\"" + tooltip_classes + "\">";
         replacement += "<div class=\"header\">";
         replacement += "<div class=\"left\">" + tooltip_header_text + "</div>";
@@ -1002,7 +1017,9 @@ async function show_article(selected_approaches, timestamp) {
     // Show columns
     // Show first prediction column
     show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0]);
-    $(column_headers[column_idx]).text(selected_approaches[0]);
+    // var benchmark_name = $("#benchmark option:selected").text();
+    // var emphasis_text = (selected_cell_categories[0]) ? " (emphasis: " + selected_cell_categories[0] + ")" : "";
+    $(column_headers[column_idx]).text(selected_approaches[0]); //  + " on " + benchmark_name + emphasis_text
     show_table_column("prediction_overview", column_idx);
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
@@ -1104,6 +1121,8 @@ function build_overview_table(benchmark_name, default_approach_name) {
                     var row = $('#evaluation table tbody tr').filter(function(){ return $(this).children(":first-child").text() === default_approach_name;});
                     if (row.length > 0) on_row_click(row[0]);
                 }
+
+                $("#table_loading").removeClass("show");
             });
         });
     });
