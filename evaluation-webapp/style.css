@@ -89,9 +89,10 @@ a {
 }
 
 #top_scrollbar_wrapper {
-    width: 100%;
+    width: 94%;
     overflow-x: auto;
-    height: 20px:
+    height: 20px;
+    margin: 0% 2%;
 }
 
 #top_scrollbar {
@@ -153,11 +154,11 @@ a {
 
 /* Make evaluation table horizontally scrollable*/
 #evaluation {
-    max-width: 100%;
-    height: 80%;
+    max-width: 94%;
+    max-height: 80vh;
     overflow: auto;
     display: inline-block;
-    padding-bottom: 2em;
+    margin: 0% 2%;
 }
 
 /* Make the evaluation table header sticky when scrolling */
@@ -225,7 +226,7 @@ table .tooltip:hover .tooltiptext {
 
 /* Show the tooltip text when you mouse over a table header cell that comes with a description */
 #evaluation_tables table th .tooltiptext {
-    width: 7em;
+    width: 20em;
     font-size: 0.8em;
     font-weight: 300;
 }
@@ -263,6 +264,10 @@ div.latex textarea {
 
 /* ----------------------------------------- */
 /* Begin article results */
+
+# article_results {
+    padding-top: 2em;
+}
 
 #loading {
     background: transparent url('spinner_50px.gif') center no-repeat;
