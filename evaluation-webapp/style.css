@@ -120,7 +120,6 @@ a {
     background-color: var(--cell-color);
 }
 #evaluation_tables table tbody tr {
-    border: 2px solid black;
     text-align: right;
     cursor: pointer;
 }
@@ -158,6 +157,7 @@ a {
     height: 80%;
     overflow: auto;
     display: inline-block;
+    padding-bottom: 2em;
 }
 
 /* Make the evaluation table header sticky when scrolling */
@@ -178,6 +178,7 @@ a {
     position: sticky;
     left: 0;
     z-index: 10;
+    border-right: 1px solid white;
 }
 #evaluation table td:first-child {
     background: var(--cell-first-column-color);
@@ -348,10 +349,6 @@ div.latex textarea {
 /* Begin prediction overview */
 
 /* Area containing the results per article */
-#article-results {
-    padding-top: 2em;
-}
-
 #prediction_overview {
     display: none;
     width: 100%;
