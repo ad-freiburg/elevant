@@ -7,7 +7,7 @@ from urllib.parse import quote
 from src import settings
 from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.wikipedia_article import WikipediaArticle, article_from_json
 
 app = Flask(__name__)
 
@@ -18,19 +18,28 @@ def nif_api():
     nif_doc = NIFCollection.loads(nif_body)
     for context in nif_doc.contexts:
         article = WikipediaArticle(-1, "", context.mention, [])
-        linking_system.link_entities(article, args.uppercase, args.only_pronouns, None)
-        for em in sorted(article.entity_mentions.values()):
-            entity_uri = 'http://www.wikidata.org/entity/' + em.entity_id
-            if not args.wikidata_annotations:
-                wikipedia_title = linking_system.entity_db.id2wikipedia_name(em.entity_id)
-                entity_uri = "https://en.wikipedia.org/wiki/" + quote(wikipedia_title.replace(" ", "_"))
-            context.add_phrase(beginIndex=em.span[0], endIndex=em.span[1], taIdentRef=entity_uri)
+        if args.input_predictions:
+            first_characters = article.text[:100]
+            if first_characters in article_dict:
+                article = article_dict[first_characters]
+            else:
+                logger.warning("Article not found in input file: \"%s...\". Return empty predictions."
+                               % first_characters)
+        else:
+            linking_system.link_entities(article, args.uppercase, args.only_pronouns, None)
+        if article.entity_mentions:
+            for em in sorted(article.entity_mentions.values()):
+                entity_uri = 'http://www.wikidata.org/entity/' + em.entity_id
+                if not args.wikidata_annotations:
+                    wikipedia_title = linking_system.entity_db.id2wikipedia_name(em.entity_id)
+                    entity_uri = "https://en.wikipedia.org/wiki/" + quote(wikipedia_title.replace(" ", "_"))
+                context.add_phrase(beginIndex=em.span[0], endIndex=em.span[1], taIdentRef=entity_uri)
 
     resp = Response()
     for header_name, header_value in request.headers.items():
         resp.headers[header_name] = header_value
     resp.data = nif_doc.dumps()
-    logger.info("NIF Response: '%s'" % nif_doc.dumps())
+    logger.debug("NIF Response: '%s'" % nif_doc.dumps())
 
     return resp
 
@@ -67,11 +76,24 @@ if __name__ == "__main__":
                         help="Resulting entity ids will not be mapped to Wikipedia.")
     parser.add_argument("-p", "--port", type=int, default=8080,
                         help="Port for the API.")
+    parser.add_argument("-i", "--input_predictions", type=str,
+                        help="Read linked articles from file.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))
 
     args = parser.parse_args()
+
+    article_dict = {}
+    if args.input_predictions:
+        with open(args.input_predictions, "r", encoding="utf8") as file:
+            for i, line in enumerate(file):
+                article = article_from_json(line)
+                first_characters = article.text[:100]
+                if first_characters in article_dict:
+                    logger.warning("Two articles have the same starting characters: \"%s\"!"
+                                   "One article will be overwritten" % first_characters)
+                article_dict[first_characters] = article
 
     linking_system = LinkingSystem(args.linker_type,
                                    args.linker,
