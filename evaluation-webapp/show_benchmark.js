@@ -362,6 +362,7 @@ function show_benchmark_results(default_approach_name) {
     // Remove previous article evaluation content
     $("#prediction_overview").hide();
     evaluation_cases = {};
+    articles_data = {};
     selected_approach_names = [];
     selected_rows = [];
     selected_cells = [];
