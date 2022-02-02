@@ -125,6 +125,8 @@ $("document").ready(function() {
     selected_cells = [];
     reset_selected_cell_categories();
 
+    type_name_mapping = {};
+
     sorting_variables = {"column_index": null, "desc": true};
 
     set_benchmark_select_options();
@@ -852,7 +854,6 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
     // and for disambiguation errors
     var correct_ner = (annotation.inner_annotation && annotation.inner_annotation.pred_entity_id && annotation.inner_annotation.span[0] == annotation.span[0] && annotation.inner_annotation.span[1] == annotation.span[1]);
     if (annotation.error_labels && annotation.error_labels.length > 0 && !correct_ner) {
-        // if (annotation.class == ANNOTATION_CLASS_TP && annotation.inner_annotation && annotation.inner_annotation.pred_entity_id) console.log(annotation.inner_annotation, annotation.span, annotation.inner_annotation.span == annotation.span);
         for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
             var error_label = annotation.error_labels[e_i];
             error_label = error_label.replace(/_/g, " ").toLowerCase();
@@ -1029,15 +1030,16 @@ async function show_article(selected_approaches, timestamp) {
     // Show columns
     // Show first prediction column
     show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0]);
-    // var benchmark_name = $("#benchmark option:selected").text();
-    // var emphasis_text = (selected_cell_categories[0]) ? " (emphasis: " + selected_cell_categories[0] + ")" : "";
-    $(column_headers[column_idx]).text(selected_approaches[0]); //  + " on " + benchmark_name + emphasis_text
+    var benchmark_name = $("#benchmark option:selected").text();
+    var emphasis_str = get_emphasis_string(selected_cell_categories[0])
+    $(column_headers[column_idx]).html(selected_approaches[0] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
     show_table_column("prediction_overview", column_idx);
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
         // Show second prediction column
         show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1]);
-        $(column_headers[column_idx]).text(selected_approaches[1]);
+        emphasis_str = get_emphasis_string(selected_cell_categories[1])
+        $(column_headers[column_idx]).html(selected_approaches[1] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
         show_table_column("prediction_overview", column_idx);
         column_idx++;
     }
@@ -1053,6 +1055,21 @@ async function show_article(selected_approaches, timestamp) {
 
     // Hide the loading GIF
     if (timestamp >= last_show_article_request_timestamp) $("#loading").removeClass("show");
+}
+
+function get_emphasis_string(selected_cell_category) {
+    /*
+    Create an emphasis string for the given selected category.
+    */
+    var emphasis_str = ""
+    if (selected_cell_category) {
+        var emphasis_strs = [];
+        for (selected_category of selected_cell_category) {
+            emphasis_strs.push((is_type_string(selected_category)) ? type_name_mapping[selected_category] : selected_category.replace(/_/g, " ").toLowerCase());
+        }
+        emphasis_str = " (emphasis: " + emphasis_strs.join(", ") + ")";
+    }
+    return emphasis_str;
 }
 
 function build_overview_table(benchmark_name, default_approach_name) {
@@ -1177,6 +1194,7 @@ function add_checkboxes(json_obj) {
                 checkbox_html += "<label>" + title + "</label>";
                 var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
                 $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
+                if (key == "by_type") type_name_mapping[get_type_qid(subkey).toLowerCase()] = title;
             });
         } else {
             var class_name = get_class_name(key);
@@ -1730,7 +1748,7 @@ function get_error_category_or_type(el) {
             var keys = classes[1].split("-");
             return error_category_mapping[keys[0]][keys[1]];
         } if (is_type_string(classes[0])) {
-            return [classes[0].replace(/(q[0-9]+)_.*/g, "$1")];
+            return [get_type_qid(classes[0])];
         } else if (classes[0] in mention_type_headers) {
             return mention_type_headers[classes[0]];
         }
@@ -1743,6 +1761,10 @@ function is_type_string(class_name) {
     if (match || class_name == "other") {
         return true;
     }
+}
+
+function get_type_qid(string) {
+    return string.replace(/([Qq][0-9]+).*/, "$1");
 }
 
 function show_table_column(table_id, index) {
