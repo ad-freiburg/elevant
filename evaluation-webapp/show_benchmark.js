@@ -204,11 +204,23 @@ $("document").ready(function() {
     }
 
     // Synchronize the top and bottom scrollbar of the evaluation table
+    // Prevent double calls to .scroll() by using a flag
+    var second_call = false;
     $("#evaluation").scroll(function(){
-        $("#top_scrollbar_wrapper").scrollLeft($("#evaluation").scrollLeft());
+        if (!second_call) {
+            $("#top_scrollbar_wrapper").scrollLeft($("#evaluation").scrollLeft());
+            second_call = true;
+        } else {
+            second_call = false;
+        }
     });
     $("#top_scrollbar_wrapper").scroll(function(){
-        $("#evaluation").scrollLeft($("#top_scrollbar_wrapper").scrollLeft());
+        if (!second_call) {
+            $("#evaluation").scrollLeft($("#top_scrollbar_wrapper").scrollLeft());
+            second_call = true;
+        } else {
+            second_call = false;
+        }
     });
 });
 
