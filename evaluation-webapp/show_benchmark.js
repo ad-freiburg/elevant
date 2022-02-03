@@ -129,10 +129,6 @@ $("document").ready(function() {
     $("input#result-filter").keyup(function() {
         filter_table_rows();
     });
-    // Filter on radio button change
-    $("input.match_type").change(function() {
-        filter_table_rows();
-    })
 
     // Highlight error category cells on hover
     $("#evaluation").on("mouseenter", "td", function() {
@@ -379,11 +375,17 @@ function filter_table_rows() {
             show_row = show_row && !name.includes("deprecated");
         }
         if (show_row) $(this).show(); else $(this).hide();
-
-        // The table width may have changed due to adding or removing the scrollbar
-        // therefore change the width of the top scrollbar div accordingly
-        set_top_scrollbar_width();
     });
+    // The table width may have changed due to adding or removing the scrollbar
+    // therefore change the width of the top scrollbar div accordingly
+    set_top_scrollbar_width();
+
+    // Adjust the top position of the sticky second table header row according to the
+    // height of the first table header row
+    if ($("#evaluation table thead tr:nth-child(1)").length > 0) {
+        var top = $("#evaluation table thead tr:nth-child(1)")[0].getBoundingClientRect().height;
+        $("#evaluation table thead tr:nth-child(2)").css({"top": top});
+    }
 }
 
 function set_top_scrollbar_width() {
@@ -1136,6 +1138,7 @@ function build_overview_table(benchmark_name, default_approach_name) {
                         // Add checkboxes if they have not yet been added
                         add_checkboxes(results);
                     }
+                    return;
                 });
                 // Add table body
                 build_evaluation_table_body(result_array);
@@ -1179,7 +1182,7 @@ function build_evaluation_table_body(result_list) {
 
     // Show / Hide columns according to checkbox state
     $("input[class^='checkbox_']").each(function() {
-        show_hide_columns(this);
+        show_hide_columns(this, false);
     })
 
     // Show / Hide rows according to filter-result input field
@@ -1195,7 +1198,7 @@ function add_checkboxes(json_obj) {
             $.each(json_obj[key], function(subkey) {
                 var class_name = get_class_name(subkey);
                 var title = get_title_from_key(subkey);
-                var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\">";
+                var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\">";
                 checkbox_html += "<label>" + title + "</label>";
                 var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
                 $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
@@ -1205,14 +1208,14 @@ function add_checkboxes(json_obj) {
             var class_name = get_class_name(key);
             var title = get_title_from_key(key);
             var checked = (class_name == "all") ? "checked" : ""
-            var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this)\" " + checked + ">";
+            var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
             checkbox_html += "<label>" + title + "</label>";
             $("#general_checkboxes.checkboxes").append(checkbox_html);
         }
     });
 }
 
-function show_hide_columns(element) {
+function show_hide_columns(element, resize) {
     /*
     This function should be called when the state of a checkbox is changed.
     This can't be simply added in on document ready, because checkboxes are added dynamically.
@@ -1226,13 +1229,16 @@ function show_hide_columns(element) {
         column.hide();
     }
 
-    // The table width has changed therefore change the width of the top scrollbar div accordingly
-    set_top_scrollbar_width();
+    if (resize) {
+        // Resizing and repositioning takes a long time especially on Chrome, therefore do it only when necessary
+        // The table width has changed therefore change the width of the top scrollbar div accordingly
+        set_top_scrollbar_width();
 
-    // Adjust the top position of the sticky second table header row according to the
-    // height of the first table header row
-    var top = $("#evaluation table thead tr:nth-child(1)")[0].getBoundingClientRect().height;
-    $("#evaluation table thead tr:nth-child(2)").css({"top": top});
+        // Adjust the top position of the sticky second table header row according to the
+        // height of the first table header row
+        var top = $("#evaluation table thead tr:nth-child(1)")[0].getBoundingClientRect().height;
+        $("#evaluation table thead tr:nth-child(2)").css({"top": top});
+    }
 }
 
 function get_table_header(json_obj) {
