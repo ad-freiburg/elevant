@@ -387,7 +387,19 @@ function filter_table_rows() {
             show_row = show_row && !name.includes("deprecated");
         }
         if (show_row) $(this).show(); else $(this).hide();
+
+        // The table width may have changed due to adding or removing the scrollbar
+        // therefore change the width of the top scrollbar div accordingly
+        set_top_scrollbar_width();
     });
+}
+
+function set_top_scrollbar_width() {
+    /*
+    Set width of the top scrollbar to the current width of the evaluation table + side scrollbar.
+    */
+    var width = $("#evaluation table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
+    $("#top_scrollbar").css({"width": width + "px"});
 }
 
 function parse_benchmark(benchmark_file) {
@@ -1223,8 +1235,7 @@ function show_hide_columns(element) {
     }
 
     // The table width has changed therefore change the width of the top scrollbar div accordingly
-    var width = $("#evaluation table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
-    $("#top_scrollbar").css({"width": width + "px"});
+    set_top_scrollbar_width();
 
     // Adjust the top position of the sticky second table header row according to the
     // height of the first table header row
