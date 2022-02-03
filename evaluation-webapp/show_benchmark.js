@@ -22,11 +22,11 @@ header_descriptions = {
     "undetected": {
         "all": "The span of a GT mention was not linked (= NER FN) / Named GT mentions",
         "lowercase": "The span of a lowercase GT mention was not linked / Named lowercase GT mentions",
-        "specificity": "FN and a part of the GT mention was linked to an arbitrary entity / Named GT mentions containing whitespace(s)",
-        "overlap": "FN and the GT span overlaps with a predicted span / Named uppercase GT mentions",
+        "partially_included": "FN and a part of the GT mention was linked to an arbitrary entity / Named GT mentions containing whitespace(s)",
+        "partial_overlap": "FN and the GT span overlaps with a predicted span / Named uppercase GT mentions",
         "other": "Other detection error / Named uppercase GT mentions"
     },
-    "disambiguation_errors": {
+    "wrong_disambiguation": {
         "all": "Detected, but wrong entity linked / Detected",
         "demonym": "FN from a list of demonyms (German, Germans, ...) / All demonym GT mentions",
         "partial_name": "FN and the GT mention is part of the entity name / Named GT mentions where the mention is a part of the entity name",
@@ -38,39 +38,31 @@ header_descriptions = {
     },
     "false_detection": {
         "all": "Predicted mention that does not match a groundtruth mention span",
-        "abstraction": "Lowercase named FP that does not overlap with a GT mention",
-        "unknown_named_entity": "Uppercase mention wrongly linked, where the ground truth is either Unknown or has no label at all",
+        "abstract_entity": "Lowercase named FP that does not overlap with a GT mention",
+        "unknown_entity": "Uppercase mention wrongly linked, where the ground truth is either Unknown or has no label at all",
         "other": "Other false detection",
-        "span_wrong": "Predicted mention whose span does not match, but overlaps with a GT mention with a matching entity / Predicted mentions"
+        "wrong_span": "Predicted mention whose span does not match, but overlaps with a GT mention with a matching entity / Predicted mentions"
     },
     "other_errors": {
         "hyperlink": "FN where the mention is a hyperlink / GT mentions that are hyperlinks"
     },
-    "coreference_errors": {
+    "wrong_coreference": {
         "false_detection": "FP mentions in {It, it, This, this, That, that, Its, its}",
         "reference_wrongly_disambiguated": "FN + FP, the reference was wrongly disambiguated / Coreference mentions where correct GT mention was referenced",
         "wrong_mention_referenced": "FN + FP, wrong mention was referenced / Linked GT coreference mentions",
         "undetected": "FN, mention was not linked / GT coreference mentions"
-    },
-    "all": "All results. TP: correct span, correct link; FP: incorrect span or correct span but wrong link; FN: GT span was not recognized or wrong link",
-    "NER": "Named mention span errors. TP: correct span; FP: predicted span does not match any GT span; FN: GT span does not match any predicted span",
-    "coref": "All coreference results: nominal (the &lt;type&gt) and pronominal (pronouns)",
-    "entity": "All entity results (i.e. results excluding coreference)",
-    "entity_named": "All results for named entities",
-    "entity_other": "All results for non-named entities",
-    "nominal": "All nominal coreference ('the &lt;type&gt;') results",
-    "pronominal": "All pronominal coreference (pronoun) results"
+    }
 };
 
 error_category_mapping = {
     "undetected": {
         "all": ["UNDETECTED"],
         "lowercase": ["UNDETECTED_LOWERCASE"],
-        "specificity": ["UNDETECTED_SPECIFICITY"],
-        "overlap": ["UNDETECTED_OVERLAP"],
+        "partially_included": ["UNDETECTED_SPECIFICITY"],
+        "partial_overlap": ["UNDETECTED_OVERLAP"],
         "other": ["UNDETECTED_OTHER"]
     },
-    "disambiguation_errors": {
+    "wrong_disambiguation": {
         "all": ["DISAMBIGUATION_WRONG"],
         "demonym": ["DISAMBIGUATION_DEMONYM_CORRECT", "DISAMBIGUATION_DEMONYM_WRONG"],
         "partial_name": ["DISAMBIGUATION_PARTIAL_NAME_CORRECT", "DISAMBIGUATION_PARTIAL_NAME_WRONG"],
@@ -82,15 +74,15 @@ error_category_mapping = {
     },
     "false_detection": {
         "all": ["FALSE_DETECTION"],
-        "abstraction": ["FALSE_DETECTION_ABSTRACTION"],
-        "unknown_named_entity": ["FALSE_DETECTION_UNKNOWN_NAMED_ENTITY"],
+        "abstract_entity": ["FALSE_DETECTION_ABSTRACT_ENTITY"],
+        "unknown_entity": ["FALSE_DETECTION_UNKNOWN_ENTITY"],
         "other": ["FALSE_DETECTION_OTHER"],
-        "span_wrong": ["FALSE_DETECTION_SPAN_WRONG"]
+        "wrong_span": ["FALSE_DETECTION_WRONG_SPAN"]
     },
     "other_errors": {
-        "hyperlink": ["OTHER_HYPERLINK_WRONG"]
+        "hyperlink": ["HYPERLINK_WRONG"]
     },
-    "coreference_errors": {
+    "wrong_coreference": {
         "false_detection": ["COREFERENCE_FALSE_DETECTION"],
         "reference_wrongly_disambiguated": ["COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED"],
         "wrong_mention_referenced": ["COREFERENCE_WRONG_MENTION_REFERENCED"],

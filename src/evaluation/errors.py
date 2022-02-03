@@ -64,9 +64,9 @@ def label_undetected_errors(cases: List[Case]):
             if not is_level_one(case.text):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
             elif is_specificity_error(case, false_positive_spans):
-                case.add_error_label(ErrorLabel.UNDETECTED_SPECIFICITY)
+                case.add_error_label(ErrorLabel.UNDETECTED_PARTIALLY_INCLUDED)
             elif overlaps_any(case.span, false_positive_spans):
-                case.add_error_label(ErrorLabel.UNDETECTED_OVERLAP)
+                case.add_error_label(ErrorLabel.UNDETECTED_PARTIAL_OVERLAP)
             else:
                 case.add_error_label(ErrorLabel.UNDETECTED_OTHER)
 
@@ -275,10 +275,10 @@ def label_false_detections(cases: List[Case],
                     break
             contains_upper = contains_uppercase_word(case.text)
             if not overlap and not contains_upper:
-                case.add_error_label(ErrorLabel.FALSE_DETECTION_ABSTRACTION)
+                case.add_error_label(ErrorLabel.FALSE_DETECTION_ABSTRACT_ENTITY)
             elif contains_upper and \
                     ((not overlap and not contains_unknowns) or case.span in unknown_ground_truth_spans):
-                case.add_error_label(ErrorLabel.FALSE_DETECTION_UNKNOWN_NAMED_ENTITY)
+                case.add_error_label(ErrorLabel.FALSE_DETECTION_UNKNOWN_ENTITY)
             else:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER)
 
@@ -288,10 +288,10 @@ def label_hyperlink_errors(article: WikipediaArticle, cases: List[Case]):
     for case in cases:
         if case.span in hyperlink_spans and case.has_ground_truth() and case.is_known_entity():
             if case.is_correct() or case.is_true_quantity_or_datetime():
-                case.add_error_label(ErrorLabel.OTHER_HYPERLINK_CORRECT)
+                case.add_error_label(ErrorLabel.HYPERLINK_CORRECT)
             elif not case.is_optional() or case.is_false_positive():
                 # If the case is optional and not correct, but a "FN", don't add error label, just ignore it
-                case.add_error_label(ErrorLabel.OTHER_HYPERLINK_WRONG)
+                case.add_error_label(ErrorLabel.HYPERLINK_WRONG)
 
 
 def label_coreference_errors(cases: List[Case]):
@@ -331,7 +331,7 @@ def label_span_errors(cases: List[Case]):
                 if overlaps(case.span, gt_span) and (case.predicted_entity.entity_id == gt_label.entity_id or
                                                      is_true_quantity_or_datetime(case.predicted_entity, gt_label)):
                     # Span is wrong and entity id is correct or it's a true quantity or datetime.
-                    case.add_error_label(ErrorLabel.FALSE_DETECTION_SPAN_WRONG)
+                    case.add_error_label(ErrorLabel.FALSE_DETECTION_WRONG_SPAN)
                     break
 
 

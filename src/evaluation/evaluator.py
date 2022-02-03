@@ -203,12 +203,12 @@ class Evaluator:
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_LOWERCASE],
                 "total": self.n_entity_lowercase
             },
-            "specificity": {
-                "errors": self.error_counts[ErrorLabel.UNDETECTED_SPECIFICITY],
+            "partially_included": {
+                "errors": self.error_counts[ErrorLabel.UNDETECTED_PARTIALLY_INCLUDED],
                 "total": self.n_entity_contains_space
             },
-            "overlap": {
-                "errors": self.error_counts[ErrorLabel.UNDETECTED_OVERLAP],
+            "partial_overlap": {
+                "errors": self.error_counts[ErrorLabel.UNDETECTED_PARTIAL_OVERLAP],
                 "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
             },
             "other": {
@@ -216,7 +216,18 @@ class Evaluator:
                 "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
             }
         }
-        results_dict["errors"]["disambiguation_errors"] = {
+        results_dict["errors"]["false_detection"] = {
+            # False detection
+            "all": self.error_counts[ErrorLabel.FALSE_DETECTION],
+            "abstract_entity": self.error_counts[ErrorLabel.FALSE_DETECTION_ABSTRACT_ENTITY],
+            "unknown_entity": self.error_counts[ErrorLabel.FALSE_DETECTION_UNKNOWN_ENTITY],
+            "other": self.error_counts[ErrorLabel.FALSE_DETECTION_OTHER],
+            "wrong_span": {
+                "errors": self.error_counts[ErrorLabel.FALSE_DETECTION_WRONG_SPAN],
+                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
+            }
+        }
+        results_dict["errors"]["wrong_disambiguation"] = {
             # Disambiguation errors
             "all": {
                 "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_WRONG],
@@ -253,26 +264,15 @@ class Evaluator:
                          self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT]
             } if self.has_candidates else None
         }
-        results_dict["errors"]["false_detection"] = {
-            # False detection
-            "all": self.error_counts[ErrorLabel.FALSE_DETECTION],
-            "abstraction": self.error_counts[ErrorLabel.FALSE_DETECTION_ABSTRACTION],
-            "unknown_named_entity": self.error_counts[ErrorLabel.FALSE_DETECTION_UNKNOWN_NAMED_ENTITY],
-            "other": self.error_counts[ErrorLabel.FALSE_DETECTION_OTHER],
-            "span_wrong": {
-                "errors": self.error_counts[ErrorLabel.FALSE_DETECTION_SPAN_WRONG],
-                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
-            }
-        }
         results_dict["errors"]["other_errors"] = {
             # Other errors
             "hyperlink": {
-                "errors": self.error_counts[ErrorLabel.OTHER_HYPERLINK_WRONG],
-                "total": self.error_counts[ErrorLabel.OTHER_HYPERLINK_CORRECT] +
-                         self.error_counts[ErrorLabel.OTHER_HYPERLINK_WRONG]
+                "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
+                "total": self.error_counts[ErrorLabel.HYPERLINK_CORRECT] +
+                         self.error_counts[ErrorLabel.HYPERLINK_WRONG]
             },
         }
-        results_dict["errors"]["coreference_errors"] = {
+        results_dict["errors"]["wrong_coreference"] = {
             # Coreference errors
             "undetected": {
                 "errors": self.error_counts[ErrorLabel.COREFERENCE_UNDETECTED],
