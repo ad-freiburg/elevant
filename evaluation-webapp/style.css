@@ -110,70 +110,16 @@ a {
 #evaluation_tables {
     padding-top: 1em;
 }
-#evaluation_tables table {
-    cursor: default;
-    border: none;
-}
-#evaluation_tables table thead tr:nth-child(2) {
-    cursor: pointer;
-}
-#evaluation_tables table th {
-    background-color: var(--cell-header-color);
-}
-#evaluation_tables table td {
-    width: 5em;
-    background-color: var(--cell-color);
-}
-#evaluation_tables table tbody tr {
-    text-align: right;
-    cursor: pointer;
-}
-#evaluation_tables table tbody tr td:nth-child(1) {
-    text-align: left;
-    white-space: nowrap;
-}
-#evaluation_tables table tbody tr:hover td {
-    background-color: var(--row-hover-color);
-}
-#evaluation_tables table tbody tr.selected td {
-    background-color: var(--row-selected-color);
-}
-/* Sorting indicator */
-#evaluation_tables table thead .sort_symbol {
-    visibility: hidden;
-    font-size: 0.8em;
-}
-#evaluation_tables table thead .asc .sort_symbol {
-    visibility: visible;
-}
-#evaluation_tables table thead .desc .sort_symbol {
-    visibility: visible;
-}
-#evaluation_tables table tbody tr td.hovered {
-    background-color: var(--cell-hover-color);
-}
-#evaluation_tables table tbody tr td.selected {
-    background-color: var(--cell-selected-color);
-}
 
-/* Make evaluation table horizontally scrollable*/
+/* Make evaluation table scrollable */
 #evaluation {
     max-width: 94%;
     max-height: 80vh;
-    overflow: auto;
+    overflow-y: auto;
     display: inline-block;
     margin: 0% 2%;
-}
-
-/* Make the evaluation table header sticky when scrolling */
-#evaluation table thead tr {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 15;
-}
-#evaluation table thead tr:nth-child(2) {
-    top: 1.8em;
+    padding: 0;
+    position: relative;
 }
 
 /* Make the first column of the evaluation table sticky when scrolling */
@@ -185,8 +131,53 @@ a {
     z-index: 10;
     border-right: 1px solid white;
 }
-#evaluation table td:first-child {
+
+#evaluation table {
+    font-size: 95%;
+}
+
+#evaluation td,
+#evaluation th {
+    cursor: default;
+    border: 1px solid white;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+#evaluation thead tr:nth-child(1) {
+    text-align: center;
+}
+#evaluation thead tr:nth-child(2) {
+    cursor: pointer;
+}
+#evaluation th {
+    background-color: var(--cell-header-color);
+}
+#evaluation td {
+    width: 5em;
+    background-color: var(--cell-color);
+}
+#evaluation tbody tr {
+    text-align: right;
+    cursor: pointer;
+}
+#evaluation td:first-child {
+    text-align: left;
+    white-space: nowrap;
     background: var(--cell-first-column-color);
+}
+
+/* Handle display of hovered and clicked rows and cells */
+#evaluation tbody tr:hover td {
+    background-color: var(--row-hover-color);
+}
+#evaluation tbody tr.selected td {
+    background-color: var(--row-selected-color);
+}
+#evaluation tbody tr td.hovered {
+    background-color: var(--cell-hover-color);
+}
+#evaluation tbody tr td.selected {
+    background-color: var(--cell-selected-color);
 }
 
 #table_loading {
@@ -229,14 +220,14 @@ table .tooltip:hover .tooltiptext {
 }
 
 /* Show the tooltip text when you mouse over a table header cell that comes with a description */
-#evaluation_tables table th .tooltiptext {
-    width: 20em;
+#evaluation th .tooltiptext {
+    max-width: 20em;
     font-size: 0.8em;
     font-weight: 300;
 }
 
 /* Cell tooltip for precision / recall / F1 cells */
-#evaluation_tables table td .tooltiptext {
+#evaluation td .tooltiptext {
     width: 5em;
 }
 
@@ -244,13 +235,12 @@ table .tooltip:hover .tooltiptext {
 /* Begin latex */
 
 /* Table cell for copying latex code */
-.produce_latex {
+#evaluation .produce_latex {
     cursor: pointer;
     text-align: center;
     color: transparent
 }
-.produce_latex:hover {
-    background-color: var(--row-hover-color);
+#evaluation .produce_latex:hover {
     color: white;
 }
 

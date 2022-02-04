@@ -119,8 +119,6 @@ $("document").ready(function() {
 
     type_name_mapping = {};
 
-    sorting_variables = {"column_index": null, "desc": true};
-
     set_benchmark_select_options();
 
     // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
@@ -170,8 +168,9 @@ $("document").ready(function() {
 
     // Position table tooltips
     $("#evaluation").on("mouseenter", "td,th", function() {
+        var tag_name = $(this).prop("tagName").toLowerCase();
         $(this).find(".tooltip").each(function() {
-            position_table_tooltip(this);
+            position_table_tooltip(this, tag_name);
         });
     });
 
@@ -212,14 +211,25 @@ $("document").ready(function() {
             second_call = false;
         }
     });
+
+    $("#evaluation table").tablesorter({
+        sortInitialOrder: 'desc',
+        selectorHeaders: '> thead > tr:last-child > th',  // First header row should not be sortable
+        stringTo: "bottom",  // Columns that are numerically sorted should always have strings (e.g. "-") at the bottom
+        widgets: ['stickyHeaders'],
+        widgetOptions: {
+						stickyHeaders_attachTo: '#evaluation',  // jQuery selector or object to attach sticky header to
+						stickyHeaders_zIndex : 20,
+					   }
+    });
 });
 
-function position_table_tooltip(anchor_el) {
+function position_table_tooltip(anchor_el, tag_name) {
     var anchor_el_rect = anchor_el.getBoundingClientRect();
     $(anchor_el).find(".tooltiptext").each(function() {
         var tooltip_rect = this.getBoundingClientRect();
         var font_size = $(this).css("font-size").replace("px", "");
-        if ($(anchor_el).parent().is("th")) {
+        if (tag_name =="th") {
             var top = anchor_el_rect.bottom + 10;
         } else {
             var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
@@ -336,6 +346,7 @@ function show_benchmark_results(default_approach_name) {
     Show overview table and set up the article selector for a selected benchmark.
     */
     $("#table_loading").addClass("show");
+    $("#evaluation table").trigger("update");
     benchmark_file = benchmark_select.value;
     benchmark_name = $("#benchmark option:selected").text();
 
@@ -379,13 +390,6 @@ function filter_table_rows() {
     // The table width may have changed due to adding or removing the scrollbar
     // therefore change the width of the top scrollbar div accordingly
     set_top_scrollbar_width();
-
-    // Adjust the top position of the sticky second table header row according to the
-    // height of the first table header row
-    if ($("#evaluation table thead tr:nth-child(1)").length > 0) {
-        var top = $("#evaluation table thead tr:nth-child(1)")[0].getBoundingClientRect().height;
-        $("#evaluation table thead tr:nth-child(2)").css({"top": top});
-    }
 }
 
 function set_top_scrollbar_width() {
@@ -1123,7 +1127,7 @@ function build_overview_table(benchmark_name, default_approach_name) {
                 });
             })).then(function() {
                 // Sort the result array
-                result_array.sort(compare_approach_names);
+                result_array.sort();
                 // Add table header and checkboxes
                 result_array.forEach(function(result_tuple) {
                     var approach_name = result_tuple[0];
@@ -1143,22 +1147,15 @@ function build_overview_table(benchmark_name, default_approach_name) {
                 // Add table body
                 build_evaluation_table_body(result_array);
 
-                // Sort the table according to previously chosen sorting
-                var sort_column_index = sorting_variables["column_index"];
-                var sort_descending = sorting_variables["desc"];
-                if (sort_column_index != null) {
-                    var sort_column_header = $('#evaluation table thead tr:nth-child(2) th:nth-child(' + sort_column_index + ')');
-                    // Hack to get the right sort order which is determined by
-                    // whether the column header already has the class "desc"
-                    if (!sort_descending) sort_column_header.addClass("desc");
-                    sort_table(sort_column_header);
-                }
-
                 if (default_approach_name) {
                     var row = $('#evaluation table tbody tr').filter(function(){ return $(this).children(":first-child").text() === default_approach_name;});
                     if (row.length > 0) on_row_click(row[0]);
                 }
 
+                // Update the tablesorter. The sort order is automatically adapted from the previous table.
+                $("#evaluation table").trigger("updateAll")
+
+                // Remove the table loading GIF
                 $("#table_loading").removeClass("show");
             });
         });
@@ -1230,14 +1227,9 @@ function show_hide_columns(element, resize) {
     }
 
     if (resize) {
-        // Resizing and repositioning takes a long time especially on Chrome, therefore do it only when necessary
-        // The table width has changed therefore change the width of the top scrollbar div accordingly
+        // Resizing takes a long time especially on Chrome, therefore do it only when necessary.
+        // The table width has changed therefore change the width of the top scrollbar div accordingly.
         set_top_scrollbar_width();
-
-        // Adjust the top position of the sticky second table header row according to the
-        // height of the first table header row
-        var top = $("#evaluation table thead tr:nth-child(1)")[0].getBoundingClientRect().height;
-        $("#evaluation table thead tr:nth-child(2)").css({"top": top});
     }
 }
 
@@ -1246,7 +1238,7 @@ function get_table_header(json_obj) {
     Get html for the table header.
     */
     var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr><th onclick='sort_table(this)'>System<span class='sort_symbol'>&#9660</span></th>";
+    var second_row = "<tr><th>System</th>";
     $.each(json_obj, function(key) {
         if (key == "by_type" || key == "errors") {
             $.each(json_obj[key], function(subkey) {
@@ -1273,7 +1265,7 @@ function get_table_header_by_json_key(json_obj, key) {
     $.each(json_obj[key], function(subkey) {
         if (!(ignore_headers.includes(subkey))) {
             var subclass_name = get_class_name(subkey);
-            second_row_addition += "<th class='" + class_name + "' onclick='sort_table(this)' data-array-key='" + key + "' data-array-subkey='" + subkey + "'><div class='tooltip'>" + get_title_from_key(subkey) + "<span class='sort_symbol'>&#9660</span>";
+            second_row_addition += "<th class='" + class_name + " " + class_name + "_" + subclass_name + " sorter-digit'><div class='tooltip'>" + get_title_from_key(subkey);
             var tooltip_text = get_header_tooltip_text(key, subkey);
             if (tooltip_text) {
                 second_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
@@ -1390,168 +1382,6 @@ function to_title_case(str) {
     return str.replace(/\w\S*/g, function(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1);
     });
-}
-
-function sort_table(column_header) {
-    /*
-    Sort table rows with respect to the selected column.
-    This sorts the result_array, removes old table rows and adds them in the new ordering.
-    */
-    // Get list of values in the selected column
-    // + 1 because nth-child indices are 1-based
-    var col_index = $(column_header).parent().children().index($(column_header)) + 1;
-
-    // Store the column index to apply the same sorting when selecting a different benchmark
-    // Can't just store and use the column header itself since it's the header of the old table
-    sorting_variables["column_index"] = col_index;
-
-    var key = $(column_header).data("array-key");
-    var subkey = $(column_header).data("array-subkey");
-    var col_values = [];
-    var index = 0;
-    var selected_approach_indices = [null, null];
-    result_array.forEach(function(result_tuple) {
-        var approach_name = result_tuple[0];
-        if (selected_approach_names.includes(approach_name) && selected_rows.length > 0) {
-            // Store the index in the result_array of the currently selected row
-            // Keep the order in which the rows were selected
-            selected_approach_indices[$.inArray(approach_name, selected_approach_names)] = index;
-        }
-        index += 1;
-        var results = result_tuple[1];
-        if (!key) {
-            // System column has no attribute data-array-key. Sort by approach name.
-            col_values.push(approach_name);
-            return;
-        }
-        if (is_type_string(key)) {
-            results = results["by_type"];
-        } else if (key in error_category_mapping && subkey in error_category_mapping[key]) {
-            results = results["errors"];
-        }
-        var value = results[key][subkey];
-        if (value && Object.keys(value).length > 0) {
-            // An error category contains two keys and the percentage is displayed, so sort by percentage
-            value = get_error_percentage(value);
-        }
-        col_values.push(value);
-    });
-
-    // Store class name of currently selected cell
-    var selected_cells_classes = [];
-    for (var i=0;i<selected_rows.length; i++) {
-        var cell_classes = $(selected_rows[i]).find("td.selected").attr("class");
-        if (cell_classes) {
-            cell_classes = cell_classes.split(/\s+/);
-            cell_classes.pop();  // We don't want the "selected" class
-            cell_classes = "." + cell_classes.join(".");
-            selected_cells_classes.push(cell_classes)
-        }
-    }
-
-    // Check if sorting should be ascending or descending
-    var descending = !$(column_header).hasClass("desc");
-    sorting_variables["desc"] = descending;
-
-    // Get new sorting order of the row indices and create a new result array according to the new sorting
-    if (col_index == 1) {
-        sort_function = compare_approach_names;
-    } else {
-        sort_function = function(a, b) {a = parseFloat(a[0]); b = parseFloat(b[0]); return (isNaN(a)) ? 1 - isNaN(b) : b - a;};
-    }
-    const decor = (v, i) => [v, i];          // set index to value
-    const undecor = a => a[1];               // leave only index
-    const argsort = arr => arr.map(decor).sort(sort_function).map(undecor);
-    var order = argsort(col_values);
-    result_array = order.map(i => result_array[i]);
-
-    // Remove asc/desc classes from all columns
-    $("#evaluation table th").each(function() {
-        $(this).removeClass("desc");
-        $(this).removeClass("asc");
-    })
-
-    if (descending) {
-        // Show down-pointing triangle
-        $(column_header).find(".sort_symbol").html("&#9660");
-        // Add new class to indicate descending sorting order
-        $(column_header).addClass("desc");
-    } else {
-        // Reverse sorting order
-        order = order.reverse();
-        result_array = result_array.reverse();
-        // Show up-pointing triangle
-        $(column_header).find(".sort_symbol").html("&#9650");
-        // Add new class to indicate ascending sorting order
-        $(column_header).addClass("asc");
-    }
-
-    // Remove old table rows
-    $("#evaluation table tbody").empty();
-
-    // Add table rows in new order to the table body
-    build_evaluation_table_body(result_array);
-
-    // Re-add selected class if row or cell was previously selected
-    if (selected_approach_indices.length > 0) {
-        selected_cells = [];
-        selected_rows = [];
-        // Re-add selected class to previously selected row
-        for (var i=0;i<selected_approach_indices.length; i++) {
-            if (selected_approach_indices[i] === null) break;
-            var new_selected_approach_index = order.indexOf(selected_approach_indices[i]) + 1;  // +1 because nth-child is 1-based
-            selected_rows.push($("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ")"))
-            selected_rows[i].addClass("selected");
-
-            if (selected_cells_classes.length > i) {
-                // Re-add selected class to previously selected cell
-                selected_cells.push($("#evaluation table tbody tr:nth-child(" + new_selected_approach_index + ") td" + selected_cells_classes[i]));
-                $(selected_cells[i]).addClass("selected");
-                if ($(selected_cells[i]).attr('class')) {
-                    var selected_cell_class = $(selected_cells[i]).attr('class').split(/\s+/)[0];
-                    if (selected_cell_class in mention_type_headers || is_type_string(selected_cell_class)) {
-                        var cls = $(selected_cells[i]).attr('class').split(/\s+/)[0];
-                        $(selected_cells[i]).closest('tr').find('.' + cls).each(function(index) {
-                            $(this).addClass("selected");
-                        });
-                    }
-                }
-            }
-        }
-    }
-}
-
-function compare_approach_names(approach_1, approach_2) {
-    approach_name_1 = approach_1[0];
-    approach_name_2 = approach_2[0];
-    return link_linker_key(approach_name_1) - link_linker_key(approach_name_2) ||
-        coref_linker_key(approach_name_1) - coref_linker_key(approach_name_2) ||
-        linker_key(approach_name_1) - linker_key(approach_name_2) ||
-        approach_name_1 > approach_name_2;
-}
-
-function link_linker_key(approach_name) {
-    if (approach_name.includes("ltl.entity")) return 1;
-    else if (approach_name.includes("ltl")) return 2;
-    else if (approach_name.startsWith("wexea")) return 3;
-    else return 10;
-}
-
-function linker_key(approach_name) {
-    if (approach_name.startsWith("neural_el")) return 1;
-    else if (approach_name.startsWith("explosion")) return 2;
-    else if (approach_name.startsWith("baseline")) return 90;
-    else if (approach_name.startsWith("none")) return 100;
-    else return 10;
-}
-
-function coref_linker_key(approach_name) {
-    var start_idx = approach_name.split(".", 2).join(".").length + 1;
-    var end_idx = approach_name.split(".", 3).join(".").length;
-    var coref_linker = approach_name.substring(start_idx, end_idx);
-    if (coref_linker == "entity") return 1;
-    else if (coref_linker == "none") return 100;
-    else return 10;
 }
 
 function read_evaluation_cases(path, approach_name, selected_approaches, timestamp) {
