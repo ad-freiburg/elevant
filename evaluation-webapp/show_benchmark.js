@@ -1072,15 +1072,25 @@ function get_emphasis_string(selected_cell_category) {
     /*
     Create an emphasis string for the given selected category.
     */
-    var emphasis_str = ""
+    var emphasis = "all";
+    var emphasis_type = "mention type";
+    var mention_types = $.map( mention_type_headers, function(key){ return mention_type_headers[key]; });
     if (selected_cell_category) {
         var emphasis_strs = [];
         for (selected_category of selected_cell_category) {
-            emphasis_strs.push((is_type_string(selected_category)) ? type_name_mapping[selected_category] : selected_category.replace(/_/g, " ").toLowerCase());
+            if (is_type_string(selected_category)) {
+                 emphasis_strs.push(type_name_mapping[selected_category]);
+                 emphasis_type = "entity type";
+            } else if (mention_types.includes(selected_category)) {
+                emphasis_strs.push(selected_category.replace(/_/g, " ").toLowerCase());
+            } else {
+                emphasis_strs.push(selected_category.replace(/_/g, " ").toLowerCase());
+                emphasis_type = "error category";
+            }
         }
-        emphasis_str = " (emphasis: " + emphasis_strs.join(", ") + ")";
+        emphasis = emphasis_strs.join(", ");
     }
-    return emphasis_str;
+    return " (emphasis: " + emphasis_type + " \"" + emphasis + "\")";
 }
 
 function build_overview_table(benchmark_name, default_approach_name) {
@@ -1149,7 +1159,10 @@ function build_overview_table(benchmark_name, default_approach_name) {
 
                 if (default_approach_name) {
                     var row = $('#evaluation table tbody tr').filter(function(){ return $(this).children(":first-child").text() === default_approach_name;});
-                    if (row.length > 0) on_row_click(row[0]);
+                    if (row.length > 0) {
+                        on_cell_click(row.children(":first-child")[0]);
+                        on_row_click(row[0]);
+                    }
                 }
 
                 // Update the tablesorter. The sort order is automatically adapted from the previous table.
@@ -1542,17 +1555,26 @@ function on_cell_click(el) {
     }
 
     // Make new selection
-    if ($(el).attr('class')) {  // System column has no class attribute
-        var classes = $(el).attr('class').split(/\s+/);
-        if (is_error_cell(el)) {
-            $(el).addClass("selected");
-            selected_cells.push(el);
-        } else if (classes.length > 0 && (classes[0] in mention_type_headers || is_type_string(classes[0]))) {
-            $(el).closest('tr').find('.' + classes[0]).each(function() {
-                $(this).addClass("selected");
-            });
-            selected_cells.push(el);
-        }
+    var classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // System column has no class attribute
+    if (is_error_cell(el)) {
+        $(el).addClass("selected");
+        selected_cells.push(el);
+    } else if (classes.length > 0 && (classes[0] in mention_type_headers || is_type_string(classes[0]))) {
+        $(el).closest('tr').find('.' + classes[0]).each(function() {
+            $(this).addClass("selected");
+        });
+        selected_cells.push(el);
+    } else {
+        // Select "all" column
+        var added = false;
+        $(el).closest('tr').find('.all').each(function() {
+            $(this).addClass("selected");
+            if (!added) {
+                // Add a single cell from the "all" column. Which one does not matter.
+                selected_cells.push(this);
+                added = true;
+            }
+        });
     }
 
     // Updated selected cell categories
