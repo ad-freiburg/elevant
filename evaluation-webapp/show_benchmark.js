@@ -327,9 +327,7 @@ function set_benchmark_select_options() {
             // Set default value to "wiki-ex".
             $('#benchmark option:contains("wiki-ex")').prop('selected',true);
         }
-        // If URL parameter is set, select approach name according to URL parameter
-        var approach_name_url_param = get_url_parameter("system");
-        show_benchmark_results(approach_name_url_param);
+        show_benchmark_results(true);
     });
 }
 
@@ -341,7 +339,7 @@ function reset_selected_cell_categories() {
     selected_cell_categories = new Array(MAX_SELECTED_APPROACHES).fill(null);
 }
 
-function show_benchmark_results(default_approach_name) {
+function show_benchmark_results(initial_call) {
     /*
     Show overview table and set up the article selector for a selected benchmark.
     */
@@ -362,13 +360,29 @@ function show_benchmark_results(default_approach_name) {
     $("#prediction_overview").hide();
     evaluation_cases = {};
     articles_data = {};
+    var default_selected_systems = [];
+    var default_selected_emphasis = [];
+    if (initial_call) {
+        // If URL parameter is set, select system according to URL parameter
+        var url_parameter_system = get_url_parameter("system");
+        if (typeof url_parameter_system === 'string' || url_parameter_system instanceof String) {
+            default_selected_systems = url_parameter_system.split(",");
+        }
+        var url_parameter_emphasis = get_url_parameter("emphasis");
+        if (typeof url_parameter_emphasis === 'string' || url_parameter_emphasis instanceof String) {
+            default_selected_emphasis = url_parameter_emphasis.split(",");
+        }
+    } else {
+        default_selected_systems = copy(selected_approach_names);
+        default_selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[0] : null});
+    }
     selected_approach_names = [];
     selected_rows = [];
     selected_cells = [];
     reset_selected_cell_categories();
 
     // Build an overview table over all .results-files from the evaluation-results folder.
-    build_overview_table(benchmark_name, default_approach_name);
+    build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis);
 
     // Read the article and ground truth information from the benchmark.
     parse_benchmark(benchmark_file);
@@ -1093,7 +1107,7 @@ function get_emphasis_string(selected_cell_category) {
     return " (emphasis: " + emphasis_type + " \"" + emphasis + "\")";
 }
 
-function build_overview_table(benchmark_name, default_approach_name) {
+function build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis) {
     /*
     Build the overview table from the .results files found in the subdirectories of the given path.
     */
@@ -1157,11 +1171,24 @@ function build_overview_table(benchmark_name, default_approach_name) {
                 // Add table body
                 build_evaluation_table_body(result_array);
 
-                if (default_approach_name) {
-                    var row = $('#evaluation table tbody tr').filter(function(){ return $(this).children(":first-child").text() === default_approach_name;});
-                    if (row.length > 0) {
-                        on_cell_click(row.children(":first-child")[0]);
-                        on_row_click(row[0]);
+                // Select default rows and cells
+                if (default_selected_systems) {
+                    for (var i=0; i<default_selected_systems.length; i++) {
+                        var system = default_selected_systems[i];
+                        var row = $('#evaluation table tbody tr').filter(function(){ return $(this).children(":first-child").text() === system;});
+                        if (row.length > 0) {
+                            if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
+                                var cell = $(row).children("." + default_selected_emphasis[i]);
+                                if (cell.length > 0) {
+                                    on_cell_click(cell[0]);
+                                } else {
+                                    on_cell_click($(row).children(":first-child")[0]);
+                                }
+                            } else {
+                                on_cell_click($(row).children(":first-child")[0]);
+                            }
+                            on_row_click(row[0]);
+                        }
                     }
                 }
 
