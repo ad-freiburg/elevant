@@ -220,7 +220,8 @@ $("document").ready(function() {
         widgetOptions: {
 						stickyHeaders_attachTo: '#evaluation',  // jQuery selector or object to attach sticky header to
 						stickyHeaders_zIndex : 20,
-					   }
+					   },
+        sortRestart: true
     });
 });
 
@@ -1305,7 +1306,8 @@ function get_table_header_by_json_key(json_obj, key) {
     $.each(json_obj[key], function(subkey) {
         if (!(ignore_headers.includes(subkey))) {
             var subclass_name = get_class_name(subkey);
-            second_row_addition += "<th class='" + class_name + " " + class_name + "_" + subclass_name + " sorter-digit'><div class='tooltip'>" + get_title_from_key(subkey);
+            var sort_order = (key in error_category_mapping) ? " data-sortinitialorder=\"asc\"" : "";
+            second_row_addition += "<th class='" + class_name + " " + class_name + "_" + subclass_name + " sorter-digit'" + sort_order + "><div class='tooltip'>" + get_title_from_key(subkey);
             var tooltip_text = get_header_tooltip_text(key, subkey);
             if (tooltip_text) {
                 second_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
