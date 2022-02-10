@@ -101,6 +101,8 @@ benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc"
 
 
 $("document").ready(function() {
+    read_url_parameters();
+
     // Elements from the HTML document for later usage.
     benchmark_select = document.getElementById("benchmark");
     article_select = document.getElementById("article_select");
@@ -118,6 +120,8 @@ $("document").ready(function() {
     reset_selected_cell_categories();
 
     type_name_mapping = {};
+
+    $("#checkbox_compare").prop('checked', url_param_compare);
 
     set_benchmark_select_options();
 
@@ -183,14 +187,9 @@ $("document").ready(function() {
     });
 
     // Set the result filter string and show-deprecated checkbox according to the URL parameters
-    var filter_string = get_url_parameter("system_filter");
-    if (filter_string) $("input#result-filter").val(filter_string);
-    var show_deprecated_param = get_url_parameter("show_deprecated");
-    var show_deprecated = (["true", "1"].includes(show_deprecated_param)) ? true : false;
-    if (show_deprecated) $("#checkbox_deprecated").prop('checked', show_deprecated);
-    if (filter_string || !show_deprecated) {
-        filter_table_rows();
-    }
+    if (url_param_filter_string) $("input#result-filter").val(url_param_filter_string);
+    $("#checkbox_deprecated").prop('checked', url_param_show_deprecated);
+    if (url_param_filter_string || !url_param_show_deprecated) filter_table_rows();
 
     // Synchronize the top and bottom scrollbar of the evaluation table
     // Prevent double calls to .scroll() by using a flag
@@ -224,6 +223,47 @@ $("document").ready(function() {
         sortRestart: true
     });
 });
+
+function read_url_parameters() {
+    url_param_filter_string = get_url_parameter_string(get_url_parameter("system_filter"));
+    url_param_show_deprecated = get_url_parameter_boolean(get_url_parameter("show_deprecated"));
+    url_param_compare = get_url_parameter_boolean(get_url_parameter("compare"));
+    url_param_benchmark = get_url_parameter_string(get_url_parameter("benchmark"));
+    url_param_article = get_url_parameter_string(get_url_parameter("article"));
+    url_param_system = get_url_parameter_array(get_url_parameter("system"));
+    url_param_emphasis = get_url_parameter_array(get_url_parameter("emphasis"));
+    url_param_show_columns = get_url_parameter_array(get_url_parameter("show_columns"));
+}
+
+function get_url_parameter_boolean(url_parameter) {
+    return ["true", "1", true].includes(url_parameter);
+}
+
+function get_url_parameter_string(url_parameter) {
+    /*
+    Returns the url_parameter if the url parameter value is a String, otherwise (if
+    it is a boolean) returns null.
+    */
+    if (is_string(url_parameter)) {
+        return url_parameter;
+    }
+    return null;
+}
+
+function get_url_parameter_array(url_parameter) {
+    /*
+    Returns the url_parameter as array if the url parameter value is a String, with elements separated by ",".
+    Otherwise (if it is a boolean) returns an empty array.
+    */
+    if (is_string(url_parameter)) {
+        return url_parameter.split(",");
+    }
+    return [];
+}
+
+function is_string(object) {
+    return typeof object === 'string' || object instanceof String;
+}
 
 function position_table_tooltip(anchor_el, tag_name) {
     var anchor_el_rect = anchor_el.getBoundingClientRect();
@@ -319,9 +359,8 @@ function set_benchmark_select_options() {
         }
 
         // Set benchmark
-        var benchmark_string = get_url_parameter("benchmark");
-        var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == benchmark_string; });
-        if (benchmark_string && benchmark_by_url.length > 0) {
+        var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
+        if (url_param_benchmark && benchmark_by_url.length > 0) {
             // Set the benchmark according to URL parameter if one with a valid benchmark name exists
             $(benchmark_by_url).prop('selected',true);
         } else {
@@ -365,14 +404,8 @@ function show_benchmark_results(initial_call) {
     var default_selected_emphasis = [];
     if (initial_call) {
         // If URL parameter is set, select system according to URL parameter
-        var url_parameter_system = get_url_parameter("system");
-        if (typeof url_parameter_system === 'string' || url_parameter_system instanceof String) {
-            default_selected_systems = url_parameter_system.split(",");
-        }
-        var url_parameter_emphasis = get_url_parameter("emphasis");
-        if (typeof url_parameter_emphasis === 'string' || url_parameter_emphasis instanceof String) {
-            default_selected_emphasis = url_parameter_emphasis.split(",");
-        }
+        default_selected_systems = url_param_system;
+        default_selected_emphasis = url_param_emphasis;
     } else {
         default_selected_systems = copy(selected_approach_names);
         default_selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[0] : null});
@@ -383,10 +416,10 @@ function show_benchmark_results(initial_call) {
     reset_selected_cell_categories();
 
     // Build an overview table over all .results-files from the evaluation-results folder.
-    build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis);
+    build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis, initial_call);
 
     // Read the article and ground truth information from the benchmark.
-    parse_benchmark(benchmark_file);
+    parse_benchmark(benchmark_file, initial_call);
 }
 
 function filter_table_rows() {
@@ -415,7 +448,7 @@ function set_top_scrollbar_width() {
     $("#top_scrollbar").css({"width": width + "px"});
 }
 
-function parse_benchmark(benchmark_file) {
+function parse_benchmark(benchmark_file, initial_call) {
     /*
     Read the articles and ground truth labels from the benchmark.
 
@@ -436,12 +469,12 @@ function parse_benchmark(benchmark_file) {
                 }
             }
             // Set options for the article selector element.
-            set_article_select_options();
+            set_article_select_options(initial_call);
         }
     );
 }
 
-function set_article_select_options() {
+function set_article_select_options(initial_call) {
     /*
     Set the options for the article selector element to the names of the articles from the list 'articles'.
     */
@@ -469,6 +502,12 @@ function set_article_select_options() {
         option.text = title;
         option.value = ai;
         article_select.add(option);
+    }
+
+    // Set the article according to URL parameter if one with a valid article name exists
+    var article_by_url = $('#article_select option').filter(function () { return $(this).html() == url_param_article; });
+    if (url_param_article && article_by_url.length > 0) {
+        $(article_by_url).prop('selected',true);
     }
 }
 
@@ -1108,7 +1147,7 @@ function get_emphasis_string(selected_cell_category) {
     return " (emphasis: " + emphasis_type + " \"" + emphasis + "\")";
 }
 
-function build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis) {
+function build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis, initial_call) {
     /*
     Build the overview table from the .results files found in the subdirectories of the given path.
     */
@@ -1165,7 +1204,7 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
 
                     if (!$('#evaluation_tables .checkboxes').html()) {
                         // Add checkboxes if they have not yet been added
-                        add_checkboxes(results);
+                        add_checkboxes(results, initial_call);
                     }
                     return;
                 });
@@ -1227,7 +1266,7 @@ function build_evaluation_table_body(result_list) {
     filter_table_rows();
 }
 
-function add_checkboxes(json_obj) {
+function add_checkboxes(json_obj, initial_call) {
     /*
     Add checkboxes for showing / hiding columns.
     */
@@ -1236,7 +1275,8 @@ function add_checkboxes(json_obj) {
             $.each(json_obj[key], function(subkey) {
                 var class_name = get_class_name(subkey);
                 var title = get_title_from_key(subkey);
-                var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\">";
+                var checked = (url_param_show_columns.includes(class_name)) ? "checked" : ""
+                var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
                 checkbox_html += "<label>" + title + "</label>";
                 var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
                 $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
@@ -1245,7 +1285,7 @@ function add_checkboxes(json_obj) {
         } else {
             var class_name = get_class_name(key);
             var title = get_title_from_key(key);
-            var checked = (class_name == "all") ? "checked" : ""
+            var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : ""
             var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
             checkbox_html += "<label>" + title + "</label>";
             $("#general_checkboxes.checkboxes").append(checkbox_html);
