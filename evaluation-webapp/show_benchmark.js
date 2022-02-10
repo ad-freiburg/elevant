@@ -142,11 +142,11 @@ $("document").ready(function() {
         $(this).removeClass("hovered");
     });
 
-    // Highlight all cells in a row belonging to the same mention_type or type on hover
+    // Highlight all cells in a row belonging to the same mention_type or type or the "all" column on hover
     $("#evaluation").on("mouseenter", "td", function() {
         if ($(this).attr('class')) {
             var cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in mention_type_headers || is_type_string(cls)) {
+            if (cls in mention_type_headers || is_type_string(cls) || cls == "all") {
                 // Mark all cells in the corresponding row with the corresponding class
                 $(this).closest('tr').find('.' + cls).each(function(index) {
                     $(this).addClass("hovered");
@@ -157,7 +157,7 @@ $("document").ready(function() {
     $("#evaluation").on("mouseleave", "td", function() {
         if ($(this).attr('class')) {
             var cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in mention_type_headers || is_type_string(cls)) {
+            if (cls in mention_type_headers || is_type_string(cls) || cls == "all") {
                 $(this).closest('tr').find('.' + cls).each(function(index) {
                     $(this).removeClass("hovered");
                 });
