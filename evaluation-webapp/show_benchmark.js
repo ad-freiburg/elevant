@@ -222,6 +222,30 @@ $("document").ready(function() {
 					   },
         sortRestart: true
     });
+
+    // Handle events for "Generate URL" button
+    $("#generate_url").on("mouseenter", function() {
+        generate_and_show_url();
+    });
+    $("#generate_url").on("mousedown", function(el) {
+        // Prevent firing on child elements, i.e. on the tooltip
+        if (el.target !== this) return;
+        // Change color of the element
+        $(this).addClass("clicked");
+    });
+    $("#generate_url").on("mouseup", function(el) {
+        if (el.target !== this) return;
+        $(this).removeClass("clicked");
+    });
+    $("#generate_url").on("mouseleave", function() {
+        // Remove clicked color on mouseleave because otherwise the color stays
+        // when keeping the mouse down and leaving the button
+        $(this).removeClass("clicked");
+    });
+    $("#generate_url").on("click", function(el) {
+        if (el.target !== this) return;
+            copy_generated_url();
+    })
 });
 
 function read_url_parameters() {
@@ -263,6 +287,95 @@ function get_url_parameter_array(url_parameter) {
 
 function is_string(object) {
     return typeof object === 'string' || object instanceof String;
+}
+
+function generate_and_show_url() {
+    /*
+    Generate a URL for the current view and display it in the generate URL button tooltip.
+    */
+    var url = $(location).attr('host') + $(location).attr('pathname');
+
+    param_names = [];
+    param_values = [];
+
+    // Get system_filter URL parameter
+    param_names.push("system_filter");
+    param_values.push($("input#result-filter").val());
+    // Get show_deprecated URL parameter
+    param_names.push("show_deprecated");
+    param_values.push(+ $("#checkbox_deprecated").is(":checked"));
+    // Get compare URL parameter
+    param_names.push("compare");
+    param_values.push(+$("#checkbox_compare").is(":checked"));
+    // Get benchmark URL parameter
+    param_names.push("benchmark");
+    param_values.push($("#benchmark option:selected").text());
+    // Get article URL parameter
+    param_names.push("article");
+    param_values.push($("#article_select option:selected").text());
+    // Get system URL parameter
+    if (selected_approach_names.length > 0) {
+        param_names.push("system")
+        param_values.push(selected_approach_names.join(","));
+    }
+    // Get emphasis URL parameter
+    if (selected_cells.length > 0) {
+        param_names.push("emphasis")
+        param_values.push(selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[0] : []}).join(","));
+    }
+    // Get show_columns URL parameter
+    var checkbox_classes = [];
+    var checkboxes = $("#evaluation_tables .checkboxes input:checked").each(function() {
+        checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
+    });
+    param_names.push("show_columns")
+    param_values.push(checkbox_classes.join(","));
+
+    // Put all together and append to URL
+    param_values = param_values.map(function(el) { return encodeURIComponent(el); });
+    url += "?";
+    url += param_names.map(function(_, i) {return param_names[i] + "=" + param_values[i]}).join("&");
+
+    // Show URL in tooltip
+    $("#generate_url .tooltiptext").text(url);
+}
+
+function copy_generated_url() {
+    /*
+    Copy the URL contained in the tooltip.
+    */
+    // Don't copy the URL again if the copy success message is still displayed
+    // Otherwise the string "Copied" will be included in the copied text
+    if ($("#copy_success").length > 0) return;
+
+    // Select the tooltip text
+    window.getSelection().selectAllChildren($("#generate_url .tooltiptext")[0]);
+
+    // Use of document.execCommand is discouraged, but the alternative, navigator.clipboard, is undefined for
+    // insecure http connections. See
+    // https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard
+    document.execCommand("copy");
+
+    // Show an overlay over the generated URL for one second, indicating that the URL was copied
+    $("#generate_url .tooltiptext").text()
+    $("<div id=\"copy_success\"><b>Copied</b></div>").css({
+        position: "absolute",
+        color: "white",
+        width: "100%",
+        height: "100%",
+        left: 0,
+        top: 0,
+        zIndex: 40,
+        fontSize: "200%",
+        background: "rgba(211,211,211,0.8)",
+        margin: "auto",
+        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+        alignContent: "center",
+        flexDirection: "column"
+    }).appendTo($("#generate_url .tooltiptext"));
+    setTimeout(function() { $("#copy_success").remove(); }, 1 * 1000);
 }
 
 function position_table_tooltip(anchor_el, tag_name) {
@@ -1835,15 +1948,15 @@ function produce_latex() {
     // Join lines, copy to textarea and from there to the clipboard.
     var latex_text = latex.join("\n");
     console.log(latex_text);
-    $("evaluation .latex").show();
-    $("evaluation .latex textarea").val(latex_text);
-    $("evaluation .latex textarea").show();  // Text is not selected or copied if it is hidden
-    $("evaluation .latex textarea").select();
+    $("#evaluation_tables .latex").show();
+    $("#evaluation_tables .latex textarea").val(latex_text);
+    $("#evaluation_tables .latex textarea").show();  // Text is not selected or copied if it is hidden
+    $("#evaluation_tables .latex textarea").select();
     document.execCommand("copy");
-    $("evaluation .latex textarea").hide();
+    $("#evaluation_tables .latex textarea").hide();
 
     // Show the notification for the specified number of seconds
     var show_duration_seconds = 5;
-    setTimeout(function() { $("#evaluation .latex").hide(); }, show_duration_seconds * 1000);
+    setTimeout(function() { $("#evaluation_tables .latex").hide(); }, show_duration_seconds * 1000);
 }
 

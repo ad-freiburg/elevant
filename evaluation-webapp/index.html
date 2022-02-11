@@ -16,9 +16,18 @@
 			<h1>ELEVANT: Entity Linking Evaluation and Analysis Tool</h1>
 		</header>
 		<div class="content">
-			<div id="benchmark_selection">
-				Select a benchmark: <select id="benchmark" onchange="show_benchmark_results(false)"></select>
+			<div id="top_row_container">
+				<div id="benchmark_selection">
+					Select a benchmark: <select id="benchmark" onchange="show_benchmark_results(false)"></select>
+				</div>
+				<div id="generate_url_container">
+					<div id="generate_url">Generate URL for this view
+						<div class="tooltiptext"></div>
+					</div>
+				</div>
+
 			</div>
+
 			<span>Filter results by keywords: <input id="result-filter"></span>
 			<input type="checkbox" id="checkbox_deprecated" onchange="filter_table_rows()">
 				<label for="checkbox_deprecated">Show deprecated</label>
