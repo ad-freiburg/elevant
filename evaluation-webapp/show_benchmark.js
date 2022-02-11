@@ -58,8 +58,8 @@ error_category_mapping = {
     "undetected": {
         "all": ["UNDETECTED"],
         "lowercase": ["UNDETECTED_LOWERCASE"],
-        "partially_included": ["UNDETECTED_SPECIFICITY"],
-        "partial_overlap": ["UNDETECTED_OVERLAP"],
+        "partially_included": ["UNDETECTED_PARTIALLY_INCLUDED"],
+        "partial_overlap": ["UNDETECTED_PARTIAL_OVERLAP"],
         "other": ["UNDETECTED_OTHER"]
     },
     "wrong_disambiguation": {
@@ -245,7 +245,7 @@ $("document").ready(function() {
     $("#generate_url").on("click", function(el) {
         if (el.target !== this) return;
             copy_generated_url();
-    })
+    });
 });
 
 function read_url_parameters() {
@@ -321,7 +321,7 @@ function generate_and_show_url() {
     // Get emphasis URL parameter
     if (selected_cells.length > 0) {
         param_names.push("emphasis")
-        param_values.push(selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[0] : []}).join(","));
+        param_values.push(selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
     }
     // Get show_columns URL parameter
     var checkbox_classes = [];
@@ -521,7 +521,7 @@ function show_benchmark_results(initial_call) {
         default_selected_emphasis = url_param_emphasis;
     } else {
         default_selected_systems = copy(selected_approach_names);
-        default_selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[0] : null});
+        default_selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null});
     }
     selected_approach_names = [];
     selected_rows = [];
