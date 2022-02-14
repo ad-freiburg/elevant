@@ -21,6 +21,10 @@ def nif_api():
         if args.input_predictions:
             first_characters = article.text[:100]
             if first_characters in article_dict:
+                if article.text != article_dict[first_characters].text:
+                    logger.warning("Article text from prediction file (length %d) does not exactly match the article "
+                                   "text received by the server (length %d)."
+                                   % (len(article_dict[first_characters].text), len(article.text)))
                 article = article_dict[first_characters]
             else:
                 logger.warning("Article not found in input file: \"%s...\". Return empty predictions."
