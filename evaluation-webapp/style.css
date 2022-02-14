@@ -499,6 +499,13 @@ div.latex textarea {
     background-color: var(--annotation-optional-color-lowlight);
 }
 
+.annotation.gt.selected {
+    border-bottom-color: var(--cell-selected-color);
+}
+.annotation.pred.selected {
+    background-color: var(--cell-selected-color);
+}
+
 /* ----------------------------------------- */
 /* Begin annotation tooltips */
 

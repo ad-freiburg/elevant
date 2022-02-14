@@ -127,7 +127,6 @@ $("document").ready(function() {
 
     // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
     // Filter on key up
-    $("input#result-filter").focus();
     $("input#result-filter").keyup(function() {
         filter_table_rows();
     });
@@ -246,7 +245,136 @@ $("document").ready(function() {
         if (el.target !== this) return;
             copy_generated_url();
     });
+
+    reset_annotation_selection();
+    $(document).on("keydown", function(event) {
+        if ($("input#result-filter").is(":focus")) return;
+        if (event.ctrlKey && event.which == 39) {
+            // Jump to next error highlight
+            var i = 0;
+        } else if (event.which == 39) {
+            // Jump to next highlight
+            console.log(jump_to_annotation_index);
+            var all_highlighted_annotations = [];
+            all_highlighted_annotations.push($("#prediction_overview td:nth-child(1) .annotation").not(".lowlight"));
+            all_highlighted_annotations.push($("#prediction_overview td:nth-child(2) .annotation").not(".lowlight"));
+            scroll_to_next_annotation(all_highlighted_annotations);
+            console.log("new indices: ", jump_to_annotation_index);
+        } else if (event.which == 37) {
+            // Jump to previous highlight
+            console.log(jump_to_annotation_index);
+            var all_highlighted_annotations = [];
+            all_highlighted_annotations.push($("#prediction_overview td:nth-child(1) .annotation").not(".lowlight"));
+            all_highlighted_annotations.push($("#prediction_overview td:nth-child(2) .annotation").not(".lowlight"));
+            scroll_to_previous_annotation(all_highlighted_annotations);
+            console.log("new indices: ", jump_to_annotation_index);
+        }
+    });
 });
+
+function scroll_to_next_annotation(all_highlighted_annotations) {
+    /*
+    Scroll to the next annotation in the list of all annotations on the left and on the right side.
+    */
+    if (jump_to_annotation_index[0] + 1 < all_highlighted_annotations[0].length) {
+        var next_highlighted_annotation_left = all_highlighted_annotations[0][jump_to_annotation_index[0] + 1];
+    }
+    if (jump_to_annotation_index[1] + 1 < all_highlighted_annotations[1].length) {
+        var next_highlighted_annotation_right = all_highlighted_annotations[1][jump_to_annotation_index[1] + 1];
+    }
+    var next_highlighted_annotation;
+    if (next_highlighted_annotation_left && next_highlighted_annotation_right) {
+        if ($(next_highlighted_annotation_left).offset().top <= $(next_highlighted_annotation_right).offset().top) {
+            next_highlighted_annotation = next_highlighted_annotation_left;
+            jump_to_annotation_index[0]++;
+            last_highlighted_side = 0;
+        } else {
+            next_highlighted_annotation = next_highlighted_annotation_right;
+            jump_to_annotation_index[1]++;
+            last_highlighted_side = 1;
+        }
+    } else if (next_highlighted_annotation_left) {
+        next_highlighted_annotation = next_highlighted_annotation_left;
+        jump_to_annotation_index[0]++;
+        last_highlighted_side = 0;
+    } else if (next_highlighted_annotation_right) {
+        next_highlighted_annotation = next_highlighted_annotation_right;
+        jump_to_annotation_index[1]++;
+        last_highlighted_side = 1;
+    } else {
+        jump_to_annotation_index[last_highlighted_side] = all_highlighted_annotations[last_highlighted_side].length;
+    }
+
+    if (next_highlighted_annotation) {
+        scroll_to_annotation(next_highlighted_annotation);
+    }
+}
+
+function scroll_to_previous_annotation(all_highlighted_annotations) {
+    /*
+    Scroll to the next annotation in the list of all annotations on the left and on the right side.
+    */
+    if (jump_to_annotation_index[0] - 1 >= 0) {
+        var next_highlighted_annotation_left = all_highlighted_annotations[0][jump_to_annotation_index[0] - (last_highlighted_side==0)];
+    }
+    if (jump_to_annotation_index[1] - 1 >= 0) {
+        var next_highlighted_annotation_right = all_highlighted_annotations[1][jump_to_annotation_index[1] - (last_highlighted_side==1)];
+        console.log(jump_to_annotation_index[1] - (last_highlighted_side==1));
+    }
+    var next_highlighted_annotation;
+    if (next_highlighted_annotation_left && next_highlighted_annotation_right) {
+        if ($(next_highlighted_annotation_left).offset().top > $(next_highlighted_annotation_right).offset().top) {
+            next_highlighted_annotation = next_highlighted_annotation_left;
+            jump_to_annotation_index[last_highlighted_side]--;
+            last_highlighted_side = 0;
+        } else {
+            next_highlighted_annotation = next_highlighted_annotation_right;
+            jump_to_annotation_index[last_highlighted_side]--;
+            last_highlighted_side = 1;
+        }
+    } else if (next_highlighted_annotation_left) {
+        next_highlighted_annotation = next_highlighted_annotation_left;
+        jump_to_annotation_index[last_highlighted_side]--;
+        last_highlighted_side = 0;
+    } else if (next_highlighted_annotation_right) {
+        next_highlighted_annotation = next_highlighted_annotation_right;
+        jump_to_annotation_index[last_highlighted_side]--;
+        last_highlighted_side = 1;
+    } else {
+        jump_to_annotation_index[0] = -1;
+        jump_to_annotation_index[1] = -1;
+    }
+
+    if (next_highlighted_annotation) {
+        scroll_to_annotation(next_highlighted_annotation);
+    }
+}
+
+function decrease_index(index) {
+    return Math.max(0, index - 1);
+}
+
+function increase_index(index, array_length) {
+    return Math.min(index + 1, array_length - 1);
+}
+
+function reset_annotation_selection() {
+    jump_to_annotation_index = [-1, -1];
+    last_highlighted_side = 0;
+}
+
+function scroll_to_annotation(annotation) {
+    /*
+    Scroll to the given annotation and mark it as selected for a second.
+    */
+    var line_height = parseInt($("#prediction_overview td").css('line-height').replace('px',''));
+    var header_size = $("#prediction_overview thead")[0].getBoundingClientRect().height;
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $(annotation).offset().top - header_size - line_height / 2
+    }, 200);
+    $(annotation).addClass("selected")
+    setTimeout(function() { $(annotation).removeClass("selected"); }, 1000);
+}
 
 function read_url_parameters() {
     url_param_filter_string = get_url_parameter_string(get_url_parameter("system_filter"));
@@ -593,6 +721,8 @@ function set_article_select_options(initial_call) {
     */
     // Empty previous options
     $("#article_select").empty();
+
+    reset_annotation_selection();
 
     // Add default "All articles" option
     var option = document.createElement("option");
@@ -1711,6 +1841,8 @@ function on_cell_click(el) {
     Highlight error category / type cells on click and un-highlight previously clicked cell.
     Add or remove error categories and types to/from current selection.
     */
+    reset_annotation_selection();
+
     // Determine whether an already selected cell has been clicked
     var curr_row = $(el).closest("tr").index();
     var prev_selected_rows = $.map(selected_rows, function(sel_row) { return $(sel_row).index(); });
