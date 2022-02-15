@@ -250,9 +250,11 @@ $("document").ready(function() {
     $(document).on("keydown", function(event) {
         if ($("input#result-filter").is(":focus")) return;
         if ([39, 37].includes(event.which)) {
-            all_highlighted_annotations = [];
-            all_highlighted_annotations.push($("#prediction_overview td:nth-child(1) .annotation").not(".lowlight"));
-            all_highlighted_annotations.push($("#prediction_overview td:nth-child(2) .annotation").not(".lowlight"));
+            all_highlighted_annotations = [[], []];
+            all_highlighted_annotations[0] = $("#prediction_overview td:nth-child(1) .annotation").not(".lowlight");
+            if (selected_approach_names.length > 1) {
+                all_highlighted_annotations[1] = $("#prediction_overview td:nth-child(2) .annotation").not(".lowlight");
+            }
             if (event.ctrlKey && event.which == 39) {
                 // Jump to next error highlight
                 console.log("indices before jump", jump_to_annotation_index);
@@ -285,6 +287,7 @@ function scroll_to_next_annotation(only_errors) {
     var next_annotation_index = [-1, -1];
     var next_annotations = [null, null];
     for (var i=0; i<2; i++) {
+        if (all_highlighted_annotations[i].length == 0) continue;
         if (jump_to_annotation_index[i] + 1 < all_highlighted_annotations[i].length) {
             if (only_errors) {
                 next_annotation_index[i] = find_next_annotation_index(i);
@@ -303,23 +306,23 @@ function scroll_to_next_annotation(only_errors) {
             next_annotation = next_annotations[0];
             jump_to_annotation_index[0] = next_annotation_index[0];
             last_highlighted_side = 0;
-            if (only_errors) bring_jump_index_to_same_height(next_annotation, 1);
+            if (only_errors && all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
         } else {
             next_annotation = next_annotations[1];
             jump_to_annotation_index[1] = next_annotation_index[1];
             last_highlighted_side = 1;
-            if (only_errors) bring_jump_index_to_same_height(next_annotation, 0);
+            if (only_errors && all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
         }
     } else if (next_annotations[0]) {
         next_annotation = next_annotations[0];
         jump_to_annotation_index[0] = next_annotation_index[0];
         last_highlighted_side = 0;
-        if (only_errors) bring_jump_index_to_same_height(next_annotation, 1);
+        if (only_errors && all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
     } else if (next_annotations[1]) {
         next_annotation = next_annotations[1];
         jump_to_annotation_index[1] = next_annotation_index[1];
         last_highlighted_side = 1;
-        if (only_errors) bring_jump_index_to_same_height(next_annotation, 0);
+        if (only_errors && all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
     } else if (!only_errors) {
         jump_to_annotation_index[last_highlighted_side] = all_highlighted_annotations[last_highlighted_side].length;
     }
@@ -353,6 +356,7 @@ function scroll_to_previous_annotation(only_errors) {
     var next_annotation_index = [-1, -1];
     var next_annotations = [null, null];
     for (var i=0; i<2; i++) {
+        if (all_highlighted_annotations[i].length == 0) continue;
         if (jump_to_annotation_index[i] - 1 >= 0) {
             if (only_errors) {
                 next_annotation_index[i] = find_previous_annotation_index(i, last_highlighted_side);
