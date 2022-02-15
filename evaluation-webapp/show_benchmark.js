@@ -251,9 +251,9 @@ $("document").ready(function() {
         if ($("input#result-filter").is(":focus") || $("#benchmark").is(":focus") || $("#article_select").is(":focus")) return;
         if ([39, 37].includes(event.which)) {
             all_highlighted_annotations = [[], []];
-            all_highlighted_annotations[0] = $("#prediction_overview td:nth-child(1) .annotation").not(".lowlight");
+            all_highlighted_annotations[0] = $("#prediction_overview td:nth-child(1) .annotation.beginning").not(".lowlight");
             if (selected_approach_names.length > 1) {
-                all_highlighted_annotations[1] = $("#prediction_overview td:nth-child(2) .annotation").not(".lowlight");
+                all_highlighted_annotations[1] = $("#prediction_overview td:nth-child(2) .annotation.beginning").not(".lowlight");
             }
             if (event.ctrlKey && event.which == 39) {
                 // Jump to next error highlight
@@ -482,8 +482,13 @@ function scroll_to_annotation(annotation) {
     $([document.documentElement, document.body]).animate({
         scrollTop: $(annotation).offset().top - header_size - line_height / 2
     }, 200);
-    $(annotation).addClass("selected")
-    setTimeout(function() { $(annotation).removeClass("selected"); }, 1000);
+    // Get annotation id class such that all spans belonging to one annotation can be marked as selected
+    var classes = $(annotation).attr("class").split(/\s+/);
+    var annotation_id_class = classes.filter(function(el) {return el.startsWith("annotation_id_"); });
+    // Mark spans as selected
+    $("." + annotation_id_class).addClass("selected")
+    // Unmark spans as selected after timeout
+    setTimeout(function() { $("." + annotation_id_class).removeClass("selected"); }, 1000);
 }
 
 function read_url_parameters() {
@@ -906,7 +911,7 @@ function is_optional_case(eval_case) {
                                            ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type));
 }
 
-function show_annotated_text(approach_name, textfield, selected_cell_category) {
+function show_annotated_text(approach_name, textfield, selected_cell_category, column_idx) {
     /*
     Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
     and show them in the textfield.
@@ -914,7 +919,7 @@ function show_annotated_text(approach_name, textfield, selected_cell_category) {
     if (show_all_articles_flag) {
         var annotated_texts = [];
         for (var i=0; i < articles.length; i++) {
-            var annotations = get_annotations(i, approach_name);
+            var annotations = get_annotations(i, approach_name, column_idx);
             annotated_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, selected_cell_category));
         }
         annotated_text = "";
@@ -924,13 +929,13 @@ function show_annotated_text(approach_name, textfield, selected_cell_category) {
             annotated_text += annotated_texts[i];
         }
     } else {
-        var annotations = get_annotations(selected_article_index, approach_name);
+        var annotations = get_annotations(selected_article_index, approach_name, column_idx);
         var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_cell_category);
     }
     textfield.html(annotated_text);
 }
 
-function get_annotations(article_index, approach_name) {
+function get_annotations(article_index, approach_name, column_idx) {
     /*
     Generate annotations for the predicted entities of the selected approach and article.
 
@@ -980,6 +985,7 @@ function get_annotations(article_index, approach_name) {
     // list with tooltip information for each mention
     var annotations = {};
     var prediction_spans = [];
+    var annotation_count = 0;
     for (mention of mentions) {
         if (mention.factor == 0) {
             // Do not display overlapping mentions
@@ -1084,7 +1090,8 @@ function get_annotations(article_index, approach_name) {
         var annotation = {
             "span": mention.span,
             "mention_type": mention_type,
-            "error_labels": []
+            "error_labels": [],
+            "beginning": true,
         };
         // If the case has a GT and a prediction, don't add error cases to GT if it's an unknown or optional case
         if (!$.isEmptyObject(gt_annotation) && !$.isEmptyObject(pred_annotation)) {
@@ -1093,10 +1100,15 @@ function get_annotations(article_index, approach_name) {
             } else {
                 gt_annotation.error_labels = mention.error_labels;
                 pred_annotation.error_labels = mention.error_labels;
-
             }
+            gt_annotation.id = column_idx + "_" + article_index+ "_" + annotation_count;
+            annotation_count++;
+            pred_annotation.id = column_idx + "_" + article_index+ "_" + annotation_count;
+            annotation_count++;
         } else {
             annotation.error_labels = mention.error_labels;
+            annotation.id = column_idx + "_" + article_index+ "_" + annotation_count;
+            annotation_count++;
         }
         // Merge basic annotations and case specific annotations into a single annotation object
         // If the annotation contains both a groundtruth and a prediction, make the prediction the inner annotation of
@@ -1295,17 +1307,19 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
                     break;
                 }
             } else {
-                if (annotation.error_labels.includes(selected_category) || annotation.mention_type == selected_category) {
+                if ((annotation.error_labels && annotation.error_labels.includes(selected_category)) || annotation.mention_type == selected_category) {
                     lowlight_mention = false;
                     break;
                 }
             }
         }
     }
-    var lowlight = (lowlight_mention) ? "lowlight" : "";
+    var lowlight = (lowlight_mention) ? " lowlight" : "";
 
     var annotation_kind = (annotation.gt_entity_id) ? "gt" : "pred";
-    var replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + " " + lowlight + "\">";
+    var beginning = (annotation.beginning) ? " beginning" : "";
+    var annotation_id_class = " annotation_id_" + annotation.id;
+    var replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + lowlight + beginning + annotation_id_class + "\">";
     replacement += inner_annotation;
     if (tooltip_header_text || tooltip_body_text) {
         replacement += "<div class=\"" + tooltip_classes + "\">";
@@ -1348,20 +1362,22 @@ function combine_overlapping_annotations(list1, list2) {
             if (list2_item_span[0] < list1_item_span[0]) {
                 // Add element from second list
                 var list2_item_end = Math.min(list2_item_span[1], list1_item_span[0]);
-                combined_annotations.push([[list2_item_span[0], list2_item_end], list2_item[1]]);
+                combined_annotations.push([[list2_item_span[0], list2_item_end], copy(list2_item[1])]);
                 if (list2_item_end == list2_item_span[1]) {
                     list2.shift();
                 } else {
                     list2[0][0][0] = list2_item_end;
+                    list2_item[1].beginning = false;
                 }
             } else if (list1_item_span[0] < list2_item_span[0]) {
                 // Add element from first list
                 var list1_item_end = Math.min(list1_item_span[1], list2_item_span[0]);
-                combined_annotations.push([[list1_item_span[0], list1_item_end], list1_item[1]]);
+                combined_annotations.push([[list1_item_span[0], list1_item_end], copy(list1_item[1])]);
                 if (list1_item_end == list1_item_span[1]) {
                     list1.shift();
                 } else {
                     list1_item_span[0] = list1_item_end;
+                    list1_item[1].beginning = false;
                 }
             } else {
                 // Add both
@@ -1371,18 +1387,20 @@ function combine_overlapping_annotations(list1, list2) {
                 while ("inner_annotation" in most_inner_ann) {
                     most_inner_ann = most_inner_ann["inner_annotation"];
                 }
-                most_inner_ann["inner_annotation"] = list2_item[1];
+                most_inner_ann["inner_annotation"] = copy(list2_item[1]);
                 var list1_item_end = Math.min(list1_item_span[1], list2_item_span[1]);
                 combined_annotations.push([[list1_item_span[0], list1_item_end], list1_item_ann]);
                 if (list1_item_end == list2_item_span[1]) {
                     list2.shift();
                 } else {
                     list2[0][0][0] = list1_item_end;
+                    list2_item[1].beginning = false;
                 }
                 if (list1_item_end == list1_item_span[1]) {
                     list1.shift();
                 } else {
                     list1[0][0][0] = list1_item_end;
+                    list1_item[1].beginning = false;
                 }
             }
         }
@@ -1447,7 +1465,7 @@ async function show_article(selected_approaches, timestamp) {
 
     // Show columns
     // Show first prediction column
-    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0]);
+    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0], column_idx);
     var benchmark_name = $("#benchmark option:selected").text();
     var emphasis_str = get_emphasis_string(selected_cell_categories[0])
     $(column_headers[column_idx]).html(selected_approaches[0] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
@@ -1455,7 +1473,7 @@ async function show_article(selected_approaches, timestamp) {
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
         // Show second prediction column
-        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1]);
+        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1], column_idx);
         emphasis_str = get_emphasis_string(selected_cell_categories[1])
         $(column_headers[column_idx]).html(selected_approaches[1] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
         show_table_column("prediction_overview", column_idx);
