@@ -216,9 +216,9 @@ $("document").ready(function() {
         stringTo: "bottom",  // Columns that are numerically sorted should always have strings (e.g. "-") at the bottom
         widgets: ['stickyHeaders'],
         widgetOptions: {
-						stickyHeaders_attachTo: '#evaluation',  // jQuery selector or object to attach sticky header to
-						stickyHeaders_zIndex : 20,
-					   },
+                        stickyHeaders_attachTo: '#evaluation',  // jQuery selector or object to attach sticky header to
+                        stickyHeaders_zIndex : 20,
+                       },
         sortRestart: true
     });
 
@@ -249,105 +249,211 @@ $("document").ready(function() {
     reset_annotation_selection();
     $(document).on("keydown", function(event) {
         if ($("input#result-filter").is(":focus")) return;
-        if (event.ctrlKey && event.which == 39) {
-            // Jump to next error highlight
-            var i = 0;
-        } else if (event.which == 39) {
-            // Jump to next highlight
-            console.log(jump_to_annotation_index);
-            var all_highlighted_annotations = [];
+        if ([39, 37].includes(event.which)) {
+            all_highlighted_annotations = [];
             all_highlighted_annotations.push($("#prediction_overview td:nth-child(1) .annotation").not(".lowlight"));
             all_highlighted_annotations.push($("#prediction_overview td:nth-child(2) .annotation").not(".lowlight"));
-            scroll_to_next_annotation(all_highlighted_annotations);
-            console.log("new indices: ", jump_to_annotation_index);
-        } else if (event.which == 37) {
-            // Jump to previous highlight
-            console.log(jump_to_annotation_index);
-            var all_highlighted_annotations = [];
-            all_highlighted_annotations.push($("#prediction_overview td:nth-child(1) .annotation").not(".lowlight"));
-            all_highlighted_annotations.push($("#prediction_overview td:nth-child(2) .annotation").not(".lowlight"));
-            scroll_to_previous_annotation(all_highlighted_annotations);
-            console.log("new indices: ", jump_to_annotation_index);
+            if (event.ctrlKey && event.which == 39) {
+                // Jump to next error highlight
+                console.log("indices before jump", jump_to_annotation_index);
+                scroll_to_next_annotation(true);
+                console.log("indices after jump: ", jump_to_annotation_index);
+            } else if (event.ctrlKey && event.which == 37) {
+                console.log("indices before jump", jump_to_annotation_index);
+                scroll_to_previous_annotation(true);
+                console.log("indices after jump: ", jump_to_annotation_index);
+            } else if (event.which == 39) {
+                // Jump to next highlight
+                console.log("indices before jump", jump_to_annotation_index);
+                scroll_to_next_annotation(false);
+                console.log("indices after jump: ", jump_to_annotation_index);
+            } else if (event.which == 37) {
+                // Jump to previous highlight
+                console.log("indices before jump", jump_to_annotation_index);
+                scroll_to_previous_annotation(false);
+                console.log("indices after jump: ", jump_to_annotation_index);
+            }
         }
     });
 });
 
-function scroll_to_next_annotation(all_highlighted_annotations) {
+function scroll_to_next_annotation(only_errors) {
     /*
     Scroll to the next annotation in the list of all annotations on the left and on the right side.
     */
-    if (jump_to_annotation_index[0] + 1 < all_highlighted_annotations[0].length) {
-        var next_highlighted_annotation_left = all_highlighted_annotations[0][jump_to_annotation_index[0] + 1];
-    }
-    if (jump_to_annotation_index[1] + 1 < all_highlighted_annotations[1].length) {
-        var next_highlighted_annotation_right = all_highlighted_annotations[1][jump_to_annotation_index[1] + 1];
-    }
-    var next_highlighted_annotation;
-    if (next_highlighted_annotation_left && next_highlighted_annotation_right) {
-        if ($(next_highlighted_annotation_left).offset().top <= $(next_highlighted_annotation_right).offset().top) {
-            next_highlighted_annotation = next_highlighted_annotation_left;
-            jump_to_annotation_index[0]++;
-            last_highlighted_side = 0;
-        } else {
-            next_highlighted_annotation = next_highlighted_annotation_right;
-            jump_to_annotation_index[1]++;
-            last_highlighted_side = 1;
+    // Get potential next highlighted annotation for left and right side
+    var next_annotation_index = [-1, -1];
+    var next_annotations = [null, null];
+    for (var i=0; i<2; i++) {
+        if (jump_to_annotation_index[i] + 1 < all_highlighted_annotations[i].length) {
+            if (only_errors) {
+                next_annotation_index[i] = find_next_annotation_index(i);
+                if (next_annotation_index[i] < all_highlighted_annotations[i].length) next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
+                console.log("next_annotation_index", next_annotation_index[i], next_annotations[i]);
+            } else {
+                next_annotation_index[i] = jump_to_annotation_index[i] + 1;
+                next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
+            }
         }
-    } else if (next_highlighted_annotation_left) {
-        next_highlighted_annotation = next_highlighted_annotation_left;
-        jump_to_annotation_index[0]++;
+    }
+
+    var next_annotation;
+    if (next_annotations[0] && next_annotations[1]) {
+        if ($(next_annotations[0]).offset().top <= $(next_annotations[1]).offset().top) {
+            next_annotation = next_annotations[0];
+            jump_to_annotation_index[0] = next_annotation_index[0];
+            last_highlighted_side = 0;
+            if (only_errors) bring_jump_index_to_same_height(next_annotation, 1);
+        } else {
+            next_annotation = next_annotations[1];
+            jump_to_annotation_index[1] = next_annotation_index[1];
+            last_highlighted_side = 1;
+            if (only_errors) bring_jump_index_to_same_height(next_annotation, 0);
+        }
+    } else if (next_annotations[0]) {
+        next_annotation = next_annotations[0];
+        jump_to_annotation_index[0] = next_annotation_index[0];
         last_highlighted_side = 0;
-    } else if (next_highlighted_annotation_right) {
-        next_highlighted_annotation = next_highlighted_annotation_right;
-        jump_to_annotation_index[1]++;
+        if (only_errors) bring_jump_index_to_same_height(next_annotation, 1);
+    } else if (next_annotations[1]) {
+        next_annotation = next_annotations[1];
+        jump_to_annotation_index[1] = next_annotation_index[1];
         last_highlighted_side = 1;
-    } else {
+        if (only_errors) bring_jump_index_to_same_height(next_annotation, 0);
+    } else if (!only_errors) {
         jump_to_annotation_index[last_highlighted_side] = all_highlighted_annotations[last_highlighted_side].length;
     }
 
-    if (next_highlighted_annotation) {
-        scroll_to_annotation(next_highlighted_annotation);
+    if (next_annotation) {
+        scroll_to_annotation(next_annotation);
     }
 }
 
-function scroll_to_previous_annotation(all_highlighted_annotations) {
-    /*
-    Scroll to the next annotation in the list of all annotations on the left and on the right side.
-    */
-    if (jump_to_annotation_index[0] - 1 >= 0) {
-        var next_highlighted_annotation_left = all_highlighted_annotations[0][jump_to_annotation_index[0] - (last_highlighted_side==0)];
+function bring_jump_index_to_same_height(next_annotation, side_index) {
+    // Bring the jump index for the other side to the same height
+    var original_jump_index = jump_to_annotation_index[side_index];
+    if (side_index == 0) {
+        while (jump_to_annotation_index[side_index] < 0 || (jump_to_annotation_index[side_index] <= all_highlighted_annotations[side_index].length &&
+               $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top <= $(next_annotation).offset().top)) {
+            jump_to_annotation_index[side_index]++;
+        }
+    } else {
+        while (jump_to_annotation_index[side_index] < 0 || (jump_to_annotation_index[side_index] <= all_highlighted_annotations[side_index].length &&
+               $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top < $(next_annotation).offset().top)) {
+            jump_to_annotation_index[side_index]++;
+        }
     }
-    if (jump_to_annotation_index[1] - 1 >= 0) {
-        var next_highlighted_annotation_right = all_highlighted_annotations[1][jump_to_annotation_index[1] - (last_highlighted_side==1)];
-        console.log(jump_to_annotation_index[1] - (last_highlighted_side==1));
+    jump_to_annotation_index[side_index]--; // Minus one, because the next annotation should be the one determined above
+    console.log("Next index on " + side_index + " side is ", jump_to_annotation_index[side_index]);
+}
+
+function scroll_to_previous_annotation(only_errors) {
+    // Get potential next highlighted annotation for left and right side
+    console.log("last highlighted side: ", last_highlighted_side);
+    var next_annotation_index = [-1, -1];
+    var next_annotations = [null, null];
+    for (var i=0; i<2; i++) {
+        if (jump_to_annotation_index[i] - 1 >= 0) {
+            if (only_errors) {
+                next_annotation_index[i] = find_previous_annotation_index(i, last_highlighted_side);
+                if (next_annotation_index[i] >= 0) next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
+                console.log("next_annotation_index", next_annotation_index[i], next_annotations[i]);
+            } else {
+                next_annotation_index[i] = jump_to_annotation_index[i] - (last_highlighted_side==i);
+                next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
+            }
+        }
     }
-    var next_highlighted_annotation;
-    if (next_highlighted_annotation_left && next_highlighted_annotation_right) {
-        if ($(next_highlighted_annotation_left).offset().top > $(next_highlighted_annotation_right).offset().top) {
-            next_highlighted_annotation = next_highlighted_annotation_left;
-            jump_to_annotation_index[last_highlighted_side]--;
+
+    var next_annotation;
+    if (next_annotations[0] && next_annotations[1]) {
+        if ($(next_annotations[0]).offset().top > $(next_annotations[1]).offset().top) {
+            console.log("1. case");
+            next_annotation = next_annotations[0];
+            if (!only_errors || last_highlighted_side == 0) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
+            else {
+                update_index_to_previous_annotation(next_annotation, last_highlighted_side);
+                jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
+                console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
+            }
             last_highlighted_side = 0;
         } else {
-            next_highlighted_annotation = next_highlighted_annotation_right;
-            jump_to_annotation_index[last_highlighted_side]--;
+            console.log("2. case");
+            next_annotation = next_annotations[1];
+            if (!only_errors || last_highlighted_side == 1) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
+            else {
+                update_index_to_previous_annotation(next_annotation, last_highlighted_side);
+                jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
+                console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
+            }
             last_highlighted_side = 1;
         }
-    } else if (next_highlighted_annotation_left) {
-        next_highlighted_annotation = next_highlighted_annotation_left;
-        jump_to_annotation_index[last_highlighted_side]--;
+    } else if (next_annotations[0]) {
+        console.log("3. case");
+        next_annotation = next_annotations[0];
+        if (!only_errors || last_highlighted_side == 0) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
+        else {
+            update_index_to_previous_annotation(next_annotation, last_highlighted_side);
+            jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
+            console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
+        }
         last_highlighted_side = 0;
-    } else if (next_highlighted_annotation_right) {
-        next_highlighted_annotation = next_highlighted_annotation_right;
-        jump_to_annotation_index[last_highlighted_side]--;
+    } else if (next_annotations[1]) {
+        console.log("4. case");
+        next_annotation = next_annotations[1];
+        if (!only_errors || last_highlighted_side == 1) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
+        else {
+            update_index_to_previous_annotation(next_annotation, last_highlighted_side);
+            jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
+            console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
+        }
         last_highlighted_side = 1;
-    } else {
+    } else if (!only_errors) {
+        console.log("5. case");
         jump_to_annotation_index[0] = -1;
         jump_to_annotation_index[1] = -1;
     }
 
-    if (next_highlighted_annotation) {
-        scroll_to_annotation(next_highlighted_annotation);
+    if (next_annotation) {
+        scroll_to_annotation(next_annotation);
     }
+}
+
+function update_index_to_previous_annotation(next_annotation, side_index) {
+    // Bring the jump index for the other side to the same height
+    var original_jump_index = jump_to_annotation_index[side_index];
+    if (side_index == 0) {
+        while (jump_to_annotation_index[side_index] == all_highlighted_annotations[side_index].length || (
+               jump_to_annotation_index[side_index] >= -1 && $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top > $(next_annotation).offset().top)) {
+            jump_to_annotation_index[side_index]--;
+        }
+    } else {
+        while (jump_to_annotation_index[side_index] == all_highlighted_annotations[side_index].length || (
+               jump_to_annotation_index[side_index] >= -1 && $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top >= $(next_annotation).offset().top)) {
+            jump_to_annotation_index[side_index]--;
+        }
+    }
+    console.log("Next index on " + side_index + " side is ", jump_to_annotation_index[side_index]);
+}
+
+function find_next_annotation_index(side_index) {
+    for (var i=jump_to_annotation_index[side_index] + 1; i<all_highlighted_annotations[side_index].length; i++) {
+        var classes = $(all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
+        if (classes.includes("fn") || classes.includes("fp")) {
+            return i;
+        }
+    }
+    return all_highlighted_annotations[side_index].length;
+}
+
+function find_previous_annotation_index(side_index, last_highlighted_side) {
+    for (var i=jump_to_annotation_index[side_index] - (last_highlighted_side==side_index); i > 0; i--) {
+        var classes = $(all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
+        if (classes.includes("fn") || classes.includes("fp")) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 function decrease_index(index) {
