@@ -248,7 +248,7 @@ $("document").ready(function() {
 
     reset_annotation_selection();
     $(document).on("keydown", function(event) {
-        if ($("input#result-filter").is(":focus")) return;
+        if ($("input#result-filter").is(":focus") || $("#benchmark").is(":focus") || $("#article_select").is(":focus")) return;
         if ([39, 37].includes(event.which)) {
             all_highlighted_annotations = [[], []];
             all_highlighted_annotations[0] = $("#prediction_overview td:nth-child(1) .annotation").not(".lowlight");
