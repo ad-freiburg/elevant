@@ -22,22 +22,14 @@ import os
 
 from src import settings
 from src.evaluation.benchmark import Benchmark
-from src.linkers.linkers import Linkers, CoreferenceLinkers, LinkLinkers
+from src.linkers.linkers import Linkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
 from src.evaluation.examples_generator import get_example_generator
 
 
 def main(args):
-    if args.link_linker:
-        if args.benchmark != Benchmark.WIKI_EX.value and args.benchmark != Benchmark.CONLL_PSEUDO_LINKS.value:
-            logger.warning("Using a link linker only makes sense over benchmarks that contain hyperlinks.")
-    if args.coreference_linker == "wexea" and not args.linker_type == "wexea":
-        logger.error("Wexea can only be used as coreference linker in combination with the Wexea linker")
-        exit(1)
-
     linking_system = LinkingSystem(args.linker_type,
                                    args.linker,
-                                   args.link_linker,
                                    args.coreference_linker,
                                    args.kb_name,
                                    args.minimum_score,
@@ -90,8 +82,6 @@ if __name__ == "__main__":
                         help="Number of articles to evaluate on.")
     parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"], default=None,
                         help="Name of the knowledge base to use with a spacy linker.")
-    parser.add_argument("-ll", "--link_linker", choices=[ll.value for ll in LinkLinkers], default=None,
-                        help="Link linker to apply before spacy or explosion linker")
     parser.add_argument("-coref", "--coreference_linker",
                         choices=[cl.value for cl in CoreferenceLinkers], default=None,
                         help="Coreference linker to apply after entity linkers.")

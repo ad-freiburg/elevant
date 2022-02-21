@@ -75,10 +75,6 @@ VECTORS_ABSTRACTS_DIRECTORY = DATA_DIRECTORY + "spacy_knowledge_bases/vectors/ve
 # Linker files
 LINKERS_DIRECTORY = DATA_DIRECTORY + "linker_files/trained_spacy_linker_models/"
 
-LINKER_MODEL_PATH = DATA_DIRECTORY + "linker_files/nn_linker_models/"
-RDF2VEC_MODEL_PATH = DATA_DIRECTORY + "linker_files/entity_embeddings/wikid2vec_sg_500_7_4_15_4_500"
-
-
 # Benchmark files
 CONLL_BENCHMARK_FILE = DATA_DIRECTORY + "benchmarks/conll/conll-wikidata-iob-annotations"
 

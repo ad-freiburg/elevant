@@ -18,20 +18,23 @@ import argparse
 import os
 import sys
 import time
-
 import log
 
 from src import settings
-from src.linkers.linkers import Linkers, LinkLinkers, CoreferenceLinkers
+from src.linkers.linkers import Linkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
 from src.models.wikipedia_article import WikipediaArticle
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.models.neural_net import NeuralNet
 
 import multiprocessing
 
+# Don't show dependencygraph UserWarning: "The graph doesn't contain a node that depends on the root element."
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
+
 CHUNK_SIZE = 10  # Number of articles submitted to one process as a single task
-MAX_TASKS_PER_CHILD = 1
+MAX_TASKS_PER_CHILD = 5
 
 
 def link_entities_tuple_argument(args_tuple):
@@ -120,8 +123,6 @@ if __name__ == "__main__":
                         help="Number of articles to link.")
     parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"], default=None,
                         help="Name of the knowledge base to use with a spacy linker.")
-    parser.add_argument("-ll", "--link_linker", choices=[ll.value for ll in LinkLinkers], default=None,
-                        help="Link linker to apply before spacy or explosion linker")
     parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers], default=None,
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
@@ -145,7 +146,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     linking_system = LinkingSystem(args.linker_type,
                                    args.linker,
-                                   args.link_linker,
                                    args.coreference_linker,
                                    args.kb_name,
                                    args.minimum_score,
