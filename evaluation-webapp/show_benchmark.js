@@ -497,9 +497,10 @@ function read_url_parameters() {
     url_param_compare = get_url_parameter_boolean(get_url_parameter("compare"));
     url_param_benchmark = get_url_parameter_string(get_url_parameter("benchmark"));
     url_param_article = get_url_parameter_string(get_url_parameter("article"));
-    url_param_system = get_url_parameter_array(get_url_parameter("system"));
-    url_param_emphasis = get_url_parameter_array(get_url_parameter("emphasis"));
-    url_param_show_columns = get_url_parameter_array(get_url_parameter("show_columns"));
+    url_param_system = get_url_parameter_array(get_url_parameter("system"), false);
+    url_param_emphasis = get_url_parameter_array(get_url_parameter("emphasis"), false);
+    url_param_show_columns = get_url_parameter_array(get_url_parameter("show_columns"), false);
+    url_param_sort_order = get_url_parameter_array(get_url_parameter("sort_order"), true);
 }
 
 function get_url_parameter_boolean(url_parameter) {
@@ -517,13 +518,15 @@ function get_url_parameter_string(url_parameter) {
     return null;
 }
 
-function get_url_parameter_array(url_parameter) {
+function get_url_parameter_array(url_parameter, integer_array) {
     /*
     Returns the url_parameter as array if the url parameter value is a String, with elements separated by ",".
     Otherwise (if it is a boolean) returns an empty array.
     */
     if (is_string(url_parameter)) {
-        return url_parameter.split(",");
+        array = url_parameter.split(",");
+        if (integer_array) array = array.map(function(el) { return parseInt(el) })
+        return array;
     }
     return [];
 }
@@ -558,12 +561,12 @@ function generate_and_show_url() {
     param_values.push($("#article_select option:selected").text());
     // Get system URL parameter
     if (selected_approach_names.length > 0) {
-        param_names.push("system")
+        param_names.push("system");
         param_values.push(selected_approach_names.join(","));
     }
     // Get emphasis URL parameter
     if (selected_cells.length > 0) {
-        param_names.push("emphasis")
+        param_names.push("emphasis");
         param_values.push(selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
     }
     // Get show_columns URL parameter
@@ -571,8 +574,12 @@ function generate_and_show_url() {
     var checkboxes = $("#evaluation_tables .checkboxes input:checked").each(function() {
         checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
     });
-    param_names.push("show_columns")
+    param_names.push("show_columns");
     param_values.push(checkbox_classes.join(","));
+    // Get sort_order URL parameter
+    var sort_order = $("#evaluation table")[0].config.sortList;
+    param_names.push("sort_order");
+    param_values.push(sort_order.join(","));
 
     // Put all together and append to URL
     param_values = param_values.map(function(el) { return encodeURIComponent(el); });
@@ -1608,6 +1615,11 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
 
                 // Remove the table loading GIF
                 $("#table_loading").removeClass("show");
+
+                if (initial_call) {
+                    // Use sort order from URL parameter
+                    $.tablesorter.sortOn( $("#evaluation table")[0].config, [ url_param_sort_order ]);
+                }
             });
         });
     });
