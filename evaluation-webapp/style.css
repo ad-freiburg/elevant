@@ -123,6 +123,7 @@ a {
     background: var(--row-hover-color);
     position: relative;
     margin-right: 1em;
+    cursor: pointer;
 }
 
 #generate_url:hover {
@@ -143,6 +144,7 @@ a {
     border: 2px solid lightgrey;
     font-size: 90%;
     overflow-wrap: break-word;  /* Otherwise an unbreakable text can go outside of its container */
+    cursor: default;
 
     /* Position of the tooltip text */
     position: absolute;
