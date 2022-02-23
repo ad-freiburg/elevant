@@ -3,14 +3,17 @@ import os
 import json
 import logging
 
+from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
+from src.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class AmbiversePredictionReader:
-    def __init__(self, entity_db):
+class AmbiversePredictionReader(AbstractPredictionReader):
+    def __init__(self, entity_db: EntityDatabase, disambiguation_dir: str):
         self.entity_db = entity_db
+        self.disambiguation_dir = disambiguation_dir
 
     def _get_prediction_from_file(self, file_path: str) -> Dict[Tuple[int, int], EntityPrediction]:
         """
@@ -46,17 +49,17 @@ class AmbiversePredictionReader:
                 for span in matching_predictions_spans:
                     new_predictions[span] = EntityPrediction(span, entity_id, {entity_id})
         else:
-            logger.info("matches exists, but entities does not. Previous predictions: " % predictions)
+            logger.info("No \"entities\" key in ambiverse jsonl file. The following predictions might be dropped: "
+                        % predictions)
         return new_predictions
 
-    def article_predictions_iterator(self, disambiguation_dir: str) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
+    def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """
-        Yields predictions for each ambiverse disambiguation result file in the given directory
+        Yields predictions for each ambiverse disambiguation result file in the disambiguation_dir.
 
-        :param disambiguation_dir: path to the directory that contains the ambiverse disambiguation results
-        :return: iterator over predictions for each file in the given directory
+        :return: iterator over dictionaries with predictions for each article
         """
-        for file in sorted(os.listdir(disambiguation_dir)):
-            file_path = os.path.join(disambiguation_dir, file)
+        for file in sorted(os.listdir(self.disambiguation_dir)):
+            file_path = os.path.join(self.disambiguation_dir, file)
             predictions = self._get_prediction_from_file(file_path)
             yield predictions

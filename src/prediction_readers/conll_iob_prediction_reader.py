@@ -2,6 +2,7 @@ from typing import List, Iterator, Dict, Tuple
 
 from src.models.conll_benchmark import ConllDocument
 from src.models.entity_prediction import EntityPrediction
+from src.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 
 def get_predictions(document: ConllDocument) -> List[EntityPrediction]:
@@ -25,11 +26,18 @@ def get_predictions(document: ConllDocument) -> List[EntityPrediction]:
     return predictions
 
 
-class ConllIobPredictionReader:
-    @staticmethod
-    def document_predictions_iterator(prediction_file_path: str) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
+class ConllIobPredictionReader(AbstractPredictionReader):
+    def __init__(self, disambiguation_file: str):
+        self.disambiguation_file = disambiguation_file
+
+    def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
+        """
+        Yields predictions for each article.
+
+        :return: iterator over dictionaries with predictions for each article
+        """
         next_id = 1
-        for line in open(prediction_file_path):
+        for line in open(self.disambiguation_file):
             document = ConllDocument(line[:-1])
             if int(document.id) > next_id:
                 yield {}

@@ -81,13 +81,12 @@ class LinkingSystem:
             self.linker = ExplosionEntityLinker(path, entity_db=self.entity_db)
         elif linker_type == Linkers.IOB.value:
             path = linker_info
-            self.prediction_iterator = ConllIobPredictionReader.document_predictions_iterator(path)
+            self.prediction_iterator = ConllIobPredictionReader(path).predictions_iterator()
         elif linker_type == Linkers.AMBIVERSE.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             result_dir = linker_info
-            self.prediction_iterator = AmbiversePredictionReader(self.entity_db).\
-                article_predictions_iterator(result_dir)
+            self.prediction_iterator = AmbiversePredictionReader(self.entity_db, result_dir).predictions_iterator()
         elif linker_type == Linkers.TAGME.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
@@ -97,8 +96,7 @@ class LinkingSystem:
             result_file = linker_info
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            self.prediction_iterator = NeuralELPredictionReader(self.entity_db).\
-                article_predictions_iterator(result_file)
+            self.prediction_iterator = NeuralELPredictionReader(self.entity_db, result_file).predictions_iterator()
         elif linker_type == Linkers.BASELINE.value:
             if linker_info not in ("links", "scores", "links-all", "max-match-ner"):
                 raise NotImplementedError("Unknown strategy '%s'." % linker_info)
@@ -132,7 +130,7 @@ class LinkingSystem:
                                         MappingName.REDIRECTS,
                                         MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE})
             result_dir = linker_info
-            self.prediction_iterator = WikifierPredictionReader(self.entity_db).article_predictions_iterator(result_dir)
+            self.prediction_iterator = WikifierPredictionReader(self.entity_db, result_dir).predictions_iterator()
         elif linker_type == Linkers.PURE_PRIOR.value or linker_type == Linkers.POS_PRIOR.value:
             whitelist_file = linker_info
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,

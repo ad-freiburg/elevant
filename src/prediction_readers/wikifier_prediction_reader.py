@@ -6,13 +6,15 @@ from xml.etree import ElementTree
 
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
+from src.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class WikifierPredictionReader:
-    def __init__(self, entity_db: EntityDatabase):
+class WikifierPredictionReader(AbstractPredictionReader):
+    def __init__(self, entity_db: EntityDatabase, disambiguation_dir: str):
         self.entity_db = entity_db
+        self.disambiguation_dir = disambiguation_dir
 
     @staticmethod
     def is_same_title(unicode_error_title: str, title: str) -> bool:
@@ -85,15 +87,14 @@ class WikifierPredictionReader:
 
         return predictions
 
-    def article_predictions_iterator(self, disambiguation_dir: str) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
+    def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """
-        Yields predictions for each wikfier disambiguation result file in the given directory
+        Yields predictions for each wikfier disambiguation result file in the disambiguation_dir.
 
-        :param disambiguation_dir: path to the directory that contains the wikifier disambiguation results
-        :return: iterator over predictions for each file in the given directory
+        :return: iterator over dictionaries with predictions for each article
         """
-        for file in sorted(os.listdir(disambiguation_dir)):
+        for file in sorted(os.listdir(self.disambiguation_dir)):
             if file.endswith(".full.xml"):
-                file_path = os.path.join(disambiguation_dir, file)
+                file_path = os.path.join(self.disambiguation_dir, file)
                 predictions = self._get_prediction_from_file(file_path)
                 yield predictions
