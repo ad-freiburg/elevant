@@ -4,7 +4,7 @@ This lets you download and run a dockered version of the Wikifier code from the 
 
 ## Setup
 
-To download the code and date and setup the necessary files, simply run
+To download the code and data and setup the necessary files, simply run
     
     ./setup.sh
     
