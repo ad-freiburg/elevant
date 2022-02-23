@@ -161,7 +161,7 @@ download_wiki:
 # Extract Wikipedia dump only if it does not exist already at the specified location.
 extract_wiki:
 	@if ls ${EXTRACTED_WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Extracted Wikipedia dump already exists at ${EXTRACTED_WIKI_DUMP} . Delete or rename it first. Dump not extracted.$${RESET}"; echo; else \
-	  python3 wiki_extractor/WikiExtractor.py --sections --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
+	  python3 third_party/wiki_extractor/WikiExtractor.py --sections --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
 	fi
 
 split_wiki:

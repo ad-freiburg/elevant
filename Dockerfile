@@ -14,7 +14,8 @@ COPY src src
 COPY benchmark-webapp benchmark-webapp
 COPY benchmarks benchmarks
 COPY evaluation-webapp evaluation-webapp
-COPY wiki_extractor wiki_extractor
+RUN mkdir third_party
+COPY third_party/wiki_extractor third_party/wiki_extractor
 COPY wikidata-types wikidata-types
 COPY data data
 COPY Makefile .
