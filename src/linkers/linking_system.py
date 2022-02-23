@@ -1,26 +1,26 @@
 from typing import Optional, Tuple, Dict, Set
 
-from src.helpers.neural_el_prediction_reader import NeuralELPredictionReader
-from src.helpers.wikifier_prediction_reader import WikifierPredictionReader
+from src.prediction_readers.neural_el_prediction_reader import NeuralELPredictionReader
+from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
+from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
+from src.prediction_readers.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
-from src.helpers.ambiverse_prediction_reader import AmbiversePredictionReader
-from src.helpers.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, CoreferenceLinkers
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
 from src.linkers.prior_linker import PriorLinker
-from src.models.entity_database import EntityDatabase, MappingName
-from src.models.entity_prediction import EntityPrediction
 from src.linkers.explosion_linker import ExplosionEntityLinker
 from src.linkers.hobbs_coref_linker import HobbsCorefLinker
-from src.ner.maximum_matching_ner import MaximumMatchingNER
 from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.linkers.tagme_linker import TagMeLinker
 from src.linkers.trained_spacy_entity_linker import TrainedSpacyEntityLinker
-from src.models.wikipedia_article import WikipediaArticle
 from src.linkers.xrenner_coref_linker import XrennerCorefLinker
+from src.models.wikipedia_article import WikipediaArticle
+from src.models.entity_database import EntityDatabase, MappingName
+from src.models.entity_prediction import EntityPrediction
+from src.ner.maximum_matching_ner import MaximumMatchingNER
 
 import logging
 
