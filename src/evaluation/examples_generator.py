@@ -10,7 +10,6 @@ from src.models.wikipedia_article import article_from_json
 from src.helpers.xml_benchmark_reader import XMLBenchmarkParser
 from src import settings
 
-import operator
 import random
 import logging
 
@@ -87,40 +86,6 @@ class ConllTestExampleReader:
                 break
             article = document.to_article()
             articles_count += 1
-            yield article
-
-
-class PseudoLinkConllExampleReader:
-    def __init__(self, entity_db: EntityDatabase):
-        self.entity_db = entity_db
-
-    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
-        for i, document in enumerate(conll_documents()):
-            if i == n:
-                break
-            article = document.to_article()
-
-            # Store first occurrence of each entity in the article
-            unique_labels = dict()
-            for gt_label in article.labels:
-                label = gt_label.entity_id
-                span = gt_label.span
-                if label not in unique_labels:
-                    unique_labels[label] = span
-            unique_labels = sorted(unique_labels.items(), key=operator.itemgetter(1))
-
-            # Select 60% of unique entities at random (with seed for reproducibility)
-            n_pseudo_links = int(0.6 * len(unique_labels))
-            random_indices = random.sample(range(len(unique_labels)), n_pseudo_links)
-            random_indices = sorted(random_indices)  # links should be sorted
-
-            # Generate pseudo links
-            links = []
-            for index in random_indices:
-                entity_id, span = unique_labels[index]
-                entity_name = self.entity_db.id2wikipedia_name(entity_id)
-                links.append(((span[0], span[1]), entity_name))
-            article.links = links
             yield article
 
 
@@ -209,8 +174,6 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
                 example_generator = XMLExampleReader(entity_db,
                                                      settings.MSNBC_ORIGINAL_BENCHMARK_LABELS,
                                                      settings.MSNBC_ORIGINAL_BENCHMARK_TEXTS)
-            elif benchmark_name == Benchmark.CONLL_PSEUDO_LINKS.value:
-                example_generator = PseudoLinkConllExampleReader(entity_db)
             elif benchmark_name == Benchmark.WIKIPEDIA.value:
                 example_generator = WikipediaExampleReader(entity_db)
             else:
