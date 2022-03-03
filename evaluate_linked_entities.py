@@ -138,10 +138,10 @@ def main(args):
             case_list = [case.to_dict() for case in cases]
             output_file.write(json.dumps(case_list) + "\n")
 
+    results_dict = evaluator.get_results_dict()
     evaluator.print_results()
-
     with open(results_file, "w") as f:
-        f.write(json.dumps(evaluator.get_results_dict()))
+        f.write(json.dumps(results_dict))
     logger.info("Wrote results to %s" % results_file)
 
     input_file.close()

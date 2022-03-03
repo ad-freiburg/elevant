@@ -36,7 +36,7 @@ def main(args):
                                    args.longest_alias_ner,
                                    args.type_mapping)
 
-    example_generator = get_example_generator(args.benchmark)
+    example_generator = get_example_generator(args.benchmark, benchmark_file=args.benchmark_file)
 
     out_dir = os.path.dirname(args.output_file)
     if out_dir and not os.path.exists(out_dir):
@@ -78,6 +78,8 @@ if __name__ == "__main__":
                              "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
     parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.WIKI_EX.value,
                         help="Benchmark over which to evaluate the linker.")
+    parser.add_argument("-bfile", "--benchmark_file", type=str,
+                        help="File that contains text and information about groundtruth labels in our jsonl format.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")
     parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"], default=None,

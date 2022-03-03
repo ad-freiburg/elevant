@@ -1,7 +1,8 @@
 from typing import Iterator, Tuple, Optional
 
-from src.evaluation.benchmark import Benchmark
+from src.evaluation.benchmark import Benchmark, BenchmarkFormat
 from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.helpers.nif_benchmark_reader import NifBenchmarkReader
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src.models.wikipedia_article import WikipediaArticle
 from src.models.entity_database import EntityDatabase
@@ -104,6 +105,19 @@ class XMLExampleReader:
             yield article
 
 
+class NifExampleReader:
+    def __init__(self, entity_db: EntityDatabase, benchmark_path: str):
+        self.entity_db = entity_db
+        self.benchmark_path = benchmark_path
+
+    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+        parser = NifBenchmarkReader(self.entity_db)
+        for i, article in enumerate(parser.article_iterator(self.benchmark_path)):
+            if i == n:
+                break
+            yield article
+
+
 class JsonBenchmarkExampleReader:
     def __init__(self, benchmark_filename: str):
         self.benchmark_filename = benchmark_filename
@@ -117,9 +131,21 @@ class JsonBenchmarkExampleReader:
                 yield article
 
 
-def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = True):
+def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = True,
+                          benchmark_file: Optional[str] = None, benchmark_format: Optional[BenchmarkFormat] = None):
     path = "benchmarks/"
-    if from_json_file:
+    if benchmark_file:
+        if benchmark_format == BenchmarkFormat.NIF.value:
+            logger.info("Load mappings for NIF example generator...")
+            entity_db = EntityDatabase()
+            entity_db.load_wikipedia_wikidata_mapping()
+            entity_db.load_redirects()
+            logger.info("-> Mappings loaded.")
+            example_generator = NifExampleReader(entity_db, benchmark_file)
+        else:
+            # Per default, assume OURS_JSONL format
+            example_generator = JsonBenchmarkExampleReader(benchmark_file)
+    elif from_json_file:
         if benchmark_name == Benchmark.WIKI_EX.value:
             benchmark_filename = path + "benchmark_labels_wiki-ex.jsonl"
         elif benchmark_name == Benchmark.CONLL_DEV.value:
