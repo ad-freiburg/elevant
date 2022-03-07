@@ -21,7 +21,7 @@ import sys
 import os
 
 from src import settings
-from src.evaluation.benchmark import Benchmark
+from src.evaluation.benchmark import get_available_benchmarks
 from src.linkers.linkers import Linkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
 from src.evaluation.examples_generator import get_example_generator
@@ -76,7 +76,7 @@ if __name__ == "__main__":
                              "EXPLOSION: Full path to the saved model.\n"
                              "AMBIVERSE: Full path to the predictions directory.\n"
                              "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
-    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=Benchmark.WIKI_EX.value,
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
                         help="Benchmark over which to evaluate the linker.")
     parser.add_argument("-bfile", "--benchmark_file", type=str,
                         help="File that contains text and information about groundtruth labels in our jsonl format.")

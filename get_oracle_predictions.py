@@ -2,7 +2,7 @@ import argparse
 import log
 import sys
 
-from src.evaluation.benchmark import Benchmark
+from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.examples_generator import get_example_generator
 from src.models.entity_prediction import EntityPrediction
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     parser.add_argument("output_file", type=str,
                         help="Output file for the oracle predictions.")
-    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=None,
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
                         help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
                              "retrieved from the given jsonl file")
 

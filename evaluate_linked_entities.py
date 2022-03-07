@@ -14,7 +14,7 @@ import json
 import re
 
 from src import settings
-from src.evaluation.benchmark import Benchmark
+from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.case import case_from_dict
 from src.evaluation.examples_generator import get_example_generator
 from src.models.wikipedia_article import article_from_json
@@ -158,22 +158,22 @@ if __name__ == "__main__":
 
     parser.add_argument("input_file", type=str,
                         help="Input file. Linked articles with ground truth labels.")
-    parser.add_argument("-o", "--output_file", type=str, default=None,
+    parser.add_argument("-o", "--output_file", type=str,
                         help="Output file for the evaluation results."
                              " The input file with .cases extension if none is specified.")
-    parser.add_argument("-icf", "--input_case_file", type=str, default=None,
+    parser.add_argument("-icf", "--input_case_file", type=str,
                         help="Input file that contains the evaluation cases. Cases are not written to file.")
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evaluation.")
-    parser.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark], default=None,
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
                         help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
                              "retrieved from the given jsonl file")
     parser.add_argument("--no-unknowns", action="store_true",
                         help="Set if the benchmark contains no 'unknown' labels. "
                              "Uppercase false detections will be treated as 'unknown named entity' errors.")
-    parser.add_argument("--type_mapping", type=str, default=None,
+    parser.add_argument("--type_mapping", type=str,
                         help="Map groundtruth labels and predicted entities to types using the given mapping.")
-    parser.add_argument("--type_whitelist", type=str, default=None,
+    parser.add_argument("--type_whitelist", type=str,
                         help="Evaluate only over labels with a type from the given whitelist and ignore other labels. "
                              "One type per line in the format \"<qid> # <label>\".")
     parser.add_argument("--type_filter_predictions", action="store_true",

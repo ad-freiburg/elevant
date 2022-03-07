@@ -3,7 +3,7 @@ import json
 import log
 import sys
 
-from src.evaluation.benchmark import Benchmark
+from src.evaluation.benchmark import get_available_benchmarks
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.wikipedia_article import article_from_json
 
@@ -98,7 +98,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
 
-    parser.add_argument("benchmark_name", type=str, required=True, choices=[b.value for b in Benchmark],
+    parser.add_argument("benchmark_name", type=str, required=True, choices=get_available_benchmarks(),
                         help="Name of the benchmark to be analyzed.")
 
     logger = log.setup_logger(sys.argv[0])

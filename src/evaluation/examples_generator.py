@@ -133,7 +133,6 @@ class JsonBenchmarkExampleReader:
 
 def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = True,
                           benchmark_file: Optional[str] = None, benchmark_format: Optional[BenchmarkFormat] = None):
-    path = "benchmarks/"
     if benchmark_file:
         if benchmark_format == BenchmarkFormat.NIF.value:
             logger.info("Load mappings for NIF example generator...")
@@ -146,26 +145,7 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
             # Per default, assume OURS_JSONL format
             example_generator = JsonBenchmarkExampleReader(benchmark_file)
     elif from_json_file:
-        if benchmark_name == Benchmark.WIKI_EX.value:
-            benchmark_filename = path + "benchmark_labels_wiki-ex.jsonl"
-        elif benchmark_name == Benchmark.CONLL_DEV.value:
-            benchmark_filename = path + "benchmark_labels_conll-dev.jsonl"
-        elif benchmark_name == Benchmark.CONLL_TEST.value:
-            benchmark_filename = path + "benchmark_labels_conll-test.jsonl"
-        elif benchmark_name == Benchmark.CONLL.value:
-            benchmark_filename = path + "benchmark_labels_conll.jsonl"
-        elif benchmark_name == Benchmark.ACE.value:
-            benchmark_filename = path + "benchmark_labels_ace.jsonl"
-        elif benchmark_name == Benchmark.MSNBC.value:
-            benchmark_filename = path + "benchmark_labels_msnbc.jsonl"
-        elif benchmark_name == Benchmark.ACE_ORIGINAL.value:
-            benchmark_filename = path + "benchmark_labels_ace-original.jsonl"
-        elif benchmark_name == Benchmark.MSNBC_ORIGINAL.value:
-            benchmark_filename = path + "benchmark_labels_msnbc-original.jsonl"
-        elif benchmark_name == Benchmark.NEWSCRAWL.value:
-            benchmark_filename = path + "benchmark_labels_newscrawl.jsonl"
-        else:
-            raise ValueError("%s is not a known benchmark." % benchmark_name)
+        benchmark_filename = settings.BENCHMARK_DIR + "benchmark_labels_" + benchmark_name + ".jsonl"
         example_generator = JsonBenchmarkExampleReader(benchmark_filename)
     else:
         if benchmark_name == Benchmark.CONLL.value:
@@ -177,7 +157,7 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
         elif benchmark_name == Benchmark.WIKI_EX.value:
             example_generator = JsonBenchmarkExampleReader(settings.WIKI_EX_BENCHMARK_FILE)
         elif benchmark_name == Benchmark.NEWSCRAWL.value:
-            example_generator = JsonBenchmarkExampleReader(path + "benchmark_labels_newscrawl.jsonl")
+            example_generator = JsonBenchmarkExampleReader(settings.BENCHMARK_DIR + "benchmark_labels_newscrawl.jsonl")
         else:
             logger.info("Load mappings for example generator...")
             entity_db = EntityDatabase()

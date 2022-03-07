@@ -3,7 +3,7 @@ import log
 import sys
 
 from src import settings
-from src.evaluation.benchmark import Benchmark, BenchmarkFormat
+from src.evaluation.benchmark import BenchmarkFormat, get_available_benchmarks
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
 from src.helpers.entity_database_reader import EntityDatabaseReader
@@ -67,8 +67,8 @@ if __name__ == "__main__":
                               help="Output file with one benchmark article in json format per line.")
 
     group_benchmark = parser.add_mutually_exclusive_group(required=True)
-    group_benchmark.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark],
-                                 help="Benchmark over which to evaluate the linker.")
+    group_benchmark.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
+                                 help="Benchmark to annotate / create labels for.")
     group_benchmark.add_argument("-bfile", "--benchmark_file", type=str,
                                  help="File that contains text and information about groundtruth labels")
 

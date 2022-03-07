@@ -90,8 +90,8 @@ MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc/msnbc.xml"
 MSNBC_ORIGINAL_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc.original/RawTextsSimpleChars_utf8/"
 MSNBC_ORIGINAL_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc.original/Problems/"
 
-WIKI_EX_BENCHMARK_FILE = "benchmarks/benchmark_labels_wiki-ex.jsonl"
-
+BENCHMARK_DIR = "benchmarks/"
+WIKI_EX_BENCHMARK_FILE = BENCHMARK_DIR + "benchmark_labels_wiki-ex.jsonl"
 
 # Other files and paths
 LOG_PATH = "logs/"
