@@ -30,8 +30,6 @@ BENCHMARK_NAMES = wiki-ex newscrawl conll-test conll-dev msnbc ace msnbc-origina
 LINKING_SYSTEMS = ambiverse baseline explosion neural_el popular_entities pos_prior spacy spacy_wikipedia tagme wikifier
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
-# Adjust only if the set of total available benchmarks has changed
-EXISTING_BENCHMARKS = wiki-ex newscrawl conll-test conll-dev msnbc ace msnbc-original ace-original kore50
 
 DOCKER_CMD = docker
 
@@ -68,8 +66,7 @@ link_benchmark:
 	for SYSTEM in $(LINKING_SYSTEMS); do \
 	  echo "BENCHMARK: $${BENCHMARK}"; \
 	  echo "LINKING SYSTEM: $${SYSTEM}"; \
-	  RESULT_FILE_SUFFIX=$$(echo $${BENCHMARK} | sed -r 's|wiki-ex||' | sed -r 's|.+|.&|'); \
-	  RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none$${RESULT_FILE_SUFFIX}.jsonl; \
+	  RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}/$${SYSTEM}.$${BENCHMARK}.jsonl; \
 	  if [ $${SYSTEM} == "ambiverse" ]; then \
 	    ARGUMENTS=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
 	  elif [ $${SYSTEM} == "baseline" ]; then \
@@ -80,16 +77,16 @@ link_benchmark:
 	    ARGUMENTS=/nfs/students/natalie-prange/neural-el-data/results/linked_articles_$${BENCHMARK}.jsonl; \
 	  elif [ $${SYSTEM} == "popular_entities" ]; then \
 	    ARGUMENTS="15 -ll link-text-linker -coref entity"; \
-	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.ltl.entity/$${SYSTEM}.ltl.entity$${RESULT_FILE_SUFFIX}.jsonl; \
+	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.ltl.entity/$${SYSTEM}.ltl.entity.$${BENCHMARK}.jsonl; \
 	  elif [ $${SYSTEM} == "pos_prior" ]; then \
 	    ARGUMENTS=data/whitelist_types.txt; \
 	  elif [ $${SYSTEM} == "spacy" ]; then \
 	    ARGUMENTS=prior_trained; \
-	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none.prior_trained$${RESULT_FILE_SUFFIX}.jsonl; \
+	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}/$${SYSTEM}.prior_trained.$${BENCHMARK}.jsonl; \
 	  elif [ $${SYSTEM} == "spacy_wikipedia" ]; then \
 	    SYSTEM=spacy; \
 	    ARGUMENTS="wikipedia -kb wikipedia"; \
-	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.none.none/$${SYSTEM}.none.none.wikipedia$${RESULT_FILE_SUFFIX}.jsonl; \
+	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}/$${SYSTEM}.wikipedia.$${BENCHMARK}.jsonl; \
 	  elif [ $${SYSTEM} == "tagme" ]; then \
 	    ARGUMENTS=0.2; \
 	  elif [ $${SYSTEM} == "wikifier" ]; then \
@@ -119,10 +116,8 @@ evaluate_linked_benchmarks:
 	  echo "BENCHMARK_SUFFIX = $${BENCHMARK_SUFFIX}"; \
 	  if [[ " $${BENCHMARK_NAMES[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
 		python3 evaluate_linked_entities.py $${FILENAME} -b $${BENCHMARK_SUFFIX}; \
-	  elif [[ " $${BENCHMARK_NAMES[*]} " =~ " wiki-ex " ]] && [[ ! " $${EXISTING_BENCHMARKS[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
-		python3 evaluate_linked_entities.py $${FILENAME} -b wiki-ex; \
 	  else \
-	    echo -e "$${DIM}Skipping file because benchmark suffix is not in BENCHMARK_NAMES and benchmark is not wiki-ex$${RESET}"; \
+	    echo -e "$${DIM}Skipping file because benchmark suffix is not in BENCHMARK_NAMES$${RESET}"; \
 	  fi; \
 	  echo; \
 	done

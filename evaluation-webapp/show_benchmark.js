@@ -97,9 +97,6 @@ mention_type_headers = {"entity": ["entity_named", "entity_other"],
                         "nominal": ["nominal"],
                         "pronominal": ["pronominal"]};
 
-benchmark_names = ["wiki-ex", "conll", "conll-dev", "conll-test", "ace", "msnbc", "newscrawl", "msnbc-original", "ace-original"];
-
-
 $("document").ready(function() {
     read_url_parameters();
 
@@ -1548,10 +1545,9 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                 $(folder_data).find("a").each(function() {
                     var file_name = $(this).attr("href");
                     // This assumes the benchmark is specified in the last dot separated column before the
-                    // file extension if it is not our wiki-ex benchmark.
+                    // file extension.
                     var benchmark = file_name.split(".").slice(-2)[0];
-                    var benchmark_match = ((benchmark_name == "wiki-ex" && !benchmark_names.includes(benchmark)) || benchmark == benchmark_name);
-                    if (file_name.endsWith(RESULTS_EXTENSION) && benchmark_match) {
+                    if (file_name.endsWith(RESULTS_EXTENSION) && benchmark == benchmark_name)) {
                         var url = path + "/" + folder + "/" + file_name;
                         urls.push(url);
                     }
