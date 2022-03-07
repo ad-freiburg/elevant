@@ -281,7 +281,7 @@ if __name__ == "__main__":
     parser.add_argument("--one_article_per_line", action="store_true",
                         help="An article is written to a single line.")
 
-    parser.add_argument("-n", "--n_articles", type=int, default=None,
+    parser.add_argument("-n", "--n_articles", type=int,
                         help="Maximum number of articles to process.")
 
     parser.add_argument("--evaluation_span", default=False, action="store_true",

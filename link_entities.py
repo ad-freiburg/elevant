@@ -104,9 +104,9 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
 
-    parser.add_argument("input_file", type=str, default=None,
+    parser.add_argument("input_file", type=str,
                         help="Input file with articles in JSON format or raw text.")
-    parser.add_argument("output_file", type=str, default=None,
+    parser.add_argument("output_file", type=str,
                         help="Output file.")
     parser.add_argument("linker_type", choices=[li.value for li in Linkers],
                         help="Entity linker type.")
@@ -121,9 +121,9 @@ if __name__ == "__main__":
                         help="Set to use an input file with raw text.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to link.")
-    parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"], default=None,
+    parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"],
                         help="Name of the knowledge base to use with a spacy linker.")
-    parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers], default=None,
+    parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers],
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
                         help="Only link coreferences that are pronouns.")

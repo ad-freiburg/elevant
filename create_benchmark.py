@@ -212,10 +212,10 @@ if __name__ == "__main__":
     parser.add_argument("input_file", type=str,
                         help="Input benchmark with annotations in the format [<QID>|<original_text>].")
 
-    parser.add_argument("-o", "--output_file", type=str, default=None,
+    parser.add_argument("-o", "--output_file", type=str,
                         help="File to write the labeled benchmark to (one json article per line).")
 
-    parser.add_argument("-n", "--num_articles", type=int, default=None,
+    parser.add_argument("-n", "--num_articles", type=int,
                         help="Number of articles to read from the input file.")
 
     parser.add_argument("--skip_articles", type=str, default="3 11 15",
@@ -231,7 +231,7 @@ if __name__ == "__main__":
                              "does not contain all articles because the benchmark is being extended, use e.g."
                              "benchmarks/benchmark_articles.all.jsonl")
 
-    parser.add_argument("--title_span_jsonl_file", type=str, default=None,
+    parser.add_argument("--title_span_jsonl_file", type=str,
                         help="File that contains the benchmark articles including bold title span info."
                              "Only needed if the benchmark is extended."
                              "(E.g. benchmarks/benchmark_articles.all.bold.jsonl. This can't simply be used as"
