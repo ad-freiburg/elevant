@@ -13,16 +13,11 @@ def main(args):
     benchmark_info = args.benchmark if args.benchmark else args.benchmark_file
     logger.info("Annotate %s groundtruth labels with Wikidata label, type and level-1 information." % benchmark_info)
 
-    if args.output_benchmark_name:
-        filename = "benchmarks/benchmark_labels_" + args.output_benchmark_name + ".jsonl"
-    else:
-        filename = args.output_file
-    output_file = open(filename, "w", encoding="utf8")
-
     example_iterator = get_example_generator(args.benchmark,
                                              from_json_file=False,
                                              benchmark_file=args.benchmark_file,
                                              benchmark_format=args.benchmark_format)
+
     label_entity_ids = set()
     for article in example_iterator.iterate():
         for label in article.labels:
@@ -31,6 +26,7 @@ def main(args):
     logger.info("Loading entity information..")
     entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids, settings.WHITELIST_TYPE_MAPPING)
 
+    lines_to_write = ""
     for article in example_iterator.iterate():
         for label in article.labels:
             if label.entity_id.startswith("Unknown"):
@@ -50,8 +46,16 @@ def main(args):
 
             label.name = entities[label.entity_id].name if label.entity_id in entities else "Unknown"
 
-        output_file.write(article.to_json() + '\n')
+        lines_to_write += article.to_json() + '\n'
 
+    # Write to output file after reading everything from the input benchmark, since the input benchmark file
+    # can be the same as the output file e.g. when an existing benchmark is annotated with new types / labels
+    if args.output_benchmark_name:
+        filename = "benchmarks/benchmark_labels_" + args.output_benchmark_name + ".jsonl"
+    else:
+        filename = args.output_file
+    output_file = open(filename, "w", encoding="utf8")
+    output_file.write(lines_to_write)
     output_file.close()
     logger.info("Wrote new articles to %s" % filename)
 
