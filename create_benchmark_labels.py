@@ -5,13 +5,14 @@ import sys
 from src import settings
 from src.evaluation.benchmark import BenchmarkFormat, get_available_benchmarks
 from src.evaluation.examples_generator import get_example_generator
-from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.entity_database_reader import EntityDatabaseReader
 
 
 def main(args):
     benchmark_info = args.benchmark if args.benchmark else args.benchmark_file
-    logger.info("Annotate %s groundtruth labels with Wikidata label, type and level-1 information." % benchmark_info)
+    logger.info("Transform benchmark %s into jsonl format and annotate groundtruth labels with Wikidata label and type."
+                % benchmark_info)
 
     example_iterator = get_example_generator(args.benchmark,
                                              from_json_file=False,
@@ -38,11 +39,6 @@ def main(args):
                 label.type = entities[label.entity_id].type
             else:
                 logger.warning("Entity %s:%s was not found in entity-type mapping." % (label.entity_id, label.name))
-
-            if label.entity_id in entities:
-                label.level1 = is_level_one(entities[label.entity_id].name)
-            else:
-                label.level1 = False
 
             label.name = entities[label.entity_id].name if label.entity_id in entities else "Unknown"
 

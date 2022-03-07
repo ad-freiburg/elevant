@@ -1,7 +1,6 @@
 from enum import Enum
 
 from src.utils.pronoun_finder import PronounFinder
-from src.evaluation.groundtruth_label import is_level_one
 
 
 class MentionType(Enum):
@@ -35,6 +34,20 @@ def is_nominal(mention: str) -> bool:
     return False
 
 
+def is_named_entity(entity_name: str) -> bool:
+    """
+    Return true if the entity is of mention type "named" according to our definition:
+    The entity name contains alphabetic characters and the first alphabetic
+    character of the entity name is an uppercase character.
+    """
+    if entity_name != "Unknown":
+        alpha_chars = [char for char in entity_name if char.isalpha()]
+        # Check if first alphabetic character exists and is uppercase
+        if len(alpha_chars) > 0 and alpha_chars[0].isupper():
+            return True
+    return False
+
+
 def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType:
     if PronounFinder.is_pronoun(mention):
         return MentionType.PRONOMINAL
@@ -42,7 +55,7 @@ def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType
         return MentionType.NOMINAL
     else:
         entity_name = true_entity.name if true_entity else predicted_entity.name
-        if is_level_one(entity_name):
+        if is_named_entity(entity_name):
             return MentionType.ENTITY_NAMED
         else:
             return MentionType.ENTITY_OTHER

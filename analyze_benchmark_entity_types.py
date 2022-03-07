@@ -4,6 +4,7 @@ import log
 import sys
 
 from src.evaluation.benchmark import get_available_benchmarks
+from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.wikipedia_article import article_from_json
 
@@ -59,7 +60,7 @@ def main(args):
                                              label.entity_id,
                                              entity_name,
                                              ", ".join(types),
-                                             str(bool(label.level1))))
+                                             str(is_named_entity(label.name))))
                                   + "\n")
             if "UNKNOWN" not in types:
                 known_labels += 1
@@ -67,12 +68,12 @@ def main(args):
             for type in types:
                 if type not in type_counts:
                     type_counts[type] = {True: 0, False: 0}
-                type_counts[type][bool(label.level1)] += 1
+                type_counts[type][is_named_entity(label.name)] += 1
                 if type in traditional_entity_types:
                     is_traditional_entity_type = True
             if is_traditional_entity_type:
                 n_traditional_entities += 1
-            total_counts[bool(label.level1)] += 1
+            total_counts[is_named_entity(label.name)] += 1
 
     labels_tsv_file.close()
 

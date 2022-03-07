@@ -3,8 +3,8 @@ from typing import List, Set, Tuple, Optional
 from itertools import chain
 
 from src.evaluation.case import Case, ErrorLabel
-from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
-from src.evaluation.mention_type import MentionType
+from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.evaluation.mention_type import MentionType, is_named_entity
 from src.models.entity_database import EntityDatabase
 from src.models.wikidata_entity import WikidataEntity
 from src.models.wikipedia_article import WikipediaArticle
@@ -61,7 +61,7 @@ def label_undetected_errors(cases: List[Case]):
     for case in cases:
         if case.is_not_coreference() and case.is_false_negative() and case.predicted_entity is None:
             case.add_error_label(ErrorLabel.UNDETECTED)
-            if not is_level_one(case.text):
+            if not is_named_entity(case.text):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
             elif is_specificity_error(case, false_positive_spans):
                 case.add_error_label(ErrorLabel.UNDETECTED_PARTIALLY_INCLUDED)

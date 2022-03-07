@@ -5,9 +5,10 @@ from src import settings
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation.case_generator import CaseGenerator
-from src.evaluation.groundtruth_label import GroundtruthLabel, is_level_one
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
     print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
+from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.entity_database import EntityDatabase
 from src.models.wikipedia_article import WikipediaArticle
@@ -36,8 +37,7 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     return entity_db
 
 
-EVALUATION_CATEGORIES = ("all", "NER", "coref", "entity", "entity_named", "entity_other", "nominal", "pronominal",
-                         "level_1")
+EVALUATION_CATEGORIES = ("all", "NER", "coref", "entity", "entity_named", "entity_other", "nominal", "pronominal")
 
 
 class Evaluator:
@@ -87,7 +87,7 @@ class Evaluator:
                     self.counts["NER"]["tp"] += 1
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
-                if not is_level_one(case.text):
+                if not is_named_entity(case.text):
                     self.n_entity_lowercase += 1
             elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
@@ -103,9 +103,6 @@ class Evaluator:
             self.counts["all"]["tp"] += 1
             self.counts[key]["tp"] += 1
 
-            if case.true_entity.level1:
-                self.counts["level_1"]["tp"] += 1
-
             if case.is_coreference():
                 self.counts["coref"]["tp"] += 1
             else:
@@ -119,9 +116,6 @@ class Evaluator:
             if case.is_false_positive() and not case.is_true_quantity_or_datetime() and case.factor != 0:
                 self.counts["all"]["fp"] += 1
                 self.counts[key]["fp"] += 1
-
-                if is_level_one(case.predicted_entity.name):
-                    self.counts["level_1"]["fp"] += 1
 
                 if case.is_coreference():
                     self.counts["coref"]["fp"] += 1
@@ -138,9 +132,6 @@ class Evaluator:
             if case.is_false_negative() and not case.is_optional() and case.true_entity.parent is None:
                 self.counts["all"]["fn"] += 1
                 self.counts[key]["fn"] += 1
-
-                if case.true_entity.level1:
-                    self.counts["level_1"]["fn"] += 1
 
                 if case.is_coreference():
                     self.counts["coref"]["fn"] += 1
