@@ -66,7 +66,7 @@ link_benchmark:
 	for SYSTEM in $(LINKING_SYSTEMS); do \
 	  echo "BENCHMARK: $${BENCHMARK}"; \
 	  echo "LINKING SYSTEM: $${SYSTEM}"; \
-	  RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}/$${SYSTEM}.$${BENCHMARK}.jsonl; \
+	  RESULT_NAME=$${SYSTEM}; \
 	  if [ $${SYSTEM} == "ambiverse" ]; then \
 	    ARGUMENTS=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
 	  elif [ $${SYSTEM} == "baseline" ]; then \
@@ -77,16 +77,16 @@ link_benchmark:
 	    ARGUMENTS=/nfs/students/natalie-prange/neural-el-data/results/linked_articles_$${BENCHMARK}.jsonl; \
 	  elif [ $${SYSTEM} == "popular_entities" ]; then \
 	    ARGUMENTS="15 -ll link-text-linker -coref entity"; \
-	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}.ltl.entity/$${SYSTEM}.ltl.entity.$${BENCHMARK}.jsonl; \
+	    RESULT_NAME=$${SYSTEM}.ltl.entity; \
 	  elif [ $${SYSTEM} == "pos_prior" ]; then \
 	    ARGUMENTS=data/whitelist_types.txt; \
 	  elif [ $${SYSTEM} == "spacy" ]; then \
 	    ARGUMENTS=prior_trained; \
-	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}/$${SYSTEM}.prior_trained.$${BENCHMARK}.jsonl; \
+	    RESULT_NAME=$${SYSTEM}.prior_trained; \
 	  elif [ $${SYSTEM} == "spacy_wikipedia" ]; then \
 	    SYSTEM=spacy; \
 	    ARGUMENTS="wikipedia -kb wikipedia"; \
-	    RESULT_PATH=${EVALUATION_RESULTS_DIR}$${SYSTEM}/$${SYSTEM}.wikipedia.$${BENCHMARK}.jsonl; \
+	    RESULT_NAME=$${SYSTEM}.wikipedia; \
 	  elif [ $${SYSTEM} == "tagme" ]; then \
 	    ARGUMENTS=0.2; \
 	  elif [ $${SYSTEM} == "wikifier" ]; then \
@@ -95,7 +95,7 @@ link_benchmark:
 	    echo -e "$${DIM}No rule for linking system $${SYSTEM} found in Makefile.$${RESET}"; \
 	    continue; \
 	  fi; \
-	  python3 link_benchmark_entities.py $${RESULT_PATH} $${SYSTEM} $${ARGUMENTS} -b $${BENCHMARK}; \
+	  python3 link_benchmark_entities.py $${RESULT_NAME} $${SYSTEM} $${ARGUMENTS} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
 	done
 
 evaluate_linked_benchmarks:

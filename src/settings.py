@@ -94,6 +94,7 @@ BENCHMARK_DIR = "benchmarks/"
 WIKI_EX_BENCHMARK_FILE = BENCHMARK_DIR + "benchmark_labels_wiki-ex.jsonl"
 
 # Other files and paths
+EVALUATION_RESULTS_DIR = "evaluation_results/"
 LOG_PATH = "logs/"
 
 

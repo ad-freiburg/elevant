@@ -36,14 +36,15 @@ def main(args):
                                    args.longest_alias_ner,
                                    args.type_mapping)
 
-    example_generator = get_example_generator(args.benchmark, benchmark_file=args.benchmark_file)
+    example_generator = get_example_generator(args.benchmark)
 
-    out_dir = os.path.dirname(args.output_file)
-    if out_dir and not os.path.exists(out_dir):
-        logger.info("Creating directory %s" % out_dir)
-        os.makedirs(out_dir)
+    output_dir = args.evaluation_dir + args.linker_type
+    output_filename = output_dir + "/" + args.linker_name + "." + args.benchmark + ".jsonl"
+    if output_dir and not os.path.exists(output_dir):
+        logger.info("Creating directory %s" % output_dir)
+        os.makedirs(output_dir)
 
-    output_file = open(args.output_file, 'w', encoding='utf8')
+    output_file = open(output_filename, 'w', encoding='utf8')
 
     logger.info("Linking entities in %s benchmark ..." % args.benchmark)
 
@@ -58,15 +59,16 @@ def main(args):
 
     output_file.close()
 
-    logger.info("Wrote %d linked articles to %s" % (i+1, args.output_file))
+    logger.info("Wrote %d linked articles to %s" % (i+1, output_filename))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=__doc__)
 
-    parser.add_argument("output_file", type=str,
-                        help="Output file for the evaluation results")
+    parser.add_argument("linker_name", type=str,
+                        help="Name for the resulting file. The linking results will be written to "
+                             "<evaluation_dir>/<linker_type>/<linker_name>.<benchmark_name>.jsonl")
     parser.add_argument("linker_type", choices=[li.value for li in Linkers],
                         help="Entity linker type.")
     parser.add_argument("linker",
@@ -78,8 +80,8 @@ if __name__ == "__main__":
                              "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
     parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
                         help="Benchmark over which to evaluate the linker.")
-    parser.add_argument("-bfile", "--benchmark_file", type=str,
-                        help="File that contains text and information about groundtruth labels in our jsonl format.")
+    parser.add_argument("-dir", "--evaluation_dir", default=settings.EVALUATION_RESULTS_DIR,
+                        help="Directory to which the evaluation result files are written.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to evaluate on.")
     parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"],
