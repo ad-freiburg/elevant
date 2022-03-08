@@ -3,9 +3,9 @@
 ## Docker Instructions
 Get the code, and build and start the container:
 
-    git clone git@github.com:ad-freiburg/wiki_entity_linker.git .
-    docker build -t wiki-entity-linker .
-    docker run -it -v <data_directory>:/data wiki-entity-linker
+    git clone git@github.com:ad-freiburg/elevant.git .
+    docker build -t elevant .
+    docker run -it -v <data_directory>:/data elevant
 
 where `<data_directory>` is the directory in which the required data files will be stored.
 What these data files are and how they are generated is explained in the [Data Generation](#data-generation) section.
@@ -63,51 +63,22 @@ running QLever instance for Wikidata under the URL specified by the variable `AP
 
 ## Usage
 
-### Link Wikipedia Dump
-To link an entire Wikipedia dump using our best system run
-    
-    make link_wiki
-    
-This uses our link-text-linker which links entities based on Wikipedia hyperlinks,
-our popular-entities linker which links remaining entities based on their Wikidata sitelink count with special rules for demonyms,
-and our coreference linker which uses type and gender information of previously linked entities and dependency parse information.
-
-NOTE: Linking the entire Wikipedia dump will take several hours.
-You can adjust the number of processes used for linking via the Makefile variable `NUM_LINKER_PROCESSES`.
-
-The output file (per default `<data_directory>/wikipedia_dump_files/enwiki-latest-linked.jsonl`)
-will contain one json object representing a linked Wikipedia article per line.
-
-#### Link an Additional Recent Wikipedia Dump
-If you want to link a more recent Wikipedia dump than the one that was downloaded during the data generation step,
-first make sure your existing Wikipedia dump files are not being overwritten by either renaming your existing
-`<data_directory>/wikipedia_dump_files/enwiki-latest-pages-articles-multistream.xml.bz2`,
-`<data_directory>/wikipedia_dump_files/enwiki-latest-extracted.jsonl`
-and if you already linked a Wikipedia dump
-`<data_directory>/wikipedia_dump_files/enwiki-latest-linked.jsonl`
-files or by adjusting the `WIKI_DUMP`, `EXTRACTED_WIKI_DUMP` and `LINKED_WIKI_ARTICLES` variables in the Makefile.
-
-Then run
-
-    make download_wiki extract_wiki link_wiki
-
-which will download, extract and link the most recent Wikipedia dump.
-
-#### Create QLever Text Files
-If you want to use the linked Wikipedia dump for full-text search in QLever as described
-[here](https://github.com/ad-freiburg/qlever/blob/master/docs/sparql_plus_text.md) run
-
-    python3 create_qlever_text_files.py <input_file> <output_prefix>
-
-where `<input_file>` is the linked Wikipedia dump file
-(usually `<data_directory>/wikipedia_dump_files/enwiki-latest-linked.jsonl`)
-and `<output_prefix>` is the prefix for the generated output files.
-This will generate two files `<output_prefix>.wordsfile.tsv` and `<output_prefix>.docsfile.tsv`
-which can then be used as input for a SPARQL + Text instance of QLever.
-
 ### Link Benchmark Articles
-If you're using docker and want to persistently store the benchmark linking results,
-set the `EVALUATION_RESULTS_DIR` variable in the Makefile to a mounted directory, e.g. `/data/evaluation_results/`.
+If you want to link a single benchmark with a single specified linker configuration, use the script `link_benchmark_entities.py`:
+
+    python3 link_benchmark_entities.py <experiment_name> <linker_type> <linker_info> -b <benchmark_name>
+
+For example
+
+    python3 link_benchmark_entities.py pos_prior.whitelist_types pos_prior data/whitelist_types.txt -b msnbc
+
+The linking results will be written to `evaluation_results/<linker_type>/<experiment_name>.<benchmark_name>.jsonl`
+with one article as a json object per line.
+Use the `-h` option for more information on the available command line arguments.
+
+You can use the Makefile to link several benchmarks using several linkers with one command.
+If you're using docker and want to persistently store the benchmark linking results created using a Makefile command,
+make sure to set the `EVALUATION_RESULTS_DIR` variable in the Makefile to a mounted directory, e.g. `/data/evaluation_results/`.
 
 To link all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable
 using all linking systems specified in the Makefile's `LINKING_SYSTEMS` variable run
@@ -117,14 +88,6 @@ using all linking systems specified in the Makefile's `LINKING_SYSTEMS` variable
 The linking results are written to subdirectories in the directory specified in the Makefile's `EVALUATION_RESULTS_DIR` variable.
 You can examine or adjust each system's exact linking arguments in the Makefile's `link_benchmark` target if needed.
 
-If you don't want to use the Makefile for linking, e.g. if you want to link only a single benchmark with a
-single specified linker configuration, use the script `link_benchmark_entities.py`, e.g.
-
-    python3 link_benchmark_entities.py <linking_result_jsonl_file> popular_entities 15 --link_linker link-text-linker -coref entity -b wiki-ex
-
-Use the `-h` option for more information on the command line arguments.
-The linking result will be written to `<linking_result_jsonl_file> ` with one WikipediaArticle json object per line.
-
 NOTE: The linking results for some systems like Neural-EL, Wikifier and Ambiverse need to be created separately
 and stored at a path that can then be passed to `link_benchmark_entities.py` as linker argument.
 See the READMEs in the `neural-el` or `wikifier` directories for more information.
@@ -133,21 +96,55 @@ For other systems like Spacy or Explosion you first need to train the respective
 
 ### Evaluate Linked Benchmark Articles
 
-To evaluate the linking results in the subdirectories of the directory `EVALUATION_RESULTS_DIR`
-for benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable run
+If you want to evaluate a single linking result file use the script `evaluate_linked_entities.py`:
+
+    python3 evaluate_linked_entities.py <path_to_linking_result_file>.jsonl
+
+This will print precision, recall and F1 scores and create two new files
+`<path_to_linking_result_file>.cases` and `<path_to_linking_result_file>.results` that contain the evaluation results.
+To show the evaluation results in the webapp, follow the instructions in `evaluation-webapp`.
+
+If you want to evaluate several linking result files at once, i.e. all linking results in the subdirectories of the
+directory `EVALUATION_RESULTS_DIR` for benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable run
 
     make evaluate_linked_benchmarks
 
-The evaluation results will be written to the same subdirectories in `EVALUATION_RESULTS_DIR`. 
 
-This will create the files necessary for the `evaluation-webapp` and print precision, recall and F1 scores.
-To show the evaluation results in the webapp, follow the instructions in `evaluation-webapp`.
+### Start the Evaluation Webapp
 
-If you don't want to use the Makefile for the evaluation, e.g. if you want to evaluate only a single linking result file,
-use the script `evaluate_linked_entities.py`:
+1. Go to the `evaluation-webapp` directory
 
-    python3 evaluate_linked_entities.py <linking_result_jsonl_file>
+        cd evaluation-webapp
 
+2. Link to the results directory `evaluation-results`
+
+        ln -s ../evaluation-results
+
+3. Link to the benchmark directory that contains various benchmarks in jsonl format
+
+        ln -s ../benchmarks
+
+4. Start a file server
+
+        python3 -m http.server <port>
+
+5. Access the webapp at `0.0.0.0:<port>` (default port is 8000).
+
+### Add a benchmark
+
+You can easily add a benchmark that is in the jsonl format we use or in the common NIF (NLP Interchange Format) format.
+Benchmarks in other formats first have to be converted into one of these two formats.
+
+To add a benchmark, simply run
+
+    python3 create_benchmark_labels.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours>
+
+This will create a benchmark file `benchmarks/benchmark_labels_<benchmark_name>.jsonl` in our jsonl format where
+groundtruth labels are annotated with their Wikidata name and types.
+
+The benchmark can now be linked with a linker of your choice using the `link_benchmark_entities.py` script with the parameter `-b <benchmark_name>`
+
+    python3 link_benchmark_entities.py <experiment_name> <linker_type> <linker_info> -b <benchmark_name>
 
 ### Initialize and Train Spacy Entity Linker
 
