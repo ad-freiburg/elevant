@@ -47,7 +47,7 @@ def main(args):
     # Write to output file after reading everything from the input benchmark, since the input benchmark file
     # can be the same as the output file e.g. when an existing benchmark is annotated with new types / labels
     if args.output_benchmark_name:
-        filename = "benchmarks/benchmark_labels_" + args.output_benchmark_name + ".jsonl"
+        filename = settings.BENCHMARK_DIR + "benchmark_labels_" + args.output_benchmark_name + ".jsonl"
     else:
         filename = args.output_file
     output_file = open(filename, "w", encoding="utf8")
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                               help="Name of the output benchmark."
                                    "The benchmark will be written to benchmarks/benchmark_labels_<name>.jsonl")
     group_output.add_argument("-o", "--output_file", type=str,
-                              help="Output file with one benchmark article in json format per line.")
+                              help="The benchmark will be written to the specified file.")
 
     group_benchmark = parser.add_mutually_exclusive_group(required=True)
     group_benchmark.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
