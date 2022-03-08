@@ -1547,7 +1547,7 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                     // This assumes the benchmark is specified in the last dot separated column before the
                     // file extension.
                     var benchmark = file_name.split(".").slice(-2)[0];
-                    if (file_name.endsWith(RESULTS_EXTENSION) && benchmark == benchmark_name)) {
+                    if (file_name.endsWith(RESULTS_EXTENSION) && benchmark == benchmark_name) {
                         var url = path + "/" + folder + "/" + file_name;
                         urls.push(url);
                     }
