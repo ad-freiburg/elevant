@@ -6,7 +6,7 @@ from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_mention import EntityMention
 from src.models.wikidata_entity import WikidataEntity
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 
 def word_boundary(span: Tuple[int, int], text: str) -> Tuple[int, int]:
@@ -60,7 +60,7 @@ class CaseGenerator:
             entity_type = "|".join(type_ids)
         return entity_type
 
-    def get_evaluation_cases(self, article: WikipediaArticle, coref_ground_truth) -> List[Case]:
+    def get_evaluation_cases(self, article: Article, coref_ground_truth) -> List[Case]:
         """
         Return all evaluation cases for a given article.
         """
@@ -192,7 +192,7 @@ class CaseGenerator:
 
         >>> cg = CaseGenerator(EntityDatabase())
         >>> text = "aa, bb, cc"
-        >>> article = WikipediaArticle(0, "", text, [])
+        >>> article = Article(0, "", text, [])
         >>> cg.article = article
         >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2, 5])
         >>> l2 = GroundtruthLabel(2, (0, 2), "Q2", "Q2", 1, [3])
@@ -253,7 +253,7 @@ class CaseGenerator:
         correctly detected mention on them.
                 >>> cg = CaseGenerator(EntityDatabase())
         >>> text = "aa, bb, cc"
-        >>> article = WikipediaArticle(0, "", text, [])
+        >>> article = Article(0, "", text, [])
         >>> cg.article = article
         >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2, 5])
         >>> l2 = GroundtruthLabel(2, (0, 2), "Q2", "Q2", 1, [3])
@@ -309,7 +309,7 @@ class CaseGenerator:
 
         >>> cg = CaseGenerator(EntityDatabase())
         >>> text = "aa, bb, cc"
-        >>> article = WikipediaArticle(0, "", text, [])
+        >>> article = Article(0, "", text, [])
         >>> cg.article = article
         >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2])
         >>> l2 = GroundtruthLabel(2, (0, 2), "Q2", "Q2", 1, None)
@@ -326,7 +326,7 @@ class CaseGenerator:
 
         >>> cg = CaseGenerator(EntityDatabase())
         >>> text = "aa, bb, cc"
-        >>> article = WikipediaArticle(0, "", text, [])
+        >>> article = Article(0, "", text, [])
         >>> cg.article = article
         >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2, 5])
         >>> l2 = GroundtruthLabel(2, (0, 2), "Q2", "Q2", 1, [3])
@@ -349,7 +349,7 @@ class CaseGenerator:
         [(1, 0), (2, 0), (3, 1), (5, 0), (6, 0), (7, 1), (8, 1)]
         >>> cg = CaseGenerator(EntityDatabase())
         >>> text = "aa, bb, cc"
-        >>> article = WikipediaArticle(0, "", text, [])
+        >>> article = Article(0, "", text, [])
         >>> cg.article = article
         >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, None)
         >>> labels = [l1]

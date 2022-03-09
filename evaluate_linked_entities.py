@@ -17,7 +17,7 @@ from src import settings
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.case import case_from_dict
 from src.evaluation.examples_generator import get_example_generator
-from src.models.wikipedia_article import article_from_json
+from src.models.article import article_from_json
 from src.evaluation.evaluator import Evaluator
 
 

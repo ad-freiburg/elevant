@@ -5,7 +5,7 @@ from typing import Iterator, List
 
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 from xml.etree import ElementTree
 
@@ -26,7 +26,7 @@ class XMLBenchmarkParser:
                 child_indices.append(i)
         return child_indices
 
-    def to_article(self, filename: str, text: str) -> WikipediaArticle:
+    def to_article(self, filename: str, text: str) -> Article:
         """
         Use the mention dictionary to create a WikipediaArticle from the given
         text.
@@ -73,7 +73,7 @@ class XMLBenchmarkParser:
         if no_mapping_count > 0:
             logger.warning("%d Labels could not be matched to any Wikidata ID." % no_mapping_count)
 
-        return WikipediaArticle(id=-1, title="", text=stripped_text, links=[], labels=labels)
+        return Article(id=-1, title="", text=stripped_text, links=[], labels=labels)
 
     def get_mention_dictionary_from_file(self, xml_file: str):
         """
@@ -120,7 +120,7 @@ class XMLBenchmarkParser:
                     curr_length = int(element.text.strip())
                     curr_span = curr_offset, curr_offset + curr_length
 
-    def article_iterator(self, xml_path: str, raw_text_dir: str) -> Iterator[WikipediaArticle]:
+    def article_iterator(self, xml_path: str, raw_text_dir: str) -> Iterator[Article]:
         """
         Yields for each document in the XML file and its corresponding
         document in the raw_text_dir a WikipediaArticle with labels.

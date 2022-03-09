@@ -11,7 +11,7 @@ from src.models.entity_prediction import EntityPrediction
 ABSTRACT_INDICATOR = "ABSTRACT"
 
 
-class WikipediaArticle:
+class Article:
     def __init__(self,
                  id: int,
                  title: str,
@@ -150,7 +150,7 @@ class WikipediaArticle:
         return str(self)
 
 
-def article_from_dict(data: Dict) -> WikipediaArticle:
+def article_from_dict(data: Dict) -> Article:
     links = [(tuple(span), target) for span, target in data["links"]]  # span is saved as list, but must be tuple
     title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
     sections = [(tuple(span), title) for span, title in data["sections"]] if "sections" in data else None
@@ -164,19 +164,19 @@ def article_from_dict(data: Dict) -> WikipediaArticle:
             for span, entity_id in data["labels"]:
                 gt_label = GroundtruthLabel(0, span, entity_id, None)
                 labels.append(gt_label)
-    return WikipediaArticle(id=int(data["id"]),
-                            title=data["title"],
-                            text=data["text"],
-                            links=links,
-                            title_synonyms=title_synonyms,
-                            url=data["url"] if "url" in data else None,
-                            entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
+    return Article(id=int(data["id"]),
+                   title=data["title"],
+                   text=data["text"],
+                   links=links,
+                   title_synonyms=title_synonyms,
+                   url=data["url"] if "url" in data else None,
+                   entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
                                              data["entity_mentions"]] if "entity_mentions" in data else None,
-                            evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
-                            labels=labels,
-                            sections=sections,
-                            evaluation_time=data["evaluation_time"] if "evaluation_time" in data else None)
+                   evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
+                   labels=labels,
+                   sections=sections,
+                   evaluation_time=data["evaluation_time"] if "evaluation_time" in data else None)
 
 
-def article_from_json(dump: str) -> WikipediaArticle:
+def article_from_json(dump: str) -> Article:
     return article_from_dict(json.loads(dump))

@@ -2,7 +2,7 @@ from typing import Iterator, Optional
 
 from src import settings
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 
 class ConllToken:
@@ -58,7 +58,7 @@ class ConllDocument:
     def get_predicted(self) -> str:
         return ' '.join([token.get_predicted() for token in self.tokens])
 
-    def to_article(self) -> WikipediaArticle:
+    def to_article(self) -> Article:
         text_pos = -1
         inside = False
         entity_id = None
@@ -83,7 +83,7 @@ class ConllDocument:
             gt_label = GroundtruthLabel(label_id_counter, span, entity_id, "Unknown")
             labels.append(gt_label)
             label_id_counter += 1
-        return WikipediaArticle(id=-1, title="", text=self.text(), links=[], labels=labels)
+        return Article(id=-1, title="", text=self.text(), links=[], labels=labels)
 
 
 def conll_documents() -> Iterator[ConllDocument]:

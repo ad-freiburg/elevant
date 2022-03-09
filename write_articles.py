@@ -31,7 +31,7 @@ from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src.evaluation.examples_generator import get_example_generator
 from src.models.wikidata_entity import WikidataEntity
-from src.models.wikipedia_article import WikipediaArticle, article_from_json
+from src.models.article import Article, article_from_json
 
 logging.basicConfig(format='%(asctime)s: %(message)s', datefmt="%H:%M:%S", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ def replace_non_ascii_chars(text: str) -> str:
     return ''.join([char if ord(char) < 128 else '_' for char in text])
 
 
-def get_entity_text(article: WikipediaArticle,
+def get_entity_text(article: Article,
                     entities: Dict[str, WikidataEntity],
                     annotation: Optional[Annotation] = Annotation.LABELS,
                     evaluation_span: Optional[bool] = False):

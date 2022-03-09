@@ -2,7 +2,7 @@ from typing import Iterator, Optional
 import json
 
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 
 class NewscrawlDumpReader(WikipediaDumpReader):
@@ -16,7 +16,7 @@ class NewscrawlDumpReader(WikipediaDumpReader):
         raise NotImplementedError()
 
     @staticmethod
-    def json2article(json_dump: str) -> WikipediaArticle:
+    def json2article(json_dump: str) -> Article:
         """
         Transform an extracted article from JSON format to a WikipediaArticle object.
         :param json_dump: JSON string representing the extracted article
@@ -26,14 +26,14 @@ class NewscrawlDumpReader(WikipediaDumpReader):
         article_id = article_data["id"].replace(".", "")
         title = article_data["date"] + " - " + article_data["text"].split("\n\n")[0]
         title = title.replace("\n", "")  # A title may not contain newlines (important for evaluation in txt format)
-        article = WikipediaArticle(id=article_id,
-                                   title=title,
-                                   text=article_data["text"],
-                                   links=[])
+        article = Article(id=article_id,
+                          title=title,
+                          text=article_data["text"],
+                          links=[])
         return article
 
     @staticmethod
-    def article_iterator(yield_none: Optional[bool] = False) -> Iterator[WikipediaArticle]:
+    def article_iterator(yield_none: Optional[bool] = False) -> Iterator[Article]:
         """
         Iterates over the articles in the given Newscrawl dump.
         :param yield_none: whether to yield None as the last object

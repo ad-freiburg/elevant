@@ -6,7 +6,7 @@ import sys
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader
-from src.models.wikipedia_article import article_from_json
+from src.models.article import article_from_json
 
 
 def main(args):

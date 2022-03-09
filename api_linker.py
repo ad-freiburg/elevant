@@ -7,7 +7,7 @@ from urllib.parse import quote
 from src import settings
 from src.linkers.linkers import Linkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
-from src.models.wikipedia_article import WikipediaArticle, article_from_json
+from src.models.article import Article, article_from_json
 
 app = Flask(__name__)
 
@@ -17,7 +17,7 @@ def nif_api():
     nif_body = request.data
     nif_doc = NIFCollection.loads(nif_body)
     for context in nif_doc.contexts:
-        article = WikipediaArticle(-1, "", context.mention, [])
+        article = Article(-1, "", context.mention, [])
         if args.input_predictions:
             first_characters = article.text[:100]
             if first_characters in article_dict:

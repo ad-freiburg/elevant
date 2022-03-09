@@ -1,6 +1,6 @@
 import spacy
 
-from src.models.wikipedia_article import Paragraph
+from src.models.article import Paragraph
 from src.models.entity_mention import EntityMention
 
 

@@ -4,10 +4,10 @@ from src.evaluation.benchmark import Benchmark, BenchmarkFormat
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.nif_benchmark_reader import NifBenchmarkReader
 from src.helpers.wikipedia_corpus import WikipediaCorpus
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 from src.models.entity_database import EntityDatabase
 from src.models.conll_benchmark import conll_documents
-from src.models.wikipedia_article import article_from_json
+from src.models.article import article_from_json
 from src.helpers.xml_benchmark_reader import XMLBenchmarkParser
 from src import settings
 
@@ -32,7 +32,7 @@ class WikipediaExampleReader:
     def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
 
-    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+    def iterate(self, n: int = -1) -> Iterator[Article]:
         for article in WikipediaCorpus.development_articles(n):
             article.labels = []
             label_id_counter = 0
@@ -49,7 +49,7 @@ class WikipediaExampleReader:
 
 class ConllExampleReader:
     @staticmethod
-    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
+    def iterate(n: int = -1) -> Iterator[Article]:
         for i, document in enumerate(conll_documents()):
             if i == n:
                 break
@@ -59,7 +59,7 @@ class ConllExampleReader:
 
 class ConllDevExampleReader:
     @staticmethod
-    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
+    def iterate(n: int = -1) -> Iterator[Article]:
         articles_count = 0
         for i, document in enumerate(conll_documents()):
             if i < 946:
@@ -77,7 +77,7 @@ class ConllDevExampleReader:
 
 class ConllTestExampleReader:
     @staticmethod
-    def iterate(n: int = -1) -> Iterator[WikipediaArticle]:
+    def iterate(n: int = -1) -> Iterator[Article]:
         articles_count = 0
         for i, document in enumerate(conll_documents()):
             if i < 1162:
@@ -96,7 +96,7 @@ class XMLExampleReader:
         self.labels_file_or_dir = labels_file_or_dir
         self.text_dir = text_dir
 
-    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+    def iterate(self, n: int = -1) -> Iterator[Article]:
         parser = XMLBenchmarkParser(self.entity_db)
         for i, article in enumerate(parser.article_iterator(self.labels_file_or_dir,
                                                             self.text_dir)):
@@ -110,7 +110,7 @@ class NifExampleReader:
         self.entity_db = entity_db
         self.benchmark_path = benchmark_path
 
-    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+    def iterate(self, n: int = -1) -> Iterator[Article]:
         parser = NifBenchmarkReader(self.entity_db)
         for i, article in enumerate(parser.article_iterator(self.benchmark_path)):
             if i == n:
@@ -122,7 +122,7 @@ class JsonBenchmarkExampleReader:
     def __init__(self, benchmark_filename: str):
         self.benchmark_filename = benchmark_filename
 
-    def iterate(self, n: int = -1) -> Iterator[WikipediaArticle]:
+    def iterate(self, n: int = -1) -> Iterator[Article]:
         with open(self.benchmark_filename, "r") as benchmark_file:
             for i, json_line in enumerate(benchmark_file):
                 if i == n:

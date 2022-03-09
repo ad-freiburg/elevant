@@ -6,7 +6,7 @@ import json
 import re
 from urllib.parse import unquote
 
-from src.models.wikipedia_article import WikipediaArticle, ABSTRACT_INDICATOR
+from src.models.article import Article, ABSTRACT_INDICATOR
 from src import settings
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -180,7 +180,7 @@ class WikipediaDumpReader:
             yield None
 
     @staticmethod
-    def json2article(json_dump: str) -> WikipediaArticle:
+    def json2article(json_dump: str) -> Article:
         """
         Transform an extracted article from JSON format to a WikipediaArticle object.
 
@@ -190,17 +190,17 @@ class WikipediaDumpReader:
         article_data = json.loads(json_dump)
         article_data: Dict
         text, links, title_synonyms, sections = WikipediaDumpReader._process_extractor_text(article_data["text"])
-        article = WikipediaArticle(id=article_data["id"],
-                                   title=article_data["title"],
-                                   text=text,
-                                   links=links,
-                                   title_synonyms=title_synonyms,
-                                   url=article_data["url"],
-                                   sections=sections)
+        article = Article(id=article_data["id"],
+                          title=article_data["title"],
+                          text=text,
+                          links=links,
+                          title_synonyms=title_synonyms,
+                          url=article_data["url"],
+                          sections=sections)
         return article
 
     @staticmethod
-    def article_iterator(yield_none: Optional[bool] = False) -> Iterator[WikipediaArticle]:
+    def article_iterator(yield_none: Optional[bool] = False) -> Iterator[Article]:
         """
         Iterates over the articles in the given extracted Wikipedia dump.
 

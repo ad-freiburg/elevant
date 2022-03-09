@@ -17,7 +17,7 @@ from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.linkers.tagme_linker import TagMeLinker
 from src.linkers.trained_spacy_entity_linker import TrainedSpacyEntityLinker
 from src.linkers.xrenner_coref_linker import XrennerCorefLinker
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 from src.models.entity_database import EntityDatabase, MappingName
 from src.models.entity_prediction import EntityPrediction
 from src.ner.maximum_matching_ner import MaximumMatchingNER
@@ -171,7 +171,7 @@ class LinkingSystem:
             logger.info("Coref linker type not found or not specified.")
 
     def link_entities(self,
-                      article: WikipediaArticle,
+                      article: Article,
                       uppercase: Optional[bool] = False,
                       only_pronouns: Optional[bool] = False,
                       evaluation_span: Optional[Tuple[int, int]] = None):

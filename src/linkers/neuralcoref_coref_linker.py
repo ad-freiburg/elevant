@@ -7,7 +7,7 @@ from spacy.language import Language
 from src import settings
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.coref_cluster import CorefCluster
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 
 class NeuralcorefCorefLinker(AbstractCorefLinker):
@@ -19,7 +19,7 @@ class NeuralcorefCorefLinker(AbstractCorefLinker):
             self.model = model
         neuralcoref.add_to_pipe(self.model, max_dist=50, max_dist_match=100)
 
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None) -> List[CorefCluster]:
+    def get_clusters(self, article: Article, doc: Optional[Doc] = None) -> List[CorefCluster]:
         doc = self.model(article.text)
 
         coref_clusters = []

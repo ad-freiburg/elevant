@@ -6,7 +6,7 @@ from typing import List, Tuple, Optional
 
 from src import settings
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.models.wikipedia_article import article_from_json
+from src.models.article import article_from_json
 
 
 START_TAG = "<START>"

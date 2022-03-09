@@ -3,7 +3,7 @@ from typing import Optional, Tuple, List
 import abc
 from spacy.tokens import Doc
 from src.utils.pronoun_finder import PronounFinder
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 from src.models.entity_mention import EntityMention
 from src.evaluation.coreference_groundtruth_generator import is_coreference
 
@@ -12,11 +12,11 @@ class AbstractCorefLinker(abc.ABC):
     IDENTIFIER = "COREFERENCE"
 
     @abc.abstractmethod
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None):
+    def get_clusters(self, article: Article, doc: Optional[Doc] = None):
         raise NotImplementedError()
 
     def link_entities(self,
-                      article: WikipediaArticle,
+                      article: Article,
                       doc: Optional[Doc] = None,
                       only_pronouns: Optional[bool] = False,
                       evaluation_span: Optional[Tuple[int, int]] = None,
@@ -53,7 +53,7 @@ class AbstractCorefLinker(abc.ABC):
         article.add_entity_mentions(new_entity_mentions)
 
     def predict(self,
-                article: WikipediaArticle,
+                article: Article,
                 doc: Optional[Doc] = None,
                 only_pronouns: Optional[bool] = False,
                 evaluation_span: Optional[Tuple[int, int]] = None,

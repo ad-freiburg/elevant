@@ -9,7 +9,7 @@ from urllib.parse import unquote
 
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -29,7 +29,7 @@ class NifBenchmarkReader:
                 child_indices.append(i)
         return child_indices
 
-    def get_articles_from_nif(self, nif_content: str) -> Iterator[WikipediaArticle]:
+    def get_articles_from_nif(self, nif_content: str) -> Iterator[Article]:
         """
         Create WikipediaArticles from the given NIF content.
         """
@@ -78,7 +78,7 @@ class NifBenchmarkReader:
                     child_gt_label.parent = gt_label.id
                     gt_label.children.append(child_gt_label.id)
 
-            article = WikipediaArticle(id=self.article_id_counter, title=title, text=text, links=[], labels=labels)
+            article = Article(id=self.article_id_counter, title=title, text=text, links=[], labels=labels)
             self.article_id_counter += 1
 
             if no_mapping_count > 0:
@@ -86,7 +86,7 @@ class NifBenchmarkReader:
 
             yield article
 
-    def get_articles_from_file(self, filepath: str) -> Iterator[WikipediaArticle]:
+    def get_articles_from_file(self, filepath: str) -> Iterator[Article]:
         """
         Yields all WikipediaArticles with their GT labels from the given file.
         """
@@ -96,7 +96,7 @@ class NifBenchmarkReader:
             for article in self.get_articles_from_nif(file_content):
                 yield article
 
-    def article_iterator(self, benchmark_path: str) -> Iterator[WikipediaArticle]:
+    def article_iterator(self, benchmark_path: str) -> Iterator[Article]:
         """
         Yields for each document in the NIF file or directory with NIF files
         a WikipediaArticle with labels.

@@ -1,12 +1,12 @@
 from typing import Dict, Tuple, Set
 
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 from src.evaluation.mention_type import is_coreference
 
 
 class CoreferenceGroundtruthGenerator:
     @staticmethod
-    def get_groundtruth(article: WikipediaArticle) -> Dict[Tuple[int, int], Set[Tuple[int, int]]]:
+    def get_groundtruth(article: Article) -> Dict[Tuple[int, int], Set[Tuple[int, int]]]:
         if not article.labels:
             return {}
 

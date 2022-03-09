@@ -6,7 +6,7 @@ from spacy.tokens import Doc
 
 from src.models.entity_mention import EntityMention
 from src.models.entity_prediction import EntityPrediction
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -39,7 +39,7 @@ class AbstractEntityLinker(abc.ABC):
         raise NotImplementedError()
 
     def link_entities(self,
-                      article: WikipediaArticle,
+                      article: Article,
                       doc: Optional[Doc] = None,
                       uppercase: Optional[bool] = False,
                       globally: Optional[bool] = False):

@@ -7,7 +7,7 @@ from spacy.tokens import Doc
 
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.coref_cluster import CorefCluster
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -17,7 +17,7 @@ class StanfordCoreNLPCorefLinker(AbstractCorefLinker):
         self.client = CoreNLPClient(properties={'annotators': "tokenize,ssplit,pos,lemma,ner,parse,coref",
                                                 'coref.algorithm': 'neural'}, timeout=100000, memory='16G')
 
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None) -> List[CorefCluster]:
+    def get_clusters(self, article: Article, doc: Optional[Doc] = None) -> List[CorefCluster]:
         coref_clusters = []
         try:
             annotations = self.client.annotate(article.text)

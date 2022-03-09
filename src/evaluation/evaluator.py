@@ -11,7 +11,7 @@ from src.evaluation.print_methods import print_colored_text, print_article_nerd_
 from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.entity_database import EntityDatabase
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 from src.evaluation.errors import label_errors
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -156,7 +156,7 @@ class Evaluator:
         for label in case.error_labels:
             self.error_counts[label] += case.factor  # factor is 0 or 1
 
-    def get_cases(self, article: WikipediaArticle):
+    def get_cases(self, article: Article):
         if not self.data_loaded:
             raise Exception("Cannot call Evaluator.get_cases() when the evaluator was created with load_data=False.")
         coref_ground_truth = CoreferenceGroundtruthGenerator.get_groundtruth(article)
@@ -168,7 +168,7 @@ class Evaluator:
         return cases
 
     @staticmethod
-    def print_article_evaluation(article: WikipediaArticle, cases: List[Case]):
+    def print_article_evaluation(article: Article, cases: List[Case]):
         print_colored_text(cases, article.text)
         print_article_nerd_evaluation(cases, article.text)
         print_article_coref_evaluation(cases, article.text)

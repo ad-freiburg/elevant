@@ -15,7 +15,7 @@ from src.models.entity_database import EntityDatabase
 from src.models.gender import Gender
 from src.utils.offset_converter import OffsetConverter
 from src.utils.pronoun_finder import PronounFinder
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 from src import settings
 
 
@@ -47,7 +47,7 @@ class ReferencedEntity:
         self.direct_speech = direct_speech
 
 
-def get_direct_speeches(article: WikipediaArticle, doc: Doc) -> List[DirectSpeech]:
+def get_direct_speeches(article: Article, doc: Doc) -> List[DirectSpeech]:
     """
     Return a list with direct speeches (span and possible speaker token) for
     the given article.
@@ -91,7 +91,7 @@ def get_direct_speeches(article: WikipediaArticle, doc: Doc) -> List[DirectSpeec
     return direct_speeches
 
 
-def get_paragraphs(article: WikipediaArticle) -> List[Tuple[int, int]]:
+def get_paragraphs(article: Article) -> List[Tuple[int, int]]:
     """
     Return a list of paragraph spans for the given article.
     """
@@ -197,7 +197,7 @@ class EntityCorefLinker(AbstractCorefLinker):
                     preceding_entities.append(preceding_entity)
         return preceding_entities
 
-    def get_clusters(self, article: WikipediaArticle, doc: Optional[Doc] = None) -> List[CorefCluster]:
+    def get_clusters(self, article: Article, doc: Optional[Doc] = None) -> List[CorefCluster]:
         if not article.entity_mentions:
             return []
 

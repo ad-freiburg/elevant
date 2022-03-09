@@ -23,7 +23,7 @@ import log
 from src import settings
 from src.linkers.linkers import Linkers, CoreferenceLinkers
 from src.linkers.linking_system import LinkingSystem
-from src.models.wikipedia_article import WikipediaArticle
+from src.models.article import Article
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 import multiprocessing
@@ -51,7 +51,7 @@ def article_iterator(filename):
             if i == args.n_articles:
                 break
             if args.raw_input:
-                article = WikipediaArticle(id=i, title="", text=line[:-1], links=[])
+                article = Article(id=i, title="", text=line[:-1], links=[])
             else:
                 article = WikipediaDumpReader.json2article(line)
             yield article, args.uppercase, args.only_pronouns
