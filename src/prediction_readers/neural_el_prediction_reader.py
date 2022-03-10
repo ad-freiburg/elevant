@@ -12,9 +12,9 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class NeuralELPredictionReader(AbstractPredictionReader):
-    def __init__(self, entity_db: EntityDatabase, disambiguation_file: str):
+    def __init__(self, input_filepath: str, entity_db: EntityDatabase):
         self.entity_db = entity_db
-        self.disambiguation_file = disambiguation_file
+        super().__init__(input_filepath, predictions_iterator_implemented=True)
 
     def _get_prediction_from_jsonl(self, string: str) -> Dict[Tuple[int, int], EntityPrediction]:
         """
@@ -48,7 +48,7 @@ class NeuralELPredictionReader(AbstractPredictionReader):
 
         :return: iterator over dictionaries with predictions for each article
         """
-        with open(self.disambiguation_file, "r", encoding="utf8") as file:
+        with open(self.input_filepath, "r", encoding="utf8") as file:
             for line in file:
                 predictions = self._get_prediction_from_jsonl(line)
                 yield predictions

@@ -12,9 +12,9 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class WikifierPredictionReader(AbstractPredictionReader):
-    def __init__(self, entity_db: EntityDatabase, disambiguation_dir: str):
+    def __init__(self, input_filepath: str, entity_db: EntityDatabase):
         self.entity_db = entity_db
-        self.disambiguation_dir = disambiguation_dir
+        super().__init__(input_filepath, predictions_iterator_implemented=True)
 
     @staticmethod
     def is_same_title(unicode_error_title: str, title: str) -> bool:
@@ -93,8 +93,8 @@ class WikifierPredictionReader(AbstractPredictionReader):
 
         :return: iterator over dictionaries with predictions for each article
         """
-        for file in sorted(os.listdir(self.disambiguation_dir)):
+        for file in sorted(os.listdir(self.input_filepath)):
             if file.endswith(".full.xml"):
-                file_path = os.path.join(self.disambiguation_dir, file)
+                file_path = os.path.join(self.input_filepath, file)
                 predictions = self._get_prediction_from_file(file_path)
                 yield predictions

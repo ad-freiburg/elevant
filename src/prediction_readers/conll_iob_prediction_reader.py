@@ -27,8 +27,8 @@ def get_predictions(document: ConllDocument) -> List[EntityPrediction]:
 
 
 class ConllIobPredictionReader(AbstractPredictionReader):
-    def __init__(self, disambiguation_file: str):
-        self.disambiguation_file = disambiguation_file
+    def __init__(self, input_filepath: str):
+        super().__init__(input_filepath, predictions_iterator_implemented=True)
 
     def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """
@@ -37,7 +37,7 @@ class ConllIobPredictionReader(AbstractPredictionReader):
         :return: iterator over dictionaries with predictions for each article
         """
         next_id = 1
-        for line in open(self.disambiguation_file):
+        for line in open(self.input_filepath):
             document = ConllDocument(line[:-1])
             if int(document.id) > next_id:
                 yield {}

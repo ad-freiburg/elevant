@@ -43,7 +43,7 @@ class LinkingSystem:
     def __init__(self, linker_type: str, linker: str, coref_linker: str, kb_name: str, min_score: int,
                  longest_alias_ner: bool, type_mapping_file: str):
         self.linker = None
-        self.prediction_iterator = None
+        self.prediction_reader = None
         self.coref_linker = None
         self.coref_prediction_iterator = None
         self.entity_db = None
@@ -81,12 +81,12 @@ class LinkingSystem:
             self.linker = ExplosionEntityLinker(path, entity_db=self.entity_db)
         elif linker_type == Linkers.IOB.value:
             path = linker_info
-            self.prediction_iterator = ConllIobPredictionReader(path).predictions_iterator()
+            self.prediction_reader = ConllIobPredictionReader(path)
         elif linker_type == Linkers.AMBIVERSE.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             result_dir = linker_info
-            self.prediction_iterator = AmbiversePredictionReader(self.entity_db, result_dir).predictions_iterator()
+            self.prediction_reader = AmbiversePredictionReader(result_dir, self.entity_db)
         elif linker_type == Linkers.TAGME.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
@@ -96,7 +96,7 @@ class LinkingSystem:
             result_file = linker_info
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            self.prediction_iterator = NeuralELPredictionReader(self.entity_db, result_file).predictions_iterator()
+            self.prediction_reader = NeuralELPredictionReader(result_file, self.entity_db)
         elif linker_type == Linkers.BASELINE.value:
             if linker_info not in ("links", "scores", "links-all", "max-match-ner"):
                 raise NotImplementedError("Unknown strategy '%s'." % linker_info)
@@ -130,7 +130,7 @@ class LinkingSystem:
                                         MappingName.REDIRECTS,
                                         MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE})
             result_dir = linker_info
-            self.prediction_iterator = WikifierPredictionReader(self.entity_db, result_dir).predictions_iterator()
+            self.prediction_reader = WikifierPredictionReader(result_dir, self.entity_db)
         elif linker_type == Linkers.PURE_PRIOR.value or linker_type == Linkers.POS_PRIOR.value:
             whitelist_file = linker_info
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
@@ -182,8 +182,8 @@ class LinkingSystem:
 
         if self.linker:
             self.linker.link_entities(article, doc, uppercase=uppercase, globally=self.globally)
-        elif self.prediction_iterator:
-            predicted_entities = next(self.prediction_iterator)
+        elif self.prediction_reader:
+            predicted_entities = self.prediction_reader.get_predictions(article)
             if uppercase:
                 predicted_entities = uppercase_predictions(predicted_entities, article.text)
             article.link_entities(predicted_entities, "PREDICTION_READER", "PREDICTION_READER")
