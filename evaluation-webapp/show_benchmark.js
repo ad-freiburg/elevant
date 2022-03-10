@@ -219,30 +219,6 @@ $("document").ready(function() {
         sortRestart: true
     });
 
-    // Handle events for "Generate URL" button
-    $("#generate_url").on("mouseenter", function() {
-        generate_and_show_url();
-    });
-    $("#generate_url").on("mousedown", function(el) {
-        // Prevent firing on child elements, i.e. on the tooltip
-        if (el.target !== this) return;
-        // Change color of the element
-        $(this).addClass("clicked");
-    });
-    $("#generate_url").on("mouseup", function(el) {
-        if (el.target !== this) return;
-        $(this).removeClass("clicked");
-    });
-    $("#generate_url").on("mouseleave", function() {
-        // Remove clicked color on mouseleave because otherwise the color stays
-        // when keeping the mouse down and leaving the button
-        $(this).removeClass("clicked");
-    });
-    $("#generate_url").on("click", function(el) {
-        if (el.target !== this) return;
-            copy_generated_url();
-    });
-
     reset_annotation_selection();
     $(document).on("keydown", function(event) {
         if ($("input#result-filter").is(":focus") || $("#benchmark").is(":focus") || $("#article_select").is(":focus")) return;
