@@ -845,7 +845,7 @@ function set_article_select_options(initial_call) {
 
     // Add default "All articles" option
     var option = document.createElement("option");
-    option.text = "All articles (evaluated span only)";
+    option.text = "All " + articles.length + " articles (evaluated span only)";
     option.value = -1;
     article_select.add(option);
 
