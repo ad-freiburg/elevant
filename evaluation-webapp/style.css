@@ -87,12 +87,6 @@ a {
     display: inline;
 }
 
-/* Benchmark selector*/
-#benchmark_selection {
-    margin-top: 1em;
-    margin-bottom: 2em;
-}
-
 #top_scrollbar_wrapper {
     width: 100%;
     overflow-x: auto;

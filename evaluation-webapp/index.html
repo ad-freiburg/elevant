@@ -18,8 +18,11 @@
 
 		<div class="content_box">
 			<div id="top_row_container">
-				<div id="benchmark_selection">
-					Select a benchmark: <select id="benchmark" onchange="show_benchmark_results(false)"></select>
+				<div>
+					<table><tbody>
+						<tr><td>Select a benchmark: </td><td><select id="benchmark" onchange="show_benchmark_results(false)"></select></td></tr>
+						<tr><td>Filter results by keywords: </td><td><input id="result-filter"></td></tr>
+					</tbody></table>
 				</div>
 
 				<div id="generate_url_container">
@@ -29,7 +32,6 @@
 				</div>
 			</div>
 
-			<div>Filter results by keywords: <input id="result-filter"></div>
 			<div>
 				<input type="checkbox" id="checkbox_deprecated" onchange="filter_table_rows()">
 				<label for="checkbox_deprecated">Show deprecated</label>
