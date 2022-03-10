@@ -39,7 +39,7 @@ def main(args):
     example_generator = get_example_generator(args.benchmark)
 
     output_dir = args.evaluation_dir + args.linker_type
-    output_filename = output_dir + "/" + args.linker_name + "." + args.benchmark + ".jsonl"
+    output_filename = output_dir + "/" + args.experiment_name + "." + args.benchmark + ".jsonl"
     if output_dir and not os.path.exists(output_dir):
         logger.info("Creating directory %s" % output_dir)
         os.makedirs(output_dir)
@@ -66,9 +66,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=__doc__)
 
-    parser.add_argument("linker_name", type=str,
+    parser.add_argument("experiment_name", type=str,
                         help="Name for the resulting file. The linking results will be written to "
-                             "<evaluation_dir>/<linker_type>/<linker_name>.<benchmark_name>.jsonl")
+                             "<evaluation_dir>/<linker_type>/<experiment_name>.<benchmark_name>.jsonl")
     parser.add_argument("linker_type", choices=[li.value for li in Linkers],
                         help="Entity linker type.")
     parser.add_argument("linker",
@@ -86,8 +86,7 @@ if __name__ == "__main__":
                         help="Number of articles to evaluate on.")
     parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"],
                         help="Name of the knowledge base to use with a spacy linker.")
-    parser.add_argument("-coref", "--coreference_linker",
-                        choices=[cl.value for cl in CoreferenceLinkers],
+    parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers],
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
                         help="Only link coreferences that are pronouns.")
