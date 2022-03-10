@@ -1,6 +1,7 @@
 from typing import Optional, Tuple, Dict, Set
 
 from src.prediction_readers.neural_el_prediction_reader import NeuralELPredictionReader
+from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
 from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.prediction_readers.conll_iob_prediction_reader import ConllIobPredictionReader
@@ -56,7 +57,8 @@ class LinkingSystem:
 
     def _initialize_entity_db(self, linker_type: str, linker: str, coref_linker: str, min_score: int):
         # Linkers for which not to load entities into the entity database
-        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.IOB.value, Linkers.NONE.value)
+        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.IOB.value, Linkers.NONE.value,
+                         Linkers.NIF.value)
 
         self.entity_db = EntityDatabase()
 
@@ -139,6 +141,11 @@ class LinkingSystem:
                                         MappingName.NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES})
             self.linker = PriorLinker(self.entity_db, whitelist_file, use_pos=linker_type == Linkers.POS_PRIOR.value)
+        elif linker_type == Linkers.NIF.value:
+            result_file = linker_info
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.prediction_reader = NifPredictionReader(result_file, self.entity_db)
         else:
             linker_exists = False
 

@@ -14,6 +14,7 @@ class Linkers(Enum):
     WIKIFIER = "wikifier"
     PURE_PRIOR = "pure_prior"
     POS_PRIOR = "pos_prior"
+    NIF = "nif"
     NONE = "none"
 
 
