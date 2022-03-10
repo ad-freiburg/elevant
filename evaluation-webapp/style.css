@@ -322,7 +322,6 @@ div.latex textarea {
 #over-table-row {
     display: flex;
     justify-content: space-between; /* Put left child at the left end and right child at the right end */
-    margin-bottom: 1em;
 }
 
 #select_article {
@@ -396,7 +395,7 @@ div.latex textarea {
     border-spacing: 0;
     border-collapse: separate;
     overflow: hidden;
-    padding-top: 3em;
+    padding-top: 1em;
     padding-bottom: 4em;
 }
 
