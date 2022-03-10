@@ -129,17 +129,17 @@ $("document").ready(function() {
     });
 
     // Highlight error category cells on hover
-    $("#evaluation").on("mouseenter", "td", function() {
+    $("#evaluation_table_wrapper").on("mouseenter", "td", function() {
         if (is_error_cell(this)) {
             $(this).addClass("hovered");
         }
     });
-    $("#evaluation").on("mouseleave", "td", function() {
+    $("#evaluation_table_wrapper").on("mouseleave", "td", function() {
         $(this).removeClass("hovered");
     });
 
     // Highlight all cells in a row belonging to the same mention_type or type or the "all" column on hover
-    $("#evaluation").on("mouseenter", "td", function() {
+    $("#evaluation_table_wrapper").on("mouseenter", "td", function() {
         if ($(this).attr('class')) {
             var cls = $(this).attr('class').split(/\s+/)[0];
             if (cls in mention_type_headers || is_type_string(cls) || cls == "all") {
@@ -150,7 +150,7 @@ $("document").ready(function() {
             }
         }
     });
-    $("#evaluation").on("mouseleave", "td", function() {
+    $("#evaluation_table_wrapper").on("mouseleave", "td", function() {
         if ($(this).attr('class')) {
             var cls = $(this).attr('class').split(/\s+/)[0];
             if (cls in mention_type_headers || is_type_string(cls) || cls == "all") {
@@ -167,7 +167,7 @@ $("document").ready(function() {
     });
 
     // Position table tooltips
-    $("#evaluation").on("mouseenter", "td,th", function() {
+    $("#evaluation_table_wrapper").on("mouseenter", "td,th", function() {
         var tag_name = $(this).prop("tagName").toLowerCase();
         $(this).find(".tooltip").each(function() {
             position_table_tooltip(this, tag_name);
@@ -190,9 +190,9 @@ $("document").ready(function() {
     // Synchronize the top and bottom scrollbar of the evaluation table
     // Prevent double calls to .scroll() by using a flag
     var second_call = false;
-    $("#evaluation").scroll(function(){
+    $("#evaluation_table_wrapper").scroll(function(){
         if (!second_call) {
-            $("#top_scrollbar_wrapper").scrollLeft($("#evaluation").scrollLeft());
+            $("#top_scrollbar_wrapper").scrollLeft($("#evaluation_table_wrapper").scrollLeft());
             second_call = true;
         } else {
             second_call = false;
@@ -200,20 +200,20 @@ $("document").ready(function() {
     });
     $("#top_scrollbar_wrapper").scroll(function(){
         if (!second_call) {
-            $("#evaluation").scrollLeft($("#top_scrollbar_wrapper").scrollLeft());
+            $("#evaluation_table_wrapper").scrollLeft($("#top_scrollbar_wrapper").scrollLeft());
             second_call = true;
         } else {
             second_call = false;
         }
     });
 
-    $("#evaluation table").tablesorter({
+    $("#evaluation_table_wrapper table").tablesorter({
         sortInitialOrder: 'desc',
         selectorHeaders: '> thead > tr:last-child > th',  // First header row should not be sortable
         stringTo: "bottom",  // Columns that are numerically sorted should always have strings (e.g. "-") at the bottom
         widgets: ['stickyHeaders'],
         widgetOptions: {
-                        stickyHeaders_attachTo: '#evaluation',  // jQuery selector or object to attach sticky header to
+                        stickyHeaders_attachTo: '#evaluation_table_wrapper',  // jQuery selector or object to attach sticky header to
                         stickyHeaders_zIndex : 20,
                        },
         sortRestart: true
@@ -568,13 +568,13 @@ function generate_and_show_url() {
     }
     // Get show_columns URL parameter
     var checkbox_classes = [];
-    var checkboxes = $("#evaluation_tables .checkboxes input:checked").each(function() {
+    var checkboxes = $("#evaluation_overview .checkboxes input:checked").each(function() {
         checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
     });
     param_names.push("show_columns");
     param_values.push(checkbox_classes.join(","));
     // Get sort_order URL parameter
-    var sort_order = $("#evaluation table")[0].config.sortList;
+    var sort_order = $("#evaluation_table_wrapper table")[0].config.sortList;
     param_names.push("sort_order");
     param_values.push(sort_order.join(","));
 
@@ -744,7 +744,7 @@ function show_benchmark_results(initial_call) {
     Show overview table and set up the article selector for a selected benchmark.
     */
     $("#table_loading").addClass("show");
-    $("#evaluation table").trigger("update");
+    $("#evaluation_table_wrapper table").trigger("update");
     benchmark_file = benchmark_select.value;
     benchmark_name = $("#benchmark option:selected").text();
 
@@ -753,8 +753,8 @@ function show_benchmark_results(initial_call) {
     }
 
     // Remove previous evaluation table content
-    $("#evaluation_tables table thead").empty();
-    $("#evaluation_tables table tbody").empty();
+    $("#evaluation_table_wrapper table thead").empty();
+    $("#evaluation_table_wrapper table tbody").empty();
 
     // Remove previous article evaluation content
     $("#prediction_overview").hide();
@@ -784,7 +784,7 @@ function show_benchmark_results(initial_call) {
 
 function filter_table_rows() {
     var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
-    $("#evaluation_tables tbody tr").each(function() {
+    $("#evaluation_table_wrapper tbody tr").each(function() {
         var name = $(this).children(":first-child").text();
         // Filter row according to filter keywords
         var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
@@ -804,7 +804,7 @@ function set_top_scrollbar_width() {
     /*
     Set width of the top scrollbar to the current width of the evaluation table + side scrollbar.
     */
-    var width = $("#evaluation table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
+    var width = $("#evaluation_table_wrapper table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
     $("#top_scrollbar").css({"width": width + "px"});
 }
 
@@ -1570,13 +1570,13 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                 result_array.forEach(function(result_tuple) {
                     var approach_name = result_tuple[0];
                     var results = result_tuple[1];
-                    if (!$('#evaluation table thead').html()) {
+                    if (!$('#evaluation_table_wrapper table thead').html()) {
                         // Add table header if it has not yet been added
                         var table_header = get_table_header(results, "evaluation");
-                        $('#evaluation table thead').html(table_header);
+                        $('#evaluation_table_wrapper table thead').html(table_header);
                     }
 
-                    if (!$('#evaluation_tables .checkboxes').html()) {
+                    if (!$('#evaluation_overview .checkboxes').html()) {
                         // Add checkboxes if they have not yet been added
                         add_checkboxes(results, initial_call);
                     }
@@ -1589,7 +1589,7 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                 if (default_selected_systems) {
                     for (var i=0; i<default_selected_systems.length; i++) {
                         var system = default_selected_systems[i];
-                        var row = $('#evaluation table tbody tr').filter(function(){ return $(this).children(":first-child").text() === system;});
+                        var row = $('#evaluation_table_wrapper table tbody tr').filter(function(){ return $(this).children(":first-child").text() === system;});
                         if (row.length > 0) {
                             if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
                                 var cell = $(row).children("." + default_selected_emphasis[i]);
@@ -1607,14 +1607,14 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                 }
 
                 // Update the tablesorter. The sort order is automatically adapted from the previous table.
-                $("#evaluation table").trigger("updateAll")
+                $("#evaluation_table_wrapper table").trigger("updateAll")
 
                 // Remove the table loading GIF
                 $("#table_loading").removeClass("show");
 
                 if (initial_call) {
                     // Use sort order from URL parameter
-                    $.tablesorter.sortOn( $("#evaluation table")[0].config, [ url_param_sort_order ]);
+                    $.tablesorter.sortOn( $("#evaluation_table_wrapper table")[0].config, [ url_param_sort_order ]);
                 }
             });
         });
@@ -1632,7 +1632,7 @@ function build_evaluation_table_body(result_list) {
         var results = result_tuple[1];
         if (results) {
             var row = get_table_row(approach_name, results);
-            $('#evaluation table tbody').append(row);
+            $('#evaluation_table_wrapper table tbody').append(row);
         }
     });
 
@@ -1679,7 +1679,7 @@ function show_hide_columns(element, resize) {
     */
     var col_class = $(element).attr("class");
     col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
-    var column = $("#evaluation ." + col_class);
+    var column = $("#evaluation_table_wrapper table ." + col_class);
     if($(element).is(":checked")) {
         column.show();
     } else {
@@ -1881,7 +1881,7 @@ function read_evaluation_cases(path, approach_name, selected_approaches, timesta
             }
             show_article(selected_approaches, timestamp);
         }).fail(function() {
-            $("#evaluation").html("ERROR: no file with cases found.");
+            $("#evaluation_table_wrapper").html("ERROR: no file with cases found.");
             console.log("FAIL NOW CALL SHOW ARTICLE");
             show_article(selected_approaches, timestamp);
         });
@@ -2037,7 +2037,7 @@ function deselect_all_table_rows() {
     /*
     Deselect all rows in all evaluation tables
     */
-    $("#evaluation tbody tr").each(function() {
+    $("#evaluation_table_wrapper tbody tr").each(function() {
         $(this).removeClass("selected");
     });
     selected_rows = [];
@@ -2145,7 +2145,7 @@ function produce_latex() {
     var num_cols = 0;
     var row_count = 0;
     var header_string = "";
-    $('#evaluation table thead tr').each(function(){
+    $('#evaluation_table_wrapper table thead tr').each(function(){
         $(this).find('th').each(function() {
             if (!$(this).is(":hidden")) {
                 // Do not add hidden table columns
@@ -2180,7 +2180,7 @@ function produce_latex() {
     latex.push("\\hline");
 
     // Generate the rows of the table body
-    $("#evaluation table tbody tr").each(function() {
+    $("#evaluation_table_wrapper table tbody tr").each(function() {
         var col_idx = 0;
         var row_string = "";
         $(this).find("td").each(function() {
@@ -2216,15 +2216,15 @@ function produce_latex() {
     // Join lines, copy to textarea and from there to the clipboard.
     var latex_text = latex.join("\n");
     console.log(latex_text);
-    $("#evaluation_tables .latex").show();
-    $("#evaluation_tables .latex textarea").val(latex_text);
-    $("#evaluation_tables .latex textarea").show();  // Text is not selected or copied if it is hidden
-    $("#evaluation_tables .latex textarea").select();
+    $("#evaluation_overview .latex").show();
+    $("#evaluation_overview .latex textarea").val(latex_text);
+    $("#evaluation_overview .latex textarea").show();  // Text is not selected or copied if it is hidden
+    $("#evaluation_overview .latex textarea").select();
     document.execCommand("copy");
-    $("#evaluation_tables .latex textarea").hide();
+    $("#evaluation_overview .latex textarea").hide();
 
     // Show the notification for the specified number of seconds
     var show_duration_seconds = 5;
-    setTimeout(function() { $("#evaluation_tables .latex").hide(); }, show_duration_seconds * 1000);
+    setTimeout(function() { $("#evaluation_overview .latex").hide(); }, show_duration_seconds * 1000);
 }
 

@@ -35,13 +35,16 @@
 				<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
 				<label for="checkbox_compare">Compare two systems</label>
 			</div>
-			<div id="evaluation_tables">
-				<p><b>Results per mention type:</b></p>
-				<div id="general_checkboxes" class="checkboxes"></div>
-				<p><b>Results per error category:</b></p>
-				<div id="error_checkboxes" class="checkboxes"></div>
-				<p><b>Results per entity type:</b></p>
-				<div id="type_checkboxes" class="checkboxes"></div>
+			<div id="evaluation_overview">
+				<div id="checkbox_table_wrapper">
+					<table id="checkbox_table">
+						<tbody>
+							<tr><td><b>Results per mention type:</b></td><td><div id="general_checkboxes" class="checkboxes"></div></td></tr>
+							<tr><td><b>Results per error category:</b></td><td><div id="error_checkboxes" class="checkboxes"></div></td></tr>
+							<tr><td><b>Results per entity type:</b></td><td><div id="type_checkboxes" class="checkboxes"></div></td></tr>
+						</tbody>
+					</table>
+				</div>
 				<div class="latex">
 					<p><b>The LaTeX code for this table was copied to your CLIPBOARD.</b></p>
 					<textarea></textarea>
@@ -50,7 +53,7 @@
 				<div id="top_scrollbar_wrapper">
 					<div id="top_scrollbar"></div>
 				</div>
-				<div id="evaluation">
+				<div id="evaluation_table_wrapper">
 					<table>
 						<thead></thead>
 						<tbody></tbody>

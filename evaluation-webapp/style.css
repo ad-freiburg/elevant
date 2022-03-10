@@ -63,12 +63,6 @@ a {
     font-weight: 300;
 }
 
-#evaluation_tables p {
-    padding: 0;
-    margin: 0;
-    color: var(--cell-header-color);
-}
-
 /* Checkboxes for showing / hiding table columns */
 .checkboxes label {
     padding-right: 1em;
@@ -161,12 +155,12 @@ a {
 /* Begin evaluation results table  */
 
 /* Evaluation overview area */
-#evaluation_tables {
+#evaluation_overview {
     padding-top: 1em;
 }
 
 /* Make evaluation table scrollable */
-#evaluation {
+#evaluation_table_wrapper {
     max-width: 94%;
     max-height: 80vh;
     overflow-y: auto;
@@ -177,8 +171,8 @@ a {
 }
 
 /* Make the first column of the evaluation table sticky when scrolling */
-#evaluation table th:first-child,
-#evaluation table td:first-child {
+#evaluation_table_wrapper table th:first-child,
+#evaluation_table_wrapper table td:first-child {
     position: -webkit-sticky;
     position: sticky;
     left: 0;
@@ -186,51 +180,51 @@ a {
     border-right: 1px solid white;
 }
 
-#evaluation table {
+#evaluation_table_wrapper table {
     font-size: 95%;
 }
 
-#evaluation td,
-#evaluation th {
+#evaluation_table_wrapper td,
+#evaluation_table_wrapper th {
     cursor: default;
     border: 1px solid white;
     padding-top: 4px;
     padding-bottom: 4px;
 }
-#evaluation thead tr:nth-child(1) {
+#evaluation_table_wrapper thead tr:nth-child(1) {
     text-align: center;
 }
-#evaluation thead tr:nth-child(2) {
+#evaluation_table_wrapper thead tr:nth-child(2) {
     cursor: pointer;
 }
-#evaluation th {
+#evaluation_table_wrapper th {
     background-color: var(--cell-header-color);
 }
-#evaluation td {
+#evaluation_table_wrapper td {
     width: 5em;
     background-color: var(--cell-color);
 }
-#evaluation tbody tr {
+#evaluation_table_wrapper tbody tr {
     text-align: right;
     cursor: pointer;
 }
-#evaluation td:first-child {
+#evaluation_table_wrapper td:first-child {
     text-align: left;
     white-space: nowrap;
     background: var(--cell-first-column-color);
 }
 
 /* Handle display of hovered and clicked rows and cells */
-#evaluation tbody tr:hover td {
+#evaluation_table_wrapper tbody tr:hover td {
     background-color: var(--row-hover-color);
 }
-#evaluation tbody tr.selected td {
+#evaluation_table_wrapper tbody tr.selected td {
     background-color: var(--row-selected-color);
 }
-#evaluation tbody tr td.hovered {
+#evaluation_table_wrapper tbody tr td.hovered {
     background-color: var(--cell-hover-color);
 }
-#evaluation tbody tr td.selected {
+#evaluation_table_wrapper tbody tr td.selected {
     background-color: var(--cell-selected-color);
 }
 
@@ -274,14 +268,14 @@ table .tooltip:hover .tooltiptext {
 }
 
 /* Show the tooltip text when you mouse over a table header cell that comes with a description */
-#evaluation th .tooltiptext {
+#evaluation_table_wrapper th .tooltiptext {
     max-width: 20em;
     font-size: 0.8em;
     font-weight: 300;
 }
 
 /* Cell tooltip for precision / recall / F1 cells */
-#evaluation td .tooltiptext {
+#evaluation_table_wrapper td .tooltiptext {
     width: 5em;
 }
 
@@ -289,12 +283,12 @@ table .tooltip:hover .tooltiptext {
 /* Begin latex */
 
 /* Table cell for copying latex code */
-#evaluation .produce_latex {
+#evaluation_table_wrapper .produce_latex {
     cursor: pointer;
     text-align: center;
     color: transparent
 }
-#evaluation .produce_latex:hover {
+#evaluation_table_wrapper .produce_latex:hover {
     color: white;
 }
 
