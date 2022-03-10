@@ -15,114 +15,128 @@
 		<header>
 			<h1>ELEVANT: Entity Linking Evaluation and Analysis Tool</h1>
 		</header>
-		<div class="content">
+
+		<div class="content_box">
 			<div id="top_row_container">
 				<div id="benchmark_selection">
 					Select a benchmark: <select id="benchmark" onchange="show_benchmark_results(false)"></select>
 				</div>
+
 				<div id="generate_url_container">
 					<div id="generate_url">Generate URL for this view
 						<div class="tooltiptext"></div>
 					</div>
 				</div>
-
 			</div>
 
-			<span>Filter results by keywords: <input id="result-filter"></span>
-			<input type="checkbox" id="checkbox_deprecated" onchange="filter_table_rows()">
+			<div>Filter results by keywords: <input id="result-filter"></div>
+			<div>
+				<input type="checkbox" id="checkbox_deprecated" onchange="filter_table_rows()">
 				<label for="checkbox_deprecated">Show deprecated</label>
+			</div>
+
 			<div>
 				<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
 				<label for="checkbox_compare">Compare two systems</label>
 			</div>
-			<div id="evaluation_overview">
-				<div id="checkbox_table_wrapper">
-					<table id="checkbox_table">
-						<tbody>
-							<tr><td><b>Results per mention type:</b></td><td><div id="general_checkboxes" class="checkboxes"></div></td></tr>
-							<tr><td><b>Results per error category:</b></td><td><div id="error_checkboxes" class="checkboxes"></div></td></tr>
-							<tr><td><b>Results per entity type:</b></td><td><div id="type_checkboxes" class="checkboxes"></div></td></tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="latex">
-					<p><b>The LaTeX code for this table was copied to your CLIPBOARD.</b></p>
-					<textarea></textarea>
-				</div>
-				<div id="table_loading"></div>
-				<div id="top_scrollbar_wrapper">
-					<div id="top_scrollbar"></div>
-				</div>
-				<div id="evaluation_table_wrapper">
-					<table>
-						<thead></thead>
-						<tbody></tbody>
-					</table>
-				</div>
-			</div>
-			<div id="article-results">
-				<h3>Results per article</h3>
-				<div id="loading"></div>
-				<div id="over-table-row">
-					<span id="select_article">
-						Select article: <select id="article_select" onchange="on_article_select()"></select>
-						<span id="article_link"></span>
-					</span>
-					<div id="annotation_explanation">Annotation explanations
-						<div class="tooltiptext">
-							<table>
-								<tbody>
-									<tr>
-										<td colspan="2"><i><span class="annotation gt optional">Underlined text</span> corresponds to a groundtruth mention,
-											<span class="annotation pred unevaluated">highlighted text</span> to a predicted mention.<br>
-											If a groundtruth mention and a predicted mention overlap, these annotations overlap, too.</i></td>
-									</tr>
-									<tr>
-										<td><span class="annotation gt tp"><span class="annotation pred tp">Mention Text</span></span></td>
-										<td><b>True positive:</b> Predicted mention span and entity match a groundtruth mention span and entity</td>
-									</tr>
-									<tr>
-										<td><span class="annotation pred fp">Mention Text</span></td>
-										<td><b>False positive:</b> Predicted mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity</td>
-									</tr>
-									<tr>
-										<td><span class="annotation gt fn">Mention Text</span></td>
-										<td><b>False negative:</b> Groundtruth mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity</td>
-									</tr>
-									<tr>
-										<td><span class="annotation gt unknown">Mention Text</span></td>
-										<td>Groundtruth entity that could not be mapped to an entity in the knowledge base</td>
-									</tr>
-									<tr>
-										<td><span class="annotation gt optional">Mention Text</span></td>
-										<td>Optional groundtruth mention</td>
-									</tr>
-									<tr>
-										<td><span class="annotation pred unevaluated">Mention Text</span></td>
-										<td>Prediction is unevaluated either because it matches an optional groundtruth mention span and entity or because it is outside of the evaluation span</td>
-									</tr>
-									<tr>
-										<td><u>Some Text</u></td>
-										<td>Hyperlink in the groundtruth text</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</div>
-				<table id="prediction_overview">
-					<thead>
-						<tr>
-							<th></th><th></th>
-						</tr>
-					</thead>
+		</div>
+
+		<div id="evaluation_overview" class="content_box">
+			<div id="checkbox_table_wrapper">
+				<table id="checkbox_table">
 					<tbody>
-						<tr>
-							<td></td><td></td>
-						</tr>
+						<tr><td><b>Results per mention type:</b></td><td><div id="general_checkboxes" class="checkboxes"></div></td></tr>
+						<tr><td><b>Results per error category:</b></td><td><div id="error_checkboxes" class="checkboxes"></div></td></tr>
+						<tr><td><b>Results per entity type:</b></td><td><div id="type_checkboxes" class="checkboxes"></div></td></tr>
 					</tbody>
 				</table>
 			</div>
+
+			<div class="latex">
+				<p><b>The LaTeX code for this table was copied to your CLIPBOARD.</b></p>
+				<textarea></textarea>
+			</div>
+
+			<div id="table_loading"></div>
+
+			<div id="top_scrollbar_wrapper">
+				<div id="top_scrollbar"></div>
+			</div>
+
+			<div id="evaluation_table_wrapper">
+				<table>
+					<thead></thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+
+		<div id="article-results" class="content_box">
+			<h3>Results per article</h3>
+
+			<div id="loading"></div>
+
+			<div id="over-table-row">
+				<span id="select_article">
+					Select article: <select id="article_select" onchange="on_article_select()"></select>
+					<span id="article_link"></span>
+				</span>
+
+				<div id="annotation_explanation">Annotation explanations
+					<div class="tooltiptext">
+						<table>
+							<tbody>
+								<tr>
+									<td colspan="2"><i><span class="annotation gt optional">Underlined text</span> corresponds to a groundtruth mention,
+										<span class="annotation pred unevaluated">highlighted text</span> to a predicted mention.<br>
+										If a groundtruth mention and a predicted mention overlap, these annotations overlap, too.</i></td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt tp"><span class="annotation pred tp">Mention Text</span></span></td>
+									<td><b>True positive:</b> Predicted mention span and entity match a groundtruth mention span and entity</td>
+								</tr>
+								<tr>
+									<td><span class="annotation pred fp">Mention Text</span></td>
+									<td><b>False positive:</b> Predicted mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity</td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt fn">Mention Text</span></td>
+									<td><b>False negative:</b> Groundtruth mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity</td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt unknown">Mention Text</span></td>
+									<td>Groundtruth entity that could not be mapped to an entity in the knowledge base</td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt optional">Mention Text</span></td>
+									<td>Optional groundtruth mention</td>
+								</tr>
+								<tr>
+									<td><span class="annotation pred unevaluated">Mention Text</span></td>
+									<td>Prediction is unevaluated either because it matches an optional groundtruth mention span and entity or because it is outside of the evaluation span</td>
+								</tr>
+								<tr>
+									<td><u>Some Text</u></td>
+									<td>Hyperlink in the groundtruth text</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<table id="prediction_overview">
+				<thead>
+					<tr>
+						<th></th><th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td></td><td></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 	</body>
 </html>

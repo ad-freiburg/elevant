@@ -39,13 +39,20 @@ header h1 {
 html, body {
     margin: 0;
     padding: 0;
+    background-color: #eeeeee;
 }
 
-.content {
-    padding: 10px;
+.content_box {
+    margin-left: 3em;
+    margin-right: 3em;
+    margin-top: 1em;
+    margin-bottom: 2em;
+    padding: 1em 2em;
+    background-color: #f8f8f8;
+    border: 1px solid #cccccc;
 }
 
-table, td, th {
+td, th {
     padding: 3px;
 }
 
@@ -87,10 +94,10 @@ a {
 }
 
 #top_scrollbar_wrapper {
-    width: 94%;
+    width: 100%;
     overflow-x: auto;
     height: 20px;
-    margin: 0% 2%;
+    margin: 0;
 }
 
 #top_scrollbar {
@@ -116,7 +123,6 @@ a {
     padding: 5px;
     background: var(--row-hover-color);
     position: relative;
-    margin-right: 1em;
     cursor: pointer;
 }
 
@@ -154,18 +160,13 @@ a {
 /* ----------------------------------------- */
 /* Begin evaluation results table  */
 
-/* Evaluation overview area */
-#evaluation_overview {
-    padding-top: 1em;
-}
-
 /* Make evaluation table scrollable */
 #evaluation_table_wrapper {
-    max-width: 94%;
+    max-width: 100%;
     max-height: 80vh;
     overflow-y: auto;
     display: inline-block;
-    margin: 0% 2%;
+    margin: 0;
     padding: 0;
     position: relative;
 }
@@ -350,7 +351,6 @@ div.latex textarea {
     padding: 5px;
     background: var(--row-hover-color);
     position: relative;
-    margin-right: 1em;
 }
 
 #annotation_explanation:hover {
