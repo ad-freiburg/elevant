@@ -70,15 +70,23 @@ a {
     font-weight: 300;
 }
 
-/* Checkboxes for showing / hiding table columns */
-.checkboxes label {
+/* Checkbox labels */
+label {
     padding-right: 1em;
+    padding-left: 2px;
 }
 
+/* Checkboxes for showing / hiding table columns */
 .checkboxes {
     padding: 0;
     margin: 0;
     margin-bottom: 1em;
+}
+
+#checkbox_table td:first-child {
+    white-space: nowrap;
+    vertical-align: top;
+    padding-right: 1em;
 }
 
 .tooltip,
