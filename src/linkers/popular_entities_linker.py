@@ -62,8 +62,12 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
 
     def entity_spans(self, text: str, doc: Optional[Doc]) -> List[Tuple[Tuple[int, int], bool]]:
+        """
+        Retrieve entity spans from the given text, i.e. perform entity recognition step.
+        """
         spans = []
         if self.longest_alias_ner:
+            # Use own longest-alias-NER
             original_spans = self.ner.entity_mentions(text)
             for span in original_spans:
                 is_language = False
@@ -73,6 +77,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                     is_language = True
                 spans.append((span, is_language))
         else:
+            # Use Spacy NER
             for ent in doc.ents:
                 if ent.label_ in NER_IGNORE_TAGS:
                     continue
