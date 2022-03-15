@@ -2201,6 +2201,7 @@ function toggle_compare() {
             deselected_row = selected_rows.shift();  // Remove first element in array
             $(deselected_row).removeClass("selected");
             deselected_cell = selected_cells.shift();
+            selected_cell_categories = [selected_cell_categories[1], null];
             if (deselected_cell) remove_selected_classes(deselected_cell);
         }
 
