@@ -5,6 +5,7 @@
 		<link rel="stylesheet" type="text/css" href="style.css">
 		<link rel="stylesheet" type="text/css" href="https://mottie.github.io/tablesorter/dist/css/theme.default.min.css">
 		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script type="text/javascript" src="bootstrap/js/bootstrap.js"></script>
 		<script type="text/javascript" src="https://mottie.github.io/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
 		<script type="text/javascript" src="https://mottie.github.io/tablesorter/dist/js/widgets/widget-stickyHeaders.min.js"></script>
 		<script type="text/javascript" src="show_benchmark.js"></script>
@@ -41,6 +42,29 @@
 			<div>
 				<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
 				<label for="checkbox_compare">Compare two systems</label>
+			</div>
+
+			<!-- Modal -->
+			<div class="modal" id="example_benchmark_modal" tabindex="-1" role="dialog">
+				<div id="example_benchmark_modal_dialog" class="modal-dialog modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLongTitle">Error category examples</h5>
+							<button type="button" class="close" data-dismiss="modal">
+								<span>&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<table id="example_prediction_overview" class="article_table">
+								<thead><tr><th></th></tr></thead>
+								<tbody><tr><td></td></tr></tbody>
+							</table>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -129,7 +153,7 @@
 				</div>
 			</div>
 
-			<table id="prediction_overview">
+			<table id="prediction_overview" class="article_table">
 				<thead>
 					<tr>
 						<th></th><th></th>

@@ -8,6 +8,9 @@ ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 RESULTS_EXTENSION = ".results";
 EVALUATION_RESULT_PATH = "evaluation-results";
 
+EXAMPLE_BENCHMARK_LABELS_PATH = "example-benchmark/benchmark_labels_example.jsonl";
+EXAMPLE_BENCHMARK_RESULTS_PATH = "example-benchmark/example.results";
+
 MAX_SELECTED_APPROACHES = 2;
 MAX_CACHED_FILES = 15;
 
@@ -18,39 +21,40 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
+tooltip_example_html = " For an example <a href=\"#example_benchmark_modal\"onclick=\"open_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">click here</a>.";
 header_descriptions = {
     "undetected": {
-        "all": "The span of a GT mention was not linked (= NER FN) (Total: Named GT mentions)",
-        "lowercase": "The span of a lowercase GT mention was not linked (Total: Named lowercase GT mentions)",
-        "partially_included": "FN and a part of the GT mention was linked to an arbitrary entity (Total: Named GT mentions containing whitespace(s))",
-        "partial_overlap": "FN and the GT span overlaps with a predicted span (Total: Named uppercase GT mentions)",
-        "other": "Other detection error (Total: Named uppercase GT mentions)"
+        "all": "The span of a GT mention was not linked (= NER FN) (Total: Named GT mentions).",
+        "lowercase": "The span of a lowercase GT mention was not linked (Total: Named lowercase GT mentions).",
+        "partially_included": "FN and a part of the GT mention was linked to an arbitrary entity (Total: Named GT mentions containing whitespace(s)).",
+        "partial_overlap": "FN and the GT span overlaps with a predicted span (Total: Named uppercase GT mentions).",
+        "other": "Other detection error (Total: Named uppercase GT mentions)."
     },
     "wrong_disambiguation": {
-        "all": "Detected, but wrong entity linked (Total: Detected)",
-        "demonym": "FN from a list of demonyms (German, Germans, ...) (Total: All demonym GT mentions)",
-        "partial_name": "FN and the GT mention is part of the entity name (Total: Named GT mentions where the mention is a part of the entity name)",
-        "metonymy": "Predicted and most popular candidate are locations, but ground truth is not (Total: Most popular candidate is a location, but ground truth is not)",
-        "rare": "Most popular candidate is wrongly predicted (Total: Detected mentions where the most popular candidate is not the correct entity)",
+        "all": "Detected, but wrong entity linked (Total: Detected).",
+        "demonym": "FN from a list of demonyms (German, Germans, ...) (Total: All demonym GT mentions).",
+        "partial_name": "FN and the GT mention is part of the entity name (Total: Named GT mentions where the mention is a part of the entity name).",
+        "metonymy": "Predicted and most popular candidate are locations, but ground truth is not (Total: Most popular candidate is a location, but ground truth is not).",
+        "rare": "Most popular candidate is wrongly predicted (Total: Detected mentions where the most popular candidate is not the correct entity).",
         "other": "Other disambiguation error",
-        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates (Total: Named detected)",
-        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected (Total: Named detected where the GT entity is one of multiple candidates)"
+        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates (Total: Named detected).",
+        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected (Total: Named detected where the GT entity is one of multiple candidates)."
     },
     "false_detection": {
         "all": "Predicted mention that does not match a groundtruth mention span",
         "abstract_entity": "Lowercase named FP that does not overlap with a GT mention",
         "unknown_entity": "Uppercase mention wrongly linked, where the ground truth is either Unknown or has no label at all",
         "other": "Other false detection",
-        "wrong_span": "Predicted mention whose span does not match, but overlaps with a GT mention with a matching entity (Total: Predicted mentions)"
+        "wrong_span": "Predicted mention whose span does not match, but overlaps with a GT mention with a matching entity (Total: Predicted mentions)."
     },
     "other_errors": {
-        "hyperlink": "FN where the mention is a hyperlink (Total: GT mentions that are hyperlinks)"
+        "hyperlink": "FN where the mention is a hyperlink (Total: GT mentions that are hyperlinks)."
     },
     "wrong_coreference": {
         "false_detection": "FP mentions in {It, it, This, this, That, that, Its, its}",
-        "reference_wrongly_disambiguated": "FN + FP, the reference was wrongly disambiguated (Total: Coreference mentions where correct GT mention was referenced)",
-        "wrong_mention_referenced": "FN + FP, wrong mention was referenced (Total: Linked GT coreference mentions)",
-        "undetected": "FN, mention was not linked (Total: GT coreference mentions)"
+        "reference_wrongly_disambiguated": "FN + FP, the reference was wrongly disambiguated (Total: Coreference mentions where correct GT mention was referenced).",
+        "wrong_mention_referenced": "FN + FP, wrong mention was referenced (Total: Linked GT coreference mentions).",
+        "undetected": "FN, mention was not linked (Total: GT coreference mentions)."
     }
 };
 
@@ -119,6 +123,8 @@ $("document").ready(function() {
     type_name_mapping = {};
 
     $("#checkbox_compare").prop('checked', url_param_compare);
+
+    read_example_benchmark_data();
 
     set_benchmark_select_options();
 
@@ -250,7 +256,103 @@ $("document").ready(function() {
             }
         }
     });
+
+    $('#example_benchmark_modal').on('shown.bs.modal', function(event) {
+        /*
+        Scroll to corresponding annotation and highlight it.
+        */
+        // Reset the modal scroll to top
+        $('#example_benchmark_modal').scrollTop(0);
+
+        var highlighted_annotations = $("#example_prediction_overview tr td .annotation.beginning").not(".lowlight");
+        var selected_error_title = $("#example_benchmark_modal").data("selected_error_title");
+        var article_header = null;
+        var annotation = null;
+
+        // Get highlighted annotation where the article title matches the selected error title
+        for (ann of highlighted_annotations) {
+            // prev() only works for siblings. If annotation is nested, first get the parent annotation.
+            var prev_ann = ($(ann).parent(".annotation").length > 0) ? $(ann).parent() : $(ann);
+            while (prev_ann.length > 0 && !["HR", "B"].includes($(prev_ann).prop("tagName"))) prev_ann = $(prev_ann).prev();
+            if ($(prev_ann).prop("tagName") != "B") {
+                console.log("No matching example found in example benchmark");
+                return;
+            }
+            article_header = $(prev_ann)[0];
+            annotation = ann;
+            if ($(article_header).text().toLowerCase() == selected_error_title) break;
+        }
+
+        // Scroll to article header that was determined above
+        var table_top = $("#example_prediction_overview thead").offset().top;
+        $("#example_benchmark_modal").animate({
+            scrollTop: $(article_header).offset().top - table_top
+        }, 200);
+
+        // Highlight corresponding annotation for a second
+        // Get annotation id class such that all spans belonging to one annotation can be marked as selected
+        var classes = $(annotation).attr("class").split(/\s+/);
+        var annotation_id_class = classes.filter(function(el) {return el.startsWith("annotation_id_"); });
+        // Mark spans as selected
+        $("." + annotation_id_class).addClass("selected")
+        // Unmark spans as selected after timeout
+        setTimeout(function() { $("." + annotation_id_class).removeClass("selected");}, 1000);
+    });
 });
+
+function read_example_benchmark_data() {
+    var filename = EXAMPLE_BENCHMARK_RESULTS_PATH.substring(0, EXAMPLE_BENCHMARK_RESULTS_PATH.length - RESULTS_EXTENSION.length);
+    var articles_path = filename + ".jsonl";
+    var cases_path = filename + ".cases";
+
+    articles_example_benchmark = [];
+    $.get(EXAMPLE_BENCHMARK_LABELS_PATH, function(data) {
+        lines = data.split("\n");
+        for (line of lines) {
+            if (line.length > 0) {
+                articles_example_benchmark.push(JSON.parse(line));
+            }
+        }
+    });
+
+    articles_data_example_benchmark = [];
+    evaluation_cases_example_benchmark = [];
+    var promise = $.get(articles_path, function(data) {
+        lines = data.split("\n");
+        for (line of lines) {
+            if (line.length > 0) {
+                articles_data_example_benchmark.push(JSON.parse(line));
+            }
+        }
+    }).then(function() {
+        $.get(cases_path, function(data) {
+            lines = data.split("\n");
+            for (line of lines) {
+                if (line.length > 0) {
+                    evaluation_cases_example_benchmark.push(JSON.parse(line));
+                }
+            }
+        });
+    });
+}
+
+function show_example_benchmark(selected_category) {
+    selected_article_index = article_select.value;
+    var textfield = $("#example_prediction_overview tr td");
+    show_annotated_text("example_annotations", $(textfield[0]), selected_category, 100, true);
+    var emphasis_str = get_emphasis_string(selected_category);
+    $("#example_prediction_overview tr th").html("<span class='nonbold'>Example Benchmark" + emphasis_str + "</span>");
+}
+
+function open_example_benchmark_modal(el) {
+    // Highlight only mentions of the error type that the table tooltip belongs to
+    var selected_category = get_error_category_or_type($(el).closest("th")[0]);
+    var table_header_cell = $(el).closest("th")[0];
+    var classes = $(table_header_cell).attr('class').split(/\s+/);
+    var error_category_title = classes[1].replace(/_/g, " ").replace("-", " - ");
+    $("#example_benchmark_modal").data("selected_error_title", error_category_title);
+    show_example_benchmark(selected_category);
+}
 
 function scroll_to_next_annotation(only_errors) {
     /*
@@ -607,7 +709,7 @@ function position_table_tooltip(anchor_el, tag_name) {
         var tooltip_rect = this.getBoundingClientRect();
         var font_size = $(this).css("font-size").replace("px", "");
         if (tag_name =="th") {
-            var top = anchor_el_rect.bottom + 10;
+            var top = anchor_el_rect.bottom;
         } else {
             var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
         }
@@ -891,31 +993,32 @@ function is_optional_case(eval_case) {
                                            ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type));
 }
 
-function show_annotated_text(approach_name, textfield, selected_cell_category, column_idx) {
+function show_annotated_text(approach_name, textfield, selected_cell_category, column_idx, example_benchmark) {
     /*
     Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
     and show them in the textfield.
     */
-    if (show_all_articles_flag) {
+    var benchmark_articles = (example_benchmark) ? articles_example_benchmark : articles;
+    if (show_all_articles_flag || example_benchmark) {
         var annotated_texts = [];
-        for (var i=0; i < articles.length; i++) {
-            var annotations = get_annotations(i, approach_name, column_idx);
-            annotated_texts.push(annotate_text(articles[i].text, annotations, articles[i].links, articles[i].evaluation_span, selected_cell_category));
+        for (var i=0; i < benchmark_articles.length; i++) {
+            var annotations = get_annotations(i, approach_name, column_idx, example_benchmark);
+            annotated_texts.push(annotate_text(benchmark_articles[i].text, annotations, benchmark_articles[i].links, benchmark_articles[i].evaluation_span, selected_cell_category));
         }
         annotated_text = "";
         for (var i=0; i < annotated_texts.length; i++) {
             if (i != 0) annotated_text += "<hr/>";
-            if (articles[i].title) annotated_text += "<b>" + articles[i].title + "</b><br>";
+            if (benchmark_articles[i].title) annotated_text += "<b>" + benchmark_articles[i].title + "</b><br>";
             annotated_text += annotated_texts[i];
         }
     } else {
-        var annotations = get_annotations(selected_article_index, approach_name, column_idx);
+        var annotations = get_annotations(selected_article_index, approach_name, column_idx, example_benchmark);
         var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_cell_category);
     }
     textfield.html(annotated_text);
 }
 
-function get_annotations(article_index, approach_name, column_idx) {
+function get_annotations(article_index, approach_name, column_idx, example_benchmark) {
     /*
     Generate annotations for the predicted entities of the selected approach and article.
 
@@ -923,8 +1026,13 @@ function get_annotations(article_index, approach_name, column_idx) {
     with the evaluated predictions inside the evaluation span (from the file <approach>.cases),
     and then generates annotations for all of them.
     */
-    var article_cases = evaluation_cases[approach_name][article_index];  // information from the .cases file
-    var article_data = articles_data[approach_name][article_index];  // information from the .jsonl file
+    if (example_benchmark) {
+        var article_cases = evaluation_cases_example_benchmark[article_index];  // information from the .cases file
+        var article_data = articles_data_example_benchmark[article_index];  // information from the .jsonl file
+    } else {
+        var article_cases = evaluation_cases[approach_name][article_index];  // information from the .cases file
+        var article_data = articles_data[approach_name][article_index];  // information from the .jsonl file
+    }
 
     var child_label_to_parent = {};
     var label_id_to_label = {};
@@ -1041,7 +1149,8 @@ function get_annotations(article_index, approach_name, column_idx) {
                 // Get text of parent span
                 if (curr_label_id != mention.true_entity.id) {
                     var parent_span = label_id_to_label[curr_label_id].span;
-                    gt_annotation.parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
+                    var benchmark_articles = (example_benchmark) ? articles_example_benchmark : articles;
+                    gt_annotation.parent_text = benchmark_articles[article_index].text.substring(parent_span[0], parent_span[1]);
                 }
                 gt_annotation.gt_entity_id = mention.true_entity.entity_id;
                 gt_annotation.gt_entity_name = mention.true_entity.name;
@@ -1445,7 +1554,7 @@ async function show_article(selected_approaches, timestamp) {
 
     // Show columns
     // Show first prediction column
-    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0], column_idx);
+    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0], column_idx, false);
     var benchmark_name = $("#benchmark option:selected").text();
     var emphasis_str = get_emphasis_string(selected_cell_categories[0])
     $(column_headers[column_idx]).html(selected_approaches[0] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
@@ -1453,7 +1562,7 @@ async function show_article(selected_approaches, timestamp) {
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
         // Show second prediction column
-        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1], column_idx);
+        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1], column_idx, false);
         emphasis_str = get_emphasis_string(selected_cell_categories[1])
         $(column_headers[column_idx]).html(selected_approaches[1] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
         show_table_column("prediction_overview", column_idx);
@@ -1702,7 +1811,7 @@ function get_table_header_by_json_key(json_obj, key) {
         if (!(ignore_headers.includes(subkey))) {
             var subclass_name = get_class_name(subkey);
             var sort_order = (key in error_category_mapping) ? " data-sortinitialorder=\"asc\"" : "";
-            second_row_addition += "<th class='" + class_name + " " + class_name + "_" + subclass_name + " sorter-digit'" + sort_order + "><div class='tooltip'>" + get_title_from_key(subkey);
+            second_row_addition += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + "><div class='tooltip'>" + get_title_from_key(subkey);
             var tooltip_text = get_header_tooltip_text(key, subkey);
             if (tooltip_text) {
                 second_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
@@ -1797,7 +1906,11 @@ function get_tooltip_text(json_obj) {
 function get_header_tooltip_text(key, subkey) {
     if (key in header_descriptions) {
         if (subkey) {
-            return header_descriptions[key][subkey];
+            var tooltip_text = header_descriptions[key][subkey];
+            if (subkey != "all") {
+                tooltip_text += tooltip_example_html;
+            }
+            return tooltip_text;
         }
         if (typeof header_descriptions[key] == "string") {
             return header_descriptions[key];
