@@ -1740,8 +1740,8 @@ function add_checkboxes(json_obj, initial_call) {
                 var class_name = get_class_name(subkey);
                 var title = get_title_from_key(subkey);
                 var checked = (url_param_show_columns.includes(class_name)) ? "checked" : ""
-                var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
-                checkbox_html += "<label>" + title + "</label>";
+                var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
+                checkbox_html += "<label>" + title + "</label></span>\n";
                 var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
                 $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
                 if (key == "by_type") type_name_mapping[get_type_qid(subkey).toLowerCase()] = title;
@@ -1750,8 +1750,8 @@ function add_checkboxes(json_obj, initial_call) {
             var class_name = get_class_name(key);
             var title = get_title_from_key(key);
             var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : ""
-            var checkbox_html = "<input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
-            checkbox_html += "<label>" + title + "</label>";
+            var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
+            checkbox_html += "<label>" + title + "</label></span>\n";
             $("#general_checkboxes.checkboxes").append(checkbox_html);
         }
     });

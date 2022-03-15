@@ -83,6 +83,10 @@ label {
     margin-bottom: 1em;
 }
 
+.checkboxes span {
+    white-space: nowrap;
+}
+
 #checkbox_table td:first-child {
     white-space: nowrap;
     vertical-align: top;
