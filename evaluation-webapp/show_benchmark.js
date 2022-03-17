@@ -21,7 +21,7 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
-tooltip_example_html = " For an example <a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">click here</a>.";
+tooltip_example_html = " <a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.";
 header_descriptions = {
     "undetected": {
         "all": "The span of a GT mention was not linked (= NER FN) (Total: Named GT mentions).",
