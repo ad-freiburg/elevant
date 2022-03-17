@@ -173,11 +173,8 @@ $("document").ready(function() {
     });
 
     // Position table tooltips
-    $("#evaluation_table_wrapper").on("mouseenter", "td,th", function() {
-        var tag_name = $(this).prop("tagName").toLowerCase();
-        $(this).find(".tooltip").each(function() {
-            position_table_tooltip(this, tag_name);
-        });
+    $("#evaluation_table_wrapper").on("mouseenter", ".tooltip", function() {
+        position_table_tooltip(this);
     });
 
     // Tooltips need to be repositioned on window resize
@@ -672,7 +669,8 @@ function copy_generated_url() {
     setTimeout(function() { $("#copy_success").remove(); }, 1 * 1000);
 }
 
-function position_table_tooltip(anchor_el, tag_name) {
+function position_table_tooltip(anchor_el) {
+    var tag_name = $(anchor_el).prop("tagName").toLowerCase();
     var anchor_el_rect = anchor_el.getBoundingClientRect();
     $(anchor_el).find(".tooltiptext").each(function() {
         var tooltip_rect = this.getBoundingClientRect();
@@ -1781,21 +1779,19 @@ function get_table_header_by_json_key(json_obj, key) {
         if (!(ignore_headers.includes(subkey))) {
             var subclass_name = get_class_name(subkey);
             var sort_order = (key in error_category_mapping) ? " data-sortinitialorder=\"asc\"" : "";
-            second_row_addition += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + "><div class='tooltip'>" + get_title_from_key(subkey);
+            second_row_addition += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " tooltip sorter-digit'" + sort_order + ">" + get_title_from_key(subkey);
             var tooltip_text = get_header_tooltip_text(key, subkey);
-            if (tooltip_text) {
-                second_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-            }
-            second_row_addition += "</div></th>";
+            if (tooltip_text) second_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+            second_row_addition += "</th>";
             colspan += 1;
         }
     });
-    first_row_addition += "<th colspan=\"" + colspan + "\" class='" + class_name + "'><div class='tooltip'>" + get_title_from_key(key);
+    first_row_addition += "<th colspan=\"" + colspan + "\" class='" + class_name + " tooltip'>" + get_title_from_key(key);
     var tooltip_text = get_header_tooltip_text(key, null);
     if (tooltip_text) {
         first_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
     }
-    first_row_addition += "</div></th>";
+    first_row_addition += "</th>";
     return [first_row_addition, second_row_addition];
 }
 
@@ -1848,7 +1844,7 @@ function get_table_row_by_json_key(json_obj, key, onclick_str) {
                 processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>";
                 value = processed_value;
             } else {
-                Math.round(json_obj[key][subkey] * 100) / 100
+                Math.round(json_obj[key][subkey] * 100) / 100;
             }
             var subclass_name = get_class_name(subkey);
             var data_string = "data-category='" + class_name + "," + subclass_name + "'";

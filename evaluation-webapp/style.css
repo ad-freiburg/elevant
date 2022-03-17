@@ -96,7 +96,6 @@ label {
 .tooltip,
 .annotation {
     position: relative;
-    display: inline;
 }
 
 #top_scrollbar_wrapper {
