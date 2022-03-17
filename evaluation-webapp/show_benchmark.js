@@ -21,7 +21,7 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
-tooltip_example_html = " For an example <a href=\"#example_benchmark_modal\"onclick=\"open_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">click here</a>.";
+tooltip_example_html = " For an example <a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">click here</a>.";
 header_descriptions = {
     "undetected": {
         "all": "The span of a GT mention was not linked (= NER FN) (Total: Named GT mentions).",
@@ -256,48 +256,6 @@ $("document").ready(function() {
             }
         }
     });
-
-    $('#example_benchmark_modal').on('shown.bs.modal', function(event) {
-        /*
-        Scroll to corresponding annotation and highlight it.
-        */
-        // Reset the modal scroll to top
-        $('#example_benchmark_modal').scrollTop(0);
-
-        var highlighted_annotations = $("#example_prediction_overview tr td .annotation.beginning").not(".lowlight");
-        var selected_error_title = $("#example_benchmark_modal").data("selected_error_title");
-        var article_header = null;
-        var annotation = null;
-
-        // Get highlighted annotation where the article title matches the selected error title
-        for (ann of highlighted_annotations) {
-            // prev() only works for siblings. If annotation is nested, first get the parent annotation.
-            var prev_ann = ($(ann).parent(".annotation").length > 0) ? $(ann).parent() : $(ann);
-            while (prev_ann.length > 0 && !["HR", "B"].includes($(prev_ann).prop("tagName"))) prev_ann = $(prev_ann).prev();
-            if ($(prev_ann).prop("tagName") != "B") {
-                console.log("No matching example found in example benchmark");
-                return;
-            }
-            article_header = $(prev_ann)[0];
-            annotation = ann;
-            if ($(article_header).text().toLowerCase() == selected_error_title) break;
-        }
-
-        // Scroll to article header that was determined above
-        var table_top = $("#example_prediction_overview thead").offset().top;
-        $("#example_benchmark_modal").animate({
-            scrollTop: $(article_header).offset().top - table_top
-        }, 200);
-
-        // Highlight corresponding annotation for a second
-        // Get annotation id class such that all spans belonging to one annotation can be marked as selected
-        var classes = $(annotation).attr("class").split(/\s+/);
-        var annotation_id_class = classes.filter(function(el) {return el.startsWith("annotation_id_"); });
-        // Mark spans as selected
-        $("." + annotation_id_class).addClass("selected")
-        // Unmark spans as selected after timeout
-        setTimeout(function() { $("." + annotation_id_class).removeClass("selected");}, 1000);
-    });
 });
 
 function read_example_benchmark_data() {
@@ -336,22 +294,33 @@ function read_example_benchmark_data() {
     });
 }
 
-function show_example_benchmark(selected_category) {
-    selected_article_index = article_select.value;
-    var textfield = $("#example_prediction_overview tr td");
-    show_annotated_text("example_annotations", $(textfield[0]), selected_category, 100, true);
-    var emphasis_str = get_emphasis_string(selected_category);
-    $("#example_prediction_overview tr th").html("<span class='nonbold'>Example Benchmark" + emphasis_str + "</span>");
-}
-
-function open_example_benchmark_modal(el) {
-    // Highlight only mentions of the error type that the table tooltip belongs to
+function show_example_benchmark_modal(el) {
+    /*
+    Open the example benchmark model and show the example article that corresponds
+    to the error category of the clicked table header tooltip.
+    */
+    // Get example error category of the table tooltip to highlight only corresponding mentions
     var selected_category = get_error_category_or_type($(el).closest("th")[0]);
+
+    // Get table header title
     var table_header_cell = $(el).closest("th")[0];
     var classes = $(table_header_cell).attr('class').split(/\s+/);
     var error_category_title = classes[1].replace(/_/g, " ").replace("-", " - ");
-    $("#example_benchmark_modal").data("selected_error_title", error_category_title);
-    show_example_benchmark(selected_category);
+
+    // Determine article index of selected example
+    var article_index = 0;
+    for (var i=0; i<articles_example_benchmark.length; i++) {
+        var article = articles_example_benchmark[i];
+        if (article.title.toLowerCase().includes(error_category_title)) {
+            article_index = i;
+            break;
+        }
+    }
+
+    // Display annotated text
+    var textfield = $("#example_prediction_overview tr td");
+    show_annotated_text("example_annotations", $(textfield[0]), selected_category, 100, article_index, true);
+    $("#example_prediction_overview tr th").text(articles_example_benchmark[article_index].title);
 }
 
 function scroll_to_next_annotation(only_errors) {
@@ -993,13 +962,13 @@ function is_optional_case(eval_case) {
                                            ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type));
 }
 
-function show_annotated_text(approach_name, textfield, selected_cell_category, column_idx, example_benchmark) {
+function show_annotated_text(approach_name, textfield, selected_cell_category, column_idx, article_index, example_benchmark) {
     /*
     Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
     and show them in the textfield.
     */
     var benchmark_articles = (example_benchmark) ? articles_example_benchmark : articles;
-    if (show_all_articles_flag || example_benchmark) {
+    if (show_all_articles_flag && !example_benchmark) {
         var annotated_texts = [];
         for (var i=0; i < benchmark_articles.length; i++) {
             var annotations = get_annotations(i, approach_name, column_idx, example_benchmark);
@@ -1012,8 +981,9 @@ function show_annotated_text(approach_name, textfield, selected_cell_category, c
             annotated_text += annotated_texts[i];
         }
     } else {
-        var annotations = get_annotations(selected_article_index, approach_name, column_idx, example_benchmark);
-        var annotated_text = annotate_text(article.text, annotations, article.links, [0, article.text.length], selected_cell_category);
+        var curr_article = benchmark_articles[article_index];
+        var annotations = get_annotations(article_index, approach_name, column_idx, example_benchmark);
+        var annotated_text = annotate_text(curr_article.text, annotations, curr_article.links, [0, curr_article.text.length], selected_cell_category);
     }
     textfield.html(annotated_text);
 }
@@ -1554,7 +1524,7 @@ async function show_article(selected_approaches, timestamp) {
 
     // Show columns
     // Show first prediction column
-    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0], column_idx, false);
+    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0], column_idx, selected_article_index, false);
     var benchmark_name = $("#benchmark option:selected").text();
     var emphasis_str = get_emphasis_string(selected_cell_categories[0])
     $(column_headers[column_idx]).html(selected_approaches[0] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
@@ -1562,7 +1532,7 @@ async function show_article(selected_approaches, timestamp) {
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
         // Show second prediction column
-        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1], column_idx, false);
+        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1], column_idx, selected_article_index, false);
         emphasis_str = get_emphasis_string(selected_cell_categories[1])
         $(column_headers[column_idx]).html(selected_approaches[1] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
         show_table_column("prediction_overview", column_idx);
