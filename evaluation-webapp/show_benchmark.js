@@ -8,8 +8,8 @@ ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 RESULTS_EXTENSION = ".results";
 EVALUATION_RESULT_PATH = "evaluation-results";
 
-EXAMPLE_BENCHMARK_LABELS_PATH = "example-benchmark/benchmark_labels_example.jsonl";
-EXAMPLE_BENCHMARK_RESULTS_PATH = "example-benchmark/example.results";
+EXAMPLE_BENCHMARK_LABELS_PATH = "example-benchmark/benchmark_labels_error-category-examples.jsonl";
+EXAMPLE_BENCHMARK_RESULTS_PATH = "example-benchmark/example.error-category-examples.results";
 
 MAX_SELECTED_APPROACHES = 2;
 MAX_CACHED_FILES = 15;
