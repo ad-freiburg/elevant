@@ -132,6 +132,11 @@ $("document").ready(function() {
     // Filter on key up
     $("input#result-filter").keyup(function() {
         filter_table_rows();
+
+        // Update current URL without refreshing the site
+        const url = new URL(window.location);
+        url.searchParams.set('system_filter', $("input#result-filter").val());
+        window.history.pushState({}, '', url);
     });
 
     // Highlight error category cells on hover
@@ -220,6 +225,15 @@ $("document").ready(function() {
                         stickyHeaders_zIndex : 20,
                        },
         sortRestart: true
+    });
+
+    // Update URL on table sort
+    $("#evaluation_table_wrapper table").bind("sortEnd",function() {
+        // Update current URL without refreshing the site
+        var sort_order = $("#evaluation_table_wrapper table")[0].config.sortList;
+        const url = new URL(window.location);
+        url.searchParams.set('sort_order', sort_order.join(","));
+        window.history.pushState({}, '', url);
     });
 
     reset_annotation_selection();
@@ -715,7 +729,8 @@ function get_url_parameter(parameter_name) {
     for (var i = 0; i < url_variables.length; i++) {
         var curr_parameter = url_variables[i].split('=');
         if (curr_parameter[0] === parameter_name) {
-            return curr_parameter[1] === undefined ? true : decodeURIComponent(curr_parameter[1]);
+            // "+" should be decoded as whitespace
+            return curr_parameter[1] === undefined ? true : decodeURIComponent((curr_parameter[1]+'').replace(/\+/g, '%20'));
         }
     }
     return false;
@@ -795,6 +810,13 @@ function show_benchmark_results(initial_call) {
 
     if (benchmark_file == "") {
         return;
+    }
+
+    if (!initial_call) {
+        // Update current URL without refreshing the site
+        const url = new URL(window.location);
+        url.searchParams.set('benchmark', benchmark_name);
+        window.history.pushState({}, '', url);
     }
 
     // Remove previous evaluation table content
@@ -1665,7 +1687,7 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                 // Remove the table loading GIF
                 $("#table_loading").removeClass("show");
 
-                if (initial_call) {
+                if (initial_call && url_param_sort_order.length > 0) {
                     // Use sort order from URL parameter
                     $.tablesorter.sortOn( $("#evaluation_table_wrapper table")[0].config, [ url_param_sort_order ]);
                 }
@@ -1708,7 +1730,7 @@ function add_checkboxes(json_obj, initial_call) {
                 var class_name = get_class_name(subkey);
                 var title = get_title_from_key(subkey);
                 var checked = (url_param_show_columns.includes(class_name)) ? "checked" : ""
-                var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
+                var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
                 checkbox_html += "<label>" + title + "</label></span>\n";
                 var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
                 $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
@@ -1718,11 +1740,24 @@ function add_checkboxes(json_obj, initial_call) {
             var class_name = get_class_name(key);
             var title = get_title_from_key(key);
             var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : ""
-            var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"show_hide_columns(this, true)\" " + checked + ">";
+            var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
             checkbox_html += "<label>" + title + "</label></span>\n";
             $("#general_checkboxes.checkboxes").append(checkbox_html);
         }
     });
+}
+
+function on_column_checkbox_change(element, resize) {
+    show_hide_columns(element, resize);
+
+    // Update current URL without refreshing the site
+    var checkbox_classes = [];
+    var checkboxes = $("#evaluation_overview .checkboxes input:checked").each(function() {
+        checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
+    });
+    const url = new URL(window.location);
+    url.searchParams.set('show_columns', checkbox_classes.join(","));
+    window.history.pushState({}, '', url);
 }
 
 function show_hide_columns(element, resize) {
@@ -2024,6 +2059,11 @@ function on_row_click(el) {
     }
     var selected_approaches = [...selected_approach_names];
 
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('system', selected_approach_names.join(","));
+    window.history.pushState({}, '', url);
+
     read_evaluation(approach_name, selected_approaches, timestamp);
 }
 
@@ -2086,6 +2126,11 @@ function on_cell_click(el) {
     // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
     approach_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : selected_rows.length % MAX_SELECTED_APPROACHES;
     selected_cell_categories[approach_index] = get_error_category_or_type(el);
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('emphasis', selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
+    window.history.pushState({}, '', url);
 }
 
 function deselect_all_table_rows() {
@@ -2175,16 +2220,36 @@ function toggle_compare() {
 
         show_article(selected_approach_names, timestamp);
     }
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('compare', $("#checkbox_compare").is(":checked"));
+    url.searchParams.set('system', selected_approach_names.join(","));
+    url.searchParams.set('emphasis', selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
+    window.history.pushState({}, '', url);
 }
 
 function is_compare_checked() {
     return $("#checkbox_compare").is(":checked");
 }
 
+function toggle_show_deprecated() {
+    filter_table_rows();
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('show_deprecated', $("#checkbox_deprecated").is(":checked"));
+    window.history.pushState({}, '', url);
+}
+
 function on_article_select() {
     var timestamp = new Date().getTime();
     last_show_article_request_timestamp = timestamp;
     show_article(selected_approach_names, timestamp);
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('article', $("#article_select option:selected").text());
+    window.history.pushState({}, '', url);
 }
 
 function produce_latex() {
