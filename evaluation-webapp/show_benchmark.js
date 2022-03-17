@@ -136,7 +136,7 @@ $("document").ready(function() {
         // Update current URL without refreshing the site
         const url = new URL(window.location);
         url.searchParams.set('system_filter', $("input#result-filter").val());
-        window.history.pushState({}, '', url);
+        window.history.replaceState({}, '', url);
     });
 
     // Highlight error category cells on hover
@@ -233,7 +233,7 @@ $("document").ready(function() {
         var sort_order = $("#evaluation_table_wrapper table")[0].config.sortList;
         const url = new URL(window.location);
         url.searchParams.set('sort_order', sort_order.join(","));
-        window.history.pushState({}, '', url);
+        window.history.replaceState({}, '', url);
     });
 
     reset_annotation_selection();
@@ -723,7 +723,7 @@ function show_benchmark_results(initial_call) {
         // Update current URL without refreshing the site
         const url = new URL(window.location);
         url.searchParams.set('benchmark', benchmark_name);
-        window.history.pushState({}, '', url);
+        window.history.replaceState({}, '', url);
     }
 
     // Remove previous evaluation table content
@@ -1664,7 +1664,7 @@ function on_column_checkbox_change(element, resize) {
     });
     const url = new URL(window.location);
     url.searchParams.set('show_columns', checkbox_classes.join(","));
-    window.history.pushState({}, '', url);
+    window.history.replaceState({}, '', url);
 }
 
 function show_hide_columns(element, resize) {
@@ -1969,7 +1969,7 @@ function on_row_click(el) {
     // Update current URL without refreshing the site
     const url = new URL(window.location);
     url.searchParams.set('system', selected_approach_names.join(","));
-    window.history.pushState({}, '', url);
+    window.history.replaceState({}, '', url);
 
     read_evaluation(approach_name, selected_approaches, timestamp);
 }
@@ -2037,7 +2037,7 @@ function on_cell_click(el) {
     // Update current URL without refreshing the site
     const url = new URL(window.location);
     url.searchParams.set('emphasis', selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
-    window.history.pushState({}, '', url);
+    window.history.replaceState({}, '', url);
 }
 
 function deselect_all_table_rows() {
@@ -2132,7 +2132,7 @@ function toggle_compare() {
     url.searchParams.set('compare', $("#checkbox_compare").is(":checked"));
     url.searchParams.set('system', selected_approach_names.join(","));
     url.searchParams.set('emphasis', selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
-    window.history.pushState({}, '', url);
+    window.history.replaceState({}, '', url);
 }
 
 function is_compare_checked() {
@@ -2145,7 +2145,7 @@ function toggle_show_deprecated() {
     // Update current URL without refreshing the site
     const url = new URL(window.location);
     url.searchParams.set('show_deprecated', $("#checkbox_deprecated").is(":checked"));
-    window.history.pushState({}, '', url);
+    window.history.replaceState({}, '', url);
 }
 
 function on_article_select() {
@@ -2156,7 +2156,7 @@ function on_article_select() {
     // Update current URL without refreshing the site
     const url = new URL(window.location);
     url.searchParams.set('article', $("#article_select option:selected").text());
-    window.history.pushState({}, '', url);
+    window.history.replaceState({}, '', url);
 }
 
 function produce_latex() {
