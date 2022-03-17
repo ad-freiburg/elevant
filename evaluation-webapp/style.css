@@ -114,39 +114,6 @@ label {
     justify-content: space-between; /* Put left child at the left end and right child at the right end */
 }
 
-/* ----------------------------------------- */
-/* Begin generate URL button  */
-
-#generate_url_container {
-    display: inline;
-}
-
-#generate_url {
-    position: relative;
-}
-
-#generate_url .tooltiptext {
-    visibility: hidden;
-    max-width: 50em;
-    background-color: white;
-    text-align: left;
-    padding: 5px;
-    border-radius: 6px;
-    border: 2px solid lightgrey;
-    font-size: 90%;
-    overflow-wrap: break-word;  /* Otherwise an unbreakable text can go outside of its container */
-    cursor: default;
-
-    /* Position of the tooltip text */
-    position: absolute;
-    z-index: 20;
-    top: 100%;
-    right: 0%;
-}
-
-#generate_url:hover .tooltiptext {
-    visibility: visible;
-}
 
 /* ----------------------------------------- */
 /* Begin evaluation results table  */
