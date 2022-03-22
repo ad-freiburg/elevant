@@ -6,7 +6,6 @@ class Linkers(Enum):
     SPACY = "spacy"
     EXPLOSION = "explosion"
     AMBIVERSE = "ambiverse"
-    IOB = "iob"
     TAGME = "tagme"
     NEURAL_EL = "neural_el"
     BERT_MODEL = "bert_model"

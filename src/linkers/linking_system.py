@@ -4,7 +4,6 @@ from src.prediction_readers.neural_el_prediction_reader import NeuralELPredictio
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
 from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
-from src.prediction_readers.conll_iob_prediction_reader import ConllIobPredictionReader
 from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
 from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
@@ -81,9 +80,6 @@ class LinkingSystem:
         elif linker_type == Linkers.EXPLOSION.value:
             path = linker_info
             self.linker = ExplosionEntityLinker(path, entity_db=self.entity_db)
-        elif linker_type == Linkers.IOB.value:
-            path = linker_info
-            self.prediction_reader = ConllIobPredictionReader(path)
         elif linker_type == Linkers.AMBIVERSE.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})

@@ -3,7 +3,7 @@ import log
 import sys
 
 from src import settings
-from src.evaluation.benchmark import BenchmarkFormat, get_available_benchmarks
+from src.evaluation.benchmark import BenchmarkFormat, Benchmark
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.entity_database_reader import EntityDatabaseReader
@@ -67,7 +67,7 @@ if __name__ == "__main__":
                               help="The benchmark will be written to the specified file.")
 
     group_benchmark = parser.add_mutually_exclusive_group(required=True)
-    group_benchmark.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
+    group_benchmark.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark],
                                  help="Benchmark to annotate / create labels for.")
     group_benchmark.add_argument("-bfile", "--benchmark_file", type=str,
                                  help="File that contains text and information about groundtruth labels")
