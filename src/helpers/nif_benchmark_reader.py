@@ -82,7 +82,7 @@ class NifBenchmarkReader:
             self.article_id_counter += 1
 
             if no_mapping_count > 0:
-                logger.warning("%d Labels could not be matched to any Wikidata ID." % no_mapping_count)
+                logger.warning("%d Labels could not be mapped to any Wikidata ID." % no_mapping_count)
 
             yield article
 
