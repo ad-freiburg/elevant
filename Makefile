@@ -24,10 +24,10 @@ NUM_LINKER_PROCESSES = 1
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation_results/
 # Adjust if you only want to link or evaluate certain benchmarks
-BENCHMARK_NAMES = wiki-ex newscrawl conll-test conll-dev msnbc ace msnbc-original ace-original kore50
+BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test aida-conll-dev msnbc ace msnbc-original ace-original kore50 spotlight
 # Adjust if you only want to link with certain linking systems.
 # The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
-LINKING_SYSTEMS = ambiverse baseline explosion neural_el popular_entities pos_prior spacy spacy_wikipedia tagme wikifier
+LINKING_SYSTEMS = baseline explosion pos_prior spacy spacy_wikipedia tagme popular_entities neural_el wikifier ambiverse
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
 
