@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     parser.add_argument("output_file", type=str,
                         help="Output file for the oracle predictions.")
-    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
                         help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
                              "retrieved from the given jsonl file")
 
