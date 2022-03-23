@@ -556,6 +556,7 @@ function read_url_parameters() {
     url_param_emphasis = get_url_parameter_array(get_url_parameter("emphasis"), false);
     url_param_show_columns = get_url_parameter_array(get_url_parameter("show_columns"), false);
     url_param_sort_order = get_url_parameter_array(get_url_parameter("sort_order"), true);
+    url_param_access = get_url_parameter_string(get_url_parameter("access"));
 }
 
 function get_url_parameter_boolean(url_parameter) {
@@ -671,7 +672,7 @@ function set_benchmark_select_options() {
     $.get("benchmarks", function(folder_data) {
         $(folder_data).find("a").each(function() {
             file_name = $(this).attr("href");
-            if (file_name.startsWith("benchmark_labels")) {
+            if (file_name.startsWith("benchmark_labels") && file_name.endsWith(".jsonl")) {
                 benchmarks.push(file_name);
             }
         });
@@ -787,12 +788,15 @@ function parse_benchmark(benchmark_file, initial_call) {
     Read the articles and ground truth labels from the benchmark.
 
     Reads the file benchmarks/<benchmark_file> and adds each article to the list 'articles'.
-    Each article is an object indentical to the parsed JSON-object.
+    Each article is an object identical to the parsed JSON-object.
 
     Calls set_article_select_options(), which sets the options for the article selector element.
     */
     // List of articles with ground truth information from the benchmark.
     articles = [];
+    if (benchmark_file.startsWith("benchmark_labels_aida") && url_param_access != "42") {
+        benchmark_file = benchmark_file + ".obscured";
+    }
     $.get("benchmarks/" + benchmark_file,
         function(data, status) {
             lines = data.split("\n");
