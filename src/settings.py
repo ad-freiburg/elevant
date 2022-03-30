@@ -35,7 +35,7 @@ NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/test.jsonl"
 
 # Wikidata mappings
 WIKIDATA_ENTITIES_FILE = DATA_DIRECTORY + "wikidata_mappings/wikidata_entities.tsv"
-QID_TO_ABSTRACTS_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_abstract.tsv"
+QID_TO_ABSTRACTS_FILE = DATA_DIRECTORY + "wikipedia_mappings/qid_to_wikipedia_abstract.tsv"
 QID_TO_WIKIPEDIA_URL_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_url.tsv"
 QID_TO_GENDER_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_gender.tsv"
 QID_TO_NAME_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_name.tsv"
