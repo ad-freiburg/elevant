@@ -175,7 +175,7 @@ class EntityDatabaseReader:
 
     @staticmethod
     def read_names() -> Iterator[Tuple[str, str]]:
-        filename = settings.QID_TO_GIVEN_NAME_FILE
+        filename = settings.QID_TO_NAME_FILE
         logger.info("Yielding given name mapping from %s ..." % filename)
         for line in open(filename):
             entity_id, name = line.strip('\n').split('\t')
