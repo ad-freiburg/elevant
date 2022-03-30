@@ -1,4 +1,4 @@
-# Entity Linking
+# Entity Linking Evaluation & Analysis Tool
 
 ## Docker Instructions
 Get the code, and build and start the container:
@@ -8,58 +8,32 @@ Get the code, and build and start the container:
     docker run -it -v <data_directory>:/data elevant
 
 where `<data_directory>` is the directory in which the required data files will be stored.
-What these data files are and how they are generated is explained in the [Data Generation](#data-generation) section.
+What these data files are and how they are generated is explained in the [Get the Data](#get-the-data) section.
 
 Unless otherwise noted, all the following commands should be run inside the docker container.
 
-## Data Generation
+## Get the Data
 For linking entities in a text or evaluating the output of a linker, our system needs information about entities and mention texts,
 e.g. entity labels, aliases, popularity scores, types, the frequency with which a mention is linked to a certain article in Wikipedia, etc.
 This information is stored in and read from several files.
-This section describes how you can easily generate these files.
+Since these files are too large to upload them on GitHub, you can either download them from our servers (fast)
+or build them yourself (slow, RAM intensive, but the resulting files might be based on a more recent Wikidata/Wikipedia dump).
 
-If, for some reason, you don't want to run the data generation within the docker container,
-make sure to set the `DATA_DIR` variable in the Makefile to your `<data_directory>`.
-In the docker container, `DATA_DIR` is automatically set to `/data/`, so you don't have to do anything.
+To download the files, run the following three commands
+(if for some reason you don't want to run these commands within the docker container,
+make sure to set the `DATA_DIR` variable in the Makefile to your `<data_directory>` before):
 
-If you do not already have access to the required data files, you can generate all files in two simple steps.
-Otherwise, e.g. if you have run these two steps before, you can skip the following steps and jump straight to section [Usage](#usage).
-
-As a first step, run
-
-    make download_entity_types
-
-which will automatically download the `entity-types.tsv` file and move it to `<data_directory>/wikidata_mappings/entity-types.tsv`.
-If you want to build the entity-types file yourself instead of downloading it,
-refer to section [Building the entity-types Mapping](#building-the-entity-types-mapping).
-
-As a second step, run
-
-    make setup
+    make download_wikidata_mappings
+    make download_wikipedia_mappings
+    make download_entity_types_mapping
     
-This will generate all remaining required data files.
-The setup includes downloading and extracting the latest Wikipedia dump, and will take several hours (< 10h).
+This will download the compressed files, extract them and move them to the correct location.
 
 NOTE: This will overwrite existing Wikidata and Wikipedia mappings in your `<data_directory>` so make sure this is
 what you want to do.
 
-Data generation has to be done only once unless you want to update the generated data files to a more recent Wikipedia
-or Wikidata version.
-
-### Building the entity-types Mapping
-If you want to build the entity-types mapping yourself instead of downloading it, outside the docker container run
-
-    make build_entity_types
-
-This will run the steps described in detail in `wikidata-types/README.md`.
-Roughly, it clones the QLever code from Github and builds the QLever docker image if no such image exists on the machine already.
-It then builds a QLever index with corrections from `wikidata-types/corrections.txt`
-and issues a query for all Wikidata entities and all their types from a given whitelist of types (`wikidata-types/types.txt`).
-The resulting file is moved to `<data_directory>/wikidata-mappings/entity-types.tsv` .
-
-Building the entity-types mapping requires about 25 GB of RAM and 100 GB of disk space and assumes that there is a
-running QLever instance for Wikidata under the URL specified by the variable `API_WIKIDATA` in the `Makefile`
-(by default, this is set to https://qlever.cs.uni-freiburg.de/api/wikidata).
+If you rather want to build the mappings yourself, you can replace each *download* command by a *generate* command.
+See [Data Generation](docs/data_generation.md) for more details.
 
 ## Usage
 
@@ -71,6 +45,10 @@ If you want to link a single benchmark with a single specified linker configurat
 For example
 
     python3 link_benchmark_entities.py pos_prior.whitelist_types pos_prior data/whitelist_types.txt -b msnbc
+
+Here is an example call for when you have linking results for a benchmark in NIF format
+
+    python3 link_benchmark_entities.py <experiment_name> nif <path_to_nif_linking_results_file> -b <benchmark_name>
 
 The linking results will be written to `evaluation_results/<linker_type>/<experiment_name>.<benchmark_name>.jsonl`
 with one article as a json object per line.
@@ -132,19 +110,22 @@ directory `EVALUATION_RESULTS_DIR` for benchmarks specified in the Makefile's `B
 
 ### Add a benchmark
 
-You can easily add a benchmark that is in the jsonl format we use or in the common NIF (NLP Interchange Format) format.
-Benchmarks in other formats first have to be converted into one of these two formats.
+You can easily add a benchmark that is in the jsonl format we use, in the common NIF (NLP Interchange Format) format
+or in the IOB-based format used by Hoffart et al. for their AIDA/CoNLL benchmark.
+Benchmarks in other formats first have to be converted into one of these formats.
 
 To add a benchmark, simply run
 
-    python3 create_benchmark_labels.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours>
+    python3 create_benchmark_labels.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours|aida-conll>
 
 This will create a benchmark file `benchmarks/benchmark_labels_<benchmark_name>.jsonl` in our jsonl format where
-groundtruth labels are annotated with their Wikidata name and types.
+groundtruth labels are annotated with their Wikidata label and types.
 
 The benchmark can now be linked with a linker of your choice using the `link_benchmark_entities.py` script with the parameter `-b <benchmark_name>`
 
     python3 link_benchmark_entities.py <experiment_name> <linker_type> <linker_info> -b <benchmark_name>
+
+Additionally, the benchmark can now be selected in the benchmarks dropdown menu of the web app.
 
 ### Initialize and Train Spacy Entity Linker
 

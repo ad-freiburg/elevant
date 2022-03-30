@@ -12,7 +12,7 @@ WIKI_DUMP = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-pages-articles-multistream.
 EXTRACTED_WIKI_DUMP = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-extracted.jsonl
 LINKED_WIKI_ARTICLES = ${WIKIPEDIA_DUMP_FILES_DIR}enwiki-latest-linked.jsonl
 
-# Variables for downloading wikidata files
+# Variables for generating wikidata mappings
 WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata_mappings/
 WIKIDATA_SPARQL_ENDPOINT = https://qlever.cs.uni-freiburg.de/api/wikidata
 # Note that the query names are also used for generating the file name by
@@ -20,6 +20,9 @@ WIKIDATA_SPARQL_ENDPOINT = https://qlever.cs.uni-freiburg.de/api/wikidata
 DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_NAME QID_TO_SITELINK WIKIDATA_ENTITIES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 BATCH_SIZE = 10000000
 NUM_LINKER_PROCESSES = 1
+
+# Variables for generating wikipedia mappings
+WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
 
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation_results/
@@ -46,7 +49,7 @@ config:
 	@grep "^[A-Za-z._]\+:" $(lastword $(MAKEFILE_LIST)) | sed 's/://' | paste -sd" "
 	@echo
 	@echo "If you're starting from scratch and do not have any of the data files available, run"
-	@echo "	make setup"
+	@echo "	make download_data"
 	@echo "This will download a Wikipedia dump, extract the articles, split the dump into"
 	@echo "training, development and test set, download all necessary Wikidata mappings"
 	@echo "and compute all necessary Wikipedia mappings."
@@ -122,10 +125,8 @@ evaluate_linked_benchmarks:
 	  echo; \
 	done
 
-setup: download_wiki extract_wiki split_wiki getmappings
-
 # Only clone or build qlever if no qlever.master docker image exists
-build_entity_types:
+generate_entity_types_mapping:
 	@if [[ "${DOCKER_CMD}" == "wharfer"  ]] || [[ "$$(docker images -q qlever.master 2> /dev/null)" == "" ]]; then \
 	  if [[ -d qlever ]]; then \
 	    cd qlever; git pull --recurse-submodules; cd ..; \
@@ -141,7 +142,19 @@ build_entity_types:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
 
-download_entity_types:
+download_wikidata_mappings:
+	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
+	wget http://ad-research/data/entity-linking/wikidata_mappings.tar.gz
+	tar -xvzf wikidata_mappings.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
+	rm wikidata_mappings.tar.gz
+
+download_wikipedia_mappings:
+	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
+	wget http://ad-research/data/entity-linking/wikipedia_mappings.tar.gz
+	tar -xvzf wikipedia_mappings.tar.gz -C ${WIKIPEDIA_MAPPINGS_DIR}
+	rm wikipedia_mappings.tar.gz
+
+download_entity_types_mapping:
 	wget http://ad-research/data/entity-linking/entity-types.tsv
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	mv entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
@@ -149,13 +162,13 @@ download_entity_types:
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:
 	@[ -d ${WIKIPEDIA_DUMP_FILES_DIR} ] || mkdir ${WIKIPEDIA_DUMP_FILES_DIR}
-	@if ls ${WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Wikipedia dump already exists at ${WIKI_DUMP} . Delete or rename it first. Dump not downloaded.$${RESET}"; echo; else \
+	@if ls ${WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Wikipedia dump already exists at ${WIKI_DUMP} . Delete or rename it if you want to download a new dump. Dump not downloaded.$${RESET}"; echo; else \
 	  wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles-multistream.xml.bz2 -O ${WIKI_DUMP}; \
 	fi
 
 # Extract Wikipedia dump only if it does not exist already at the specified location.
 extract_wiki:
-	@if ls ${EXTRACTED_WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Extracted Wikipedia dump already exists at ${EXTRACTED_WIKI_DUMP} . Delete or rename it first. Dump not extracted.$${RESET}"; echo; else \
+	@if ls ${EXTRACTED_WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Extracted Wikipedia dump already exists at ${EXTRACTED_WIKI_DUMP} . Delete or rename it if you want to extract another dump. Dump not extracted.$${RESET}"; echo; else \
 	  python3 third_party/wiki_extractor/WikiExtractor.py --sections --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
 	fi
 
@@ -164,25 +177,15 @@ split_wiki:
 
 # Link Wikipedia dump only if it does not exist already at the specified location.
 link_wiki:
-	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "$${RED}Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it first. Dump not linked.$${RESET}"; echo; else \
+	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "$${RED}Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it if you want to link another dump. Dump not linked.$${RESET}"; echo; else \
 	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
-getmappings: get_wikidata_mappings build_wikipedia_mappings build_coreference_types_mapping
-
-build_coreference_types_mapping:
-	@echo
-	@echo "[build_coreference_types_mapping] Get mapping from QID to coreference types needed only for our own coref resolver."
-	@echo "Takes <= 30 mins. If the coref resolver is not needed you can skip this step."
-	@echo
-	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
-	python3 create_coreference_types_mapping.py
-
-build_wikipedia_mappings:
+generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	@echo
 	@echo "[build_wikipedia_mappings] Build mappings from Wikipedia."
 	@echo
-	@[ -d ${DATA_DIR}wikipedia_mappings ] || mkdir ${DATA_DIR}wikipedia_mappings
+	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
 	python3 extract_akronyms.py
 	python3 extract_abstracts.py
 	python3 get_link_frequencies.py
@@ -192,8 +195,16 @@ build_wikipedia_mappings:
 	python3 get_wikipedia_id_to_title_mapping.py
 	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.tsv
 
+generate_coreference_types_mapping:
+	@echo
+	@echo "[build_coreference_types_mapping] Get mapping from QID to coreference types needed only for our own coref resolver."
+	@echo "Takes <= 30 mins. If the coref resolver is not needed you can skip this step."
+	@echo
+	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
+	python3 create_coreference_types_mapping.py
+
 # Get data for queries from $(DATA_QUERY_VARABLES) via $(WIKIDATA_SPARQL_ENDPOINT) and write to tsv files.
-get_wikidata_mappings:
+generate_wikidata_mappings:
 	@echo
 	@echo "[get_wikidata_mappings] Get data for given queries in batches."
 	@echo
