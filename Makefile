@@ -34,6 +34,9 @@ LINKING_SYSTEMS = baseline explosion pos_prior spacy spacy_wikipedia tagme popul
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
 
+# Variables for the Evaluation Web App
+WEB_APP_PORT = 8000
+
 DOCKER_CMD = docker
 
 
@@ -238,6 +241,17 @@ query:
 	@wc -l ${OUTFILE} | cut -f 1 -d " "
 	@echo "First and last line:"
 	@head -1 ${OUTFILE} && tail -1 ${OUTFILE}
+
+# Start the evaluation webapp.
+# If necessary create the symbolic links to the evaluation_results
+# and the benchmarks directory first.
+start_webapp:
+	@echo
+	@echo "[start_webapp] Start the web app."
+	@echo
+	@[ -f evaluation-webapp/evaluation_results ] || ln -s ${EVALUATION_RESULTS_DIR} evaluation-webapp/evaluation_results
+	@[ -f evaluation-webapp/benchmarks ] || ln -s benchmarks evaluation-webapp/benchmarks
+	python3 -m http.server --directory evaluation-webapp ${WEB_APP_PORT}
 
 define PREFIXES
 PREFIX wd: <http://www.wikidata.org/entity/>
