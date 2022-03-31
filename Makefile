@@ -183,7 +183,7 @@ link_wiki:
 
 generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	@echo
-	@echo "[build_wikipedia_mappings] Build mappings from Wikipedia."
+	@echo "[generate_wikipedia_mappings] Build mappings from Wikipedia."
 	@echo
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
 	python3 extract_akronyms.py
@@ -194,14 +194,6 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	python3 count_unigrams.py
 	python3 get_wikipedia_id_to_title_mapping.py
 	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.tsv
-
-generate_coreference_types_mapping:
-	@echo
-	@echo "[build_coreference_types_mapping] Get mapping from QID to coreference types needed only for our own coref resolver."
-	@echo "Takes <= 30 mins. If the coref resolver is not needed you can skip this step."
-	@echo
-	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
-	python3 create_coreference_types_mapping.py
 
 # Get data for queries from $(DATA_QUERY_VARABLES) via $(WIKIDATA_SPARQL_ENDPOINT) and write to tsv files.
 generate_wikidata_mappings:
@@ -215,6 +207,12 @@ generate_wikidata_mappings:
 	  LOWER_QUERY_NAME=$$(echo $${QUERY_NAME} | tr '[:upper:]' '[:lower:]'); \
 	  $(MAKE) -sB API=$${WIKIDATA_SPARQL_ENDPOINT} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query; done
 	@echo
+	@echo
+	@echo "Get mapping from QID to coreference types needed only for our own coref resolver."
+	@echo "Takes <= 30 mins. If the coref resolver is not needed you can skip this step."
+	@echo
+	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
+	python3 create_coreference_types_mapping.py
 
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)
 #
