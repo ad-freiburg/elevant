@@ -3,7 +3,7 @@
 ## Docker Instructions
 Get the code, and build and start the container:
 
-    git clone git@github.com:ad-freiburg/elevant.git .
+    git clone https://github.com/ad-freiburg/elevant.git .
     docker build -t elevant .
     docker run -it -p 8000:8000 -v <data_directory>:/data -v $(pwd)/evaluation_results/:/home/evaluation_results -v $(pwd)/benchmarks/:/home/benchmarks elevant
 
