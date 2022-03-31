@@ -9,7 +9,9 @@ from src.models.entity_prediction import EntityPrediction
 
 def main(args):
     logger.info("Generating oracle links for %s ..." % args.benchmark)
-    example_generator = get_example_generator(args.benchmark)
+
+    example_generator = get_example_generator(args.benchmark,
+                                              benchmark_file=args.benchmark_file)
 
     output_file = open(args.output_file, 'w', encoding='utf8')
 
@@ -33,9 +35,12 @@ if __name__ == "__main__":
 
     parser.add_argument("output_file", type=str,
                         help="Output file for the oracle predictions.")
-    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
-                        help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
-                             "retrieved from the given jsonl file")
+
+    group_benchmark = parser.add_mutually_exclusive_group(required=True)
+    group_benchmark.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
+                                 help="Name of the benchmark over which to evaluate the linked entities.")
+    group_benchmark.add_argument("-bfile", "--benchmark_file", type=str,
+                                 help="Benchmark file over which to evaluate the linked entities.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))
