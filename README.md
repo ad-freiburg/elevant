@@ -9,6 +9,7 @@ Get the code, and build and start the container:
 
 where `<data_directory>` is the directory in which the required data files will be stored.
 What these data files are and how they are generated is explained in section [Get the Data](#get-the-data).
+Make sure you can read from and write to all directories that are being mounted as volumes from within the docker container.
 
 Unless otherwise noted, all the following commands should be run inside the docker container.
 
@@ -89,6 +90,7 @@ To link the articles of a benchmark with a single linker configuration, use the 
 The linking results will be written to `evaluation_results/<linker_type>/<experiment_name>.<benchmark_name>.jsonl`
 with one article as json object per line. Each json object contains benchmark article information such as the
 article title, text, and ground truth labels, as well as the entity mentions produced by the specified linker.
+`<experiment_name>` is the name that will be displayed in the first column of the evaluation results table in the web app.
 
 For example
 
@@ -100,8 +102,6 @@ In case you have linking results in NIF format for a certain benchmark, run
 
     python3 link_benchmark_entities.py <experiment_name> nif <path_to_nif_linking_results_file> -b <benchmark_name>
 This will transform the linking results into the json format described above.
-
-Run `python3 link_benchmark_entities.py -h` for more information on the command line options.
 
 #### Link Multiple Benchmarks with Multiple Linkers
 You can use the Makefile to link multiple benchmarks using multiple linkers with one command.

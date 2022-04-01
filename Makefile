@@ -243,14 +243,13 @@ query:
 	@head -1 ${OUTFILE} && tail -1 ${OUTFILE}
 
 # Start the evaluation webapp.
-# If necessary create the symbolic links to the evaluation_results
-# and the benchmarks directory first.
+# If necessary create the symbolic links to the evaluation_results and the benchmarks directory first.
 start_webapp:
 	@echo
 	@echo "[start_webapp] Start the web app."
 	@echo
-	@[ -f evaluation-webapp/evaluation_results ] || ln -s ${EVALUATION_RESULTS_DIR} evaluation-webapp/evaluation_results
-	@[ -f evaluation-webapp/benchmarks ] || ln -s benchmarks evaluation-webapp/benchmarks
+	@[ -L evaluation-webapp/evaluation-results ] || ln -sr ${EVALUATION_RESULTS_DIR} evaluation-webapp/evaluation-results
+	@[ -L evaluation-webapp/benchmarks ] || ln -sr benchmarks/ evaluation-webapp/benchmarks
 	python3 -m http.server --directory evaluation-webapp ${WEB_APP_PORT}
 
 define PREFIXES

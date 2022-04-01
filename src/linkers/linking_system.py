@@ -56,8 +56,7 @@ class LinkingSystem:
 
     def _initialize_entity_db(self, linker_type: str, linker: str, coref_linker: str, min_score: int):
         # Linkers for which not to load entities into the entity database
-        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.IOB.value, Linkers.NONE.value,
-                         Linkers.NIF.value)
+        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.NONE.value, Linkers.NIF.value)
 
         self.entity_db = EntityDatabase()
 
