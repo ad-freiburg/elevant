@@ -5,7 +5,7 @@ Get the code, and build and start the container:
 
     git clone https://github.com/ad-freiburg/elevant.git .
     docker build -t elevant .
-    docker run -it -p 8000:8000 -v <data_directory>:/data -v $(pwd)/evaluation_results/:/home/evaluation_results -v $(pwd)/benchmarks/:/home/benchmarks elevant
+    docker run -it -p 8000:8000 -v <data_directory>:/data -v $(pwd)/evaluation-results/:/home/evaluation-results -v $(pwd)/benchmarks/:/home/benchmarks elevant
 
 where `<data_directory>` is the directory in which the required data files will be stored.
 What these data files are and how they are generated is explained in section [Get the Data](#get-the-data).
@@ -49,7 +49,7 @@ In the benchmark dropdown menu, you can select any benchmark for which a benchma
 The section [Add a Benchmark](#add-a-benchmark) explains how you can add more benchmarks yourself.
 
 A benchmark's evaluation results table contains one row for each experiment,
-that is, one row for each `.jsonl` file in a `evaluation_results/*/` directory
+that is, one row for each `.jsonl` file in a `evaluation-results/*/` directory
 with a corresponding `.cases` and `.results` file.
 We already added a few experiments, in particular oracle predictions for each benchmark
 (i.e. perfect linking results generated from the ground truth),
@@ -87,7 +87,7 @@ To link the articles of a benchmark with a single linker configuration, use the 
 
     python3 link_benchmark_entities.py <experiment_name> <linker_type> <linker_info> -b <benchmark_name>
 
-The linking results will be written to `evaluation_results/<linker_type>/<experiment_name>.<benchmark_name>.jsonl`
+The linking results will be written to `evaluation-results/<linker_type>/<experiment_name>.<benchmark_name>.jsonl`
 with one article as json object per line. Each json object contains benchmark article information such as the
 article title, text, and ground truth labels, as well as the entity mentions produced by the specified linker.
 `<experiment_name>` is the name that will be displayed in the first column of the evaluation results table in the web app.
@@ -96,7 +96,7 @@ For example
 
     python3 link_benchmark_entities.py tagme.thresh02 tagme 0.2 -b msnbc
 
-will create the file `evaluation_results/tagme/tagme.thresh02.msnbc.jsonl`.
+will create the file `evaluation-results/tagme/tagme.thresh02.msnbc.jsonl`.
 
 In case you have linking results in NIF format for a certain benchmark, run
 
@@ -132,10 +132,10 @@ The `.results` file contains the scores that are shown in the web app's evaluati
 
 For example
 
-    python3 evaluate_linked_entities.py evaluation_results/tagme/tagme.thresh02.msnbc.jsonl
+    python3 evaluate_linked_entities.py evaluation-results/tagme/tagme.thresh02.msnbc.jsonl
 
-will create the files `evaluation_results/tagme/tagme.thresh02.msnbc.cases`
-and `evaluation_results/tagme/tagme.thresh02.msnbc.results`.
+will create the files `evaluation-results/tagme/tagme.thresh02.msnbc.cases`
+and `evaluation-results/tagme/tagme.thresh02.msnbc.results`.
 
 In the web app, simply reload the page and the experiment will show up as a
 row in the evaluation results table of the corresponding benchmark.
@@ -143,7 +143,7 @@ row in the evaluation results table of the corresponding benchmark.
 #### Evaluate Multiple Linking Result Files
 You can use the Makefile to evaluate multiple linking result files with one command.
 
-To evaluate all linking result files in the `evaluation_results/*/` directories
+To evaluate all linking result files in the `evaluation-results/*/` directories
 for all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable run
 
     make evaluate_linked_benchmarks

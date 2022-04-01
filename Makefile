@@ -25,7 +25,7 @@ NUM_LINKER_PROCESSES = 1
 WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
 
 # Variables for benchmark linking and evaluation
-EVALUATION_RESULTS_DIR = evaluation_results/
+EVALUATION_RESULTS_DIR = evaluation-results/
 # Adjust if you only want to link or evaluate certain benchmarks
 BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test aida-conll-dev msnbc ace msnbc-original ace-original kore50 spotlight
 # Adjust if you only want to link with certain linking systems.
@@ -243,7 +243,7 @@ query:
 	@head -1 ${OUTFILE} && tail -1 ${OUTFILE}
 
 # Start the evaluation webapp.
-# If necessary create the symbolic links to the evaluation_results and the benchmarks directory first.
+# If necessary create the symbolic links to the evaluation results and the benchmarks directory first.
 start_webapp:
 	@echo
 	@echo "[start_webapp] Start the web app."

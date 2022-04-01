@@ -4,7 +4,7 @@ spacy_knowledge_bases
 wikidata_mappings
 wikipedia_dump_files
 wikipedia_mappings
-evaluation_results
+evaluation-results
 benchmarks
 wikidata-types/*
 qlever
