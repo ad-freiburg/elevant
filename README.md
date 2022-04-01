@@ -16,7 +16,7 @@ Make sure you can read from and write to all directories that are being mounted 
 
 Unless otherwise noted, all the following commands should be run inside the docker container.
 If you want to use the system without docker, follow the instructions in
-[Setup Without Docker](docs/setup_without_docker.md) before continuing with the next section.
+[Setup without Docker](docs/setup_without_docker.md) before continuing with the next section.
 
 ## Get the Data
 For linking entities in text or evaluating the output of a linker, our system needs information about entities and mention texts,

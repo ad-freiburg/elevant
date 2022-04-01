@@ -11,7 +11,7 @@ For example
 will create the file `evaluation-results/tagme/tagme.thresh02.kore50.jsonl`.
 The result file contains one article as json object per line.
 Each json object contains benchmark article information such as the article title, text, and ground truth labels,
-as well as the entity mentions produced by the specified linker.
+as well as the entity mentions predicted by the specified linker.
 
 ## Use Existing Linking Results
 If you already have linking results for a certain benchmark that you want to evaluate with ELEVANT, you can use the `link_benchmark_entities.py` script
@@ -54,7 +54,7 @@ Your linking results file should look something like this:
         itsrdf:taIdentRef <https://en.wikipedia.org/wiki/Brad_Pitt> .
     
 - Entity identifiers can be either from Wikidata or from Wikipedia.
-- `<path_to_linking_results>` can be the path to a single NIF file that contains all benchmark articles and the produced links
+- `<path_to_linking_results>` can be the path to a single NIF file that contains all benchmark articles and the predicted links
 or the path to a directory that contains multiple such NIF files.
 
 #### Linking Results in a Simple JSONL Format
