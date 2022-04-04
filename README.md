@@ -59,6 +59,8 @@ We already added a few experiments, in particular oracle predictions for each be
 so you can start exploring the web app right away.
 The section [Add an Experiment](#add-an-experiment) explains how you can add more experiments yourself.
 
+See [Evaluation Web App](docs/evaluation_webapp.md) for a detailed overview of the web app's features.
+
 ## Add a Benchmark
 
 You can easily add a benchmark if you have a benchmark file that is in the jsonl format we use,
