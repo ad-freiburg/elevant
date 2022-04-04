@@ -823,7 +823,9 @@ function set_article_select_options(initial_call) {
 
     // Add default "All articles" option
     var option = document.createElement("option");
-    option.text = "All " + articles.length + " articles (evaluated span only)";
+    var selected_benchmark = $("#benchmark option:selected").text();
+    var option_text_suffix = (["newscrawl", "wiki-ex"].includes(selected_benchmark)) ? " (evaluated span only)" : "";
+    option.text = "All " + articles.length + " articles" + option_text_suffix;
     option.value = -1;
     article_select.add(option);
 
