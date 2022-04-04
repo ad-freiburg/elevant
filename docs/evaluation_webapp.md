@@ -47,7 +47,7 @@ The **show deprecated checkbox** when checked shows rows in the evaluation resul
  the text "deprecated". Such rows are filtered out when the checkbox is unchecked.
 
 The **compare two systems checkbox** lets you select two rows in the evaluation result table at the same time and
- compare their predicted links side by side in the linking results table.
+ compare their linking results side by side in the linking results table.
 
 
 ### The Evaluation Results Box
@@ -58,17 +58,16 @@ The **results checkboxes** control which columns are shown in the evaluation res
 
 The **evaluation results table** shows precision, recall and f1 scores for the selected benchmark, as well as error
  category counts and percentages, with one row per system. When clicking on a table cell, the linking results for the
- corresponding system are shown in the linking results table. The mentions that count into the result of the selected
- cell or cells (precision, recall and f1 columns can only be selected collectively) are highlighted in the linking
- results table. That is, when clicking on a cell in the "All" column, all entity mentions are highlighted. When
- clicking on the cell "Lowercase" under "Undetected", only undetected ground truth mentions that start with a
- lowercase letter are highlighted. *You can jump to the next / previous highlighted mention by using the right
- / left arrow keys on your keyboard*. Using Ctrl + left / right arrow key you can jump to the next / previous
- highlighted mention that is an error. When clicking a cell in the "System" or the "NER" column, all entity mentions are
- highlighted. Therefore, the corresponding cell in the "All" column is highlighted in that case.
+ corresponding system are shown in the linking results table. The mentions that count into the result displayed in the
+ selected cell or cells (precision, recall and f1 columns can only be selected collectively) are highlighted in the
+ linking results table. That is, when clicking on a cell in the "All" column, all entity mentions are highlighted. When
+ clicking on a cell in the column "Lowercase" under "Undetected", only undetected ground truth mentions that start with
+ a lowercase letter are highlighted. *You can jump to the next/previous highlighted mention by using the right/left
+ arrow keys on your keyboard*. Using Ctrl + right/left arrow key, you can jump to the next/previous highlighted mention
+ that is an error. When clicking a cell in the "System" or the "NER" column, all entity mentions are highlighted.
+ Therefore, the corresponding cell in the "All" column is highlighted in that case.
 
-Hover over the error category column headers to see an explanation for how the results in that column are being
- computed.
+Hover over the error category column headers for information on how the results in that column are being computed.
 
 ### The Linking Results Box
 ![](img/box3_w_border.png)
@@ -83,13 +82,15 @@ The **annotation explanations field** when hovered shows explanations for the an
 
 ![](img/linking_results_table.png)
 
-When a row in the evaluation results table is selected, the linking results for the corresponding system for the
- selected benchmark are shown in the linking results table together with the ground truth labels (highlighted text
+When a row in the evaluation results table is selected, the linking results for the corresponding system and the
+ selected benchmark are shown in the linking results table, together with the ground truth labels (highlighted text
  corresponds to linking results, underlined text correspond to ground truth labels). For more information on the
  annotations and the color code, check the *annotation explanations* by hovering over the annotation explanation
  field in the web app.
 
-When hovering over an annotation in the linking results table, tooltips are shown for the predicted entity or the
- ground truth label or both. The tooltip shows the Wikidata label, the Wikidata QID (with a hyperlink to the
- corresponding entity in Wikidata), which linker predicted the entity (for predictions only) and a set of error
- categories the corresponding evaluation case (false positive, false negative, true positive) falls into.
+![](img/linking_results_table_tooltip.png)
+
+When hovering over an annotation in the linking results table, **tooltips** are shown for the predicted entity (or the
+ ground truth label or both). The tooltip shows the Wikidata label, the Wikidata QID (with a hyperlink to the
+ corresponding entity in Wikidata), which linker predicted the entity (for prediction tooltips only) and a set of error
+ categories the corresponding evaluation case falls into.
