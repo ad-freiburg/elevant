@@ -23,7 +23,7 @@ This will use the Wikidata SPARQL endpoint defined in the Makefile variable `WIK
  the Wikidata mappings. It will then create two additional files from the downloaded Wikidata mappings using Python
  scripts. These two files are only needed if you want to use coreference resolution in addition to entity linking.
 
-See [Wikidata Mappings](docs/mapping_files.md#wikidata-mappings) for a description of files generated in this step.
+See [Wikidata Mappings](mapping_files.md#wikidata-mappings) for a description of files generated in this step.
 
 ## Generate Wikipedia Mappings
 
@@ -35,7 +35,7 @@ This will download and extract the most recent Wikipedia dump, split it into tra
  generate the Wikipedia mappings. NOTE: This step needs the Wikidata mappings, so make sure you build or download them
  before.
 
-See [Wikipedia Mappings](docs/mapping_files.md#wikipedia-mappings) for a description of files generated in this step.
+See [Wikipedia Mappings](mapping_files.md#wikipedia-mappings) for a description of files generated in this step.
 
 
 ## Generate Entity-Type Mapping
@@ -54,5 +54,5 @@ Building the entity-types mapping requires about 25 GB of RAM and 100 GB of disk
  running QLever instance for Wikidata under the URL specified by the variable `API_WIKIDATA` in
  `wikidata-types/Makefile` (by default, this is set to https://qlever.cs.uni-freiburg.de/api/wikidata).
 
-See [Entity-Type Mapping](docs/mapping_files.md#entity-type-mapping) for a description of the file generated in this
+See [Entity-Type Mapping](mapping_files.md#entity-type-mapping) for a description of the file generated in this
  step.
