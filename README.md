@@ -12,7 +12,8 @@ Get the code, and build and start the docker container:
 
 where `<data_directory>` is the directory in which the required data files will be stored. What these data files are
  and how they are generated is explained in section [Get the Data](#get-the-data). Make sure you can read from and
-  write to all directories that are being mounted as volumes from within the docker container.
+ write to all directories that are being mounted as volumes from within the docker container (i.e. your
+ `<data_directory>`, `evaluation-results` and `benchmarks`).
 
 Unless otherwise noted, all the following commands should be run inside the docker container. If you want to use the
  system without docker, follow the instructions in [Setup without Docker](docs/setup_without_docker.md) before
@@ -124,10 +125,3 @@ In the web app, simply reload the page and the experiment will show up as a row 
 
 See [Evaluate Linked Benchmark Articles](docs/evaluate_linked_benchmark_articles.md) for instructions on how to
  evaluate multiple linking results with a single command.
-
-## Notes
-
-If you want to be able to run coreference with the Stanford CoreNLP coreference resolution system, make sure to setup
- Stanford CoreNLP by running
-
-    ./setup_stanford_coref.sh
