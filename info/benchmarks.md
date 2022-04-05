@@ -19,7 +19,7 @@ From the paper: "We defined a disambiguation to be correct if it represented the
 For example, the article *Viking program* is judged as correct for “Viking Landers”, for which there is no separate article in the Wikipedia collection".
 
 **Download:**\
-**Updated Version (recommended):** Cleaned version of the original dataset. The number of mentions and partly the text differs from the original version. <https://dataverse.library.ualberta.ca/file.xhtml?fileId=6884&version=1.0>
+**Updated Version (recommended):** Cleaned version of the original dataset. The number of mentions and partly the text differs from the original version. <www.cs.ualberta.ca/~denilson/data/deos14_ualberta_experiments.tgz>
 
 **Gerbil Version:** UTF-8 and XML problems from the [Wikification dataset](cogcomp.org/Data/ACL2011WikificationData.zip) (assumed to be close to the original) fixed without additional adjustments. <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
 
@@ -65,7 +65,7 @@ In the updated dataset this is linked to *Bloomberg News*.
 The Wiki-link for *Portland* is (now?) a disambiguation page. In the updated dataset this mention links to *Portland, Oregon*.
 These 4 adjustments are the only observed differences between the original dataset and the updated dataset.
 
-## CoNLL
+## AIDA-CoNLL
 
 *Hoffart et al., 2011*
 
@@ -78,13 +78,26 @@ The dataset is split in train, dev and test set where the training dataset conta
 Hoffart et al. hand-annotated these proper noun mentions with corresponding entities in YAGO2.
 Each mention was disambiguated by two students and resolved by Hoffart et al. in case of conflict.
 
-**Official Download**: <http://resources.mpi-inf.mpg.de/yago-naga/aida/download/aida-yago2-dataset.zip>
+**Official Download** (Annotations only): <http://resources.mpi-inf.mpg.de/yago-naga/aida/download/aida-yago2-dataset.zip>
+
+**Inofficial CoNLL Download:** <https://data.deepai.org/conll2003.zip>
+With this and the annotations, the complete dataset can be constructed using the java program that comes with the annotations.
 
 **Problems/Notes**
 - No coreference
 - Strong tendency towards sports articles.
 The dev set for example with 216 articles overall contains ca. 100 articles about sports.
 Certain kinds of entity linking problems occur more frequently in such articles, e.g. metonymy (*"Germany won against Brasil"* -> link the country or the team?).
+
+
+## KORE50
+Hoffart et al., 2012*
+
+**Paper:** [KORE: Keyphrase Overlap Relatedness for Entity Disambiguation](https://dl.acm.org/doi/pdf/10.1145/2396761.2396832)
+
+**Volume:** 50 difficult, hand-crafted test sentences from five domains: celebrities, music, business, sports, and politics.
+
+**Official Download:** <https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/ambiverse-nlu/aida/downloads>
 
 
 ## CWEB and WW
