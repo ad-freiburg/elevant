@@ -158,9 +158,10 @@ download_wikipedia_mappings:
 	rm wikipedia_mappings.tar.gz
 
 download_entity_types_mapping:
-	wget http://ad-research/data/entity-linking/entity-types.tsv
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
-	mv entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
+	wget http://ad-research/data/entity-linking/entity-types.tar.gz
+	tar -xvzf entity-types.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
+	rm entity-types.tar.gz
 
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:
