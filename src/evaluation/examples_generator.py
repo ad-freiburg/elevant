@@ -123,13 +123,13 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
             # Per default, assume OURS_JSONL format
             example_generator = JsonBenchmarkExampleReader(benchmark_file)
     elif from_json_file:
-        benchmark_filename = settings.BENCHMARK_DIR + "benchmark_labels_" + benchmark_name + ".jsonl"
+        benchmark_filename = settings.BENCHMARK_DIR + benchmark_name + ".benchmark.jsonl"
         example_generator = JsonBenchmarkExampleReader(benchmark_filename)
     else:
         if benchmark_name == Benchmark.WIKI_EX.value:
             example_generator = JsonBenchmarkExampleReader(settings.WIKI_EX_BENCHMARK_FILE)
         elif benchmark_name == Benchmark.NEWSCRAWL.value:
-            example_generator = JsonBenchmarkExampleReader(settings.BENCHMARK_DIR + "benchmark_labels_newscrawl.jsonl")
+            example_generator = JsonBenchmarkExampleReader(settings.BENCHMARK_DIR + "newscrawl.benchmark.jsonl")
         else:
             logger.info("Load mappings for example generator...")
             entity_db = EntityDatabase()

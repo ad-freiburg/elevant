@@ -8,7 +8,7 @@ ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 RESULTS_EXTENSION = ".results";
 EVALUATION_RESULT_PATH = "evaluation-results";
 
-EXAMPLE_BENCHMARK_LABELS_PATH = "example-benchmark/benchmark_labels_error-category-examples.jsonl";
+EXAMPLE_BENCHMARK_PATH = "example-benchmark/error-category-examples.benchmark.jsonl";
 EXAMPLE_BENCHMARK_RESULTS_PATH = "example-benchmark/example.error-category-examples.results";
 
 MAX_SELECTED_APPROACHES = 2;
@@ -275,7 +275,7 @@ function read_example_benchmark_data() {
     var cases_path = filename + ".cases";
 
     articles_example_benchmark = [];
-    $.get(EXAMPLE_BENCHMARK_LABELS_PATH, function(data) {
+    $.get(EXAMPLE_BENCHMARK_PATH, function(data) {
         lines = data.split("\n");
         for (line of lines) {
             if (line.length > 0) {
@@ -672,7 +672,7 @@ function set_benchmark_select_options() {
     $.get("benchmarks", function(folder_data) {
         $(folder_data).find("a").each(function() {
             file_name = $(this).attr("href");
-            if (file_name.startsWith("benchmark_labels") && file_name.endsWith(".jsonl")) {
+            if (file_name.endsWith(".benchmark.jsonl")) {
                 benchmarks.push(file_name);
             }
         });
@@ -681,7 +681,7 @@ function set_benchmark_select_options() {
         for (bi in benchmarks) {
             benchmark = benchmarks[bi];
             var option = document.createElement("option");
-            option.text = benchmark.replace(/benchmark_labels_(.*)\.jsonl/, $1);
+            option.text = benchmark.replace(/(.*)\.benchmark\.jsonl/, $1);
             option.value = benchmark;
             benchmark_select.add(option);
         }
@@ -794,7 +794,7 @@ function parse_benchmark(benchmark_file, initial_call) {
     */
     // List of articles with ground truth information from the benchmark.
     articles = [];
-    if (benchmark_file.startsWith("benchmark_labels_aida") && url_param_access != "42") {
+    if (benchmark_file.startsWith("aida") && url_param_access != "42") {
         benchmark_file = benchmark_file + ".obscured";
     }
     $.get("benchmarks/" + benchmark_file,

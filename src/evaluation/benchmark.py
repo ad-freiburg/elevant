@@ -8,7 +8,7 @@ from src import settings
 def get_available_benchmarks():
     benchmark_names = []
     for filename in sorted(os.listdir(settings.BENCHMARK_DIR)):
-        match = re.match(r"benchmark_labels_([^\.]*)\.jsonl", filename)
+        match = re.match(r"(.*)\.benchmark\.jsonl", filename)
         if match:
             benchmark_names.append(match.group(1))
     return benchmark_names

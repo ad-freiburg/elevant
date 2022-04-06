@@ -11,7 +11,7 @@ from src.models.article import article_from_json
 
 def main(args):
     benchmark_name = args.benchmark_name
-    in_file = "benchmarks/benchmark_labels_%s.jsonl" % benchmark_name
+    in_file = "benchmarks/%s.benchmark.jsonl" % benchmark_name
     logger.info("Analyzing entity types in %s" % in_file)
 
     # read whitelist

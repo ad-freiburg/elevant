@@ -5,17 +5,17 @@ You can easily add a benchmark if you have a benchmark file that is in the JSONL
 
 To add a benchmark, simply run
 
-    python3 create_benchmark_labels.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours|aida-conll>
+    python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours|aida-conll>
 
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types as given in
  `<data_directory>/wikidata_mappings/entity-types.tsv` and writes the result to the file
- `benchmarks/benchmark_labels_<benchmark_name>.jsonl`.
+ `benchmarks/<benchmark_name>.benchmark.jsonl`.
 
 
 ## Benchmark Formats
 
-This section describes the three file formats that can be used as input to the `create_benchmark_labels.py` script.
+This section describes the three file formats that can be used as input to the `annotate_and_add_benchmark.py` script.
 
 #### NIF
 The NIF format for the purpose of entity linking is explained in detail in the

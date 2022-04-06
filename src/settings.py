@@ -91,7 +91,7 @@ MSNBC_ORIGINAL_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc.original/Raw
 MSNBC_ORIGINAL_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc.original/Problems/"
 
 BENCHMARK_DIR = "benchmarks/"
-WIKI_EX_BENCHMARK_FILE = BENCHMARK_DIR + "benchmark_labels_wiki-ex.jsonl"
+WIKI_EX_BENCHMARK_FILE = BENCHMARK_DIR + "wiki-ex.benchmark.jsonl"
 
 # Other files and paths
 EVALUATION_RESULTS_DIR = "evaluation-results/"

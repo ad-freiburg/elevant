@@ -36,7 +36,7 @@ We designed the ELEVANT web app to be intuitive and self-explanatory. Neverthele
 
 The **benchmark selector** lets you select a benchmark from a dropdown menu. The dropdown menu has an entry
  `<benchmark_name>` for each benchmark file in the correct format at
- `benchmarks/benchmark_labels_<benchmark_name>.jsonl`.
+ `benchmarks/<benchmark_name>.benchmark.jsonl`.
 
 The **results filter** lets you enter a regular expression which is applied over the first column of the evaluation
  results table to filter out table rows that don't match the regular expression. The regular expression is split at

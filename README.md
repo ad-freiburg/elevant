@@ -50,7 +50,7 @@ To start the evaluation web app, run
 You can then access the webapp at <http://0.0.0.0:8000/>.
 
 In the benchmark dropdown menu, you can select any benchmark for which a benchmark file in the correct format exists at
- `benchmarks/benchmark_labels_<benchmark_name>.jsonl`. See [Included Benchmarks](docs/included_benchmarks.md) for
+ `benchmarks/<benchmark_name>.benchmark.jsonl`. See [Included Benchmarks](docs/included_benchmarks.md) for
  details on benchmarks that are already included in ELEVANT. The section [Add a Benchmark](#add-a-benchmark) explains
  how you can add more benchmarks yourself.
 
@@ -71,11 +71,11 @@ You can easily add a benchmark if you have a benchmark file that is in the
 
 To add a benchmark, simply run
 
-    python3 create_benchmark_labels.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours|aida-conll>
+    python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours|aida-conll>
 
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types and writes the result to the file
- `benchmarks/benchmark_labels_<benchmark_name>.jsonl`.
+ `benchmarks/<benchmark_name>.benchmark.jsonl`.
 
 In the web app, reload the page and the benchmark will show up in the benchmark dropdown menu.
 
