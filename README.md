@@ -54,11 +54,11 @@ In the benchmark dropdown menu, you can select any benchmark for which a benchma
  details on benchmarks that are already included in ELEVANT. The section [Add a Benchmark](#add-a-benchmark) explains
  how you can add more benchmarks yourself.
 
-A benchmark's evaluation results table contains one row for each experiment, that is, one row for each `.jsonl` file
- in a `evaluation-results/*/` directory with a corresponding `.cases` and `.results` file. We already added a few
- experiments, including oracle predictions for each benchmark (perfect linking results generated from the ground
- truth), so you can start exploring the web app right away. The section [Add an Experiment](#add-an-experiment)
- explains how you can add more experiments yourself.
+A benchmark's evaluation results table contains one row for each experiment. In ELEVANT, an experiment is a run of a
+ particular entity linker with particular linker settings on a particular benchmark. We already added a few experiments,
+ including oracle predictions (perfect linking results generated from the ground truth), so you can start exploring
+ the web app right away. The section [Add an Experiment](#add-an-experiment) explains how you can add more
+ experiments yourself.
 
 See [Evaluation Web App](docs/evaluation_webapp.md) for a detailed overview of the web app's features.
 
@@ -110,16 +110,16 @@ See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information o
  linking result files into our format, and instructions for how to link multiple benchmarks using multiple linkers
  with a single command.
 
-### Evaluate Linked Benchmark Articles
+### Evaluate Linking Results
 
-To evaluate a linking result file use the script `evaluate_linked_entities.py`:
+To evaluate a linker's predictions use the script `evaluate_linking_results.py`:
 
-    python3 evaluate_linked_entities.py <path_to_linking_result_file>
+    python3 evaluate_linking_results.py <path_to_linking_result_file>
 
 This will print precision, recall and F1 scores and create two new files where the `.jsonl` file extension is
  replaced by `.cases` and `.results` respectively. For example
 
-    python3 evaluate_linked_entities.py evaluation-results/tagme/tagme.thresh02.kore50.jsonl
+    python3 evaluate_linking_results.py evaluation-results/tagme/tagme.thresh02.kore50.jsonl
 
 will create the files `evaluation-results/tagme/tagme.thresh02.kore50.cases` and
 `evaluation-results/tagme/tagme.thresh02.kore50.results`. The `.cases` file contains information about each true
@@ -129,5 +129,5 @@ will create the files `evaluation-results/tagme/tagme.thresh02.kore50.cases` and
 In the web app, simply reload the page and the experiment will show up as a row in the evaluation results table of
  the corresponding benchmark.
 
-See [Evaluate Linked Benchmark Articles](docs/evaluate_linked_benchmark_articles.md) for instructions on how to
- evaluate multiple linking results with a single command.
+See [Evaluate Linking Results](docs/evaluate_linking_results.md) for instructions on how to evaluate multiple linking
+ results with a single command.

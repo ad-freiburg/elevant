@@ -104,9 +104,9 @@ link_benchmark:
 	  python3 link_benchmark_entities.py $${RESULT_NAME} $${SYSTEM} $${ARGUMENTS} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
 	done
 
-evaluate_linked_benchmarks:
+evaluate_linking_results:
 	@echo
-	@echo "[evaluate_linked_benchmarks] Evaluate all linking results for all benchmarks"
+	@echo "[evaluate_linking_results] Evaluate all linking results for all benchmarks"
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "EVALUATION_RESULTS_DIR = $(EVALUATION_RESULTS_DIR)"
@@ -121,7 +121,7 @@ evaluate_linked_benchmarks:
 	  echo "FILENAME = $${FILENAME}"; \
 	  echo "BENCHMARK_SUFFIX = $${BENCHMARK_SUFFIX}"; \
 	  if [[ " $${BENCHMARK_NAMES[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
-		python3 evaluate_linked_entities.py $${FILENAME} -b $${BENCHMARK_SUFFIX}; \
+		python3 evaluate_linking_results.py $${FILENAME} -b $${BENCHMARK_SUFFIX}; \
 	  else \
 	    echo -e "$${DIM}Skipping file because benchmark suffix is not in BENCHMARK_NAMES$${RESET}"; \
 	  fi; \

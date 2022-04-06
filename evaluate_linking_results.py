@@ -81,7 +81,7 @@ def main(args):
         logger.info("Retrieving labels from %s benchmark file instead of %s" % (args.benchmark, args.input_file))
         example_iterator = get_example_generator(args.benchmark).iterate()
 
-    logger.info("Evaluating linked entities ...")
+    logger.info("Evaluating linking results ...")
     input_file.seek(0)
     for line in input_file:
         article = article_from_json(line)

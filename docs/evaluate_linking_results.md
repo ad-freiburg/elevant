@@ -1,12 +1,12 @@
 # Evaluate Linked Benchmark Articles
-To evaluate a linking result file use the script `evaluate_linked_entities.py`:
+To evaluate a linker's predictions use the script `evaluate_linking_results.py`:
 
-    python3 evaluate_linked_entities.py <path_to_linking_result_file>
+    python3 evaluate_linking_results.py <path_to_linking_result_file>
 
 This will print precision, recall and F1 scores and create two new files where the `.jsonl` file extension is
  replaced by `.cases` and `.results` respectively. For example
 
-    python3 evaluate_linked_entities.py evaluation-results/tagme/tagme.thresh02.kore50.jsonl
+    python3 evaluate_linking_results.py evaluation-results/tagme/tagme.thresh02.kore50.jsonl
 
 will create the files `evaluation-results/tagme/tagme.thresh02.kore50.cases` and
 `evaluation-results/tagme/tagme.thresh02.kore50.results`. The `.cases` file contains information about each true
@@ -19,4 +19,4 @@ You can use the Makefile to evaluate multiple linking result files with one comm
 To evaluate all linking result files in the `evaluation-results/*/` directories for all benchmarks specified in the
  Makefile's `BENCHMARK_NAMES` variable run
 
-    make evaluate_linked_benchmarks
+    make evaluate_linking_results
