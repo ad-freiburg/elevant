@@ -681,7 +681,7 @@ function set_benchmark_select_options() {
         for (bi in benchmarks) {
             benchmark = benchmarks[bi];
             var option = document.createElement("option");
-            option.text = benchmark.replace(/(.*)\.benchmark\.jsonl/, $1);
+            option.text = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
             option.value = benchmark;
             benchmark_select.add(option);
         }
