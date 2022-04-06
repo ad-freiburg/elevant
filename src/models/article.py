@@ -45,17 +45,17 @@ class Article:
                 "text": self.text}
         if self.links:
             data["links"] = self.links
-        if self.title_synonyms is not None:
+        if self.title_synonyms:
             data["title_synonyms"] = self.title_synonyms
         if self.url is not None:
             data["url"] = self.url
-        if self.entity_mentions is not None:
+        if self.entity_mentions:
             data["entity_mentions"] = [self.entity_mentions[span].to_dict() for span in sorted(self.entity_mentions)]
         if self.evaluation_span is not None:
             data["evaluation_span"] = self.evaluation_span
         if self.labels is not None:
             data["labels"] = [label.to_dict() for label in sorted(self.labels)]
-        if self.sections is not None:
+        if self.sections:
             data["sections"] = self.sections
         if self.evaluation_time is not None:
             data["evaluation_time"] = self.evaluation_time
