@@ -21,7 +21,7 @@ Unless otherwise noted, all the following commands should be run inside the dock
 
 ## Get the Data
 For linking entities in text or evaluating the output of a linker, our system needs information about entities and
- mention texts, e.g. entity labels, aliases, popularity scores, types, the frequency with which a mention is linked
+ mention texts, e.g. entity names, aliases, popularity scores, types, the frequency with which a mention is linked
  to a certain article in Wikipedia, etc. This information is stored in and read from several files. Since these files
  are too large to upload them on GitHub, you can either download them from our servers (fast) or build them yourself
  (slow, RAM intensive, but the resulting files might be based on a more recent Wikidata/Wikipedia dump).
@@ -50,12 +50,13 @@ To start the evaluation web app, run
 You can then access the webapp at <http://0.0.0.0:8000/>.
 
 In the benchmark dropdown menu, you can select any benchmark for which a benchmark file in the correct format exists at
- `benchmarks/benchmark_labels_<benchmark_name>.jsonl`. The section [Add a Benchmark](#add-a-benchmark) explains how
- you can add more benchmarks yourself.
+ `benchmarks/benchmark_labels_<benchmark_name>.jsonl`. See [Included Benchmarks](docs/included_benchmarks.md) for
+ details on benchmarks that are already included in ELEVANT. The section [Add a Benchmark](#add-a-benchmark) explains
+ how you can add more benchmarks yourself.
 
 A benchmark's evaluation results table contains one row for each experiment, that is, one row for each `.jsonl` file
  in a `evaluation-results/*/` directory with a corresponding `.cases` and `.results` file. We already added a few
- experiments, in particular oracle predictions for each benchmark (perfect linking results generated from the ground
+ experiments, including oracle predictions for each benchmark (perfect linking results generated from the ground
  truth), so you can start exploring the web app right away. The section [Add an Experiment](#add-an-experiment)
  explains how you can add more experiments yourself.
 
@@ -63,16 +64,18 @@ See [Evaluation Web App](docs/evaluation_webapp.md) for a detailed overview of t
 
 ## Add a Benchmark
 
-You can easily add a benchmark if you have a benchmark file that is in the jsonl format we use, in the common NLP
- Interchange Format (NIF) or in the IOB-based format used by Hoffart et al. for their AIDA/CoNLL benchmark. Benchmarks
- in other formats have to be converted into one of these formats first.
+You can easily add a benchmark if you have a benchmark file that is in the
+ [JSONL format we use](docs/our_jsonl_format.md), in the common NLP Interchange Format (NIF) or in the IOB-based
+ format used by Hoffart et al. for their AIDA/CoNLL benchmark. Benchmarks in other formats have to be converted into
+ one of these formats first.
 
 To add a benchmark, simply run
 
     python3 create_benchmark_labels.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours|aida-conll>
 
-This will create a benchmark file `benchmarks/benchmark_labels_<benchmark_name>.jsonl` in our jsonl format where
- ground truth labels are annotated with their Wikidata label and types.
+This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
+ truth labels with their Wikidata label and Wikidata types and writes the result to the file
+ `benchmarks/benchmark_labels_<benchmark_name>.jsonl`.
 
 In the web app, reload the page and the benchmark will show up in the benchmark dropdown menu.
 
@@ -80,6 +83,9 @@ The benchmark can now be linked with a linker of your choice using the `link_ben
  parameter `-b <benchmark_name>`. See section [Add an Experiment](#add-an-experiment) for details on how to link a
  benchmark.
 
+See [Add A Benchmark](docs/add_benchmark.md) for more details on adding a benchmark including a description of the
+ supported file formats.
+ 
 ## Add an Experiment
 
 You can add an experiment, i.e. a row in the table for a particular benchmark, in two steps: 1) link the benchmark
@@ -96,13 +102,13 @@ For example
     python3 link_benchmark_entities.py tagme.thresh02 tagme 0.2 -b kore50
 
 will create the file `evaluation-results/tagme/tagme.thresh02.kore50.jsonl`. The result file contains one article as
- json object per line. Each json object contains benchmark article information such as the article title, text, and
+ JSON object per line. Each JSON object contains benchmark article information such as the article title, text, and
  ground truth labels, as well as the entity mentions produced by the specified linker. `<experiment_name>` is the
  name that will be displayed in the first column of the evaluation results table in the web app.
 
-See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information on how you can use your existing
- linking result files, and instructions for how to link multiple benchmarks using multiple linkers with a single
- command.
+See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information on how you can transform your existing
+ linking result files into our format, and instructions for how to link multiple benchmarks using multiple linkers
+ with a single command.
 
 ### Evaluate Linked Benchmark Articles
 

@@ -9,12 +9,12 @@ The linking results will be written to `evaluation-results/<linker_type>/<experi
     python3 link_benchmark_entities.py tagme.thresh02 tagme 0.2 -b kore50
 
 will create the file `evaluation-results/tagme/tagme.thresh02.kore50.jsonl`. The result file contains one article as
- json object per line. Each json object contains benchmark article information such as the article title, text, and
+ JSON object per line. Each JSON object contains benchmark article information such as the article title, text, and
  ground truth labels, as well as the entity mentions predicted by the specified linker.
 
 ## Use Existing Linking Results
 If you already have linking results for a certain benchmark that you want to evaluate with ELEVANT, you can use the
- `link_benchmark_entities.py` script to convert your linking results into the json format used by us. This works if
+ `link_benchmark_entities.py` script to convert your linking results into the JSONL format used by us. This works if
  the text of the benchmark you linked corresponds to the text of one of the benchmarks in the `benchmarks` directory
  and if your linking results are in one of the following formats:
 
@@ -32,7 +32,7 @@ If you have linking results for a certain benchmark in NIF format, run
 
     python3 link_benchmark_entities.py <experiment_name> nif <path_to_linking_results> -b <benchmark_name>
 
-to convert your linking results into the json format used by us.
+to convert your linking results into the JSONL format used by us.
 
 Your linking results file should look something like this:
 
@@ -58,8 +58,10 @@ Your linking results file should look something like this:
 - `<path_to_linking_results>` can be the path to a single NIF file that contains all benchmark articles and the
  predicted links or the path to a directory that contains multiple such NIF files.
 
+The NIF prediction reader is implemented [here](../src/prediction_readers/nif_prediction_reader.py).
+
 #### Linking Results in a Simple JSONL Format
-If you have linking results in a very simple jsonl format, run
+If you have linking results in a very simple JSONL format, run
 
     python3 link_benchmark_entities.py <experiment_name> neural_el <path_to_linking_results_file> -b <benchmark_name>
 
@@ -74,6 +76,8 @@ The file `<path_to_linking_results_file>` should contain one line per benchmark 
 - `label` is the Wikipedia title of the corresponding entity with whitespaces replaced by "_".
 - `start_char` is the character offset of the start of the mention (including) within the article text
 - `end_char` is the character offset of the end of the mention (excluding) within the article text
+
+The simple JSONL prediction reader is implemented [here](../src/prediction_readers/neural_el_prediction_reader.py).
 
 #### Linking Results in Ambiverse Output Format
 If you have linking results in the Ambiverse output format, run
@@ -112,6 +116,8 @@ If you have linking results in the Ambiverse output format, run
        ]
     }
 
+The Ambiverse prediction reader is implemented [here](../src/prediction_readers/ambiverse_prediction_reader.py).
+
 ### Writing a Custom Prediction Reader
 As an alternative to converting your predictions into one of the formats mentioned above, you can write your own
  prediction reader, such that you can use your prediction files with the `link_benchmark_entities.py` script directly.
@@ -123,12 +129,12 @@ As an alternative to converting your predictions into one of the formats mention
 
     Implement `predictions_iterator()` if you are sure that the order in which the predictions are read corresponds
      to the article order in the benchmark. Set `predictions_iterator_implemented = True` when calling
-     `super().__init__()`. See `src/prediction_readers/neural_el_prediction_reader.py` for an example.
+     `super().__init__()`. See [here](../src/prediction_readers/neural_el_prediction_reader.py) for an example.
 
     Implement `get_predictions_with_text_from_file()` if you are not sure that the order in which the predictions are
      read corresponds to the article order in the benchmark and the prediction file contains the original article
      texts. Set `predictions_iterator_implemented = False` when calling `super().__init__()`. See
-     `src/prediction_readers/nif_prediction_reader.py` for an example.
+     [here](src/prediction_readers/nif_prediction_reader.py) for an example.
 
 2) Add your custom prediction reader name to the `src.linkers.linkers.Linkers` enum, e.g. `MY_FORMAT = "my_format"`.
 
@@ -145,7 +151,7 @@ As an alternative to converting your predictions into one of the formats mention
 
         qid = self.entity_db.link2id(wikipedia_title)
 
-You can then convert your linking results into our json format by running
+You can then convert your linking results into our JSONL format by running
 
     python3 link_benchmark_entities.py <experiment_name> my_format <path_to_linking_results> -b <benchmark_name>
 
