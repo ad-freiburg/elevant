@@ -2,13 +2,13 @@ from typing import Iterator, Tuple, Optional
 
 from src.evaluation.benchmark import Benchmark, BenchmarkFormat
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.helpers.aida_conll_benchmark_reader import AidaConllBenchmarkReader
-from src.helpers.nif_benchmark_reader import NifBenchmarkReader
+from src.benchmark_readers.aida_conll_benchmark_reader import AidaConllBenchmarkReader
+from src.benchmark_readers.nif_benchmark_reader import NifBenchmarkReader
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src.models.article import Article
 from src.models.entity_database import EntityDatabase
 from src.models.article import article_from_json
-from src.helpers.xml_benchmark_reader import XMLBenchmarkParser
+from src.benchmark_readers.xml_benchmark_reader import XMLBenchmarkParser
 from src import settings
 
 import random
