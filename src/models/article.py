@@ -7,7 +7,6 @@ from src.evaluation.groundtruth_label import GroundtruthLabel, groundtruth_label
 from src.models.entity_mention import EntityMention, entity_mention_from_dict
 from src.models.entity_prediction import EntityPrediction
 
-
 ABSTRACT_INDICATOR = "ABSTRACT"
 
 
@@ -16,7 +15,7 @@ class Article:
                  id: int,
                  title: str,
                  text: str,
-                 links: List[Tuple[Tuple[int, int], str]],
+                 links: Optional[List[Tuple[Tuple[int, int], str]]] = None,
                  title_synonyms: Optional[List[Tuple[int, int]]] = None,
                  url: Optional[str] = None,
                  entity_mentions: Optional[List[EntityMention]] = None,
@@ -27,7 +26,7 @@ class Article:
         self.id = id
         self.title = title
         self.text = text
-        self.links = links
+        self.links = links if links else []
         self.title_synonyms = title_synonyms if title_synonyms else []
         self.url = url
         self.entity_mentions = None
@@ -43,8 +42,9 @@ class Article:
     def to_dict(self) -> Dict:
         data = {"id": self.id,
                 "title": self.title,
-                "text": self.text,
-                "links": self.links}
+                "text": self.text}
+        if self.links:
+            data["links"] = self.links
         if self.title_synonyms is not None:
             data["title_synonyms"] = self.title_synonyms
         if self.url is not None:
@@ -151,7 +151,8 @@ class Article:
 
 
 def article_from_dict(data: Dict) -> Article:
-    links = [(tuple(span), target) for span, target in data["links"]]  # span is saved as list, but must be tuple
+    # spans are saved as lists, but must be tuples
+    links = [(tuple(span), target) for span, target in data["links"]] if "links" in data else None
     title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
     sections = [(tuple(span), title) for span, title in data["sections"]] if "sections" in data else None
     labels = None
@@ -171,7 +172,7 @@ def article_from_dict(data: Dict) -> Article:
                    title_synonyms=title_synonyms,
                    url=data["url"] if "url" in data else None,
                    entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in
-                                             data["entity_mentions"]] if "entity_mentions" in data else None,
+                                    data["entity_mentions"]] if "entity_mentions" in data else None,
                    evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
                    labels=labels,
                    sections=sections,
