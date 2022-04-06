@@ -156,15 +156,8 @@ def article_from_dict(data: Dict) -> Article:
     title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
     sections = [(tuple(span), title) for span, title in data["sections"]] if "sections" in data else None
     labels = None
-    if "labels" in data:
-        # Ensure backwards compatibility
-        if len(data["labels"]) > 0 and type(data["labels"][0]) is dict:
-            labels = [groundtruth_label_from_dict(groundtruth_label_dict) for groundtruth_label_dict in data["labels"]]
-        else:
-            labels = []
-            for span, entity_id in data["labels"]:
-                gt_label = GroundtruthLabel(0, span, entity_id, None)
-                labels.append(gt_label)
+    if "labels" in data and len(data["labels"]) > 0:
+        labels = [groundtruth_label_from_dict(groundtruth_label_dict) for groundtruth_label_dict in data["labels"]]
     return Article(id=int(data["id"]),
                    title=data["title"],
                    text=data["text"],
