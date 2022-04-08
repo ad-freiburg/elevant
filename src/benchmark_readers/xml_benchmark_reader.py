@@ -9,6 +9,8 @@ from src.models.article import Article
 
 from xml.etree import ElementTree
 
+from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
+
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
@@ -47,18 +49,21 @@ class XMLBenchmarkParser:
         for span, wiki_name in wiki_labels:
             span = span[0] - offset, span[1] - offset
             if wiki_name != "NIL" and wiki_name is not None:
-                entity_id = self.entity_db.link2id(wiki_name)
+                entity_id = KnowledgeBaseMapper.get_wikidata_qid(wiki_name, self.entity_db, verbose=False)
                 if entity_id is None:
                     # This is the case for 3 ACE mentions one of which does not (anymore?) exist in Wikipedia either.
                     # The other two are spelling errors: "Seattke" and "USS COLE (DDG-67)" (uppercase error)
                     # For MSNBC this is the case for 87 mentions.
-                    logger.warning("No mapping to Wikidata found for label: %s" % wiki_name)
                     no_mapping_count += 1
-                    gt_label = GroundtruthLabel(label_id_counter, span, "Unknown", "UnknownNoMapping")
+                    entity_id = "Unknown"
+                    entity_name = "UnknownNoMapping"
                 else:
-                    gt_label = GroundtruthLabel(label_id_counter, span, entity_id, "Unknown")
+                    # The name for the GT label is Unknown for now, but is added when creating a benchmark in our format
+                    entity_name = "Unknown"
             else:
-                gt_label = GroundtruthLabel(label_id_counter, span, "Unknown", "Unknown")
+                entity_id = "Unknown"
+                entity_name = "Unknown"
+            gt_label = GroundtruthLabel(label_id_counter, span, entity_id, entity_name)
             labels.append(gt_label)
             label_id_counter += 1
 

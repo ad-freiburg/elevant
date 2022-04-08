@@ -1,12 +1,11 @@
 import logging
-import re
 from typing import Iterator, Tuple, Dict
 
 from pynif import NIFCollection
-from urllib.parse import unquote
 
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
+from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
 from src.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -37,18 +36,8 @@ class NifPredictionReader(AbstractPredictionReader):
                 predictions = {}
                 for phrase in context.phrases:
                     entity_uri = phrase.taIdentRef
-                    entity_name = entity_uri[entity_uri.rfind("/") + 1:]
-                    # The entity ID will be None if the provided entity ID
-                    # is not a QID or cannot be mapped from Wikipedia title to QID
-                    if entity_name and not re.match(r"Q[0-9]+", entity_name):
-                        entity_name = unquote(entity_name).replace('_', ' ')
-                        entity_id = self.entity_db.link2id(entity_name)
-                        if not entity_id:
-                            logger.warning("Entity name %s could not be mapped to a Wikidata ID." % entity_name)
-                    else:
-                        entity_id = entity_name
+                    entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
                     span = phrase.beginIndex, phrase.endIndex
                     predictions[span] = EntityPrediction(span, entity_id, {entity_id})
-
                 # Add article text and predictions to mappings
                 yield predictions, text

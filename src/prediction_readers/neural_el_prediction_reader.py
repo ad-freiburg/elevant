@@ -6,6 +6,7 @@ from src.models.entity_prediction import EntityPrediction
 import json
 import logging
 
+from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
 from src.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -24,21 +25,16 @@ class NeuralELPredictionReader(AbstractPredictionReader):
         link_json = json.loads(string)
         links = link_json["predictions"]
         predictions = {}
-        count = 0
         for link in links:
-            label = link["label"]
-            label = label.replace("_", " ")
-            entity_id = self.entity_db.link2id(label)
-            if not entity_id and label != "<unk wid>":
-                logger.warning("\nNo mapping to Wikidata found for label '%s'" % label)
-                count += 1
+            entity_reference = link["label"]
+            # If the entity reference is not a URI and is not from Wikidata, references in the format "Q[0-9]+"
+            # will be wrongly assumed to be Wikidata QIDs
+            entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db, verbose=False)
             start = link["start_char"]
             end = link["end_char"]
             span = (start, end)
-            candidates = {entity_id}
+            candidates = {entity_id}  # The Simple JSON Format does not provide information about candidates
             predictions[span] = EntityPrediction(span, entity_id, candidates)
-        if count > 0:
-            logger.warning("\n%d entity labels could not be matched to any Wikidata ID." % count)
         return predictions
 
     def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:

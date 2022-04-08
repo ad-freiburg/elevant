@@ -2,13 +2,11 @@ import logging
 
 from typing import Iterator
 
-from urllib.parse import unquote
-
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.article import Article
-
+from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -69,16 +67,16 @@ class AidaConllBenchmarkReader:
                             else:
                                 # Get entity name and ID for current label
                                 entity_uri = lst[4]
-                                entity_name = entity_uri[entity_uri.rfind("/") + 1:]
-                                entity_name = unquote(entity_name).replace('_', ' ')
-                                entity_id = self.entity_db.link2id(entity_name)
+                                entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db,
+                                                                                 verbose=False)
                                 if not entity_id:
                                     # For AIDA-CONLL, 43 labels can not be mapped to any Wikidata ID.
-                                    logger.warning("Entity name %s could not be mapped to a Wikidata ID." % entity_name)
                                     self.no_mapping_count += 1
                                     entity_id = "Unknown"
                                     entity_name = "UnknownNoMapping"
                                 else:
+                                    # The name for the GT label is Unknown for now, but is added when creating a
+                                    # benchmark in our format
                                     entity_name = "Unknown"
 
                             if self.curr_entity_id:

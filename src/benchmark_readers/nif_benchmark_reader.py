@@ -1,16 +1,14 @@
 import os
 import logging
-import re
 
 from typing import Iterator, List
 
 from pynif import NIFCollection
-from urllib.parse import unquote
 
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.article import Article
-
+from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -49,24 +47,15 @@ class NifBenchmarkReader:
             for phrase in context.phrases:
                 span = phrase.beginIndex, phrase.endIndex
                 entity_uri = phrase.taIdentRef
-                entity_name = entity_uri[entity_uri.rfind("/") + 1:]
-                # The GT label entity ID will be None if the provided entity ID
-                # is not a QID or cannot be mapped from Wikipedia title to QID
-                if entity_name and not re.match(r"Q[0-9]+", entity_name):
-                    entity_name = unquote(entity_name).replace('_', ' ')
-                    entity_id = self.entity_db.link2id(entity_name)
-                    if not entity_id:
-                        logger.warning("Entity name %s could not be mapped to a Wikidata ID." % entity_name)
-                        no_mapping_count += 1
-                        entity_id = "Unknown"
-                        entity_name = "UnknownNoMapping"
-                    else:
-                        entity_name = "Unknown"
+                entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
+                if not entity_id:
+                    no_mapping_count += 1
+                    entity_id = "Unknown"
+                    entity_name = "UnknownNoMapping"
                 else:
-                    entity_id = entity_name if entity_name else "Unknown"
+                    # The name for the GT label is Unknown for now, but is added when creating a benchmark in our format
                     entity_name = "Unknown"
 
-                # The name for the GT label is Unknown for now, but is added when creating a benchmark in our format
                 labels.append(GroundtruthLabel(label_id_counter, span, entity_id, entity_name))
                 label_id_counter += 1
 
@@ -82,7 +71,7 @@ class NifBenchmarkReader:
             self.article_id_counter += 1
 
             if no_mapping_count > 0:
-                logger.warning("%d Labels could not be mapped to any Wikidata ID." % no_mapping_count)
+                logger.warning("%d Labels could not be mapped to any Wikidata QID." % no_mapping_count)
 
             yield article
 
