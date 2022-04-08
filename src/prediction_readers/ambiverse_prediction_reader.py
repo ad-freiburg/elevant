@@ -35,17 +35,21 @@ class AmbiversePredictionReader(AbstractPredictionReader):
 
         new_predictions = {}
         if "entities" in result:
+            # Ambiverse predicted QIDs can contain mistakes, therefore use custom rules to map entites to Wikidata QIDs
+            # instead of using KnowledgeBaseMappingl.get_wikidata_qid()
             for entity in result["entities"]:
                 entity_id = entity["id"].split("/")[-1]
                 if entity_id == "null":
                     continue
                 matching_predictions_spans = predictions[entity_id]
                 name = entity["name"]
-                entity_id_from_link = self.entity_db.link2id(name)
-                if entity_id_from_link and entity_id != entity_id_from_link:
+                entity_id_from_name = self.entity_db.link2id(name)
+                # QIDs predicted by Ambiverse often do not match the predicted entity name.
+                # The entity name is more trustworthy.
+                if entity_id_from_name and entity_id != entity_id_from_name:
                     logger.debug("Result QID does not match QID retrieved via result Wikipedia URL: %s vs %s" %
-                                 (entity_id, entity_id_from_link))
-                    entity_id = entity_id_from_link
+                                 (entity_id, entity_id_from_name))
+                    entity_id = entity_id_from_name
                 for span in matching_predictions_spans:
                     new_predictions[span] = EntityPrediction(span, entity_id, {entity_id})
         else:

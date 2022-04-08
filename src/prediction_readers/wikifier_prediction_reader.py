@@ -63,6 +63,8 @@ class WikifierPredictionReader(AbstractPredictionReader):
             wiki_title = entity_prediction.find('TopDisambiguation').find('WikiTitle').text
             wiki_title = wiki_title.replace("_", " ")
             wiki_id = int(entity_prediction.find('TopDisambiguation').find('WikiTitleID').text)
+            # Wikifier predicted entity IDs can contain mistakes, therefore use custom rules to map entites to
+            # Wikidata QIDs instead of using KnowledgeBaseMappingl.get_wikidata_qid()
             wiki_title = self.get_correct_wikipedia_title(wiki_title, wiki_id)
             entity_id = self.entity_db.link2id(wiki_title)
             if not entity_id:
