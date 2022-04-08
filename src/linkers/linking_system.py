@@ -1,6 +1,6 @@
 from typing import Optional, Tuple, Dict, Set
 
-from src.prediction_readers.neural_el_prediction_reader import NeuralELPredictionReader
+from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
 from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
@@ -89,11 +89,11 @@ class LinkingSystem:
                                         MappingName.REDIRECTS})
             rho_threshold = float(linker_info)
             self.linker = TagMeLinker(self.entity_db, rho_threshold)
-        elif linker_type == Linkers.NEURAL_EL.value:
+        elif linker_type == Linkers.SIMPLE_JSONL.value:
             result_file = linker_info
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            self.prediction_reader = NeuralELPredictionReader(result_file, self.entity_db)
+            self.prediction_reader = SimpleJsonlPredictionReader(result_file, self.entity_db)
         elif linker_type == Linkers.BASELINE.value:
             if linker_info not in ("links", "scores", "links-all", "max-match-ner"):
                 raise NotImplementedError("Unknown strategy '%s'." % linker_info)

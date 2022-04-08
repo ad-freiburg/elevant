@@ -183,7 +183,7 @@ def main(_):
                                 if i > len(entityTitleList):
                                     print("Length discrepancy")
                                     print(entityTitleList, cons_list)
-                                cons['label'] = entityTitleList[i]
+                                cons['entity_reference'] = entityTitleList[i]
                                 cons['start_char'] = reader.ner_offsets[i][0]
                                 cons['end_char'] = reader.ner_offsets[i][1]
                             if len(cons_list) != len(reader.ner_offsets):
@@ -198,7 +198,7 @@ def main(_):
                             token_offsets = docta.as_json['tokenOffsets']
                             sentence_end_positions = docta.as_json['sentences']['sentenceEndPositions']
                             for i, cons in enumerate(elview.cons_list):
-                                cons['label'] = entityTitleList[i]
+                                cons['entity_reference'] = entityTitleList[i]
                                 sentence_idx = sentenceList[i]
                                 sentence_start_token_idx = sentence_end_positions[
                                     sentence_idx - 1] if sentence_idx > 0 else 0

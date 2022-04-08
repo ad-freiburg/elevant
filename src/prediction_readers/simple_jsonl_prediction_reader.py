@@ -12,7 +12,7 @@ from src.prediction_readers.abstract_prediction_reader import AbstractPrediction
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class NeuralELPredictionReader(AbstractPredictionReader):
+class SimpleJsonlPredictionReader(AbstractPredictionReader):
     def __init__(self, input_filepath: str, entity_db: EntityDatabase):
         self.entity_db = entity_db
         super().__init__(input_filepath, predictions_iterator_implemented=True)
@@ -26,7 +26,7 @@ class NeuralELPredictionReader(AbstractPredictionReader):
         links = link_json["predictions"]
         predictions = {}
         for link in links:
-            entity_reference = link["label"]
+            entity_reference = link["entity_reference"]
             # If the entity reference is not a URI and is not from Wikidata, references in the format "Q[0-9]+"
             # will be wrongly assumed to be Wikidata QIDs
             entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db, verbose=False)

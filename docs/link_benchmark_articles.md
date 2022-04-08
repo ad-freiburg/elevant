@@ -63,7 +63,7 @@ The NIF prediction reader is implemented [here](../src/prediction_readers/nif_pr
 #### Linking Results in a Simple JSONL Format
 If you have linking results in a very simple JSONL format, run
 
-    python3 link_benchmark_entities.py <experiment_name> neural_el <path_to_linking_results_file> -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> simple_jsonl <path_to_linking_results_file> -b <benchmark_name>
 
 The file `<path_to_linking_results_file>` should contain one line per benchmark article. The order of the predictions
  should correspond to the article order of the benchmark in the `benchmarks` directory. The linking results file
@@ -77,7 +77,7 @@ The file `<path_to_linking_results_file>` should contain one line per benchmark 
 - `start_char` is the character offset of the start of the mention (including) within the article text
 - `end_char` is the character offset of the end of the mention (excluding) within the article text
 
-The simple JSONL prediction reader is implemented [here](../src/prediction_readers/neural_el_prediction_reader.py).
+The simple JSONL prediction reader is implemented [here](../src/prediction_readers/simple_jsonl_prediction_reader.py).
 
 #### Linking Results in Ambiverse Output Format
 If you have linking results in the Ambiverse output format, run
@@ -129,7 +129,7 @@ As an alternative to converting your predictions into one of the formats mention
 
     Implement `predictions_iterator()` if you are sure that the order in which the predictions are read corresponds
      to the article order in the benchmark. Set `predictions_iterator_implemented = True` when calling
-     `super().__init__()`. See [here](../src/prediction_readers/neural_el_prediction_reader.py) for an example.
+     `super().__init__()`. See [here](../src/prediction_readers/simple_jsonl_prediction_reader.py) for an example.
 
     Implement `get_predictions_with_text_from_file()` if you are not sure that the order in which the predictions are
      read corresponds to the article order in the benchmark and the prediction file contains the original article

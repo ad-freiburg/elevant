@@ -7,7 +7,7 @@ class Linkers(Enum):
     EXPLOSION = "explosion"
     AMBIVERSE = "ambiverse"
     TAGME = "tagme"
-    NEURAL_EL = "neural_el"
+    SIMPLE_JSONL = "simple_jsonl"
     BERT_MODEL = "bert_model"
     POPULAR_ENTITIES = "popular_entities"
     WIKIFIER = "wikifier"
