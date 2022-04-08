@@ -29,7 +29,7 @@ class Article:
         self.links = links if links else []
         self.title_synonyms = title_synonyms if title_synonyms else []
         self.url = url
-        self.entity_mentions = None
+        self.entity_mentions = {}
         self.entity_coverage = None
         self.span_to_span_id = dict()
         self.spans = []
@@ -65,8 +65,6 @@ class Article:
         return json.dumps(self.to_dict())
 
     def add_entity_mentions(self, entity_mentions: Optional[List[EntityMention]]):
-        if self.entity_mentions is None and entity_mentions is not None:
-            self.entity_mentions = {}
         if entity_mentions is not None:
             for entity_mention in entity_mentions:
                 self.entity_mentions[entity_mention.span] = entity_mention
