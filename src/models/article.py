@@ -21,8 +21,7 @@ class Article:
                  entity_mentions: Optional[List[EntityMention]] = None,
                  evaluation_span: Optional[Tuple[int, int]] = None,
                  labels: Optional[List[GroundtruthLabel]] = None,
-                 sections: Optional[List[Tuple[Tuple[int, int], str]]] = None,
-                 evaluation_time: Optional[float] = None):
+                 sections: Optional[List[Tuple[Tuple[int, int], str]]] = None):
         self.id = id
         self.title = title
         self.text = text
@@ -37,7 +36,6 @@ class Article:
         self.evaluation_span = evaluation_span if evaluation_span is not None else (0, len(self.text))
         self.labels = labels
         self.sections = sections
-        self.evaluation_time = evaluation_time
 
     def to_dict(self) -> Dict:
         data = {"id": self.id,
@@ -57,8 +55,6 @@ class Article:
             data["labels"] = [label.to_dict() for label in sorted(self.labels)]
         if self.sections:
             data["sections"] = self.sections
-        if self.evaluation_time is not None:
-            data["evaluation_time"] = self.evaluation_time
         return data
 
     def to_json(self) -> str:
@@ -115,9 +111,6 @@ class Article:
     def set_evaluation_span(self, start: int, end: int):
         self.evaluation_span = (start, end)
 
-    def set_evaluation_time(self, evaluation_time: float):
-        self.evaluation_time = evaluation_time
-
     def get_span_by_id(self, span_id: int) -> Tuple[int, int]:
         if span_id - 1 < len(self.spans):
             return self.spans[span_id - 1]
@@ -166,8 +159,7 @@ def article_from_dict(data: Dict) -> Article:
                                     data["entity_mentions"]] if "entity_mentions" in data else None,
                    evaluation_span=data["evaluation_span"] if "evaluation_span" in data else None,
                    labels=labels,
-                   sections=sections,
-                   evaluation_time=data["evaluation_time"] if "evaluation_time" in data else None)
+                   sections=sections)
 
 
 def article_from_json(dump: str) -> Article:

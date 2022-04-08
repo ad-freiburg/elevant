@@ -49,10 +49,8 @@ def main(args):
     logger.info("Linking entities in %s benchmark ..." % args.benchmark)
 
     for i, article in enumerate(example_generator.iterate(args.n_articles)):
-        article_start_time = time.time()
         evaluation_span = article.evaluation_span if args.evaluation_span else None
         linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
-        article.set_evaluation_time(time.time() - article_start_time)
         output_file.write(article.to_json() + '\n')
         print("\r%i articles" % (i + 1), end='')
     print()
