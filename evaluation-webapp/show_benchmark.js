@@ -905,7 +905,7 @@ function show_annotated_text(approach_name, textfield, selected_cell_category, c
         var annotated_texts = [];
         for (var i=0; i < benchmark_articles.length; i++) {
             var annotations = get_annotations(i, approach_name, column_idx, example_benchmark);
-            annotated_texts.push(annotate_text(benchmark_articles[i].text, annotations, benchmark_articles[i].links, benchmark_articles[i].evaluation_span, selected_cell_category));
+            annotated_texts.push(annotate_text(benchmark_articles[i].text, annotations, benchmark_articles[i].hyperlinks, benchmark_articles[i].evaluation_span, selected_cell_category));
         }
         annotated_text = "";
         for (var i=0; i < annotated_texts.length; i++) {
@@ -916,7 +916,7 @@ function show_annotated_text(approach_name, textfield, selected_cell_category, c
     } else {
         var curr_article = benchmark_articles[article_index];
         var annotations = get_annotations(article_index, approach_name, column_idx, example_benchmark);
-        var annotated_text = annotate_text(curr_article.text, annotations, curr_article.links, [0, curr_article.text.length], selected_cell_category);
+        var annotated_text = annotate_text(curr_article.text, annotations, curr_article.hyperlinks, [0, curr_article.text.length], selected_cell_category);
     }
     textfield.html(annotated_text);
 }
@@ -1128,20 +1128,20 @@ function copy(object) {
     return JSON.parse(JSON.stringify(object));
 }
 
-function annotate_text(text, annotations, links, evaluation_span, selected_cell_category) {
+function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_cell_category) {
     /*
-    Generate tooltips for the given annotations and hyperlinks for the given links.
+    Generate tooltips for the given annotations and html hyperlinks for the given hyperlinks.
     Tooltips and hyperlinks can overlap.
 
     Arguments:
     - text: The original text without tooltips or hyperlinks.
     - annotations: A sorted (by span) list of objects containing tooltip information
-    - links: A sorted (by span) list of tuples (span, target_article)
+    - hyperlinks: A sorted (by span) list of tuples (span, target_article)
     - evaluation_span: The span of the article that can be evaluated
     - selected_cell_categories: categories of the selected cell for the corresponding approach
 
-    First the overlapping annotations and links get combined to combined_annotations.
-    Second, the annotations with links are added to the text and a tooltip is generated for each annotation.
+    First the overlapping annotations and hyperlinks get combined to combined_annotations.
+    Second, the annotations with hyperlinks are added to the text and a tooltip is generated for each annotation.
     */
     // Separate mention annotations into two distinct lists such that any one list does not contain annotations that
     // overlap.
@@ -1157,22 +1157,24 @@ function annotate_text(text, annotations, links, evaluation_span, selected_cell_
     }
 
     // Transform hyperlinks into a similar format as the mention annotations
-    var new_links = [];
-    for (link of links) { new_links.push([copy(link[0]), {"span": link[0], "link": link[1]}]); }
+    var new_hyperlinks = [];
+    if (hyperlinks) {
+        for (link of hyperlinks) { new_hyperlinks.push([copy(link[0]), {"span": link[0], "hyperlink": link[1]}]); }
+    }
 
-    // STEP 1: Combine overlapping annotations and links.
+    // STEP 1: Combine overlapping annotations and hyperlinks.
     // Consumes the first element from the link list or annotation list, or a part from both if they overlap.
     var combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations);
     // Links must be the last list that is added such that they can only be the inner most annotations, because <div>
     // tags are not allowed within <a> tags, but the other way round is valid.
-    combined_annotations = combine_overlapping_annotations(combined_annotations, new_links);
+    combined_annotations = combine_overlapping_annotations(combined_annotations, new_hyperlinks);
 
     // Text should only be the text within the given evaluation span (Careful: This is the entire article if a
     // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
     // shown)
     text = text.substring(0, evaluation_span[1]);
 
-    // STEP 2: Add the combined annotations and links to the text.
+    // STEP 2: Add the combined annotations and hyperlinks to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
     for (annotation of combined_annotations.reverse()) {
         span = annotation[0];
@@ -1197,7 +1199,7 @@ function annotate_text(text, annotations, links, evaluation_span, selected_cell_
 function generate_annotation_html(snippet, annotation, selected_cell_category, parent_text) {
     /*
     Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
-    and can be identified by the property "link". Inner annotations, e.g. hyperlinks contained in
+    and can be identified by the property "hyperlink". Inner annotations, e.g. hyperlinks contained in
     a mention annotation, nested mention annotations are contained given by the property "inner_annotation".
     */
     var inner_annotation = snippet;
@@ -1206,8 +1208,8 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
         inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category, annotation.parent_text);
     }
 
-    if ("link" in annotation) {
-        return "<a href=\"https://en.wikipedia.org/wiki/" + annotation.link + "\" target=\"_blank\">" + inner_annotation + "</a>";
+    if ("hyperlink" in annotation) {
+        return "<a href=\"https://en.wikipedia.org/wiki/" + annotation.hyperlink + "\" target=\"_blank\">" + inner_annotation + "</a>";
     }
 
     // Add tooltip
