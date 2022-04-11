@@ -36,10 +36,10 @@ Example entry:
 
       Q1	203
 
-* **`wikidata_entities.tsv`**: label, score, QID and synonyms (if existing) for all entities in Wikidata that exist
+* **`wikidata_entities.tsv`**: QID, label, score and synonyms (if existing) for all entities in Wikidata that exist
  in Wikipedia. Example entry:
 
-      universe	203	Q1	all;cosmos;creation;existence;Heaven and earth;macrocosm;metagalaxy;Our Universe;outer space;space;system;The Cosmos;The Universe;Universe;world;Yin and Yang
+      Q1	universe	203	all;cosmos;creation;existence;Heaven and earth;macrocosm;metagalaxy;Our Universe;outer space;space;system;The Cosmos;The Universe;Universe;world;Yin and Yang
 
 * **`qid_to_wikipedia_url.tsv`**: QID and Wikipedia URL for all entities in Wikidata that exist in Wikipedia. Example
  entry:

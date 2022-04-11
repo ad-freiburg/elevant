@@ -23,9 +23,9 @@ class EntityDatabaseReader:
         entities = []
         for i, line in enumerate(open(filename)):
             values = line.strip('\n').split('\t')
-            name = values[0]
-            score = int(values[1])
-            entity_id = values[2]
+            entity_id = values[0]
+            name = values[1]
+            score = int(values[2])
             synonyms = {synonym for synonym in values[3].split(";") if len(synonym) > 0}
             entity = WikidataEntity(name, score, entity_id, synonyms)
             entities.append(entity)
@@ -39,9 +39,9 @@ class EntityDatabaseReader:
         entities = dict()
         for i, line in enumerate(open(filename)):
             values = line.strip('\n').split('\t')
-            name = values[0]
-            score = int(values[1])
-            entity_id = values[2]
+            entity_id = values[0]
+            name = values[1]
+            score = int(values[2])
             synonyms = {synonym for synonym in values[3].split(";") if len(synonym) > 0}
             entity = WikidataEntity(name, score, entity_id, synonyms)
             entities[entity_id] = entity

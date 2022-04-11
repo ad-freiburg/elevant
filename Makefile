@@ -221,8 +221,9 @@ generate_wikidata_mappings:
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)
 #
 # Short descriptions of what the 3 sed lines do:
-# 0) Drop lines with Wikidata properties or lexemes
-# 1) Replace wikidata entity URIs by the QID
+# 0) Replace wikidata entity URIs by the QID
+# 1) Drop lines that don't start with Q
+#    (e.g. Wikidata properties or lexemes or the first line of the file with column titles that start with "?")
 # 2) Replace "<string>"@en for string literals by just <string>
 # 3) Replace integer literals by just the integer
 # 4) Remove the <> around wikipedia urls
@@ -232,8 +233,8 @@ query:
 	@echo "$$PREFIXES $${${QUERY_VARIABLE}}"
 	@curl -Gs ${API} -H "Accept: text/tab-separated-values"\
 	    --data-urlencode "query=$$PREFIXES $${${QUERY_VARIABLE}} LIMIT 200000000" \
-	    | sed -r '/<http:\/\/www\.wikidata\.org\/entity\/[LP][^>]*>/d' \
 	    | sed -r 's|<http://www\.wikidata\.org/entity/([Q][0-9]+)>|\1|g' \
+	    | sed -r '/^[^Q]/d' \
 	    | sed -r 's|"([^\t"]*)"@en|\1|g' \
 	    | sed -r 's|"([0-9][0-9]*)"\^\^<http://www\.w3\.org/2001/XMLSchema#int>|\1|g' \
 	    | sed -r 's|<(http[s]*://[^\t ]*)>|\1|g' \
@@ -316,7 +317,7 @@ SELECT ?s ?o WHERE {
 endef
 
 define WIKIDATA_ENTITIES_QUERY
-SELECT ?name ?score ?wikidata_id (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) WHERE {
+SELECT ?wikidata_id ?name ?score (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) WHERE {
    ?wikipedia_url schema:about ?wikidata_id .
    ?wikipedia_url schema:isPartOf <https://en.wikipedia.org/> .
    ?wikidata_id @en@rdfs:label ?name .
