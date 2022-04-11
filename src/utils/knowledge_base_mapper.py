@@ -34,6 +34,7 @@ class KnowledgeBaseMapper:
         the given entity URI.
         """
         for kb in KnowledgeBaseMapper.kbs:
+            # Don't use startswith because it could start with http or https
             if kb.entity_uri_prefix in entity_uri:
                 return kb.name
         return None

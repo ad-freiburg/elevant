@@ -54,14 +54,14 @@ Your linking results file should look something like this:
         nif:referenceContext <http://www.aksw.org/gerbil/NifWebService/request_0#char=0,87> ;
         itsrdf:taIdentRef <https://en.wikipedia.org/wiki/Brad_Pitt> .
     
-- Entity identifiers can be either from Wikidata or from Wikipedia.
+- Entity identifiers can be either from Wikidata or from Wikipedia or DBpedia.
 - `<path_to_linking_results>` can be the path to a single NIF file that contains all benchmark articles and the
  predicted links or the path to a directory that contains multiple such NIF files.
 
 The NIF prediction reader is implemented [here](../src/prediction_readers/nif_prediction_reader.py).
 
 #### Linking Results in a Simple JSONL Format
-If you have linking results in a very simple JSONL format, run
+If you have linking results in a very simple JSONL format as described below, run
 
     python3 link_benchmark_entities.py <experiment_name> simple_jsonl <path_to_linking_results_file> -b <benchmark_name>
 
@@ -69,11 +69,15 @@ The file `<path_to_linking_results_file>` should contain one line per benchmark 
  should correspond to the article order of the benchmark in the `benchmarks` directory. The linking results file
  should look something like this:
 
-    {"predictions": [{"label": "Angelina_Jolie", "start_char": 0, "end_char": 8}, {"label": "Jon_Stewart", "start_char": 21, "end_char": 24}, {"label": "Brad_Paisley", "start_char": 42, "end_char": 46}]}
-    {"predictions": [{"label": "Heidi", "start_char": 0, "end_char": 5}, {"label": "Las_Vegas", "start_char": 35, "end_char": 40}]}
+    {"predictions": [{"entity_reference": "Angelina Jolie", "start_char": 0, "end_char": 8}, {"entity_reference": "Jon Stewart", "start_char": 21, "end_char": 24}, {"entity_reference": "Brad Paisley", "start_char": 42, "end_char": 46}]}
+    {"predictions": [{"entity_reference": "Heidi", "start_char": 0, "end_char": 5}, {"entity_reference": "Las Vegas", "start_char": 35, "end_char": 40}]}
     ...
 
-- `label` is the Wikipedia title of the corresponding entity with whitespaces replaced by "_".
+- `entity_reference` is a reference to the predicted entity in one of the knowledge bases [Wikidata, Wikipedia
+ , DBpedia]. The reference is either a complete link to the entity (e.g.
+ "https://en.wikipedia.org/wiki/Angelina_Jolie") or just the Wikidata QID / Wikipedia title / DBpedia title. Note
+ however, if no complete link is given the knowledge base is inferred from the format of the entity reference
+ and predicted Wikipedia titles that match the regular expression `Q[0-9]+` will be interpreted as Wikidata QIDs.
 - `start_char` is the character offset of the start of the mention (including) within the article text
 - `end_char` is the character offset of the end of the mention (excluding) within the article text
 
@@ -134,7 +138,7 @@ As an alternative to converting your predictions into one of the formats mention
     Implement `get_predictions_with_text_from_file()` if you are not sure that the order in which the predictions are
      read corresponds to the article order in the benchmark and the prediction file contains the original article
      texts. Set `predictions_iterator_implemented = False` when calling `super().__init__()`. See
-     [here](src/prediction_readers/nif_prediction_reader.py) for an example.
+     [here](../src/prediction_readers/nif_prediction_reader.py) for an example.
 
 2) Add your custom prediction reader name to the `src.linkers.linkers.Linkers` enum, e.g. `MY_FORMAT = "my_format"`.
 
