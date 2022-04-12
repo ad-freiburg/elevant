@@ -27,7 +27,7 @@ WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation-results/
 # Adjust if you only want to link or evaluate certain benchmarks
-BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test aida-conll-dev msnbc ace msnbc-original ace-original kore50 spotlight
+BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test msnbc kore50 spotlight aida-conll-dev msnbc-updated ace ace-original
 # Adjust if you only want to link with certain linking systems.
 # The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
 LINKING_SYSTEMS = baseline explosion pos_prior spacy spacy_wikipedia tagme popular_entities neural_el wikifier ambiverse

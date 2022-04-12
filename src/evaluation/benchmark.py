@@ -22,8 +22,8 @@ class Benchmark(Enum):
     AIDA_CONLL_TEST = "aida-conll-test"
     ACE = "ace"
     ACE_ORIGINAL = "ace-original"
-    MSNBC = "msnbc"
-    MSNBC_ORIGINAL = "msnbc-original"
+    MSNBC_UPDATED = "msnbc-updated"
+    MSNBC_ORIGINAL = "msnbc"
     WIKIPEDIA = "wikipedia"
     NEWSCRAWL = "newscrawl"
 

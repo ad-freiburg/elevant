@@ -140,7 +140,7 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
                 example_generator = XMLExampleReader(entity_db,
                                                      settings.ACE04_BENCHMARK_LABELS,
                                                      settings.ACE04_BENCHMARK_TEXTS)
-            elif benchmark_name == Benchmark.MSNBC.value:
+            elif benchmark_name == Benchmark.MSNBC_UPDATED.value:
                 example_generator = XMLExampleReader(entity_db,
                                                      settings.MSNBC_BENCHMARK_LABELS,
                                                      settings.MSNBC_BENCHMARK_TEXTS)

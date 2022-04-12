@@ -52,18 +52,20 @@ This document gives an overview of the benchmarks that are included in ELEVANT.
 
 **Paper:** [Large-Scale Named Entity Disambiguation Based on Wikipedia Data](https://www.aclweb.org/anthology/D07-1074.pdf)
 
-**ELEVANT benchmark name:** `msnbc-original` or `msnbc`
+**ELEVANT benchmark name:** `msnbc` and `msnbc-updated`
 
 **Volume:** \
-*Original Dataset:* 20 articles with 756 mentions. This dataset contains 747 non-NIL mentions. For 87 of these non-NIL
- mentions, the corresponding Wikipedia article can not be found (anymore). Some of the labels are overlapping, e.g.
- `[Frank [Blake]]`, `[The [Home Depot]]`
+*Original Dataset:* According to the paper, the dataset contains 20 articles with 756 mentions. The dataset used by
+ us (and GERBIL) contains 755 mentions of which 8 are linked to NIL. For ca. 87 of the non-NIL mentions, the
+ corresponding Wikipedia article can not be found (anymore. This of course depends on the used Wikipedia version).
+ Some of the labels in the original dataset are overlapping, e.g. `[Frank [Blake]]`, `[The [Home Depot]]`.
 
 *Updated Dataset:* A cleaned version of the MSNBC dataset with no-longer existing Wikipedia entities removed was
- released by [Guo & Barbosa](https://dl.acm.org/doi/pdf/10.1145/2661829.2661887) (according to
- [Ganea et al.](https://dl.acm.org/doi/pdf/10.1145/2872427.2882988)). This version contains 739 mentions in total and
- 656 non-NIL mentions. At least 6 articles strongly differ from the corresponding articles in the original dataset, but
- revolve around the same topics. The affected articles are 16417540, 16443053, 16447720, 16452612, 16455207 and 3683270.
+ released by [Guo & Barbosa](http://webdocs.cs.ualberta.ca/~denilson/files/publications/swj1511.pdf). This version
+ contains 739 mentions in total and 656 non-NIL mentions. For ca. 3 of the non-NIL mentions, the corresponding
+ Wikipedia article can not be found (anymore, depending on the used Wikipedia version). At least 6 articles strongly
+ differ from the corresponding articles in the original dataset, but revolve around the same topics. The IDs of the
+ affected articles are 16417540, 16443053, 16447720, 16452612, 16455207 and 3683270.
 
 **Method:** Cucerzan took the top 2 stories of the 10 MSNBC News categories (January 2, 2007), used them as input to
  his system and then perform a post-hoc evaluation of the disambiguations. From the paper: "We defined a
@@ -78,7 +80,7 @@ This document gives an overview of the benchmarks that are included in ELEVANT.
 
 **Original Dataset:** Broken link: <http://research.microsoft.com/users/silviu/WebAssistant/TestData>
 
-**Updated Version:** Cleaned version of the original dataset. The number of mentions and partly the text differs from
+**Updated Version:** Cleaned version of the original dataset. The number of mentions and partly the texts differs from
  the original version: <www.cs.ualberta.ca/~denilson/data/deos14_ualberta_experiments.tgz>
 
 **Notes:**
