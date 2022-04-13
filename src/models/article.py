@@ -34,7 +34,7 @@ class Article:
         self.spans = []
         self.add_entity_mentions(entity_mentions)
         self.evaluation_span = evaluation_span if evaluation_span is not None else (0, len(self.text))
-        self.labels = labels
+        self.labels = labels if labels else []
         self.sections = sections
 
     def to_dict(self) -> Dict:
