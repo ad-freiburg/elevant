@@ -28,8 +28,7 @@ class NewscrawlDumpReader(WikipediaDumpReader):
         title = title.replace("\n", "")  # A title may not contain newlines (important for evaluation in txt format)
         article = Article(id=article_id,
                           title=title,
-                          text=article_data["text"],
-                          links=[])
+                          text=article_data["text"])
         return article
 
     @staticmethod

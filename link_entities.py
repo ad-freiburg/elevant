@@ -51,7 +51,7 @@ def article_iterator(filename):
             if i == args.n_articles:
                 break
             if args.raw_input:
-                article = Article(id=i, title="", text=line[:-1], links=[])
+                article = Article(id=i, title="", text=line[:-1])
             else:
                 article = WikipediaDumpReader.json2article(line)
             yield article, args.uppercase, args.only_pronouns

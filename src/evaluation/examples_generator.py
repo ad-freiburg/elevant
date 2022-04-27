@@ -37,7 +37,7 @@ class WikipediaExampleReader:
         for article in WikipediaCorpus.development_articles(n):
             article.labels = []
             label_id_counter = 0
-            for span, target in article.links:
+            for span, target in article.hyperlinks:
                 span = expand_span(article.text, span)
                 entity_id = self.entity_db.link2id(target)
                 if entity_id is None:

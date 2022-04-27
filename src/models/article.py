@@ -15,7 +15,7 @@ class Article:
                  id: int,
                  title: str,
                  text: str,
-                 links: Optional[List[Tuple[Tuple[int, int], str]]] = None,
+                 hyperlinks: Optional[List[Tuple[Tuple[int, int], str]]] = None,
                  title_synonyms: Optional[List[Tuple[int, int]]] = None,
                  url: Optional[str] = None,
                  entity_mentions: Optional[List[EntityMention]] = None,
@@ -25,7 +25,7 @@ class Article:
         self.id = id
         self.title = title
         self.text = text
-        self.links = links if links else []
+        self.hyperlinks = hyperlinks if hyperlinks else []
         self.title_synonyms = title_synonyms if title_synonyms else []
         self.url = url
         self.entity_mentions = {}
@@ -41,8 +41,8 @@ class Article:
         data = {"id": self.id,
                 "title": self.title,
                 "text": self.text}
-        if self.links:
-            data["links"] = self.links
+        if self.hyperlinks:
+            data["hyperlinks"] = self.hyperlinks
         if self.title_synonyms:
             data["title_synonyms"] = self.title_synonyms
         if self.url is not None:
@@ -143,7 +143,7 @@ class Article:
 
 def article_from_dict(data: Dict) -> Article:
     # spans are saved as lists, but must be tuples
-    links = [(tuple(span), target) for span, target in data["links"]] if "links" in data else None
+    hyperlinks = [(tuple(span), target) for span, target in data["hyperlinks"]] if "hyperlinks" in data else None
     title_synonyms = [tuple(span) for span in data["title_synonyms"]] if "title_synonyms" in data else None
     sections = [(tuple(span), title) for span, title in data["sections"]] if "sections" in data else None
     labels = None
@@ -152,7 +152,7 @@ def article_from_dict(data: Dict) -> Article:
     return Article(id=int(data["id"]),
                    title=data["title"],
                    text=data["text"],
-                   links=links,
+                   hyperlinks=hyperlinks,
                    title_synonyms=title_synonyms,
                    url=data["url"] if "url" in data else None,
                    entity_mentions=[entity_mention_from_dict(entity_mention_dict) for entity_mention_dict in

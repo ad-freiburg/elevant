@@ -74,7 +74,7 @@ class WikipediaDumpReader:
         text = ""
 
         # tag vars
-        links = []
+        hyperlinks = []
         title_synonyms = []
         bold_open_pos = -1
         link_open_pos = -1
@@ -125,7 +125,7 @@ class WikipediaDumpReader:
                         bold_open_pos = -1
                     elif tag_match.group(2) == "a":
                         if link_open_pos >= 0:
-                            links.append(((link_open_pos, tag_end_pos), link_target))
+                            hyperlinks.append(((link_open_pos, tag_end_pos), link_target))
                         link_open_pos = -1
 
                 # Update current text position
@@ -164,7 +164,7 @@ class WikipediaDumpReader:
         # Append last section
         sections.append(((section_start, len(text)), section_title))
 
-        return text, links, title_synonyms, sections
+        return text, hyperlinks, title_synonyms, sections
 
     @staticmethod
     def json_iterator(yield_none: Optional[bool] = False) -> Iterator[str]:
@@ -189,11 +189,11 @@ class WikipediaDumpReader:
         """
         article_data = json.loads(json_dump)
         article_data: Dict
-        text, links, title_synonyms, sections = WikipediaDumpReader._process_extractor_text(article_data["text"])
+        text, hyperlinks, title_synonyms, sections = WikipediaDumpReader._process_extractor_text(article_data["text"])
         article = Article(id=article_data["id"],
                           title=article_data["title"],
                           text=text,
-                          links=links,
+                          hyperlinks=hyperlinks,
                           title_synonyms=title_synonyms,
                           url=article_data["url"],
                           sections=sections)

@@ -48,7 +48,7 @@ class LabelGenerator:
         iterator = WikipediaCorpus.training_articles(n) if not test else WikipediaCorpus.development_articles(n)
         for article in iterator:
             link_dict = {}
-            for span, link_target in article.links:
+            for span, link_target in article.hyperlinks:
                 # check if target can be mapped to ID:
                 if link_target in self.mapping:
                     entity_id = self.mapping[link_target]

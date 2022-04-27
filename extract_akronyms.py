@@ -19,7 +19,7 @@ def main():
         if article is None:
             print()
             break
-        for span, target in article.links:
+        for span, target in article.hyperlinks:
             link_text = article.text[span[0]:span[1]]
             subsequent_text = article.text[span[1]:span[1] + 10]
             akronym_match = re.match(_akronym_re, subsequent_text)

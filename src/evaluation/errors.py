@@ -284,7 +284,7 @@ def label_false_detections(cases: List[Case],
 
 
 def label_hyperlink_errors(article: Article, cases: List[Case]):
-    hyperlink_spans = set(span for span, target in article.links)
+    hyperlink_spans = set(span for span, target in article.hyperlinks)
     for case in cases:
         if case.span in hyperlink_spans and case.has_ground_truth() and case.is_known_entity():
             if case.is_correct() or case.is_true_quantity_or_datetime():

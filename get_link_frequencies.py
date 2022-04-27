@@ -23,7 +23,7 @@ def main():
         if article is None:
             print()
             break
-        for span, target in article.links:
+        for span, target in article.hyperlinks:
             link_text = article.text[span[0]:span[1]]
             if link_text not in links:
                 links[link_text] = {}
