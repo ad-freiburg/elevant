@@ -1,5 +1,6 @@
 from typing import Iterator, Tuple, Optional
 
+from src.benchmark_readers.simple_jsonl_benchmark_reader import SimpleJsonlBenchmarkReader
 from src.evaluation.benchmark import Benchmark, BenchmarkFormat
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.benchmark_readers.aida_conll_benchmark_reader import AidaConllBenchmarkReader
@@ -89,6 +90,19 @@ class AidaConllExampleReader:
             yield article
 
 
+class SimpleJsonlExampleReader:
+    def __init__(self, entity_db: EntityDatabase, benchmark_path: str):
+        self.entity_db = entity_db
+        self.benchmark_path = benchmark_path
+
+    def iterate(self, n: int = -1) -> Iterator[Article]:
+        parser = SimpleJsonlBenchmarkReader(self.entity_db)
+        for i, article in enumerate(parser.article_iterator(self.benchmark_path)):
+            if i == n:
+                break
+            yield article
+
+
 class JsonBenchmarkExampleReader:
     def __init__(self, benchmark_filename: str):
         self.benchmark_filename = benchmark_filename
@@ -119,8 +133,15 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
             example_generator = AidaConllExampleReader(entity_db, benchmark_file)
+        elif benchmark_format == BenchmarkFormat.SIMPLE_JSONL.value:
+            logger.info("Load mappings for Simple JSONL example generator...")
+            entity_db = EntityDatabase()
+            entity_db.load_wikipedia_wikidata_mapping()
+            entity_db.load_redirects()
+            logger.info("-> Mappings loaded.")
+            example_generator = SimpleJsonlExampleReader(entity_db, benchmark_file)
         else:
-            # Per default, assume OURS_JSONL format
+            # Per default, assume OUR_JSONL format
             example_generator = JsonBenchmarkExampleReader(benchmark_file)
     elif from_json_file:
         benchmark_filename = settings.BENCHMARK_DIR + benchmark_name + ".benchmark.jsonl"
