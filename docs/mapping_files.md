@@ -15,8 +15,7 @@ The following files are generated in `<data_directory>/wikidata_mappings/` when 
 
       Q100286778
 
-* **`datetime.tsv`**: QID of all entities of type 'point in time' in Wikidata.
-Example entry:
+* **`datetime.tsv`**: QID of all entities of type 'point in time' in Wikidata. Example entry:
 
       Q100594618
 
