@@ -19,28 +19,26 @@ class SimpleJsonlPredictionReader(AbstractPredictionReader):
 
     def _get_prediction_from_jsonl(self, string: str) -> Dict[Tuple[int, int], EntityPrediction]:
         """
-        Extract entity predictions from a string that is the output of the
-        Neural EL system by Gupta et al.
+        Extract entity predictions from a string that is in simple JSONL format.
+        E.g. the output of the Neural EL system by Gupta et al.
         """
         link_json = json.loads(string)
-        links = link_json["predictions"]
+        raw_predictions = link_json["predictions"]
         predictions = {}
-        for link in links:
-            entity_reference = link["entity_reference"]
+        for raw_prediction in raw_predictions:
+            entity_reference = raw_prediction["entity_reference"]
             # If the entity reference is not a URI and is not from Wikidata, references in the format "Q[0-9]+"
             # will be wrongly assumed to be Wikidata QIDs
             entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db, verbose=False)
-            start = link["start_char"]
-            end = link["end_char"]
-            span = (start, end)
+            span = raw_prediction["start_char"], raw_prediction["end_char"]
             candidates = {entity_id}  # The Simple JSON Format does not provide information about candidates
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         return predictions
 
     def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """
-        Yields predictions for each Neural EL disambiguation result in the
-        disambiguation_file with one line per article.
+        Yields predictions for each disambiguation result in the disambiguation
+        file with one line per article.
 
         :return: iterator over dictionaries with predictions for each article
         """
