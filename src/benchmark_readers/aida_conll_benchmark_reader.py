@@ -7,6 +7,7 @@ from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.article import Article
 from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from src.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -30,6 +31,10 @@ class AidaConllBenchmarkReader:
     def _get_article(self, article_id_counter):
         # Strip last trailing whitespace
         self.curr_text = self.curr_text[:-1]
+
+        # Assign parent and child ids to GT labels in case of nested GT labels
+        NestedGroundtruthHandler.assign_parent_and_child_ids(self.curr_labels)
+
         return Article(article_id_counter, title="", text=self.curr_text, links=[], labels=self.curr_labels)
 
     def _get_gt_label(self):

@@ -1,7 +1,7 @@
 import os
 import logging
 
-from typing import Iterator, List
+from typing import Iterator
 
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
@@ -10,6 +10,7 @@ from src.models.article import Article
 from xml.etree import ElementTree
 
 from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from src.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -18,15 +19,6 @@ class XMLBenchmarkParser:
     def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
         self.mention_dictionary = dict()
-
-    @staticmethod
-    def has_children(curr_label_idx: int, gt_labels: List[GroundtruthLabel]):
-        child_indices = []
-        curr_span = gt_labels[curr_label_idx].span
-        for i, gt_label in enumerate(gt_labels):
-            if gt_label.span[0] >= curr_span[0] and gt_label.span[1] <= curr_span[1] and curr_label_idx != i:
-                child_indices.append(i)
-        return child_indices
 
     def to_article(self, filename: str, text: str) -> Article:
         """
@@ -67,13 +59,8 @@ class XMLBenchmarkParser:
             labels.append(gt_label)
             label_id_counter += 1
 
-        # Assign parent and child ids to groundtruth labels
-        for i, gt_label in enumerate(labels):
-            child_indices = self.has_children(i, labels)
-            for child_idx in child_indices:
-                child_gt_label = labels[child_idx]
-                child_gt_label.parent = gt_label.id
-                gt_label.children.append(child_gt_label.id)
+        # Assign parent and child ids to GT labels in case of nested GT labels
+        NestedGroundtruthHandler.assign_parent_and_child_ids(labels)
 
         if no_mapping_count > 0:
             logger.warning("%d Labels could not be matched to any Wikidata ID." % no_mapping_count)

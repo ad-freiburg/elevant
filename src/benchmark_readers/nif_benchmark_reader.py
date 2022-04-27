@@ -1,7 +1,7 @@
 import os
 import logging
 
-from typing import Iterator, List
+from typing import Iterator
 
 from pynif import NIFCollection
 
@@ -9,6 +9,7 @@ from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.article import Article
 from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from src.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -18,18 +19,9 @@ class NifBenchmarkReader:
         self.entity_db = entity_db
         self.article_id_counter = 0
 
-    @staticmethod
-    def has_children(curr_label_idx: int, gt_labels: List[GroundtruthLabel]):
-        child_indices = []
-        curr_span = gt_labels[curr_label_idx].span
-        for i, gt_label in enumerate(gt_labels):
-            if gt_label.span[0] >= curr_span[0] and gt_label.span[1] <= curr_span[1] and curr_label_idx != i:
-                child_indices.append(i)
-        return child_indices
-
     def get_articles_from_nif(self, nif_content: str) -> Iterator[Article]:
         """
-        Create WikipediaArticles from the given NIF content.
+        Create articles from the given NIF content.
         """
         nif_doc = NIFCollection.loads(nif_content)
 
@@ -60,12 +52,7 @@ class NifBenchmarkReader:
                 label_id_counter += 1
 
             # Assign parent and child ids to GT labels in case of nested GT labels
-            for i, gt_label in enumerate(labels):
-                child_indices = self.has_children(i, labels)
-                for child_idx in child_indices:
-                    child_gt_label = labels[child_idx]
-                    child_gt_label.parent = gt_label.id
-                    gt_label.children.append(child_gt_label.id)
+            NestedGroundtruthHandler.assign_parent_and_child_ids(labels)
 
             article = Article(id=self.article_id_counter, title=title, text=text, links=[], labels=labels)
             self.article_id_counter += 1
@@ -77,7 +64,7 @@ class NifBenchmarkReader:
 
     def get_articles_from_file(self, filepath: str) -> Iterator[Article]:
         """
-        Yields all WikipediaArticles with their GT labels from the given file.
+        Yields all articles with their GT labels from the given file.
         """
         with open(filepath, "r", encoding="utf8") as file:
             file_content = file.readlines()
@@ -88,7 +75,7 @@ class NifBenchmarkReader:
     def article_iterator(self, benchmark_path: str) -> Iterator[Article]:
         """
         Yields for each document in the NIF file or directory with NIF files
-        a WikipediaArticle with labels.
+        a article with labels.
         """
         # Reset article ID counter
         self.article_id_counter = 0
