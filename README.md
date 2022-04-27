@@ -65,13 +65,13 @@ See [Evaluation Web App](docs/evaluation_webapp.md) for a detailed overview of t
 ## Add a Benchmark
 
 You can easily add a benchmark if you have a benchmark file that is in the
- [JSONL format we use](docs/our_jsonl_format.md), in the common NLP Interchange Format (NIF) or in the IOB-based
- format used by Hoffart et al. for their AIDA/CoNLL benchmark. Benchmarks in other formats have to be converted into
- one of these formats first.
+ [JSONL format we use](docs/our_jsonl_format.md), in the common NLP Interchange Format (NIF), in the IOB-based format
+ used by Hoffart et al. for their AIDA/CoNLL benchmark or in a very simple JSONL format. Benchmarks in other formats
+ have to be converted into one of these formats first.
 
 To add a benchmark, simply run
 
-    python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <nif|ours|aida-conll>
+    python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple_jsonl>
 
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types and writes the result to the file
@@ -81,7 +81,7 @@ In the web app, reload the page and the benchmark will show up in the benchmark 
 
 The benchmark can now be linked with a linker of your choice using the `link_benchmark_entities.py` script with the
  parameter `-b <benchmark_name>`. See section [Add an Experiment](#add-an-experiment) for details on how to link a
- benchmark.
+ benchmark and the supported formats.
 
 See [Add A Benchmark](docs/add_benchmark.md) for more details on adding a benchmark including a description of the
  supported file formats.
