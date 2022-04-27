@@ -23,8 +23,8 @@ class KnowledgeBase:
 
 
 class KnowledgeBaseMapper:
-    wikidata_kb = KnowledgeBase(KnowledgeBaseName.WIKIDATA, "www.wikidata.org/wiki/")
-    wikipedia_kb = KnowledgeBase(KnowledgeBaseName.WIKIPEDIA, "en.wikipedia.org/wiki/")
+    wikidata_kb = KnowledgeBase(KnowledgeBaseName.WIKIDATA, "wikidata.org/wiki/")
+    wikipedia_kb = KnowledgeBase(KnowledgeBaseName.WIKIPEDIA, "wikipedia.org/wiki/")
     dbpedia_kb = KnowledgeBase(KnowledgeBaseName.DBPEDIA, "dbpedia.org/resource/")
     kbs = [wikidata_kb, wikipedia_kb, dbpedia_kb]
 
@@ -70,6 +70,8 @@ class KnowledgeBaseMapper:
                 entity_name = unquote(entity_name)
             entity_name = entity_name.replace('_', ' ')
             # This should work for both Wikipedia and DBpedia entity names
+            # This site contains info about the (very minor) differences between Wikipedia and DBpedia names:
+            # http://nl.dbpedia.org/web/infra/uri-encoding
             entity_id = entity_db.link2id(entity_name)
             if not entity_id:
                 logger.warning("Entity name %s could not be mapped to a Wikidata QID." % entity_name)
