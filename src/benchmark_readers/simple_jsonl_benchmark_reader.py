@@ -34,7 +34,7 @@ class SimpleJsonlBenchmarkReader:
                 for raw_label in benchmark_json["labels"]:
                     span = raw_label["start_char"], raw_label["end_char"]
                     entity_uri = raw_label["entity_reference"]
-                    entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
+                    entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=False)
                     if not entity_id:
                         no_mapping_count += 1
                         entity_id = "Unknown"
