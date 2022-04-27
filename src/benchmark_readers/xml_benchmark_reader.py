@@ -65,7 +65,7 @@ class XMLBenchmarkParser:
         if no_mapping_count > 0:
             logger.warning("%d Labels could not be matched to any Wikidata ID." % no_mapping_count)
 
-        return Article(id=-1, title="", text=stripped_text, links=[], labels=labels)
+        return Article(id=-1, title="", text=stripped_text, labels=labels)
 
     def get_mention_dictionary_from_file(self, xml_file: str):
         """

@@ -54,7 +54,7 @@ class NifBenchmarkReader:
             # Assign parent and child ids to GT labels in case of nested GT labels
             NestedGroundtruthHandler.assign_parent_and_child_ids(labels)
 
-            article = Article(id=self.article_id_counter, title=title, text=text, links=[], labels=labels)
+            article = Article(id=self.article_id_counter, title=title, text=text, labels=labels)
             self.article_id_counter += 1
 
             if no_mapping_count > 0:

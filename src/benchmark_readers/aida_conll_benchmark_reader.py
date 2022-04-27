@@ -35,7 +35,7 @@ class AidaConllBenchmarkReader:
         # Assign parent and child ids to GT labels in case of nested GT labels
         NestedGroundtruthHandler.assign_parent_and_child_ids(self.curr_labels)
 
-        return Article(article_id_counter, title="", text=self.curr_text, links=[], labels=self.curr_labels)
+        return Article(article_id_counter, title="", text=self.curr_text, labels=self.curr_labels)
 
     def _get_gt_label(self):
         span = (self.curr_span_start, len(self.curr_text) - 1)  # -1 for the appended whitespace
