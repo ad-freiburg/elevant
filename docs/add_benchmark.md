@@ -1,10 +1,12 @@
 # Add a Benchmark
-You can easily add a benchmark if you have a benchmark file that is in the
- [JSONL format we use](our_jsonl_format.md), in the common NLP Interchange Format (NIF), in the IOB-based format
- used by Hoffart et al. for their AIDA/CoNLL benchmark or in a very simple JSONL format. Benchmarks in other formats
- have to be converted into one of these formats first.
+You can easily add a benchmark if you have a benchmark file that is in one of the following formats:
 
-To add a benchmark, simply run
+- our JSONL format
+- NLP Interchange Format (NIF)
+- IOB-based format used by Hoffart et al. for their AIDA/CoNLL benchmark
+- a very simple JSONL format
+
+Benchmarks in other formats have to be converted into one of these formats first. To add a benchmark, simply run
 
     python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple_jsonl>
 
