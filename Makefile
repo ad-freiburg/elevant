@@ -213,7 +213,7 @@ generate_wikidata_mappings:
 	@echo
 	@echo
 	@echo "Get mapping from QID to coreference types needed only for our own coref resolver."
-	@echo "Takes <= 30 mins. If the coref resolver is not needed you can skip this step."
+	@echo "Takes ca. 1h. If the coref resolver is not needed you can skip this step."
 	@echo
 	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
 	python3 create_coreference_types_mapping.py
