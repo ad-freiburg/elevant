@@ -58,7 +58,7 @@ Their evaluation is very short, with their main result being that most errors ar
 ### Visual Error Analysis for Entity Linking
 *Heinzerling and Strube, 2015*
 
-** Paper:** <https://aclanthology.org/P15-4007.pdf>
+**Paper:** <https://aclanthology.org/P15-4007.pdf>
 
 **Objective:**
 Create a tool for visually exploring and analyzing entity linking results.

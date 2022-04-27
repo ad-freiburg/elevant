@@ -8,9 +8,9 @@
 **Volume:** \
 *Original Dataset:* 20 articles with 756 mentions (of which 127 were linked to NIL since there was no appropriate Wikipedia article corresponding to the mention).
 This is the same as the dataset from the GERBIL download below. This dataset contains 747 non-NIL mentions.
-For 87 of these non-NIL mentions, the corresponding Wikipedia article can not be found (anymore).\
-Some of the labels are overlapping in the original dataset. E.g. [Frank [Blake]], [The [Home Depot]]
-*Updated Dataset:* A cleaned version of the MSNBC dataset with no-longer existing Wikipedia entities removed was released by [Guo & Barbosa](https://dl.acm.org/doi/pdf/10.1145/2661829.2661887) (according to [Ganea et al.](https://dl.acm.org/doi/pdf/10.1145/2872427.2882988)).
+For 87 of these non-NIL mentions, the corresponding Wikipedia article can not be found (anymore).
+Some of the labels are overlapping in the original dataset, e.g. [Frank [Blake]], [The [Home Depot]].\
+*Updated Dataset:* A cleaned version of the MSNBC dataset with no-longer existing Wikipedia entities removed was released by [Guo & Barbosa](http://webdocs.cs.ualberta.ca/~denilson/files/publications/swj1511.pdf).
 This version contains 739 mentions in total and 656 non-NIL mentions. At least 6 articles are different articles than the one in the original dataset, but revolve around the same topics.
 These articles are 16417540, 16443053, 16447720, 16452612, 16455207, 3683270.
 
@@ -19,9 +19,9 @@ From the paper: "We defined a disambiguation to be correct if it represented the
 For example, the article *Viking program* is judged as correct for “Viking Landers”, for which there is no separate article in the Wikipedia collection".
 
 **Download:**\
-**Updated Version (recommended):** Cleaned version of the original dataset. The number of mentions and partly the text differs from the original version. <www.cs.ualberta.ca/~denilson/data/deos14_ualberta_experiments.tgz>
+**Updated Version:** Cleaned version of the original dataset. The number of mentions and partly the text differs from the original version. <www.cs.ualberta.ca/~denilson/data/deos14_ualberta_experiments.tgz>
 
-**Gerbil Version:** UTF-8 and XML problems from the [Wikification dataset](cogcomp.org/Data/ACL2011WikificationData.zip) (assumed to be close to the original) fixed without additional adjustments. <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
+**Gerbil Version:** UTF-8 and XML problems from the [Wikification dataset](http://cogcomp.org/Data/ACL2011WikificationData.zip) (assumed to be close to the original) fixed without additional adjustments. <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
 
 **Original Dataset:** Broken link. <http://research.microsoft.com/users/silviu/WebAssistant/TestData>
 
@@ -91,7 +91,7 @@ Certain kinds of entity linking problems occur more frequently in such articles,
 
 
 ## KORE50
-Hoffart et al., 2012*
+*Hoffart et al., 2012*
 
 **Paper:** [KORE: Keyphrase Overlap Relatedness for Entity Disambiguation](https://dl.acm.org/doi/pdf/10.1145/2396761.2396832)
 
