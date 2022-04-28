@@ -957,19 +957,24 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
     var mentions = [];
 
     // get the mentions before the evaluation span
-    for (prediction of article_data.entity_mentions) {
-        if (prediction.span[1] < evaluation_begin) {
-            mentions.push(prediction);
+    if ("entity_mentions" in article_data) {
+        for (prediction of article_data.entity_mentions) {
+            if (prediction.span[1] < evaluation_begin) {
+                mentions.push(prediction);
+            }
         }
     }
+
     // get the cases inside the evaluation span from the cases list
     for (eval_case of article_cases) {
         mentions.push(eval_case);
     }
     // get the mentions after the evaluation span
-    for (prediction of article_data.entity_mentions) {
-        if (prediction.span[0] >= evaluation_end) {
-            mentions.push(prediction);
+    if ("entity_mentions" in article_data) {
+        for (prediction of article_data.entity_mentions) {
+            if (prediction.span[0] >= evaluation_end) {
+                mentions.push(prediction);
+            }
         }
     }
 
