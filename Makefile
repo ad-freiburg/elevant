@@ -17,9 +17,7 @@ WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata_mappings/
 WIKIDATA_SPARQL_ENDPOINT = https://qlever.cs.uni-freiburg.de/api/wikidata
 # Note that the query names are also used for generating the file name by
 # casting the query name to lowercase and appending .tsv
-DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_NAME QID_TO_SITELINK WIKIDATA_ENTITIES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
-BATCH_SIZE = 10000000
-NUM_LINKER_PROCESSES = 1
+DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_NAME QID_TO_SITELINK QID_TO_ALIASES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 
 # Variables for generating wikipedia mappings
 WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
@@ -34,6 +32,9 @@ LINKING_SYSTEMS = baseline explosion pos_prior spacy spacy_wikipedia tagme popul
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
 
+# Number of processes used when linking articles (not used for linking benchmark articles)
+NUM_LINKER_PROCESSES = 1
+
 # Variables for the Evaluation Web App
 WEB_APP_PORT = 8000
 
@@ -45,7 +46,7 @@ config:
 	@echo "Basic configuration variables:"
 	@echo
 	@for VAR in DATA_DIR WIKIPEDIA_DUMP_FILES_DIR WIKI_DUMP EXTRACTED_WIKI_DUMP LINKED_WIKI_ARTICLES \
-	    WIKIDATA_MAPPINGS_DIR WIKIDATA_SPARQL_ENDPOINT DATA_QUERY_NAMES BATCH_SIZE; do \
+	    WIKIDATA_MAPPINGS_DIR WIKIDATA_SPARQL_ENDPOINT DATA_QUERY_NAMES; do \
 	  printf "%-30s = %s\n" "$$VAR" "$${!VAR}"; done
 	@echo
 	@printf "All targets: "
@@ -76,7 +77,7 @@ link_benchmark:
 	  if [ $${SYSTEM} == "ambiverse" ]; then \
 	    ARGUMENTS=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
 	  elif [ $${SYSTEM} == "baseline" ]; then \
-	    ARGUMENTS=links-all; \
+	    ARGUMENTS=wikipedia; \
 	  elif [ $${SYSTEM} == "explosion" ]; then \
 	    ARGUMENTS=/local/data/entity-linking/linker_files/explosion_linker_models/1M/; \
 	  elif [ $${SYSTEM} == "neural_el" ]; then \
@@ -316,16 +317,15 @@ SELECT ?s ?o WHERE {
 }
 endef
 
-define WIKIDATA_ENTITIES_QUERY
-SELECT ?wikidata_id ?name ?score (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) WHERE {
+define QID_TO_ALIASES_QUERY
+SELECT ?wikidata_id ?name (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) WHERE {
    ?wikipedia_url schema:about ?wikidata_id .
    ?wikipedia_url schema:isPartOf <https://en.wikipedia.org/> .
    ?wikidata_id @en@rdfs:label ?name .
-   ?wikidata_id ^schema:about/wikibase:sitelinks ?score .
    OPTIONAL { ?wikidata_id @en@skos:altLabel ?synonym }
 }
-GROUP BY ?name ?score ?wikipedia_url ?wikidata_id
-ORDER BY DESC(?score)
+GROUP BY ?name ?wikipedia_url ?wikidata_id
+ORDER BY ASC(?wikidata_id)
 endef
 
 define QID_TO_WIKIPEDIA_URL_QUERY

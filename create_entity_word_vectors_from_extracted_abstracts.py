@@ -10,7 +10,7 @@ if __name__ == "__main__":
     SAVE_EVERY = 10000
 
     entity_db = EntityDatabase()
-    entity_db.load_entities_big()
+    entity_db.load_all_entities_in_wikipedia()
     entity_db.load_wikipedia_wikidata_mapping()
     entity_db.load_redirects()
     entity_db.load_link_frequencies()

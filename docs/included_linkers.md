@@ -24,10 +24,10 @@ ELEVANT comes with a simple baseline that performs Entity Recognition using the 
  times the text *m* was linked to *e* in our Wikipedia training split) over the number of times the text *m* was
  linked to any entity in our Wikipedia training split.
  
-You can use the Baseline by providing the linker name `baseline` and the additional specification `links-all` to the
+You can use the Baseline by providing the linker name `baseline` and the additional specification `wikipedia` to the
  linking script:
  
-    python3 link_benchmark_entities.py <experiment_name> baseline links-all -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> baseline wikipedia -b <benchmark_name>
 
 The Baseline linker class is implemented [here](../src/linkers/alias_entity_linker.py).
 

@@ -10,12 +10,13 @@ from src import settings
 def main(args):
     logger.info("Loading entity database ...")
     entity_db = EntityDatabase()
-    entity_db.load_entities_small(args.min_score)
+    entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=args.min_score)
     entity_db.add_name_aliases()
     entity_db.add_wikidata_aliases()
     entity_db.load_wikipedia_wikidata_mapping()
     entity_db.load_redirects()
     entity_db.load_link_frequencies()
+    entity_db.load_sitelink_counts(args.min_score)
 
     logger.info("Creating knowledge base...")
     kb = KnowledgeBaseCreator.create_kb(entity_db=entity_db)

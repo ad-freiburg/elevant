@@ -31,7 +31,7 @@ def main(args):
 
     logger.info("Loading entity database ...")
     entity_db = EntityDatabase()
-    entity_db.load_entities_small(minimum_score)
+    entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=minimum_score)
     generator = VectorGenerator()
 
     abstracts_file = settings.QID_TO_ABSTRACTS_FILE

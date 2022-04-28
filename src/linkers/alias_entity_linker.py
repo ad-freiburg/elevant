@@ -45,7 +45,7 @@ class AliasEntityLinker(AbstractEntityLinker):
         return self.entity_db.get_link_frequency(alias, entity_id)
 
     def _score_entity_by_score(self, entity_id: str) -> int:
-        return self.entity_db.get_score(entity_id)
+        return self.entity_db.get_sitelink_count(entity_id)
 
     def score_entity(self, alias: str, entity_id: str) -> int:
         if self.strategy == LinkingStrategy.LINK_FREQUENCY:

@@ -14,7 +14,7 @@ class KnowledgeBaseCreator:
     def create_kb_wikipedia() -> KnowledgeBase:
         logger.info("Load entity database ...")
         entity_db = EntityDatabase()
-        entity_db.load_entities_big()
+        entity_db.load_all_entities_in_wikipedia()
         entity_db.load_wikipedia_wikidata_mapping()
         entity_db.load_redirects()
         entity_db.load_link_frequencies()
@@ -61,7 +61,7 @@ class KnowledgeBaseCreator:
         logger.info("Loading entity vectors...")
         for entity_id, vector in VectorLoader.iterate():
             if entity_db.contains_entity(entity_id) and not kb.contains_entity(entity_id):
-                score = entity_db.get_score(entity_id)
+                score = entity_db.get_sitelink_count(entity_id)
                 kb.add_entity(entity=entity_id, freq=score, entity_vector=vector)
         logger.info("-> Vectors loaded. Knowledge base contains %d entities." % len(kb))
 

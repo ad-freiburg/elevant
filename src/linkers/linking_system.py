@@ -56,16 +56,15 @@ class LinkingSystem:
 
     def _initialize_entity_db(self, linker_type: str, linker: str, coref_linker: str, min_score: int):
         # Linkers for which not to load entities into the entity database
-        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.NONE.value, Linkers.NIF.value)
+        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.NONE.value, Linkers.NIF.value,
+                         Linkers.SIMPLE_JSONL.value, Linkers.WIKIFIER.value)
 
         self.entity_db = EntityDatabase()
 
-        if linker_type == Linkers.BASELINE.value and linker in ("scores", "links"):
-            # Note that this affects also a potential coreference_linker's entity database
-            self.entity_db.load_entities_small(min_score)
-        elif coref_linker or not ((linker_type == Linkers.BASELINE.value and
-                                   linker == "max-match-ner") or linker_type in no_db_linkers):
-            self.entity_db.load_entities_big(self.type_mapping_file)
+        if coref_linker or not ((linker_type == Linkers.BASELINE.value and linker == "max-match-ner")
+                                or linker_type in no_db_linkers):
+            self.entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=min_score,
+                                                          type_mapping=self.type_mapping_file)
 
     def _initialize_linker(self, linker_type: str, linker_info: str, kb_name: Optional[str] = None,
                            longest_alias_ner: Optional[bool] = False):
@@ -95,20 +94,21 @@ class LinkingSystem:
                                         MappingName.REDIRECTS})
             self.prediction_reader = SimpleJsonlPredictionReader(result_file, self.entity_db)
         elif linker_type == Linkers.BASELINE.value:
-            if linker_info not in ("links", "scores", "links-all", "max-match-ner"):
-                raise NotImplementedError("Unknown strategy '%s'." % linker_info)
+            if linker_info not in ("wikidata", "wikipedia", "max-match-ner"):
+                raise NotImplementedError("Unknown baseline strategy '%s'." % linker_info)
             if linker_info == "max-match-ner":
                 self.linker = MaximumMatchingNER(self.entity_db)
-            if linker_info in ("links", "links-all"):
+            if linker_info == "wikidata":
+                self.load_missing_mappings({MappingName.WIKIDATA_ALIASES,
+                                            MappingName.NAME_ALIASES,
+                                            MappingName.SITELINKS})
+                strategy = LinkingStrategy.ENTITY_SCORE
+            else:
                 self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                             MappingName.REDIRECTS,
                                             MappingName.LINK_ALIASES,
                                             MappingName.LINK_FREQUENCIES})
                 strategy = LinkingStrategy.LINK_FREQUENCY
-            else:
-                self.load_missing_mappings({MappingName.WIKIDATA_ALIASES,
-                                            MappingName.NAME_ALIASES})
-                strategy = LinkingStrategy.ENTITY_SCORE
             self.linker = AliasEntityLinker(self.entity_db, strategy, load_model=not longest_alias_ner,
                                             longest_alias_ner=longest_alias_ner)
         elif linker_type == Linkers.BERT_MODEL.value:

@@ -100,31 +100,12 @@ class EntityDatabase:
     def get_entity(self, entity_id: str) -> WikidataEntity:
         return self.entities[entity_id]
 
-    def get_score(self, entity_id: str) -> int:
-        if not self.contains_entity(entity_id):
-            return 0
-        return self.get_entity(entity_id).score
-
-    def load_entities_small(self, minimum_score: Optional[int] = 0):
-        logger.info("Loading entities with sitelink count >= %d into entity database ..." % minimum_score)
-        self.loaded_info[MappingName.ENTITIES] = LoadedInfo(LoadingType.RESTRICTED, minimum_score)
-        for entity in EntityDatabaseReader.read_entity_file():
-            if entity.score >= minimum_score:
-                self.add_entity(entity)
-        logger.info("-> Entity database contains %d entities." % self.size_entities())
-
-    def load_entities_big(self, type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
+    def load_all_entities_in_wikipedia(self, minimum_sitelink_count: Optional[int] = 0,
+                                       type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
         logger.info("Loading entities from Wikipedia to Wikidata mapping into entity database ...")
-        self.loaded_info[MappingName.ENTITIES] = LoadedInfo(LoadingType.FULL)
         mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
-        # The mapping contains Wikipedia titles. Load an additional mapping for Wikidata names.
-        # Don't save the mapping because it is huge and we only need the names of entities that
-        # are in the Wikipedia-Wikidata mapping.
         entity_ids = set(mapping.values())
-        entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, type_mapping)
-        for entity in entities.values():
-            self.add_entity(entity)
-        logger.info("-> Entity database contains %d entities." % self.size_entities())
+        self.load_entities(entity_ids, minimum_sitelink_count, type_mapping)
 
     def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: Optional[int] = 0,
                       type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
@@ -133,8 +114,12 @@ class EntityDatabase:
         logger.info("Loading %d relevant entities with sitelink count >= %d into entity database ..."
                     % (len(entity_ids), minimum_sitelink_count))
         entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, type_mapping)
+        if minimum_sitelink_count > 0:
+            # If a minimum sitelink count is given, load sitelink mapping to check
+            # entity sitelink counts against the given minimum sitelink count
+            self.load_sitelink_counts(minimum_sitelink_count)
         for entity in entities.values():
-            if self.get_sitelink_count(entity.entity_id) >= minimum_sitelink_count:
+            if minimum_sitelink_count == 0 or minimum_sitelink_count <= self.get_sitelink_count(entity.entity_id):
                 self.add_entity(entity)
         logger.info("-> Entity database contains %d entities." % self.size_entities())
 
@@ -151,10 +136,12 @@ class EntityDatabase:
     def add_wikidata_aliases(self):
         logger.info("Loading Wikidata aliases into entity database ...")
         self.loaded_info[MappingName.WIKIDATA_ALIASES] = LoadedInfo(LoadingType.FULL)
-        for entity in EntityDatabaseReader.read_entity_file():
-            if self.contains_entity(entity.entity_id):
-                for alias in entity.synonyms | {entity.name}:
-                    self.add_alias(alias, entity.entity_id)
+        alias_mapping = EntityDatabaseReader.read_wikidata_aliases()
+        for entity_id in self.entities:
+            if entity_id in alias_mapping:
+                aliases = alias_mapping[entity_id]
+                for alias in aliases:
+                    self.add_alias(alias, entity_id)
         logger.info("-> Entity database contains %d aliases." % self.size_aliases())
 
     def add_name_aliases(self):

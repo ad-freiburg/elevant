@@ -15,7 +15,6 @@ per line.
 """
 
 import argparse
-import time
 import log
 import sys
 import os
@@ -71,7 +70,7 @@ if __name__ == "__main__":
                         help="Entity linker type.")
     parser.add_argument("linker",
                         help="Specify the linker to be used, depending on its type:\n"
-                             "BASELINE: Choose baseline from {scores, links, links-all, max-match-ner}.\n"
+                             "BASELINE: Choose baseline from {wikipedia, wikidata, max-match-ner}.\n"
                              "SPACY: Name of the linker.\n"
                              "EXPLOSION: Full path to the saved model.\n"
                              "AMBIVERSE: Full path to the predictions directory.\n"

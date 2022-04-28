@@ -27,9 +27,9 @@ from typing import Dict, Optional
 from enum import Enum
 
 from src.evaluation.benchmark import get_available_benchmarks
-from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src.evaluation.examples_generator import get_example_generator
+from src.models.entity_database import EntityDatabase
 from src.models.wikidata_entity import WikidataEntity
 from src.models.article import Article, article_from_json
 
@@ -49,7 +49,7 @@ def replace_non_ascii_chars(text: str) -> str:
 
 
 def get_entity_text(article: Article,
-                    entities: Dict[str, WikidataEntity],
+                    entity_db: EntityDatabase,
                     annotation: Optional[Annotation] = Annotation.LABELS,
                     evaluation_span: Optional[bool] = False):
     """Annotate entity mentions in the article's text."""
@@ -60,16 +60,16 @@ def get_entity_text(article: Article,
         text = text[begin:end]
         offset = begin
     if annotation == Annotation.LABELS:
-        return get_labeled_entity_text(article, text, offset, entities)
+        return get_labeled_entity_text(article, text, offset, entity_db)
     elif annotation == Annotation.LINKS:
-        return get_linked_entity_text(article, text, offset, entities)
+        return get_linked_entity_text(article, text, offset, entity_db)
     elif annotation == Annotation.NER:
         return get_ner_text(article, text, offset), []
     else:
         return get_hyperlink_text(article, text, offset)
 
 
-def get_labeled_entity_text(article, text, offset, entities):
+def get_labeled_entity_text(article, text, offset, entity_db):
     if article.labels is None:
         return text, []
 
@@ -79,7 +79,7 @@ def get_labeled_entity_text(article, text, offset, entities):
         begin -= offset
         end -= offset
         entity_text_snippet = text[begin:end]
-        entity_name = entities[entity_id].name if entity_id in entities else ""
+        entity_name = entity_db.get_entity(entity_id).name if entity_db.contains_entity(entity_id) else ""
         entity_string = "[%s:%s|%s]" % (entity_id, entity_name, entity_text_snippet)
         text = text[:begin] + entity_string + text[end:]
         label_entities.add(entity_id)
@@ -103,7 +103,7 @@ def get_ner_text(article, text, offset):
     return text
 
 
-def get_linked_entity_text(article, text, offset, entities):
+def get_linked_entity_text(article, text, offset, entity_db):
     if article.entity_mentions is None:
         return text, []
 
@@ -117,7 +117,7 @@ def get_linked_entity_text(article, text, offset, entities):
         # Do not print entities that were recognized but not linked
         if entity_mention.is_linked():
             entity_id = entity_mention.entity_id
-            entity_name = entities[entity_id].name if entity_id in entities else ""
+            entity_name = entity_db.get_entity(entity_id).name if entity_db.contains_entity(entity_id) else ""
             entity_string = "[%s:%s|%s]" % (entity_id, entity_name, entity_text_snippet)
             text = text[:begin] + entity_string + text[end:]
             if entity_id not in linked_entities:
@@ -193,10 +193,11 @@ def main(args):
     elif args.print_ner_groundtruth:
         annotation = Annotation.NER
 
-    entities = None
+    entity_db = None
     if annotation is not None:
         logger.info("Loading entities...")
-        entities = EntityDatabaseReader.read_entity_database()
+        entity_db = EntityDatabase()
+        entity_db.load_all_entities_in_wikipedia()
 
     article_num = 0
     for article in article_text_iterator:
@@ -207,7 +208,7 @@ def main(args):
 
         if annotation is not None:
             evaluation_span = args.evaluation_span
-            text, entity_list = get_entity_text(article, entities, annotation, evaluation_span)
+            text, entity_list = get_entity_text(article, entity_db, annotation, evaluation_span)
             if args.print_entity_list:
                 text += "\nACTUAL ENTITIES\n"
                 for ent in entity_list:

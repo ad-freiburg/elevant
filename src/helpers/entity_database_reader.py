@@ -17,38 +17,6 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 class EntityDatabaseReader:
     @staticmethod
-    def read_entity_file() -> List[WikidataEntity]:
-        filename = settings.WIKIDATA_ENTITIES_FILE
-        logger.info("Loading Wikidata entity info from %s ..." % filename)
-        entities = []
-        for i, line in enumerate(open(filename)):
-            values = line.strip('\n').split('\t')
-            entity_id = values[0]
-            name = values[1]
-            score = int(values[2])
-            synonyms = {synonym for synonym in values[3].split(";") if len(synonym) > 0}
-            entity = WikidataEntity(name, score, entity_id, synonyms)
-            entities.append(entity)
-        logger.info("-> %d entities loaded." % len(entities))
-        return entities
-
-    @staticmethod
-    def read_entity_database() -> Dict[str, WikidataEntity]:
-        filename = settings.WIKIDATA_ENTITIES_FILE
-        logger.info("Loading Wikidata entity info from %s ..." % filename)
-        entities = dict()
-        for i, line in enumerate(open(filename)):
-            values = line.strip('\n').split('\t')
-            entity_id = values[0]
-            name = values[1]
-            score = int(values[2])
-            synonyms = {synonym for synonym in values[3].split(";") if len(synonym) > 0}
-            entity = WikidataEntity(name, score, entity_id, synonyms)
-            entities[entity_id] = entity
-        logger.info("-> %d entities loaded." % len(entities))
-        return entities
-
-    @staticmethod
     def get_link_frequencies() -> Dict[str, Dict[str, int]]:
         filename = settings.LINK_FREEQUENCIES_FILE
         logger.info("Loading link frequencies from %s ..." % filename)
@@ -154,8 +122,23 @@ class EntityDatabaseReader:
                     entity_id = lst[0].strip()[3:]
                     name = lst[1].strip()
                     types[entity_id] = name
-        logger.info("-> %d whiteslit types loaded." % len(types))
+        logger.info("-> %d whitelist types loaded." % len(types))
         return types
+
+    @staticmethod
+    def read_wikidata_aliases() -> Dict[str, Set[str]]:
+        filename = settings.QID_TO_ALIASES_FILE
+        logger.info("Loading Wikidata aliases from %s ..." % filename)
+        mapping = {}
+        for i, line in enumerate(open(filename)):
+            values = line.strip('\n').split('\t')
+            entity_id = values[0]
+            name = values[1]
+            synonyms = {synonym for synonym in values[2].split(";") if len(synonym) > 0}
+            synonyms.add(name)
+            mapping[entity_id] = synonyms
+        logger.info("-> %d Wikidata aliases loaded." % len(mapping))
+        return mapping
 
     @staticmethod
     def get_gender_mapping(mappings_file: str = settings.QID_TO_GENDER_FILE) -> Dict[str, Gender]:
