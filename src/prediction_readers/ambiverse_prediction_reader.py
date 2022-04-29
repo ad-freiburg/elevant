@@ -52,8 +52,8 @@ class AmbiversePredictionReader(AbstractPredictionReader):
                     entity_id = entity_id_from_name
                 for span in matching_predictions_spans:
                     new_predictions[span] = EntityPrediction(span, entity_id, {entity_id})
-        else:
-            logger.info("No \"entities\" key in ambiverse jsonl file. The following predictions might be dropped: "
+        elif predictions:
+            logger.info("No \"entities\" key in ambiverse jsonl file. The following predictions might be dropped: %s"
                         % predictions)
         return new_predictions
 
