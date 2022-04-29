@@ -269,6 +269,14 @@ $("document").ready(function() {
     });
 });
 
+function get_type_label(qid) {
+    var qid_lower = qid.toLowerCase();
+    if (qid_lower in type_name_mapping) {
+        return type_name_mapping[qid_lower];
+    }
+    return qid + " (label missing)";
+}
+
 function read_example_benchmark_data() {
     var filename = EXAMPLE_BENCHMARK_RESULTS_PATH.substring(0, EXAMPLE_BENCHMARK_RESULTS_PATH.length - RESULTS_EXTENSION.length);
     var articles_path = filename + ".jsonl";
@@ -1261,7 +1269,11 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
                 tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
             }
             if (annotation.class == ANNOTATION_CLASS_OPTIONAL) tooltip_body_text += "Note: Detection is optional<br>";
-            if (annotation.class == ANNOTATION_CLASS_UNKNOWN) tooltip_body_text += "Note: Entity not found in the knowledge base<br>"
+            if (annotation.class == ANNOTATION_CLASS_UNKNOWN) tooltip_body_text += "Note: Entity not found in the knowledge base<br>";
+            if (![ANNOTATION_CLASS_OPTIONAL, ANNOTATION_CLASS_UNKNOWN].includes(annotation.class) && annotation.gt_entity_type) {
+                var type_string = $.map(annotation.gt_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
+                tooltip_body_text += "Types: " + type_string + "<br>";
+            }
             tooltip_classes += " below";
         }
     }
@@ -1272,12 +1284,12 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
         }
         tooltip_classes += " " + annotation.class;
     }
-    if (annotation.predicted_by) {
-        tooltip_body_text += "Predicted by " + annotation.predicted_by + "<br>";
+    if (annotation.predicted_by) tooltip_body_text += "Predicted by " + annotation.predicted_by + "<br>";
+    if (annotation.pred_entity_type) {
+        var type_string = $.map(annotation.pred_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
+        tooltip_body_text += "Types: " + type_string + "<br>";
     }
-    if (annotation.parent_text) {
-        tooltip_body_text += "Alternative span: \"" + annotation.parent_text + "\"<br>";
-    }
+    if (annotation.parent_text) tooltip_body_text += "Alternative span: \"" + annotation.parent_text + "\"<br>";
     // Add error category tags
     // Only show error category tags for once in the FP tooltip, i.e. don't double them in the GT tooltip for TP
     // and for disambiguation errors
