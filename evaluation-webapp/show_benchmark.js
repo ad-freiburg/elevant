@@ -247,23 +247,15 @@ $("document").ready(function() {
             }
             if (event.ctrlKey && event.which == 39) {
                 // Jump to next error highlight
-                console.log("indices before jump", jump_to_annotation_index);
                 scroll_to_next_annotation(true);
-                console.log("indices after jump: ", jump_to_annotation_index);
             } else if (event.ctrlKey && event.which == 37) {
-                console.log("indices before jump", jump_to_annotation_index);
                 scroll_to_previous_annotation(true);
-                console.log("indices after jump: ", jump_to_annotation_index);
             } else if (event.which == 39) {
                 // Jump to next highlight
-                console.log("indices before jump", jump_to_annotation_index);
                 scroll_to_next_annotation(false);
-                console.log("indices after jump: ", jump_to_annotation_index);
             } else if (event.which == 37) {
                 // Jump to previous highlight
-                console.log("indices before jump", jump_to_annotation_index);
                 scroll_to_previous_annotation(false);
-                console.log("indices after jump: ", jump_to_annotation_index);
             }
         }
     });
@@ -355,7 +347,6 @@ function scroll_to_next_annotation(only_errors) {
             if (only_errors) {
                 next_annotation_index[i] = find_next_annotation_index(i);
                 if (next_annotation_index[i] < all_highlighted_annotations[i].length) next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
-                console.log("next_annotation_index", next_annotation_index[i], next_annotations[i]);
             } else {
                 next_annotation_index[i] = jump_to_annotation_index[i] + 1;
                 next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
@@ -410,12 +401,10 @@ function bring_jump_index_to_same_height(next_annotation, side_index) {
         }
     }
     jump_to_annotation_index[side_index]--; // Minus one, because the next annotation should be the one determined above
-    console.log("Next index on " + side_index + " side is ", jump_to_annotation_index[side_index]);
 }
 
 function scroll_to_previous_annotation(only_errors) {
     // Get potential next highlighted annotation for left and right side
-    console.log("last highlighted side: ", last_highlighted_side);
     var next_annotation_index = [-1, -1];
     var next_annotations = [null, null];
     for (var i=0; i<2; i++) {
@@ -424,7 +413,6 @@ function scroll_to_previous_annotation(only_errors) {
             if (only_errors) {
                 next_annotation_index[i] = find_previous_annotation_index(i, last_highlighted_side);
                 if (next_annotation_index[i] >= 0) next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
-                console.log("next_annotation_index", next_annotation_index[i], next_annotations[i]);
             } else {
                 next_annotation_index[i] = jump_to_annotation_index[i] - (last_highlighted_side==i);
                 next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
@@ -435,48 +423,39 @@ function scroll_to_previous_annotation(only_errors) {
     var next_annotation;
     if (next_annotations[0] && next_annotations[1]) {
         if ($(next_annotations[0]).offset().top > $(next_annotations[1]).offset().top) {
-            console.log("1. case");
             next_annotation = next_annotations[0];
             if (!only_errors || last_highlighted_side == 0) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
             else {
                 update_index_to_previous_annotation(next_annotation, last_highlighted_side);
                 jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-                console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
             }
             last_highlighted_side = 0;
         } else {
-            console.log("2. case");
             next_annotation = next_annotations[1];
             if (!only_errors || last_highlighted_side == 1) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
             else {
                 update_index_to_previous_annotation(next_annotation, last_highlighted_side);
                 jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-                console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
             }
             last_highlighted_side = 1;
         }
     } else if (next_annotations[0]) {
-        console.log("3. case");
         next_annotation = next_annotations[0];
         if (!only_errors || last_highlighted_side == 0) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
         else {
             update_index_to_previous_annotation(next_annotation, last_highlighted_side);
             jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-            console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
         }
         last_highlighted_side = 0;
     } else if (next_annotations[1]) {
-        console.log("4. case");
         next_annotation = next_annotations[1];
         if (!only_errors || last_highlighted_side == 1) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
         else {
             update_index_to_previous_annotation(next_annotation, last_highlighted_side);
             jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-            console.log("Index on side " + Math.abs(last_highlighted_side - 1) + "set to " + next_annotation_index[Math.abs(last_highlighted_side - 1)]);
         }
         last_highlighted_side = 1;
     } else if (!only_errors) {
-        console.log("5. case");
         jump_to_annotation_index[0] = -1;
         jump_to_annotation_index[1] = -1;
     }
@@ -500,7 +479,6 @@ function update_index_to_previous_annotation(next_annotation, side_index) {
             jump_to_annotation_index[side_index]--;
         }
     }
-    console.log("Next index on " + side_index + " side is ", jump_to_annotation_index[side_index]);
 }
 
 function find_next_annotation_index(side_index) {
