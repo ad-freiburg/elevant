@@ -23,14 +23,13 @@ import argparse
 import os.path
 import logging
 import re
-from typing import Dict, Optional
+from typing import Optional
 from enum import Enum
 
 from src.evaluation.benchmark import get_available_benchmarks
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src.evaluation.examples_generator import get_example_generator
 from src.models.entity_database import EntityDatabase
-from src.models.wikidata_entity import WikidataEntity
 from src.models.article import Article, article_from_json
 
 logging.basicConfig(format='%(asctime)s: %(message)s', datefmt="%H:%M:%S", level=logging.INFO)
