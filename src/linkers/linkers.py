@@ -15,6 +15,7 @@ class Linkers(Enum):
     POS_PRIOR = "pos_prior"
     NIF = "nif"
     NONE = "none"
+    DBPEDIA_SPOTLIGHT = "dbpedia_spotlight"
 
 
 class CoreferenceLinkers(Enum):

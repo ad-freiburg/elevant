@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, Dict, Set
 
+from src.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
 from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
@@ -57,7 +58,7 @@ class LinkingSystem:
     def _initialize_entity_db(self, linker_type: str, linker: str, coref_linker: str, min_score: int):
         # Linkers for which not to load entities into the entity database
         no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.NONE.value, Linkers.NIF.value,
-                         Linkers.SIMPLE_JSONL.value, Linkers.WIKIFIER.value)
+                         Linkers.SIMPLE_JSONL.value, Linkers.WIKIFIER.value, Linkers.DBPEDIA_SPOTLIGHT.value)
 
         self.entity_db = EntityDatabase()
 
@@ -141,6 +142,11 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.prediction_reader = NifPredictionReader(result_file, self.entity_db)
+        elif linker_type == Linkers.DBPEDIA_SPOTLIGHT.value:
+            port = int(linker_info)
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = DbpediaSpotlightLinker(self.entity_db, port)
         else:
             linker_exists = False
 
