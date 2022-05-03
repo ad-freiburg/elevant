@@ -74,7 +74,7 @@ class KnowledgeBaseMapper:
             # http://nl.dbpedia.org/web/infra/uri-encoding
             entity_id = entity_db.link2id(entity_name)
             if not entity_id:
-                logger.warning("Entity name %s could not be mapped to a Wikidata QID." % entity_name)
+                logger.info("Entity name \"%s\" could not be mapped to a Wikidata QID." % entity_name)
                 return None
         else:
             # The entity ID is None if the provided entity ID is not a QID or cannot be mapped from
