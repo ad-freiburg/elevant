@@ -109,3 +109,6 @@ This document gives an overview of the benchmarks that are included in ELEVANT.
  ratio of annotated to not-annotated tokens was 33%."
 
 **GERBIL Download:** <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
+
+**Notes:**
+- Some ground truth labels are overlapping, e.g. `[[Turku]'s harbour]`
