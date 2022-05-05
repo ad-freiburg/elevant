@@ -1,3 +1,5 @@
+CONFIG_PATH = "config.json";
+
 ANNOTATION_CLASS_TP = "tp";
 ANNOTATION_CLASS_FP = "fp";
 ANNOTATION_CLASS_FN = "fn";
@@ -655,33 +657,43 @@ function set_benchmark_select_options() {
 
     // Retrieve file path of .results files in each folder
     benchmarks = [];
-    $.get("benchmarks", function(folder_data) {
-        $(folder_data).find("a").each(function() {
-            file_name = $(this).attr("href");
-            if (file_name.endsWith(".benchmark.jsonl")) {
-                benchmarks.push(file_name);
-            }
-        });
-    }).then(function() {
-        benchmarks.sort();
-        for (bi in benchmarks) {
-            benchmark = benchmarks[bi];
-            var option = document.createElement("option");
-            option.text = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
-            option.value = benchmark;
-            benchmark_select.add(option);
-        }
 
-        // Set benchmark
-        var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
-        if (url_param_benchmark && benchmark_by_url.length > 0) {
-            // Set the benchmark according to URL parameter if one with a valid benchmark name exists
-            $(benchmark_by_url).prop('selected',true);
-        } else {
-            // Set default value to "wiki-ex".
-            $('#benchmark option:contains("wiki-ex")').prop('selected',true);
-        }
-        show_benchmark_results(true);
+    // Read the content of the given json configuration file into the config dictionary.
+    $.get(CONFIG_PATH, function(data) {
+        config = data;
+    }).then(function() {
+        $.get("benchmarks", function(folder_data) {
+            $(folder_data).find("a").each(function() {
+                var file_name = $(this).attr("href");
+                if (file_name.endsWith(".benchmark.jsonl")) {
+                    benchmarks.push(file_name);
+                }
+            });
+        }).then(function() {
+            benchmarks.sort();
+            for (bi in benchmarks) {
+                benchmark = benchmarks[bi];
+                var option = document.createElement("option");
+                var benchmark_name = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
+
+                // Hide certain benchmarks as defined in the config file
+                if ("hide_benchmarks" in config && config["hide_benchmarks"].includes(benchmark_name)) continue;
+                option.text = benchmark_name;
+                option.value = benchmark;
+                benchmark_select.add(option);
+            }
+
+            // Set benchmark
+            var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
+            if (url_param_benchmark && benchmark_by_url.length > 0) {
+                // Set the benchmark according to URL parameter if one with a valid benchmark name exists
+                $(benchmark_by_url).prop('selected',true);
+            } else {
+                // Set default value to "wiki-ex".
+                $('#benchmark option:contains("wiki-ex")').prop('selected',true);
+            }
+            show_benchmark_results(true);
+        });
     });
 }
 
@@ -780,9 +792,13 @@ function parse_benchmark(benchmark_file, initial_call) {
     */
     // List of articles with ground truth information from the benchmark.
     articles = [];
-    if (benchmark_file.startsWith("aida") && url_param_access != "42") {
+
+    if ("obscure_aida_conll" in config && config["obscure_aida_conll"]
+        && benchmark_file.startsWith("aida") && url_param_access != "42") {
+        // Show obscured AIDA-CoNLL benchmark if specified in config and no access token is provided
         benchmark_file = benchmark_file + ".obscured";
     }
+
     $.get("benchmarks/" + benchmark_file,
         function(data, status) {
             lines = data.split("\n");
@@ -1546,6 +1562,25 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                     // Remove the benchmark extension from the approach name
                     if (approach_name.endsWith("." + benchmark_name)) approach_name = approach_name.substring(0, approach_name.lastIndexOf("."))
                     result_files[approach_name] = url.substring(0, url.length - RESULTS_EXTENSION.length);
+
+                    // Filter out certain keys in results according to config
+                    $.each(results["errors"], function(key) {
+                        if ("hide_error_checkboxes" in config && config["hide_error_checkboxes"].includes(key))
+                            delete results["errors"][key];
+                    });
+                    $.each(results["by_type"], function(key) {
+                        var type_label = key.toLowerCase().replace(/Q[0-9]+:/g, "");
+                        type_label = type_label.replace(" ", "_");
+                        if ("hide_type_checkboxes" in config && (config["hide_type_checkboxes"].includes(key) ||
+                                                                 config["hide_type_checkboxes"].includes(type_label)))
+                            delete results["by_type"][key];
+                    });
+                    $.each(results, function(key) {
+                        if ("hide_mention_checkboxes" in config && config["hide_mention_checkboxes"].includes(key))
+                            delete results[key];
+                    });
+
+                    // Add results for approach to array
                     result_array.push([approach_name, results]);
                 });
             })).then(function() {
