@@ -1,7 +1,8 @@
+import os
 import torch
 import logging
 
-from typing import Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List, Any
 from os.path import isfile
 from transformers import BertTokenizerFast
 from math import floor
@@ -26,10 +27,16 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 class BertEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "BERT_LINKER"
 
-    def __init__(self,
-                 model_path: str,
-                 entity_db: EntityDatabase):
+    def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
+
+        # Get config variables
+        self.name = config["name"] if "name" in config else "BERTModel"
+        model_path = config["model_path"] if "model_path" in config else None
+        if model_path is None:
+            raise KeyError("BERT entity linker config does not contain the required attribute \"model_path\".")
+        if not os.path.exists(model_path):
+            raise OSError("Path to the BERT entity linking model does not exist: %s" % model_path)
 
         if not self.model.has_pipe("ner_postprocessor"):
             ner_postprocessor = NERPostprocessor(entity_db)

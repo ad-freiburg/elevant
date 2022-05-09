@@ -1,0 +1,5 @@
+{
+  "name": "Spacy",
+  "model_name": "prior_trained",
+  "kb": "wikidata"
+}

@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List, Optional, Set
+from typing import Dict, Tuple, List, Optional, Set, Any
 
 import spacy
 from spacy.tokens import Doc
@@ -49,14 +49,17 @@ def get_non_overlapping_span(span: Tuple[int, int],
 class PopularEntitiesLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "POPULAR_ENTITIES_LINKER"
 
-    def __init__(self,
-                 min_score: int,
-                 entity_db: EntityDatabase,
-                 longest_alias_ner: Optional[bool] = False):
-        self.min_score = min_score
+    def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
         self.entity_db = entity_db
-        self.longest_alias_ner = longest_alias_ner
-        self.ner = MaximumMatchingNER(self.entity_db)
+
+        # Get config variables
+        self.name = config["name"] if "name" in config else "PopularEntities"
+        self.min_score = config["min_score"] if "min_score" in config else 15
+        self.longest_alias_ner = config["longest_alias_ner"] if "longest_alias_ner" in config else False
+
+        if self.longest_alias_ner:
+            self.ner = MaximumMatchingNER(self.entity_db)
+
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
         ner_postprocessor = NERPostprocessor(self.entity_db)
         self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
@@ -73,7 +76,8 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                 is_language = False
                 snippet = text[span[0]:span[1]]
                 token = OffsetConverter.get_token(span[0], doc)
-                if self.entity_db.is_language(snippet) and token.dep_ == "pobj" and span[0] >= 3 and text[span[0] - 3:span[0] - 1].lower() == "in":
+                if self.entity_db.is_language(snippet) and token.dep_ == "pobj" and span[0] >= 3 and\
+                        text[span[0] - 3:span[0] - 1].lower() == "in":
                     is_language = True
                 spans.append((span, is_language))
         else:
@@ -94,7 +98,8 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                          text: str,
                          doc: Optional[Doc] = None,
                          uppercase: Optional[bool] = False,
-                         linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None) -> Dict[Tuple[int, int], EntityPrediction]:
+                         linked_entities: Optional[Dict[Tuple[int, int], EntityMention]] = None) \
+            -> Dict[Tuple[int, int], EntityPrediction]:
         if doc is None:
             doc = self.model(text)
         predictions = {}

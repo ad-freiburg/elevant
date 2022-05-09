@@ -1,5 +1,4 @@
-from typing import Dict, Tuple, Optional, Set, List
-from enum import Enum
+from typing import Dict, Tuple, Optional, Set, List, Any
 
 import spacy
 from spacy.tokens import Doc
@@ -14,29 +13,27 @@ from src.ner.maximum_matching_ner import MaximumMatchingNER
 from src.utils.dates import is_date
 
 
-class LinkingStrategy(Enum):
-    LINK_FREQUENCY = 0
-    ENTITY_SCORE = 1
-
-
 class AliasEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "ALIAS"
 
     def __init__(self,
                  entity_database: EntityDatabase,
-                 strategy: LinkingStrategy,
-                 load_model: bool = True,
-                 longest_alias_ner: bool = False):
+                 config: Dict[str, Any]):
         self.entity_db = entity_database
-        self.strategy = strategy
-        self.longest_alias_ner = longest_alias_ner
-        self.ner = MaximumMatchingNER(entity_database)
-        if load_model:
+
+        # Get config variables
+        self.name = config["name"] if "name" in config else "Baseline"
+        self.strategy = config["strategy"] if "strategy" in config else "wikipedia"
+        self.longest_alias_ner = config["longest_alias_ner"] if "longest_alias_ner" in config else False
+
+        self.ner = None
+        if self.longest_alias_ner:
+            self.ner = MaximumMatchingNER(entity_database)
+            self.model = None
+        else:
             self.model = spacy.load(settings.LARGE_MODEL_NAME)
             ner_postprocessor = NERPostprocessor(self.entity_db)
             self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
-        else:
-            self.model = None
 
     def has_entity(self, entity_id: str) -> bool:
         return self.entity_db.contains_entity(entity_id)
@@ -48,9 +45,9 @@ class AliasEntityLinker(AbstractEntityLinker):
         return self.entity_db.get_sitelink_count(entity_id)
 
     def score_entity(self, alias: str, entity_id: str) -> int:
-        if self.strategy == LinkingStrategy.LINK_FREQUENCY:
+        if self.strategy == "wikipedia":
             return self._score_entity_by_link_frequency(alias, entity_id)
-        elif self.strategy == LinkingStrategy.ENTITY_SCORE:
+        elif self.strategy == "wikidata":
             return self._score_entity_by_score(entity_id)
         else:
             raise NotImplementedError("AliasEntityLinker: Strategy %s not implemented." % str(self.strategy))

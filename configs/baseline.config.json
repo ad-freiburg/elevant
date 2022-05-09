@@ -1,0 +1,5 @@
+{
+  "name": "Baseline",
+  "strategy": "wikipedia",
+  "longest_alias_ner": false
+}

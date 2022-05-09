@@ -1,7 +1,6 @@
-from typing import Dict, Tuple, Set, Optional
+from typing import Dict, Tuple, Set, Optional, Any
 
 from spacy.tokens import Doc
-from spacy.language import Language
 
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
 from src.helpers.entity_linker_loader import EntityLinkerLoader
@@ -15,19 +14,18 @@ from src.utils.dates import is_date
 class TrainedSpacyEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "TRAINED_SPACY_LINKER"
 
-    def __init__(self,
-                 name: str,
-                 entity_db: EntityDatabase,
-                 model: Optional[Language] = None,
-                 kb_name: Optional[str] = None):
-        if model is None:
-            self.model = EntityLinkerLoader.load_trained_linker(name, kb_name=kb_name)
-            if not self.model.has_pipe("ner_postprocessor"):
-                ner_postprocessor = NERPostprocessor(entity_db)
-                self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
-        else:
-            self.model = model
-            self.model.add_pipe(EntityLinkerLoader.load_entity_linker(name, kb_name=kb_name))
+    def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
+
+        # Get config variables
+        self.name = config["name"] if "name" in config else "Spacy"
+        model_name = config["model_name"] if "model_name" in config else "prior_trained"
+        kb_name = config["kb"] if "kb" in config else "wikidata"
+
+        self.model = EntityLinkerLoader.load_trained_linker(model_name, kb_name=kb_name)
+        if not self.model.has_pipe("ner_postprocessor"):
+            ner_postprocessor = NERPostprocessor(entity_db)
+            self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
+
         self.kb = self.model.get_pipe("entity_linker").kb
         self.known_entities = set(self.kb.get_entity_strings())
 

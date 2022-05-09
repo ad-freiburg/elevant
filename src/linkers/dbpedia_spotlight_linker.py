@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, Any
 
 import requests
 import logging
@@ -16,30 +16,29 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 class DbpediaSpotlightLinker(AbstractEntityLinker):
     """
-    In order to use this linker, the DBpedia Spotlight API must be running at
-    http://localhost:<specified_port>
-    For instructions on starting the API using Docker see
+    Instead of using the official DBpedia Spotlight API (default) you can also
+    run your own instance of DBpedia Spotlight and adjust the api_url in the
+    DBpedia Spotlight config at configs/dbpedia_spotlight.config.json accordingly.
+    For instructions on starting your own API using Docker see
     https://hub.docker.com/r/dbpedia/dbpedia-spotlight
-
-    Alternatively, change the API URL to the official API at
-    https://api.dbpedia-spotlight.org/en/annotate
     """
     NER_IDENTIFIER = "DBPEDIA_SPOTLIGHT"
     LINKER_IDENTIFIER = "DBPEDIA_SPOTLIGHT"
 
-    def __init__(self, entity_db: EntityDatabase, port: int, confidence: Optional[float] = 0.35):
+    def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
         self.entity_db = entity_db
-        self.port = port  # DBPedia server needs to be running on the local machine at the specified port
-        self.confidence = confidence
         self.model = None
+
+        # Get config variables
+        self.name = config["name"] if "name" in config else "DBpediaSpotlight"
+        self.api_url = config["api_url"] if "api_url" in config else "https://api.dbpedia-spotlight.org/en/annotate"
+        self.confidence = config["confidence"] if "confidence" in config else 0.35
 
     def predict(self, text: str,
                 doc: Optional[Doc] = None,
                 uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
         data = {"text": text, "confidence": self.confidence}
-        r = requests.post("http://localhost:" + str(self.port) + "/rest/annotate",
-                          data=data,
-                          headers={'Accept': 'text/turtle'})
+        r = requests.post(self.api_url, data=data, headers={'Accept': 'text/turtle'})
         result = r.content
 
         nif_doc = NIFCollection.loads(result)

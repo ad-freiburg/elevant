@@ -108,21 +108,15 @@ if __name__ == "__main__":
                         help="Input file with articles in JSON format or raw text.")
     parser.add_argument("output_file", type=str,
                         help="Output file.")
-    parser.add_argument("linker_type", choices=[li.value for li in Linkers],
-                        help="Entity linker type.")
-    parser.add_argument("linker",
-                        help="Specify the linker to be used, depending on its type:\n"
-                        "BASELINE: Choose baseline from {wikipedia, wikidata, max-match-ner}.\n"
-                        "SPACY: Name of the linker.\n"
-                        "EXPLOSION: Full path to the saved model.\n"
-                        "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
-                        "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
+    parser.add_argument("-l", "--linker_name", choices=[li.value for li in Linkers], required=True,
+                        help="Entity linker name.")
+    parser.add_argument("--linker_config",
+                        help="Configuration file for the specified linker."
+                             "Per default, the system looks for the config file at configs/<linker_name>.config.json")
     parser.add_argument("-raw", "--raw_input", action="store_true",
                         help="Set to use an input file with raw text.")
     parser.add_argument("-n", "--n_articles", type=int, default=-1,
                         help="Number of articles to link.")
-    parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"],
-                        help="Name of the knowledge base to use with a spacy linker.")
     parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers],
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
@@ -131,8 +125,6 @@ if __name__ == "__main__":
                         help="Minimum entity score to include entity in database")
     parser.add_argument("-small", "--small_database", action="store_true",
                         help="Load a small version of the database")
-    parser.add_argument("--longest_alias_ner", action="store_true",
-                        help="For the baselines: use longest matching alias NER instead of SpaCy NER.")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
@@ -144,12 +136,10 @@ if __name__ == "__main__":
     logger.debug(' '.join(sys.argv))
 
     args = parser.parse_args()
-    linking_system = LinkingSystem(args.linker_type,
-                                   args.linker,
-                                   args.coreference_linker,
-                                   args.kb_name,
-                                   args.minimum_score,
-                                   args.longest_alias_ner,
-                                   args.type_mapping)
+    linking_system = LinkingSystem(args.linker_name,
+                                   args.linker_config,
+                                   coref_linker=args.coreference_linker,
+                                   min_score=args.minimum_score,
+                                   type_mapping_file=args.type_mapping)
 
     main()

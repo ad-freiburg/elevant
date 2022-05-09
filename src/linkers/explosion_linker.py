@@ -1,8 +1,8 @@
-from typing import Optional, Dict, Tuple, Set
+import os
+from typing import Optional, Dict, Tuple, Set, Any
 
 import spacy
 from spacy.tokens.doc import Doc
-from spacy.language import Language
 from spacy.kb import KnowledgeBase
 
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
@@ -15,9 +15,17 @@ from src.utils.dates import is_date
 class ExplosionEntityLinker(AbstractEntityLinker):
     LINKER_IDENTIFIER = "EXPLOSION"
 
-    def __init__(self, model_path: str, entity_db: EntityDatabase):
+    def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
+
+        # Get config variables
+        self.name = config["name"] if "name" in config else "Explosion"
+        model_path = config["model_path"] if "model_path" in config else None
+        if model_path is None:
+            raise KeyError("Explosion entity linker config does not contain the required attribute \"model_path\".")
+        if not os.path.exists(model_path):
+            raise OSError("Path to the explosion entity linking model does not exist: %s" % model_path)
+
         self.model = spacy.load(model_path)
-        self.model: Language
         if not self.model.has_pipe("ner_postprocessor"):
             ner_postprocessor = NERPostprocessor(entity_db)
             self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")

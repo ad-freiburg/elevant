@@ -1,14 +1,16 @@
-from typing import Optional, Tuple, Dict, Set
+import json
+import os
+from typing import Optional, Tuple, Dict, Set, Any
 
 from src.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
 from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
 from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
-from src.linkers.alias_entity_linker import LinkingStrategy, AliasEntityLinker
+from src.linkers.alias_entity_linker import AliasEntityLinker
 from src.linkers.bert_entity_linker import BertEntityLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
-from src.linkers.linkers import Linkers, CoreferenceLinkers
+from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
 from src.linkers.prior_linker import PriorLinker
 from src.linkers.explosion_linker import ExplosionEntityLinker
@@ -21,7 +23,6 @@ from src.linkers.xrenner_coref_linker import XrennerCorefLinker
 from src.models.article import Article
 from src.models.entity_database import EntityDatabase, MappingName
 from src.models.entity_prediction import EntityPrediction
-from src.ner.maximum_matching_ner import MaximumMatchingNER
 
 import logging
 
@@ -41,8 +42,14 @@ def uppercase_predictions(predictions: Dict[Tuple[int, int], EntityPrediction],
 
 
 class LinkingSystem:
-    def __init__(self, linker_type: str, linker: str, coref_linker: str, kb_name: str, min_score: int,
-                 longest_alias_ner: bool, type_mapping_file: str):
+    def __init__(self,
+                 linker_name: Optional[str] = None,
+                 config_path: Optional[str] = None,
+                 prediction_file: Optional[str] = None,
+                 prediction_format: Optional[str] = None,
+                 coref_linker: Optional[str] = None,
+                 min_score: Optional[int] = None,
+                 type_mapping_file: Optional[str] = None):
         self.linker = None
         self.prediction_reader = None
         self.coref_linker = None
@@ -50,103 +57,117 @@ class LinkingSystem:
         self.entity_db = None
         self.globally = False
         self.type_mapping_file = type_mapping_file  # Only needed for pure prior linker
+        self.linker_config = None
+        self.linker_config = self.get_linker_config(linker_name, config_path) if linker_name else None
 
-        self._initialize_entity_db(linker_type, linker, coref_linker, min_score)
-        self._initialize_linker(linker_type, linker, kb_name, longest_alias_ner)
-        self._initialize_coref_linker(coref_linker, linker)
+        self._initialize_entity_db(linker_name, coref_linker, min_score)
+        self._initialize_linker(linker_name, prediction_file, prediction_format)
+        self._initialize_coref_linker(coref_linker)
 
-    def _initialize_entity_db(self, linker_type: str, linker: str, coref_linker: str, min_score: int):
+    def _initialize_entity_db(self, linker_name: str, coref_linker: str, min_score: int):
         # Linkers for which not to load entities into the entity database
-        no_db_linkers = (Linkers.TAGME.value, Linkers.AMBIVERSE.value, Linkers.NONE.value, Linkers.NIF.value,
-                         Linkers.SIMPLE_JSONL.value, Linkers.WIKIFIER.value, Linkers.DBPEDIA_SPOTLIGHT.value)
+        no_db_linkers = (Linkers.TAGME.value, Linkers.DBPEDIA_SPOTLIGHT.value, Linkers.NONE.value)
 
         self.entity_db = EntityDatabase()
 
-        if coref_linker or not ((linker_type == Linkers.BASELINE.value and linker == "max-match-ner")
-                                or linker_type in no_db_linkers):
+        # When a prediction_file is given linker_name is None
+        if coref_linker or (linker_name is not None and linker_name not in no_db_linkers):
             self.entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=min_score,
                                                           type_mapping=self.type_mapping_file)
 
-    def _initialize_linker(self, linker_type: str, linker_info: str, kb_name: Optional[str] = None,
-                           longest_alias_ner: Optional[bool] = False):
-        logger.info("Initializing linker %s with parameter %s ..." % (linker_type, linker_info))
+    @staticmethod
+    def get_linker_config(linker_name: str, config_path: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get config dictionary for the specified linker or config path.
+        """
+        if not config_path:
+            # Generate default config path for linker if no config path was provided
+            config_path = "configs/" + str(linker_name) + ".config.json"
+
+        if not os.path.exists(config_path):
+            # Return empty config if no config file was found
+            logger.info("No config file found for linker %s. No config loaded." % linker_name)
+            return {}
+        else:
+            logger.info("Loading config file %s for linker %s." % (config_path, linker_name))
+            with open(config_path, "r", encoding="utf8") as file:
+                linker_config = json.load(file)
+            return linker_config
+
+    def _initialize_linker(self, linker_name: str, prediction_file: str, prediction_format: str):
+        if linker_name:
+            logger.info("Initializing linker %s with config parameters %s ..." % (linker_name, self.linker_config))
+            linker_type = linker_name
+
+        else:
+            logger.info("Initializing prediction reader for file %s in format %s ..." %
+                        (prediction_file, prediction_format))
+            linker_type = prediction_format
 
         linker_exists = True
 
         if linker_type == Linkers.SPACY.value:
-            linker_name = linker_info
-            self.linker = TrainedSpacyEntityLinker(linker_name, entity_db=self.entity_db, kb_name=kb_name)
+            self.linker = TrainedSpacyEntityLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.EXPLOSION.value:
-            path = linker_info
-            self.linker = ExplosionEntityLinker(path, entity_db=self.entity_db)
-        elif linker_type == Linkers.AMBIVERSE.value:
+            self.linker = ExplosionEntityLinker(self.entity_db, self.linker_config)
+        elif linker_type == PredictionFormats.AMBIVERSE.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            result_dir = linker_info
-            self.prediction_reader = AmbiversePredictionReader(result_dir, self.entity_db)
+            self.prediction_reader = AmbiversePredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.TAGME.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            rho_threshold = float(linker_info)
-            self.linker = TagMeLinker(self.entity_db, rho_threshold)
-        elif linker_type == Linkers.SIMPLE_JSONL.value:
-            result_file = linker_info
+            self.linker = TagMeLinker(self.entity_db, self.linker_config)
+        elif linker_type == PredictionFormats.SIMPLE_JSONL.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            self.prediction_reader = SimpleJsonlPredictionReader(result_file, self.entity_db)
+            self.prediction_reader = SimpleJsonlPredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.BASELINE.value:
-            if linker_info not in ("wikidata", "wikipedia", "max-match-ner"):
-                raise NotImplementedError("Unknown baseline strategy '%s'." % linker_info)
-            if linker_info == "max-match-ner":
-                self.linker = MaximumMatchingNER(self.entity_db)
-            if linker_info == "wikidata":
+            if self.linker_config["strategy"] == "wikidata":
                 self.load_missing_mappings({MappingName.WIKIDATA_ALIASES,
                                             MappingName.NAME_ALIASES,
                                             MappingName.SITELINKS})
-                strategy = LinkingStrategy.ENTITY_SCORE
             else:
+                if self.linker_config["strategy"] != "wikipedia":
+                    logger.info("Unknown strategy %s. Assuming strategy \"wikipedia\"" % self.linker_config["strategy"])
                 self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                             MappingName.REDIRECTS,
                                             MappingName.LINK_ALIASES,
-                                            MappingName.LINK_FREQUENCIES})
-                strategy = LinkingStrategy.LINK_FREQUENCY
-            self.linker = AliasEntityLinker(self.entity_db, strategy, load_model=not longest_alias_ner,
-                                            longest_alias_ner=longest_alias_ner)
+                                            MappingName.LINK_FREQUENCIES,
+                                            MappingName.NAME_ALIASES,
+                                            MappingName.WIKIDATA_ALIASES})
+            self.linker = AliasEntityLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.BERT_MODEL.value:
-            self.linker = BertEntityLinker(linker_info, self.entity_db)
+            self.linker = BertEntityLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
-            min_count = int(linker_info)
+            min_score = self.linker_config["min_score"]
             self.load_missing_mappings({MappingName.NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES,
                                         MappingName.LANGUAGES,
                                         MappingName.DEMONYMS,
-                                        MappingName.SITELINKS}, min_count)
-            self.linker = PopularEntitiesLinker(min_count, self.entity_db, longest_alias_ner)
+                                        MappingName.SITELINKS}, min_score)
+            self.linker = PopularEntitiesLinker(self.entity_db, self.linker_config)
             self.globally = True
-        elif linker_type == Linkers.WIKIFIER.value:
+        elif linker_type == PredictionFormats.WIKIFIER.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS,
                                         MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE})
-            result_dir = linker_info
-            self.prediction_reader = WikifierPredictionReader(result_dir, self.entity_db)
-        elif linker_type == Linkers.PURE_PRIOR.value or linker_type == Linkers.POS_PRIOR.value:
-            whitelist_file = linker_info
+            self.prediction_reader = WikifierPredictionReader(prediction_file, self.entity_db)
+        elif linker_type == Linkers.POS_PRIOR.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS,
                                         MappingName.LINK_FREQUENCIES,
                                         MappingName.NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES})
-            self.linker = PriorLinker(self.entity_db, whitelist_file, use_pos=linker_type == Linkers.POS_PRIOR.value)
-        elif linker_type == Linkers.NIF.value:
-            result_file = linker_info
+            self.linker = PriorLinker(self.entity_db, self.linker_config)
+        elif linker_type == PredictionFormats.NIF.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            self.prediction_reader = NifPredictionReader(result_file, self.entity_db)
+            self.prediction_reader = NifPredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.DBPEDIA_SPOTLIGHT.value:
-            port = int(linker_info)
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
-            self.linker = DbpediaSpotlightLinker(self.entity_db, port)
+            self.linker = DbpediaSpotlightLinker(self.entity_db, self.linker_config)
         else:
             linker_exists = False
 
@@ -155,7 +176,7 @@ class LinkingSystem:
         else:
             logger.info("Linker type not found or not specified.")
 
-    def _initialize_coref_linker(self, linker_type: str, linker_info: str):
+    def _initialize_coref_linker(self, linker_type: str):
         logger.info("Initializing coref linker %s ..." % linker_type)
         linker_exists = True
         if linker_type == CoreferenceLinkers.NEURALCOREF.value:
