@@ -1,16 +1,18 @@
 # Link Benchmark Articles
 To link the articles of a benchmark with a single linker configuration, use the script `link_benchmark_entities.py`:
 
-    python3 link_benchmark_entities.py <experiment_name> <linker_type> <linker_info> -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -l <linker_name> -b <benchmark_name>
 
-The linking results will be written to `evaluation-results/<linker_type>/<experiment_name>.<benchmark_name>.jsonl`.
+The linking results will be written to `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.jsonl`.
  For example
 
-    python3 link_benchmark_entities.py tagme.thresh02 tagme 0.2 -b kore50
+    python3 link_benchmark_entities.py tagme.thresh02 -l tagme -b kore50
 
 will create the file `evaluation-results/tagme/tagme.thresh02.kore50.jsonl`. The result file contains one article as
  JSON object per line. Each JSON object contains benchmark article information such as the article title, text, and
- ground truth labels, as well as the entity mentions predicted by the specified linker.
+ ground truth labels, as well as the entity mentions predicted by the specified linker. Properties specific to the
+ selected linker such as confidence thresholds, model paths, ... are read from the linker's config file at
+ `configs/<linker_name>.config.json`.
 
 ## Use Existing Linking Results
 If you already have linking results for a certain benchmark that you want to evaluate with ELEVANT, you can use the
@@ -24,15 +26,22 @@ If you already have linking results for a certain benchmark that you want to eva
 
 Each of these formats is explained in the following sections.
 
-Alternatively you can write your own prediction reader, as explained in section
+If you don't want to use any of the supported formats you can write your own prediction reader, as explained in section
  [Writing a Custom Prediction Reader](#writing-a-custom-prediction-reader).
 
+The script call to convert linking results into our format is
+
+    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat <linking_results_format> -pname <linker_name> -b <benchmark_name>
+
+The converted linking results will be written to
+ `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.jsonl`. If the `-pname` option is
+ omitted, `linker_name` is replaced by `unknown_linker`.
+
 #### Linking Results in NIF
-If you have linking results for a certain benchmark in NIF format, run
+If you have linking results for a certain benchmark in NIF format, use `-pformat nif` in the script call described
+ above, i.e.
 
-    python3 link_benchmark_entities.py <experiment_name> nif <path_to_linking_results> -b <benchmark_name>
-
-to convert your linking results into the JSONL format used by us.
+    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat nif -pname <linker_name> -b <benchmark_name>
 
 Your linking results file should look something like this:
 
@@ -54,18 +63,19 @@ Your linking results file should look something like this:
         nif:referenceContext <http://www.aksw.org/gerbil/NifWebService/request_0#char=0,87> ;
         itsrdf:taIdentRef <https://en.wikipedia.org/wiki/Brad_Pitt> .
     
-- Entity identifiers can be either from Wikidata or from Wikipedia or DBpedia.
+- Entity identifiers can be either from Wikidata, Wikipedia or DBpedia.
 - `<path_to_linking_results>` can be the path to a single NIF file that contains all benchmark articles and the
  predicted links or the path to a directory that contains multiple such NIF files.
 
 The NIF prediction reader is implemented [here](../src/prediction_readers/nif_prediction_reader.py).
 
 #### Linking Results in a Simple JSONL Format
-If you have linking results in a very simple JSONL format as described below, run
+If you have linking results for a certain benchmark in a very simple JSONL format as described below, use
+ `-pformat simple_jsonl` in the script call described above, i.e.
 
-    python3 link_benchmark_entities.py <experiment_name> simple_jsonl <path_to_linking_results_file> -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat simple_jsonl -pname <linker_name> -b <benchmark_name>
 
-The file `<path_to_linking_results_file>` should contain one line per benchmark article. The order of the predictions
+The file `<path_to_linking_results>` should contain one line per benchmark article. The order of the predictions
  should correspond to the article order of the benchmark in the `benchmarks` directory. The linking results file
  should look something like this:
 
@@ -84,13 +94,14 @@ The file `<path_to_linking_results_file>` should contain one line per benchmark 
 The simple JSONL prediction reader is implemented [here](../src/prediction_readers/simple_jsonl_prediction_reader.py).
 
 #### Linking Results in Ambiverse Output Format
-If you have linking results in the Ambiverse output format, run
+If you have linking results for a certain benchmark in the Ambiverse output format, use `-pformat ambiverse` in the
+ script call described above, i.e.
 
-    python3 link_benchmark_entities.py <experiment_name> ambiverse <path_to_linking_results_directory> -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat ambiverse -pname <linker_name> -b <benchmark_name>
 
-`<path_to_linking_results_directory>` should contain files with linking results for one benchmark article per file.
- When sorting the files by file name, the order should correspond to the article order of the benchmark in the
- `benchmarks` directory. Your linking result files should look something like this:
+`<path_to_linking_results>` should be the path to a directory that contain files with linking results for one benchmark
+ article per file. When sorting the files by file name, the order should correspond to the article order of the
+ benchmark in the `benchmarks` directory. Your linking result files should look something like this:
 
     {
        "docId":"xyz",
@@ -140,16 +151,17 @@ As an alternative to converting your predictions into one of the formats mention
      texts. Set `predictions_iterator_implemented = False` when calling `super().__init__()`. See
      [here](../src/prediction_readers/nif_prediction_reader.py) for an example.
 
-2) Add your custom prediction reader name to the `src.linkers.linkers.Linkers` enum, e.g. `MY_FORMAT = "my_format"`.
+2) Add your custom prediction reader name to the `src.linkers.linkers.PredictionFormats` enum, e.g.
+ `MY_FORMAT = "my_format"`.
 
 3) In `src.linkers.linking_system.LinkingSystem._initialize_linker` add an `elif` case in which you load necessary
  mappings (if any) and initialize the `LinkingSystem`'s `prediction_reader`. This could look something like this:
 
         elif linker_type == Linkers.MY_FORMAT.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA, MappingName.REDIRECTS})
-            self.prediction_reader = MyCustomPredictionReader(linker_info, self.entity_db)
+            self.prediction_reader = MyCustomPredictionReader(prediction_file, self.entity_db)
 
-    where `linker_info` is the path to the prediction file. The `load_missing_mappings()` line is necessary if you
+    where `prediction_file` is the path to the prediction file. The `load_missing_mappings()` line is necessary if you
      predict Wikipedia entities and therefore have to convert them to Wikidata entities. The mappings are loaded into
      `self.entity_db`. You can then get a Wikidata QID from a Wikipedia title by calling
 
@@ -157,7 +169,7 @@ As an alternative to converting your predictions into one of the formats mention
 
 You can then convert your linking results into our JSONL format by running
 
-    python3 link_benchmark_entities.py <experiment_name> my_format <path_to_linking_results> -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat my_format -pname <linker_name> -b <benchmark_name>
 
 
 ## Link Multiple Benchmarks with Multiple Linkers
@@ -170,7 +182,18 @@ To link all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable us
 
 You can examine or adjust each system's exact linking arguments in the Makefile's `link_benchmark` target if needed.
 
-NOTE: The linking results for some systems like Neural-EL, Wikifier and Ambiverse need to be created separately and
- stored at a path that can then be passed to `link_benchmark_entities.py` as linker argument. See the READMEs in the
- `neural-el` or `wikifier` directories for more information. For other systems like Spacy or Explosion you first need
- to train the respective linker (explained later in this README).
+NOTE: In order to run the systems Spacy and Explosion, you first need to train the respective linkers.
+TODO: How to train Spacy and Explosion
+
+## Convert Linking Results of Multiple Systems for Multiple Benchmarks
+You can use the Makefile to convert the linking results of multiple systems for multiple benchmarks with one command.
+
+To convert the results for all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable for all systems
+ specified in the Makefile's `PREDICTIONS` variable run
+
+    make convert_predictions
+
+You can examine or adjust each system's linking results path and other linking arguments in the Makefile's
+ `convert_benchmark_predictions` target. Note that the linking results for the systems under `PREDICTIONS` need to be
+ created first and stored at a path that can then be passed to `link_benchmark_entities.py` as linker argument.
+ See the READMEs in the `neural-el` or `wikifier` directories for more information.

@@ -25,10 +25,11 @@ WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation-results/
 # Adjust if you only want to link or evaluate certain benchmarks
-BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test msnbc kore50 spotlight aida-conll-dev msnbc-updated ace ace-original
+BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test msnbc kore50 spotlight aida-conll-dev msnbc-updated
 # Adjust if you only want to link with certain linking systems.
 # The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
-LINKING_SYSTEMS = baseline explosion pos_prior spacy spacy_wikipedia tagme popular_entities neural_el wikifier ambiverse
+LINKING_SYSTEMS = baseline pos_prior tagme dbpedia_spotlight popular_entities explosion spacy.prior_trained spacy.wikipedia
+PREDICTIONS = neural_el wikifier ambiverse
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
 
@@ -65,44 +66,59 @@ link_benchmarks:
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "LINKING_SYSTEMS = $(LINKING_SYSTEMS)"
+	@echo "PREDICTIONS FROM = $(PREDICTIONS)"
 	for BENCHMARK_NAME in $(BENCHMARK_NAMES); do echo; \
-	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} link_benchmark; done
+	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} link_benchmark; \
+	done
+	@echo
+
+convert_predictions:
+	@echo
+	@echo "[link_benchmarks] Link given benchmarks with given systems"
+	@echo
+	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
+	@echo "PREDICTIONS FROM = $(PREDICTIONS)"
+	for BENCHMARK_NAME in $(BENCHMARK_NAMES); do echo; \
+	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} convert_benchmark_predictions; \
+	done
 	@echo
 
 link_benchmark:
 	for SYSTEM in $(LINKING_SYSTEMS); do \
 	  echo "BENCHMARK: $${BENCHMARK}"; \
 	  echo "LINKING SYSTEM: $${SYSTEM}"; \
+	  ARGUMENTS=""; \
 	  RESULT_NAME=$${SYSTEM}; \
-	  if [ $${SYSTEM} == "ambiverse" ]; then \
-	    ARGUMENTS=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
-	  elif [ $${SYSTEM} == "baseline" ]; then \
-	    ARGUMENTS=wikipedia; \
-	  elif [ $${SYSTEM} == "explosion" ]; then \
-	    ARGUMENTS=/local/data/entity-linking/linker_files/explosion_linker_models/1M/; \
-	  elif [ $${SYSTEM} == "neural_el" ]; then \
-	    ARGUMENTS=/nfs/students/natalie-prange/neural-el-data/results/linked_articles_$${BENCHMARK}.jsonl; \
-	  elif [ $${SYSTEM} == "popular_entities" ]; then \
-	    ARGUMENTS="15 -ll link-text-linker -coref entity"; \
-	    RESULT_NAME=$${SYSTEM}.ltl.entity; \
-	  elif [ $${SYSTEM} == "pos_prior" ]; then \
-	    ARGUMENTS=data/whitelist_types.txt; \
-	  elif [ $${SYSTEM} == "spacy" ]; then \
-	    ARGUMENTS=prior_trained; \
-	    RESULT_NAME=$${SYSTEM}.prior_trained; \
-	  elif [ $${SYSTEM} == "spacy_wikipedia" ]; then \
+	  if [ $${SYSTEM} == "spacy.prior_trained" ]; then \
 	    SYSTEM=spacy; \
-	    ARGUMENTS="wikipedia -kb wikipedia"; \
+	    RESULT_NAME=$${SYSTEM}.prior_trained; \
+	  elif [ $${SYSTEM} == "spacy.wikipedia" ]; then \
+	    SYSTEM=spacy; \
+	    ARGUMENTS="--linker_config configs/spacy_wikipedia.config.json"; \
 	    RESULT_NAME=$${SYSTEM}.wikipedia; \
-	  elif [ $${SYSTEM} == "tagme" ]; then \
-	    ARGUMENTS=0.2; \
-	  elif [ $${SYSTEM} == "wikifier" ]; then \
-	    ARGUMENTS=/nfs/students/natalie-prange/wikifier_data/output/benchmark_$${BENCHMARK}/; \
+	  fi; \
+	  python3 link_benchmark_entities.py $${RESULT_NAME} -l $${SYSTEM} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR} $${ARGUMENTS}; \
+	done
+
+convert_benchmark_predictions:
+	for PREDICTION in $(PREDICTIONS); do \
+	  echo "BENCHMARK: $${BENCHMARK}"; \
+	  echo "PREDICTIONS FROM: $${PREDICTION}"; \
+	  RESULT_NAME=$${PREDICTION}; \
+	  if [ $${PREDICTION} == "ambiverse" ]; then \
+	    PFILE=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
+	    PFORMAT=ambiverse; \
+	  elif [ $${PREDICTION} == "neural_el" ]; then \
+	    PFILE=/nfs/students/natalie-prange/neural-el-data/results/linked_articles_$${BENCHMARK}.jsonl; \
+	    PFORMAT=simple_jsonl; \
+	  elif [ $${PREDICTION} == "wikifier" ]; then \
+	    PFILE=/nfs/students/natalie-prange/wikifier_data/output/benchmark_$${BENCHMARK}/; \
+	    PFORMAT=wikifier; \
 	  else \
-	    echo -e "$${DIM}No rule for linking system $${SYSTEM} found in Makefile.$${RESET}"; \
+	    echo -e "$${DIM}No rule for predictions from $${PREDICTION} found in Makefile.$${RESET}"; \
 	    continue; \
 	  fi; \
-	  python3 link_benchmark_entities.py $${RESULT_NAME} $${SYSTEM} $${ARGUMENTS} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
+	  python3 link_benchmark_entities.py $${RESULT_NAME} -pfile $${PFILE} -pformat $${PFORMAT} -pname $${PREDICTION} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
 	done
 
 evaluate_linking_results:
