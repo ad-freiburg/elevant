@@ -633,7 +633,7 @@ function get_url_parameter(parameter_name) {
 };
 
 function is_error_cell(el) {
-    if ($(el).attr('class')) {  // System column has no class attribute
+    if ($(el).attr('class')) {  // Experiment column has no class attribute
         var classes = $(el).attr('class').split(/\s+/);
         if (classes.length > 1) {
             // The second class of a cell is its header and subheader (as class name) connected by "-"
@@ -1731,7 +1731,7 @@ function get_table_header(json_obj) {
     Get html for the table header.
     */
     var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr><th>System</th>";
+    var second_row = "<tr><th>Experiment</th>";
     $.each(json_obj, function(key) {
         if (key == "by_type" || key == "errors") {
             $.each(json_obj[key], function(subkey) {
@@ -2045,7 +2045,7 @@ function on_cell_click(el) {
     }
 
     // Make new selection
-    var classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // System column has no class attribute
+    var classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // Experiment column has no class attribute
     if (is_error_cell(el)) {
         $(el).addClass("selected");
         selected_cells.push(el);
@@ -2226,7 +2226,7 @@ function produce_latex() {
                 if (colspan) {
                     // First column header is skipped here, so starting with "&" works
                     header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
-                } else if (title && title != "System" && title != copy_latex_text) {
+                } else if (title && title != "Experiment" && title != copy_latex_text) {
                     header_string += "& \\textbf{" + title + "} ";
                 }
             }
