@@ -6,7 +6,7 @@ You can easily add a benchmark if you have a benchmark file that is in one of th
 - IOB-based format used by Hoffart et al. for their AIDA/CoNLL benchmark
 - a very simple JSONL format
 
-Benchmarks in other formats have to be converted into one of these formats first. To add a benchmark, simply run
+To add a benchmark, simply run
 
     python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple_jsonl>
 
@@ -15,6 +15,9 @@ This converts the `<benchmark_file>` into our JSONL format (if it is not in this
  `<data_directory>/wikidata_mappings/entity-types.tsv` and writes the result to the file
  `benchmarks/<benchmark_name>.benchmark.jsonl`.
 
+If your benchmark is not in one of the supported formats, you can either convert it into one of those formats
+ yourself or write your own benchmark reader, as explained in section
+ [Writing a Custom Benchmark Reader](#writing-a-custom-benchmark-reader).
 
 ## Benchmark Formats
 
@@ -112,3 +115,39 @@ Your benchmark file should look something like this:
  directory that contains multiple such JSONL files.
 
 The Simple JSONL benchmark reader is implemented [here](../src/benchmark_readers/simple_jsonl_benchmark_reader.py).
+
+
+## Writing a Custom Benchmark Reader
+As an alternative to converting your benchmark into one of the formats mentioned above, you can write your own
+ benchmark reader, such that you can use your benchmark file with the `annotate_and_add_benchmark.py` script directly.
+ This requires the following steps:
+
+1) Implement a benchmark reader in `src/benchmark_readers/` and implement a method `article_iterator` that takes a
+ benchmark path and yields an Iterator over `src.models.article.Article` objects where each `Article` object represents
+ a benchmark article with at the very least some unique (within the benchmark) article ID, article title, article
+ text and groundtruth labels. Use the `src.benchmark_readers.simple_jsonl_benchmark_reader.SimpleJsonlBenchmarkReader
+ `as a template for how to write a benchmark reader. You can use the
+ `src.utils.knowledge_base_mapper.KnowledgeBaseMapper`'s `get_wikidata_qid` method to convert Wikipedia or DBpedia
+ benchmark entities to Wikidata. Use the `src.utils.nested_groundtruth_handler.NestedGroundtruthHandler`'s
+ `assign_parent_and_child_ids` method if your benchmark may contain nested groundtruth labels.
+
+2) Add your custom benchmark reader name to the `src.evaluation.benchmark.BenchmarkFormat` enum, e.g.
+ `MY_FORMAT = "my_format"`.
+
+3) Create a class `MyFormatExampleReader` in `src/evaluation/examples_generator.py`. Use the `SimpleJsonlExampleReader`
+ class as a template.
+
+4) Add an elif-branch in the `src.evaluation.examples_generator.get_example_generator` function under the
+ `if benchmark_file` branch , e.g.
+
+        elif benchmark_format == BenchmarkFormat.MY_FORMAT.value:
+            logger.info("Load mappings for My Format example generator...")
+            entity_db = EntityDatabase()
+            entity_db.load_wikipedia_wikidata_mapping()
+            entity_db.load_redirects()
+            logger.info("-> Mappings loaded.")
+            example_generator = MyFormatExampleReader(entity_db, benchmark_file)
+
+You can now add benchmarks in your format by running
+
+    python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat my_format
