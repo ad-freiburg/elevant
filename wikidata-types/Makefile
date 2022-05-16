@@ -167,6 +167,7 @@ query.batched:
 # NOTE: Here is a short description of what each of the five sed lines does.
 # Test with  make DATA_QUERY_NAMES=TEST getdata && head TEST.ttl
 #
+# 0. Drop lines that start with ? (first line with column names)
 # 1. Add TAB and . at the end and TAB before ^^ and @
 # 2. Remove language prefixes (@en@) ... see comment below
 # 3. Replace prefixes from $(PREFIXES) by their short name (it's magic)
@@ -179,6 +180,7 @@ query:
 	@curl -Gs $(API) \
 	    --data-urlencode "query=$$PREFIXES $(QUERY)" \
 	    --data-urlencode "action=tsv_export" \
+	    | sed -r '/^[?]/d' \
 	    | sed 's/$$/\t./; s/\^\^<\([^>]\+\)>\t/\t^^<\1>\t/g; s/"\(@[a-z]\+\)\t/"\t\1\t/g' \
 	    | sed 's/\t@[a-z]\+@/\t/g' \
 	    | sed '$(SED_PREFIX_SUBSTITUTIONS)' \
