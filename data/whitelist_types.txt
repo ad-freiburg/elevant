@@ -1,11 +1,14 @@
-wd:Q18336849   # item with given name property
+wd:Q215627     # person
+wd:Q95074      # fictional character
 wd:Q27096213   # geographic entity
-wd:Q483394     # genre
+wd:Q3895768    # fictional location
 wd:Q43229      # organization
-wd:Q17376908   # languoid
 wd:Q17537576   # creative work
 wd:Q2424752    # product
+wd:Q1656682    # event
 wd:Q431289     # brand
+wd:Q483394     # genre
+wd:Q17376908   # languoid
 wd:Q43460564   # chemical entity
 wd:Q16521      # taxon
 wd:Q9174       # religion
@@ -14,10 +17,10 @@ wd:Q4164871    # position
 wd:Q12737077   # occupation
 wd:Q11862829   # academic discipline
 wd:Q21070598   # narrative entity
+wd:Q729        # animal
 wd:Q618779     # award
 wd:Q12136      # disease
 wd:Q4392985    # religious identity
-wd:Q1656682    # event
 wd:Q373899     # record chart
 wd:Q22222786   # government program
 wd:Q33829      # human population

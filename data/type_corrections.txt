@@ -64,3 +64,4 @@ ADD wd:Q1130251 wdt:P279 wd:Q15275719  # NHL Entry Draft - recurring event
 ADD wd:Q14897293 wdt:P279 wd:Q17537576  # fictional entity - creative work
 ADD wd:Q8366 wdt:P279 wd:Q47461344  # algorithm - written work
 REMOVE wd:Q25894868 wdt:P279 wd:Q2221906  # place type - geographic location
+ADD wd:Q294440 wdt:P279 wd:Q27096213  # public space - geographic entity
