@@ -17,7 +17,6 @@ wd:Q4164871    # position
 wd:Q12737077   # occupation
 wd:Q11862829   # academic discipline
 wd:Q21070598   # narrative entity
-wd:Q729        # animal
 wd:Q618779     # award
 wd:Q12136      # disease
 wd:Q4392985    # religious identity
