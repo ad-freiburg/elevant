@@ -70,11 +70,15 @@ class EntityDatabaseReader:
         logger.info("Loading Wikidata entity info (types and label) ...")
         entities = dict()
         id_to_type = dict()
+        adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
         for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator(type_mapping_file):
             if entity_id in relevant_entities:
                 if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
                     id_to_type[entity_id] = []
-                id_to_type[entity_id].append(whitelist_type)
+                adjusted_type = adjustments[whitelist_type] if whitelist_type in adjustments else whitelist_type
+                if adjusted_type not in id_to_type[entity_id]:
+                    # Due to the adjustment, the same type might be added twice without this check
+                    id_to_type[entity_id].append(adjusted_type)
 
         id_to_name = dict()
         for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
@@ -111,19 +115,41 @@ class EntityDatabaseReader:
                 yield entity_id, whitelist_type
 
     @staticmethod
-    def read_whitelist_types(whitelist_file: Optional[str] = settings.WHITELIST_FILE) -> Dict[str, str]:
+    def read_whitelist_types(whitelist_file: Optional[str] = settings.WHITELIST_FILE,
+                             with_adjustments: Optional[bool] = False) -> Dict[str, str]:
         logger.info("Loading whitelist types from %s ..." % whitelist_file)
         types = dict()
+        adjustments = dict()
+        if with_adjustments:
+            adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
         with open(whitelist_file, "r", encoding="utf8") as file:
             for line in file:
                 line = line.strip()
                 if line:
                     lst = line.split("#")
                     entity_id = lst[0].strip()[3:]
+                    if entity_id in adjustments:
+                        # Ignore whitelist types that occur on the left side of a type adjustment
+                        continue
                     name = lst[1].strip()
                     types[entity_id] = name
         logger.info("-> %d whitelist types loaded." % len(types))
         return types
+
+    @staticmethod
+    def read_whitelist_type_adjustments(adjustments_file: Optional[str] = settings.WHITELIST_TYPE_ADJUSTMENTS_FILE)\
+            -> Dict[str, str]:
+        logger.info("Loading whitelist type adjustments from %s ..." % adjustments_file)
+        adjustments = dict()
+        with open(adjustments_file, "r", encoding="utf8") as file:
+            for line in file:
+                line = line.strip()
+                if line:
+                    lst = line.split("#")
+                    types = lst[0].strip().split()
+                    adjustments[types[0].strip()] = types[1].strip()
+        logger.info("-> %d whitelist type adjustments loaded." % len(adjustments))
+        return adjustments
 
     @staticmethod
     def read_wikidata_aliases() -> Dict[str, Set[str]]:

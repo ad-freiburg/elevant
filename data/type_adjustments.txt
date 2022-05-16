@@ -1,0 +1,2 @@
+Q95074 Q215627         # fictional character -> person
+Q3895768 Q27096213     # fictional location -> geographic Entity

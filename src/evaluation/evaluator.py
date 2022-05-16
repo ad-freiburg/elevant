@@ -48,7 +48,7 @@ class Evaluator:
                  load_data: bool = True,
                  coreference: bool = True,
                  contains_unknowns: bool = True):
-        self.type_id_to_label = EntityDatabaseReader.read_whitelist_types(whitelist_file)
+        self.type_id_to_label = EntityDatabaseReader.read_whitelist_types(whitelist_file, with_adjustments=True)
         self.all_cases = []
         if load_data:
             self.entity_db = load_evaluation_entities(relevant_entity_ids, type_mapping_file)
