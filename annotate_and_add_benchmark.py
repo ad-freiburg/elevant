@@ -3,7 +3,7 @@ import log
 import sys
 
 from src import settings
-from src.evaluation.benchmark import BenchmarkFormat, Benchmark
+from src.evaluation.benchmark import BenchmarkFormat, Benchmark, get_available_benchmarks
 from src.evaluation.examples_generator import get_example_generator
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.entity_database_reader import EntityDatabaseReader
@@ -14,8 +14,9 @@ def main(args):
     logger.info("Transform benchmark %s into jsonl format and annotate groundtruth labels with Wikidata label and type."
                 % benchmark_info)
 
+    from_json_file = args.benchmark in get_available_benchmarks()
     example_iterator = get_example_generator(args.benchmark,
-                                             from_json_file=False,
+                                             from_json_file=from_json_file,
                                              benchmark_file=args.benchmark_file,
                                              benchmark_format=args.benchmark_format)
 
@@ -67,7 +68,8 @@ if __name__ == "__main__":
                               help="The benchmark will be written to the specified file.")
 
     group_benchmark = parser.add_mutually_exclusive_group(required=True)
-    group_benchmark.add_argument("-b", "--benchmark", choices=[b.value for b in Benchmark],
+    group_benchmark.add_argument("-b", "--benchmark",
+                                 choices=set([b.value for b in Benchmark] + get_available_benchmarks()),
                                  help="Benchmark to annotate / create labels for.")
     group_benchmark.add_argument("-bfile", "--benchmark_file", type=str,
                                  help="File that contains text and information about groundtruth labels")
