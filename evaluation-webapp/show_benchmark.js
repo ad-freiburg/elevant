@@ -1448,22 +1448,23 @@ async function show_article(selected_approaches, timestamp) {
 
     var iteration = 0;
     while (!(selected_approaches[0] in evaluation_cases) || evaluation_cases[selected_approaches[0]].length == 0) {
+        $(column_headers[column_idx]).text("");
+        for (var i=1; i<columns.length; i++) {
+            hide_table_column("prediction_overview", i);
+        }
         if (iteration >= 10) {
             console.log("ERROR: Stop waiting for result.");
-            $(columns[column_idx]).html("<b class='warning'>No approach selected or no file with cases found.</b>");
+            $(columns[column_idx]).html("<b class='warning'>No experiment selected or no file with cases found.</b>");
             return;
         } else if (timestamp < last_show_article_request_timestamp) {
             console.log("ERROR: Stop waiting for result.");
             return;
+        } else if (!selected_approaches[0]) {
+            $(columns[column_idx]).html("<b class='warning'>No experiment selected.</b>");
+            return;
         }
         console.log("WARNING: selected approach[0]", selected_approaches[0], "not in evaluation cases. Waiting for result.");
-        $(column_headers[column_idx]).text("");
         $(columns[column_idx]).html("<b>Waiting for results...</b>");
-        column_idx++;
-        for (var i=column_idx; i<columns.length; i++) {
-            hide_table_column("prediction_overview", i);
-        }
-        column_idx = 0;
         await new Promise(r => setTimeout(r, 1000));
         iteration++;
     }
