@@ -63,11 +63,21 @@ a {
 /* Class for warnings */
 .warning {
     color: red;
-    font-site: 120%;
 }
 
 .nonbold {
     font-weight: 300;
+}
+
+.with_note {
+    margin-bottom: 2px;
+    padding-bottom: 0px;
+}
+
+.note {
+    font-size: 80%;
+    margin-top: 0em;
+    margin-bottom: 2em;
 }
 
 /* Checkbox labels */
