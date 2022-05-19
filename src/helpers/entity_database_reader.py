@@ -126,8 +126,8 @@ class EntityDatabaseReader:
             for line in file:
                 line = line.strip()
                 if line:
-                    lst = line.split("#")
-                    entity_id = lst[0].strip()[3:]
+                    lst = line.split("\t")
+                    entity_id = lst[0].strip()
                     if entity_id in adjustments:
                         # Ignore whitelist types that occur on the left side of a type adjustment
                         continue

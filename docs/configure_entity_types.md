@@ -1,7 +1,7 @@
 # Configure Entity Types
 
 For the per-type evaluation, we categorize entities into a set of Wikidata whitelist types. An entity can potentially
- have more than one whitelist type. These whitelist types are defined in `data/whitelist_types.txt`. The file
+ have more than one whitelist type. These whitelist types are defined in `data/whitelist_types.tsv`. The file
  `<data_directory>/wikidata_types/entity-types.tsv` contains a mapping from Wikidata entity QIDs to their whitelist
  type QID. Since the Wikidata type hierarchy contains many inconsistencies, and instance-of and subclass-of relations
  are subject to constant change, we build our type mapping from a corrected version of Wikidata. For these corrections,
@@ -10,8 +10,8 @@ For the per-type evaluation, we categorize entities into a set of Wikidata white
  types and corrections (run `make download_entity_types_mapping` as described in [this section of the README
  ](../README.md#get-the-data)). You can however also build the file yourself and define your own set of whitelist
  types and type corrections. For this, execute the following steps:
-1) Adjust the whitelist types and corrections in the `data/whitelist_types.txt` and `data/type_corrections.txt` files
-2) Copy these files to `wikidata-types/types.txt` and `wikidata-types/corrections.txt` respectively.
+1) Adjust the whitelist types and corrections in the `data/whitelist_types.tsv` and `data/type_corrections.txt` files
+2) Copy these files to `wikidata-types/types.tsv` and `wikidata-types/corrections.txt` respectively.
 3) Run the steps described in [Generate Entity-Type Mapping](data_generation.md#generate-entity-type-mapping).
  
 When loading the types into Elevant for the evaluation, we apply another layer of adjustments where we merge certain

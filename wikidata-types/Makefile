@@ -15,14 +15,14 @@ PORT = 7016
 
 API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 CORRECTIONS_FILE = corrections.txt
-TYPES_FILE = types.txt
+TYPES_FILE = types.tsv
 ENTITY_TYPES_FILE = entity-types.tsv
 # DATA_QUERY_NAMES = P279 P31
 DATA_QUERY_NAMES = P279 P31 LABEL SITELINKS
 
 BATCH_SIZE = 10000000
 MAX_RESULT_SIZE = $(shell echo "200 * $(BATCH_SIZE)" | bc)
-TYPES_WHITELIST = $(shell cat types.txt | sed 's/\s*\#.*$$//g')
+TYPES_WHITELIST = $(shell cat $(TYPES_FILE) | sed -r 's/(Q[0-9]*)\s*.*/wd:\1/g')
 SED_PREFIX_SUBSTITUTIONS = $(shell echo "$(PREFIXES)" | sed 's|\([.]\)|\\\1|g; s/PREFIX \+\([^ ]\+\) \+<\([^ ]\+\)>/s|<\2|\1|g; /g;')
 
 # Variants of getting the contents of a variable with a multiline value (see the

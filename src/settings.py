@@ -52,7 +52,7 @@ COARSE_TYPES = "data/coarse_types.tsv"
 QID_TO_ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_types.tsv"
 QID_TO_COREF_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_coreference_types.tsv"
 # Wikidata types files
-WHITELIST_FILE = "data/whitelist_types.txt"
+WHITELIST_FILE = "data/whitelist_types.tsv"
 WHITELIST_TYPE_ADJUSTMENTS_FILE = "data/type_adjustments.txt"
 WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.tsv"
 
