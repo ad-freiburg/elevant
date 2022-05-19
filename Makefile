@@ -269,6 +269,7 @@ start_webapp:
 	@echo
 	@[ -L evaluation-webapp/evaluation-results ] || ln -sr ${EVALUATION_RESULTS_DIR} evaluation-webapp/evaluation-results
 	@[ -L evaluation-webapp/benchmarks ] || ln -sr benchmarks/ evaluation-webapp/benchmarks
+	@[ -L evaluation-webapp/whitelist_types.tsv ] || ln -sr data/whitelist_types.tsv evaluation-webapp/whitelist_types.tsv
 	python3 -m http.server --directory evaluation-webapp ${WEB_APP_PORT}
 
 define PREFIXES

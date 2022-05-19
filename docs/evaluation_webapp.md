@@ -20,11 +20,15 @@ Steps 1 - 4 are executed automatically when running `make start_webapp`.
 
        ln -s ../benchmarks
 
-4. Start a file server
+4. Link to the whitelist type file that contains a mapping from whitelist type QIDs to their label
+
+       ln -s ../data/whitelist_types.tsv
+
+5. Start a file server
 
        python3 -m http.server [PORT]
 
-5. Access the web app at `0.0.0.0:[PORT]` (default port is 8000).
+6. Access the web app at `0.0.0.0:[PORT]` (default port is 8000).
 
 
 ## Features

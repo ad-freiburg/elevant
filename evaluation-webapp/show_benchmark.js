@@ -122,8 +122,6 @@ $("document").ready(function() {
     selected_cells = [];
     reset_selected_cell_categories();
 
-    type_name_mapping = {};
-
     $("#checkbox_compare").prop('checked', url_param_compare);
 
     read_example_benchmark_data();
@@ -264,11 +262,11 @@ $("document").ready(function() {
 });
 
 function get_type_label(qid) {
-    var qid_lower = qid.toLowerCase();
-    if (qid_lower in type_name_mapping) {
-        return type_name_mapping[qid_lower];
+    var qid_upper = qid.replace("q", "Q");
+    if (qid_upper in whitelist_types) {
+        return whitelist_types[qid_upper];
     }
-    return qid + " (label missing)";
+    return qid_upper + " (label missing)";
 }
 
 function read_example_benchmark_data() {
@@ -662,37 +660,50 @@ function set_benchmark_select_options() {
     $.get(CONFIG_PATH, function(data) {
         config = data;
     }).then(function() {
-        $.get("benchmarks", function(folder_data) {
-            $(folder_data).find("a").each(function() {
-                var file_name = $(this).attr("href");
-                if (file_name.endsWith(".benchmark.jsonl")) {
-                    benchmarks.push(file_name);
+        whitelist_types = {};
+        $.get("whitelist_types.tsv", function(data) {
+            var lines = data.split("\n");
+            for (line of lines) {
+                if (line.length > 0) {
+                    var lst = line.split("\t");
+                    var type_id = lst[0];
+                    var type_label = lst[1];
+                    whitelist_types[type_id] = type_label;
                 }
-            });
+            }
         }).then(function() {
-            benchmarks.sort();
-            for (bi in benchmarks) {
-                benchmark = benchmarks[bi];
-                var option = document.createElement("option");
-                var benchmark_name = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
+            $.get("benchmarks", function(folder_data) {
+                $(folder_data).find("a").each(function() {
+                    var file_name = $(this).attr("href");
+                    if (file_name.endsWith(".benchmark.jsonl")) {
+                        benchmarks.push(file_name);
+                    }
+                });
+            }).then(function() {
+                benchmarks.sort();
+                for (bi in benchmarks) {
+                    var benchmark = benchmarks[bi];
+                    var option = document.createElement("option");
+                    var benchmark_name = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
 
-                // Hide certain benchmarks as defined in the config file
-                if ("hide_benchmarks" in config && config["hide_benchmarks"].includes(benchmark_name)) continue;
-                option.text = benchmark_name;
-                option.value = benchmark;
-                benchmark_select.add(option);
-            }
+                    // Hide certain benchmarks as defined in the config file
+                    if ("hide_benchmarks" in config && config["hide_benchmarks"].includes(benchmark_name)) continue;
+                    option.text = benchmark_name;
+                    option.value = benchmark;
+                    benchmark_select.add(option);
+                }
 
-            // Set benchmark
-            var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
-            if (url_param_benchmark && benchmark_by_url.length > 0) {
-                // Set the benchmark according to URL parameter if one with a valid benchmark name exists
-                $(benchmark_by_url).prop('selected',true);
-            } else {
-                // Set default value to "wiki-ex".
-                $('#benchmark option:contains("wiki-ex")').prop('selected',true);
-            }
-            show_benchmark_results(true);
+                // Set benchmark
+                var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
+                if (url_param_benchmark && benchmark_by_url.length > 0) {
+                    // Set the benchmark according to URL parameter if one with a valid benchmark name exists
+                    $(benchmark_by_url).prop('selected',true);
+                } else {
+                    // Set default value to "wiki-ex".
+                    $('#benchmark option:contains("wiki-ex")').prop('selected',true);
+                }
+                show_benchmark_results(true);
+            });
         });
     });
 }
@@ -1510,7 +1521,7 @@ function get_emphasis_string(selected_cell_category) {
         var emphasis_strs = [];
         for (selected_category of selected_cell_category) {
             if (is_type_string(selected_category)) {
-                 emphasis_strs.push(type_name_mapping[selected_category]);
+                 emphasis_strs.push(get_type_label(selected_category));
                  emphasis_type = "entity type";
             } else if (mention_types.includes(selected_category)) {
                 emphasis_strs.push(selected_category.replace(/_/g, " ").toLowerCase());
@@ -1680,7 +1691,6 @@ function add_checkboxes(json_obj, initial_call) {
                 checkbox_html += "<label>" + title + "</label></span>\n";
                 var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
                 $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
-                if (key == "by_type") type_name_mapping[get_type_qid(subkey).toLowerCase()] = title;
             });
         } else {
             var class_name = get_class_name(key);
@@ -1871,7 +1881,9 @@ function get_class_name(text) {
 }
 
 function get_title_from_key(key) {
-    key = key.replace(/Q[0-9]+:/g, "");
+    if (key in whitelist_types) {
+        return whitelist_types[key];
+    }
     return to_title_case(key.replace(/_/g, " "));
 }
 

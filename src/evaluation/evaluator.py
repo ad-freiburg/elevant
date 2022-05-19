@@ -48,7 +48,7 @@ class Evaluator:
                  load_data: bool = True,
                  coreference: bool = True,
                  contains_unknowns: bool = True):
-        self.type_id_to_label = EntityDatabaseReader.read_whitelist_types(whitelist_file, with_adjustments=True)
+        self.whitelist_types = EntityDatabaseReader.read_whitelist_types(whitelist_file, with_adjustments=True)
         self.all_cases = []
         if load_data:
             self.entity_db = load_evaluation_entities(relevant_entity_ids, type_mapping_file)
@@ -61,9 +61,8 @@ class Evaluator:
             self.counts[key] = {"tp": 0, "fp": 0, "fn": 0}
         self.error_counts = {label: 0 for label in ErrorLabel}
         self.type_counts = {GroundtruthLabel.OTHER: {"tp": 0, "fp": 0, "fn": 0}}
-        for type_id in self.type_id_to_label:
-            type_key = self.get_type_keys([type_id])[0]
-            self.type_counts[type_key] = {"tp": 0, "fp": 0, "fn": 0}
+        for type_id in self.whitelist_types:
+            self.type_counts[type_id] = {"tp": 0, "fp": 0, "fn": 0}
         self.has_candidates = False
         self.n_entity_lowercase = 0
         self.n_entity_contains_space = 0
@@ -108,9 +107,8 @@ class Evaluator:
             else:
                 type_ids = case.true_entity.type
                 type_ids = type_ids.split("|")
-                type_keys = self.get_type_keys(type_ids)
-                for tk in type_keys:
-                    self.type_counts[tk]["tp"] += 1
+                for type_id in type_ids:
+                    self.type_counts[type_id]["tp"] += 1
 
         else:
             if case.is_false_positive() and not case.is_true_quantity_or_datetime() and case.factor != 0:
@@ -125,9 +123,8 @@ class Evaluator:
                         type_ids = self.entity_db.get_entity(pred_entity_id).type.split("|")
                     else:
                         type_ids = [GroundtruthLabel.OTHER]
-                    type_keys = self.get_type_keys(type_ids)
-                    for tk in type_keys:
-                        self.type_counts[tk]["fp"] += 1
+                    for type_id in type_ids:
+                        self.type_counts[type_id]["fp"] += 1
 
             if case.is_false_negative() and not case.is_optional() and case.true_entity.parent is None:
                 self.counts["all"]["fn"] += 1
@@ -138,19 +135,8 @@ class Evaluator:
                 else:
                     type_ids = case.true_entity.type
                     type_ids = type_ids.split("|")
-                    type_keys = self.get_type_keys(type_ids)
-                    for tk in type_keys:
-                        self.type_counts[tk]["fn"] += 1
-
-    def get_type_keys(self, type_ids: List[str]) -> List[str]:
-        type_keys = []
-        for type_id in type_ids:
-            if type_id in self.type_id_to_label:
-                type_label = self.type_id_to_label[type_id]
-                type_keys.append(type_id + ":" + type_label)
-            else:
-                type_keys.append(type_id)
-        return type_keys
+                    for type_id in type_ids:
+                        self.type_counts[type_id]["fn"] += 1
 
     def count_error_labels(self, case: Case):
         for label in case.error_labels:
@@ -284,6 +270,6 @@ class Evaluator:
         }
         # Type results
         results_dict["by_type"] = {}
-        for type_key in self.type_counts:
-            results_dict["by_type"][type_key] = create_f1_dict_from_counts(self.type_counts[type_key])
+        for type_id in self.type_counts:
+            results_dict["by_type"][type_id] = create_f1_dict_from_counts(self.type_counts[type_id])
         return results_dict
