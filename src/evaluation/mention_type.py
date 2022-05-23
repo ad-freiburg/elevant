@@ -6,8 +6,8 @@ from src.utils.pronoun_finder import PronounFinder
 class MentionType(Enum):
     ENTITY_NAMED = "ENTITY_NAMED"
     ENTITY_OTHER = "ENTITY_OTHER"
-    NOMINAL = "NOMINAL"
-    PRONOMINAL = "PRONOMINAL"
+    COREF_NOMINAL = "COREF_NOMINAL"
+    COREF_PRONOMINAL = "COREF_PRONOMINAL"
 
     def is_coreference(self):
         return self != MentionType.ENTITY_NAMED and self != MentionType.ENTITY_OTHER
@@ -50,9 +50,9 @@ def is_named_entity(entity_name: str) -> bool:
 
 def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType:
     if PronounFinder.is_pronoun(mention):
-        return MentionType.PRONOMINAL
+        return MentionType.COREF_PRONOMINAL
     elif is_nominal(mention):
-        return MentionType.NOMINAL
+        return MentionType.COREF_NOMINAL
     else:
         entity_name = true_entity.name if true_entity else predicted_entity.name
         if is_named_entity(entity_name):

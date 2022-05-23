@@ -100,8 +100,28 @@ mention_type_headers = {"entity": ["entity_named", "entity_other"],
                         "coref": ["nominal", "pronominal"],
                         "entity_named": ["entity_named"],
                         "entity_other": ["entity_other"],
-                        "nominal": ["nominal"],
-                        "pronominal": ["pronominal"]};
+                        "coref_nominal": ["coref_nominal"],
+                        "coref_pronominal": ["coref_pronominal"]};
+
+result_titles = {
+    "mention_types": {
+        "all": {"checkbox_label": "All", "table_heading": "All"},
+        "entity": {"checkbox_label": "Entity: All", "table_heading": "Entity: All"},
+        "entity_named": {"checkbox_label": "Entity: Named", "table_heading": "Entity: Named"},
+        "entity_other": {"checkbox_label": "Entity: Other", "table_heading": "Entity: Other"},
+        "coref": {"checkbox_label": "Coref: All", "table_heading": "Coref: All"},
+        "coref_pronominal": {"checkbox_label": "Coref: Pronominal", "table_heading": "Coref: Pronominal"},
+        "coref_nominal": {"checkbox_label": "Coref: Nominal", "table_heading": "Coref: Nominal"},
+    },
+    "error_categories": {
+        "NER": {"checkbox_label": "NER: All", "table_heading": "NER: All"},
+        "undetected": {"checkbox_label": "NER: Undetected", "table_heading": "NER: Undetected"},
+        "false_detection": {"checkbox_label": "NER: False Detection", "table_heading": "NER: False Detection"},
+        "wrong_disambiguation": {"checkbox_label": "Wrong Disambiguation", "table_heading": "Wrong Disambiguation"},
+        "other_errors": {"checkbox_label": "Other Errors", "table_heading": "Other Errors"},
+        "wrong_coreference": {"checkbox_label": "Wrong Coreference", "table_heading": "Wrong Coreference"},
+    }
+}
 
 $("document").ready(function() {
     read_url_parameters();
@@ -1684,7 +1704,7 @@ function add_checkboxes(json_obj, initial_call) {
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
             var class_name = get_class_name(subkey);
-            var title = get_title_from_key(subkey);
+            var title = get_checkbox_label(key, subkey);
             var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : "";
             var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
             checkbox_html += "<label>" + title + "</label></span>\n";
@@ -1739,39 +1759,28 @@ function get_table_header(json_obj) {
     var second_row = "<tr><th>Experiment</th>";
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
-            var row_additions = get_table_header_by_json_key(json_obj[key], subkey);
-            first_row += row_additions[0];
-            second_row += row_additions[1];
+            var colspan = 0;
+            var class_name = get_class_name(subkey);
+            $.each(json_obj[key][subkey], function(subsubkey) {
+                if (!(ignore_headers.includes(subsubkey))) {
+                    var subclass_name = get_class_name(subsubkey);
+                    var sort_order = (subkey in error_category_mapping) ? " data-sortinitialorder=\"asc\"" : "";
+                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " tooltip sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey);
+                    var tooltip_text = get_header_tooltip_text(subkey, subsubkey);
+                    if (tooltip_text) second_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+                    second_row += "</th>";
+                    colspan += 1;
+                }
+            });
+            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + " tooltip'>" + get_table_heading(key, subkey);
+            var tooltip_text = get_header_tooltip_text(subkey, null);
+            if (tooltip_text) first_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+            first_row += "</th>";
         });
     });
     first_row += "</tr>";
     second_row += "</tr>";
     return first_row + second_row;
-}
-
-function get_table_header_by_json_key(json_obj, key) {
-    var first_row_addition = "";
-    var second_row_addition = "";
-    var colspan = 0;
-    var class_name = get_class_name(key);
-    $.each(json_obj[key], function(subkey) {
-        if (!(ignore_headers.includes(subkey))) {
-            var subclass_name = get_class_name(subkey);
-            var sort_order = (key in error_category_mapping) ? " data-sortinitialorder=\"asc\"" : "";
-            second_row_addition += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " tooltip sorter-digit'" + sort_order + ">" + get_title_from_key(subkey);
-            var tooltip_text = get_header_tooltip_text(key, subkey);
-            if (tooltip_text) second_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-            second_row_addition += "</th>";
-            colspan += 1;
-        }
-    });
-    first_row_addition += "<th colspan=\"" + colspan + "\" class='" + class_name + " tooltip'>" + get_title_from_key(key);
-    var tooltip_text = get_header_tooltip_text(key, null);
-    if (tooltip_text) {
-        first_row_addition += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-    }
-    first_row_addition += "</th>";
-    return [first_row_addition, second_row_addition];
 }
 
 function get_table_row(approach_name, json_obj) {
@@ -1864,11 +1873,24 @@ function get_class_name(text) {
     return text.toLowerCase().replace(/[ ,.#:]/g, "_");
 }
 
-function get_title_from_key(key) {
-    if (key in whitelist_types) {
-        return whitelist_types[key];
+function get_checkbox_label(key, subkey) {
+    if (key == "entity_types" && subkey in whitelist_types) {
+        return whitelist_types[subkey];
+    } else if (key in result_titles && subkey in result_titles[key]) {
+        return result_titles[key][subkey]["checkbox_label"];
+    } else {
+        return to_title_case(subkey.replace(/_/g, " "));
     }
-    return to_title_case(key.replace(/_/g, " "));
+}
+
+function get_table_heading(key, subkey) {
+    if (key == "entity_types" && subkey in whitelist_types) {
+        return "Type: " + whitelist_types[subkey];
+    } else if (key in result_titles && subkey in result_titles[key]) {
+        return result_titles[key][subkey]["table_heading"];
+    } else {
+        return to_title_case(subkey.replace(/_/g, " "));
+    }
 }
 
 function to_title_case(str) {

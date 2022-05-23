@@ -37,7 +37,7 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     return entity_db
 
 
-EVALUATION_CATEGORIES = ("all", "NER", "coref", "entity", "entity_named", "entity_other", "nominal", "pronominal")
+EVALUATION_CATEGORIES = ("all", "NER", "coref", "entity", "entity_named", "entity_other", "coref_nominal", "coref_pronominal")
 
 
 class Evaluator:
