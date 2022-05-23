@@ -1,2 +1,3 @@
-Q95074 Q215627         # fictional character -> person
-Q3895768 Q27096213     # fictional location -> geographic Entity
+Q95074 REPLACE_WITH Q215627         # fictional character -> person
+Q3895768 REPLACE_WITH Q27096213     # fictional location -> geographic Entity
+Q729 MINUS Q215627                  # animal - person

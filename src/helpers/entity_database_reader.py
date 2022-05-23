@@ -71,11 +71,25 @@ class EntityDatabaseReader:
         entities = dict()
         id_to_type = dict()
         adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
+        adj_replace = adjustments["REPLACE_WITH"]
+        adj_minus = adjustments["MINUS"]
         for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator(type_mapping_file):
             if entity_id in relevant_entities:
                 if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
                     id_to_type[entity_id] = []
-                adjusted_type = adjustments[whitelist_type] if whitelist_type in adjustments else whitelist_type
+
+                # Perform type adjustments
+                adjusted_type = adj_replace[whitelist_type] if whitelist_type in adj_replace else whitelist_type
+                if adjusted_type in adj_minus and adj_minus[adjusted_type] in id_to_type[entity_id]:
+                    # Type is left element of minus-rule and right element is already in the entity's type list.
+                    # Don't add type.
+                    continue
+                for t in id_to_type[entity_id]:
+                    if t in adj_minus and adjusted_type == adj_minus[t]:
+                        # Type is right element of minus-rule and left element is already in the entity's type list.
+                        # Remove previously added type.
+                        id_to_type[entity_id].remove(t)
+
                 if adjusted_type not in id_to_type[entity_id]:
                     # Due to the adjustment, the same type might be added twice without this check
                     id_to_type[entity_id].append(adjusted_type)
@@ -138,7 +152,7 @@ class EntityDatabaseReader:
 
     @staticmethod
     def read_whitelist_type_adjustments(adjustments_file: Optional[str] = settings.WHITELIST_TYPE_ADJUSTMENTS_FILE)\
-            -> Dict[str, str]:
+            -> Dict[str, Dict[str, str]]:
         logger.info("Loading whitelist type adjustments from %s ..." % adjustments_file)
         adjustments = dict()
         with open(adjustments_file, "r", encoding="utf8") as file:
@@ -146,9 +160,14 @@ class EntityDatabaseReader:
                 line = line.strip()
                 if line:
                     lst = line.split("#")
-                    types = lst[0].strip().split()
-                    adjustments[types[0].strip()] = types[1].strip()
-        logger.info("-> %d whitelist type adjustments loaded." % len(adjustments))
+                    type1, rel, type2 = lst[0].strip().split()
+                    if rel not in ["MINUS", "REPLACE_WITH"]:
+                        logger.warning("Type adjustment relation not known: %s" % rel)
+                        continue
+                    if rel not in adjustments:
+                        adjustments[rel] = {}
+                    adjustments[rel][type1.strip()] = type2.strip()
+        logger.info("-> Whitelist type adjustments loaded.")
         return adjustments
 
     @staticmethod
