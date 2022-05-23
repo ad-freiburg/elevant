@@ -1491,7 +1491,7 @@ async function show_article(selected_approaches, timestamp) {
             console.log("ERROR: Stop waiting for result.");
             return;
         } else if (!selected_approaches[0]) {
-            $(columns[column_idx]).html("<b class='warning'>No experiment selected.</b>");
+            $(columns[column_idx]).html("<b class='warning'>No experiment selected in the evaluation results table.</b>");
             return;
         }
         console.log("WARNING: selected approach[0]", selected_approaches[0], "not in evaluation cases. Waiting for result.");
