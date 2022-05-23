@@ -166,15 +166,23 @@ class Evaluator:
         self.counts["entity"]["tp"] = self.counts["entity_named"]["tp"] + self.counts["entity_other"]["tp"]
         self.counts["entity"]["fp"] = self.counts["entity_named"]["fp"] + self.counts["entity_other"]["fp"]
         self.counts["entity"]["fn"] = self.counts["entity_named"]["fn"] + self.counts["entity_other"]["fn"]
-        results_dict = {
+
+        results_dict = {}
+        results_dict["mention_types"] = {
             category: create_f1_dict_from_counts(self.counts[category]) for category in EVALUATION_CATEGORIES
         }
-        results_dict["errors"] = {}
-        results_dict["errors"]["undetected"] = {
+
+        results_dict["error_categories"] = {}
+
+        # Move NER results to error categories
+        results_dict["error_categories"]["NER"] = results_dict["mention_types"]["NER"]
+        del results_dict["mention_types"]["NER"]
+
+        results_dict["error_categories"]["undetected"] = {
             # Undetected
             "all": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED],
-                "total": results_dict["NER"]["ground_truth"]
+                "total": results_dict["error_categories"]["NER"]["ground_truth"]
             },
             "lowercase": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_LOWERCASE],
@@ -186,14 +194,14 @@ class Evaluator:
             },
             "partial_overlap": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_PARTIAL_OVERLAP],
-                "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
+                "total": results_dict["error_categories"]["NER"]["ground_truth"] - self.n_entity_lowercase
             },
             "other": {
                 "errors": self.error_counts[ErrorLabel.UNDETECTED_OTHER],
-                "total": results_dict["NER"]["ground_truth"] - self.n_entity_lowercase
+                "total": results_dict["error_categories"]["NER"]["ground_truth"] - self.n_entity_lowercase
             }
         }
-        results_dict["errors"]["false_detection"] = {
+        results_dict["error_categories"]["false_detection"] = {
             # False detection
             "all": self.error_counts[ErrorLabel.FALSE_DETECTION],
             "abstract_entity": self.error_counts[ErrorLabel.FALSE_DETECTION_ABSTRACT_ENTITY],
@@ -204,7 +212,7 @@ class Evaluator:
                 "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
             }
         }
-        results_dict["errors"]["wrong_disambiguation"] = {
+        results_dict["error_categories"]["wrong_disambiguation"] = {
             # Disambiguation errors
             "all": {
                 "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_WRONG],
@@ -241,7 +249,7 @@ class Evaluator:
                          self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT]
             } if self.has_candidates else None
         }
-        results_dict["errors"]["other_errors"] = {
+        results_dict["error_categories"]["other_errors"] = {
             # Other errors
             "hyperlink": {
                 "errors": self.error_counts[ErrorLabel.HYPERLINK_WRONG],
@@ -249,27 +257,27 @@ class Evaluator:
                          self.error_counts[ErrorLabel.HYPERLINK_WRONG]
             },
         }
-        results_dict["errors"]["wrong_coreference"] = {
+        results_dict["error_categories"]["wrong_coreference"] = {
             # Coreference errors
             "undetected": {
                 "errors": self.error_counts[ErrorLabel.COREFERENCE_UNDETECTED],
-                "total": results_dict["coref"]["ground_truth"]
+                "total": results_dict["mention_types"]["coref"]["ground_truth"]
             },
             "wrong_mention_referenced": {
                 "errors": self.error_counts[ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED],
-                "total": results_dict["coref"]["ground_truth"] -
+                "total": results_dict["mention_types"]["coref"]["ground_truth"] -
                          self.error_counts[ErrorLabel.COREFERENCE_UNDETECTED]
             },
             "reference_wrongly_disambiguated": {
                 "errors": self.error_counts[ErrorLabel.COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED],
-                "total": results_dict["coref"]["ground_truth"] -
+                "total": results_dict["mention_types"]["coref"]["ground_truth"] -
                          self.error_counts[ErrorLabel.COREFERENCE_UNDETECTED] -
                          self.error_counts[ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED]
             },
             "false_detection": self.error_counts[ErrorLabel.COREFERENCE_FALSE_DETECTION]
         }
         # Type results
-        results_dict["by_type"] = {}
+        results_dict["entity_types"] = {}
         for type_id in self.type_counts:
-            results_dict["by_type"][type_id] = create_f1_dict_from_counts(self.type_counts[type_id])
+            results_dict["entity_types"][type_id] = create_f1_dict_from_counts(self.type_counts[type_id])
         return results_dict

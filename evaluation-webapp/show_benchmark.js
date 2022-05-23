@@ -1576,16 +1576,16 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                     result_files[approach_name] = url.substring(0, url.length - RESULTS_EXTENSION.length);
 
                     // Filter out certain keys in results according to config
-                    $.each(results["errors"], function(key) {
+                    $.each(results["error_categories"], function(key) {
                         if ("hide_error_checkboxes" in config && config["hide_error_checkboxes"].includes(key))
-                            delete results["errors"][key];
+                            delete results["error_categories"][key];
                     });
-                    $.each(results["by_type"], function(key) {
+                    $.each(results["entity_types"], function(key) {
                         var type_label = key.toLowerCase().replace(/Q[0-9]+:/g, "");
                         type_label = type_label.replace(" ", "_");
                         if ("hide_type_checkboxes" in config && (config["hide_type_checkboxes"].includes(key) ||
                                                                  config["hide_type_checkboxes"].includes(type_label)))
-                            delete results["by_type"][key];
+                            delete results["entity_types"][key];
                     });
                     $.each(results, function(key) {
                         if ("hide_mention_checkboxes" in config && config["hide_mention_checkboxes"].includes(key))
@@ -1682,24 +1682,18 @@ function add_checkboxes(json_obj, initial_call) {
     Add checkboxes for showing / hiding columns.
     */
     $.each(json_obj, function(key) {
-        if (key == "by_type" || key == "errors") {
-            $.each(json_obj[key], function(subkey) {
-                var class_name = get_class_name(subkey);
-                var title = get_title_from_key(subkey);
-                var checked = (url_param_show_columns.includes(class_name)) ? "checked" : ""
-                var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
-                checkbox_html += "<label>" + title + "</label></span>\n";
-                var checkbox_div_id = (key == "errors") ? "error_checkboxes" : "type_checkboxes";
-                $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
-            });
-        } else {
-            var class_name = get_class_name(key);
-            var title = get_title_from_key(key);
-            var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : ""
+        $.each(json_obj[key], function(subkey) {
+            var class_name = get_class_name(subkey);
+            var title = get_title_from_key(subkey);
+            var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : "";
             var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
             checkbox_html += "<label>" + title + "</label></span>\n";
-            $("#general_checkboxes.checkboxes").append(checkbox_html);
-        }
+            var checkbox_div_id = "";
+            if (key == "mention_types") checkbox_div_id = "mention_type_checkboxes";
+            if (key == "error_categories") checkbox_div_id = "error_category_checkboxes";
+            if (key == "entity_types") checkbox_div_id = "entity_type_checkboxes";
+            $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
+        });
     });
 }
 
@@ -1744,17 +1738,11 @@ function get_table_header(json_obj) {
     var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
     var second_row = "<tr><th>Experiment</th>";
     $.each(json_obj, function(key) {
-        if (key == "by_type" || key == "errors") {
-            $.each(json_obj[key], function(subkey) {
-                var row_additions = get_table_header_by_json_key(json_obj[key], subkey);
-                first_row += row_additions[0];
-                second_row += row_additions[1];
-            });
-        } else {
-            var row_additions = get_table_header_by_json_key(json_obj, key);
+        $.each(json_obj[key], function(subkey) {
+            var row_additions = get_table_header_by_json_key(json_obj[key], subkey);
             first_row += row_additions[0];
             second_row += row_additions[1];
-        }
+        });
     });
     first_row += "</tr>";
     second_row += "</tr>";
@@ -1794,13 +1782,9 @@ function get_table_row(approach_name, json_obj) {
     var onclick_str = " onclick='on_cell_click(this)'";
     row += "<td " + onclick_str + ">" + approach_name + "</td>";
     $.each(json_obj, function(key) {
-        if (key == "by_type" || key == "errors") {
-            $.each(json_obj[key], function(subkey) {
-                row += get_table_row_by_json_key(json_obj[key], subkey, onclick_str);
-            });
-        } else {
-            row += get_table_row_by_json_key(json_obj, key, onclick_str);
-        }
+        $.each(json_obj[key], function(subkey) {
+            row += get_table_row_by_json_key(json_obj[key], subkey, onclick_str);
+        });
     });
     row += "</tr>";
     return row;
