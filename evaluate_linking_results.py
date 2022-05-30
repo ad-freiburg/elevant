@@ -144,7 +144,20 @@ def main(args):
         f.write(json.dumps(results_dict))
     logger.info("Wrote results to %s" % results_file)
 
-    input_file.close()
+    if args.benchmark and args.write_labels:
+        input_file.seek(0)
+        input_file_lines = input_file.readlines()
+        input_file.close()
+        with open(args.input_file, 'w', encoding='utf8') as file:
+            example_iterator = get_example_generator(args.benchmark).iterate()
+            for line in input_file_lines:
+                article = article_from_json(line)
+                benchmark_article = next(example_iterator)
+                article.labels = benchmark_article.labels
+                file.write(article.to_json() + "\n")
+    else:
+        input_file.close()
+
     if args.input_case_file:
         case_file.close()
     else:
@@ -168,6 +181,8 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
                         help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
                              "retrieved from the given jsonl file")
+    parser.add_argument("-w", "--write_labels", action="store_true",
+                        help="Write the labels of the provided benchmark to the input file.")
     parser.add_argument("--no-unknowns", action="store_true",
                         help="Set if the benchmark contains no 'unknown' labels. "
                              "Uppercase false detections will be treated as 'unknown named entity' errors.")
