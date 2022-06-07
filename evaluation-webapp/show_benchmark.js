@@ -23,40 +23,40 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
-tooltip_example_html = " <a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.";
+tooltip_example_html = "<br><a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.";
 header_descriptions = {
     "undetected": {
-        "all": "The span of a GT mention was not linked (= NER FN) (Total: Named GT mentions).",
-        "lowercase": "The span of a lowercase GT mention was not linked (Total: Named lowercase GT mentions).",
-        "partially_included": "FN and a part of the GT mention was linked to an arbitrary entity (Total: Named GT mentions containing whitespace(s)).",
-        "partial_overlap": "FN and the GT span overlaps with a predicted span (Total: Named uppercase GT mentions).",
-        "other": "Other detection error (Total: Named uppercase GT mentions)."
-    },
-    "wrong_disambiguation": {
-        "all": "Detected, but wrong entity linked (Total: Detected).",
-        "demonym": "FN from a list of demonyms (German, Germans, ...) (Total: All demonym GT mentions).",
-        "partial_name": "FN and the GT mention is part of the entity name (Total: Named GT mentions where the mention is a part of the entity name).",
-        "metonymy": "Predicted and most popular candidate are locations, but ground truth is not (Total: Most popular candidate is a location, but ground truth is not).",
-        "rare": "Most popular candidate is wrongly predicted (Total: Detected mentions where the most popular candidate is not the correct entity).",
-        "other": "Other disambiguation error",
-        "wrong_candidates": "A GT mention was recognized but the GT entity is not among the candidates (Total: Named detected).",
-        "multi_candidates": "A GT mention was recognized and the GT entity is one of the candidates, but the wrong candidate was selected (Total: Named detected where the GT entity is one of multiple candidates)."
+        "all": "<i>Numerator:</i> A ground truth mention span is not linked to an entity.<br><i>Denominator:</i> All ground truth entity mentions.",
+        "lowercase": "<i>Numerator:</i> Undetected lowercased ground truth mention.<br><i>Denominator:</i> All lowercased ground truth mentions.",
+        "partially_included": "<i>Numerator:</i> A part of the ground truth mention is linked to an entity.<br><i>Denominator:</i> All ground truth mentions consisting of multiple words.",
+        "partial_overlap": "<i>Numerator:</i> Undetected mention that overlaps with a predicted mention.<br><i>Denominator:</i> All ground truth mentions that are not lowercased.",
+        "other": "<i>Numerator:</i> Undetected mention that does not fall into any of the other categories.<br><i>Denominator:</i> All ground truth mentions that are not lowercased."
     },
     "false_detection": {
-        "all": "Predicted mention that does not match a groundtruth mention span",
-        "abstract_entity": "Lowercase named FP that does not overlap with a GT mention",
-        "unknown_entity": "Uppercase mention wrongly linked, where the ground truth is either Unknown or has no label at all",
-        "other": "Other false detection",
-        "wrong_span": "Predicted mention whose span does not match, but overlaps with a GT mention with a matching entity (Total: Predicted mentions)."
+        "all": "A mention is predicted whose span is not linked in the ground truth.",
+        "abstract_entity": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
+        "unknown_entity": "The predicted mention is uppercased and the ground truth is \"Unknown\".",
+        "other": "NER false positive that does not fall into any of the other categories.",
+        "wrong_span": "The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.<br>Denominator: All predicted mentions."
+    },
+    "wrong_disambiguation": {
+        "all": "<i>Numerator:</i> A ground truth span was detected, but linked to the wrong entity.<br><i>Denominator:</i> All NER true positives.",
+        "demonym": "<i>Numerator:</i> FP & FN and the mention text is a demonym, i.e. it is contained in a list of demonyms from Wikidata.<br><i>Denominator:</i> NER true positives where the mention text is a demonym.",
+        "metonymy": "<i>Numerator:</i> FP & FN and the most popular entity for the given mention text and the prediction are locations, the ground truth is not a location.<br><i>Denominator:</i> NER true positives where the most popular candidate is a location but the ground truth is not.",
+        "partial_name": "<i>Numerator:</i> FP & FN and the mention text is a part of the ground truth entity name.<br><i>Denominator:</i> NER true positives that are a part of the ground truth entity name.",
+        "rare": "<i>Numerator:</i> FP & FN and the most popular entity for the given mention text was predicted instead of the less popular ground truth entity.<br><i>Denominator:</i> NER true positives where the most popular candidate is not the correct entity.",
+        "other": "Disambiguation error that does not fall into any of the other categories.",
+        "wrong_candidates": "<i>Numerator:</i> FP & FN and the ground truth entity is not in the candidate set returned by the linker for the mention.<br><i>Denominator:</i> All NER true positives.",
+        "multi_candidates": "<i>Numerator:</i> FP & FN and the candidate set for the mention contains multiple candidate entities, one of which is the ground truth entity, and the linker chose a wrong entity.<br><i>Denominator:</i> NER true positives where the linker returned a candidate set with more than one entity and the ground truth is contained in the candidate set."
     },
     "other_errors": {
-        "hyperlink": "FN where the mention is a hyperlink (Total: GT mentions that are hyperlinks)."
+        "hyperlink": "<i>Numerator:</i> Undetected mention that is also a hyperlink.<br><i>Denominator:</i> All ground truth mentions that are hyperlinks."
     },
     "wrong_coreference": {
-        "false_detection": "FP mentions in {It, it, This, this, That, that, Its, its}",
-        "reference_wrongly_disambiguated": "FN + FP, the reference was wrongly disambiguated (Total: Coreference mentions where correct GT mention was referenced).",
-        "wrong_mention_referenced": "FN + FP, wrong mention was referenced (Total: Linked GT coreference mentions).",
-        "undetected": "FN, mention was not linked (Total: GT coreference mentions)."
+        "false_detection": "NER FP with a mention text in {It, it, This, this, That, that, Its, its}",
+        "reference_wrongly_disambiguated": "<i>Numerator:</i> Coreference FN & FP and the reference was wrongly disambiguated.<br><i>Denominator:</i> Coreference mentions where the correct ground truth mention was referenced.",
+        "wrong_mention_referenced": "<i>Numerator:</i> Coreference FN + FP and the wrong mention was referenced.<br><i>Denominator:</i> Coreference NER true positives.",
+        "undetected": "<i>Numerator:</i> Coreference FN and the mention was not linked.<br><i>Denominator:</i> Ground truth coreference mentions."
     }
 };
 
@@ -115,11 +115,11 @@ result_titles = {
     },
     "error_categories": {
         "NER": {"checkbox_label": "NER: All", "table_heading": "NER: All"},
-        "undetected": {"checkbox_label": "NER: Undetected", "table_heading": "NER: Undetected"},
-        "false_detection": {"checkbox_label": "NER: False Detection", "table_heading": "NER: False Detection"},
-        "wrong_disambiguation": {"checkbox_label": "Wrong Disambiguation", "table_heading": "Wrong Disambiguation"},
+        "undetected": {"checkbox_label": "NER: False Negatives", "table_heading": "NER: False Negatives"},
+        "false_detection": {"checkbox_label": "NER: False Positives", "table_heading": "NER: False Positives"},
+        "wrong_disambiguation": {"checkbox_label": "Disambiguation Errors", "table_heading": "Disambiguation Errors"},
         "other_errors": {"checkbox_label": "Other Errors", "table_heading": "Other Errors"},
-        "wrong_coreference": {"checkbox_label": "Wrong Coreference", "table_heading": "Wrong Coreference"},
+        "wrong_coreference": {"checkbox_label": "Coreference Errors", "table_heading": "Coreference Errors"},
     }
 }
 
