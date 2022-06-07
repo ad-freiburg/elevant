@@ -37,7 +37,7 @@ header_descriptions = {
         "abstract_entity": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
         "unknown_entity": "The predicted mention is uppercased and the ground truth is \"Unknown\".",
         "other": "NER false positive that does not fall into any of the other categories.",
-        "wrong_span": "The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.<br>Denominator: All predicted mentions."
+        "wrong_span": "<i>Numerator:</i> The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.<br><i>Denominator</i>: All predicted mentions."
     },
     "wrong_disambiguation": {
         "all": "<i>Numerator:</i> A ground truth span was detected, but linked to the wrong entity.<br><i>Denominator:</i> All NER true positives.",
@@ -306,7 +306,7 @@ function read_example_benchmark_data() {
 
     articles_data_example_benchmark = [];
     evaluation_cases_example_benchmark = [];
-    var promise = $.get(articles_path, function(data) {
+    $.get(articles_path, function(data) {
         lines = data.split("\n");
         for (line of lines) {
             if (line.length > 0) {
@@ -348,6 +348,11 @@ function show_example_benchmark_modal(el) {
         }
     }
 
+    // Display error explanation extracted from table header tooltip text
+    var keys = classes[1].split("-");
+    var error_explanation = header_descriptions[keys[0]][keys[1]];
+    error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*)<br>.*/, "$1");
+    $("#error_explanation").text("Description: " + error_explanation);
     // Display annotated text
     var textfield = $("#example_prediction_overview tr td");
     show_annotated_text("example_annotations", $(textfield[0]), selected_category, 100, article_index, true);
