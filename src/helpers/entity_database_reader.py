@@ -142,8 +142,8 @@ class EntityDatabaseReader:
                 if line:
                     lst = line.split("\t")
                     entity_id = lst[0].strip()
-                    if entity_id in adjustments:
-                        # Ignore whitelist types that occur on the left side of a type adjustment
+                    if entity_id in adjustments["REPLACE_WITH"]:
+                        # Ignore whitelist types that occur on the left side of a REPLACE_WITH type adjustment
                         continue
                     name = lst[1].strip()
                     types[entity_id] = name
