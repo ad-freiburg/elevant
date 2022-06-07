@@ -673,15 +673,16 @@ function set_benchmark_select_options() {
     // Show loading GIF
     $("#table_loading").addClass("show");
 
-    // Retrieve file path of .results files in each folder
     benchmarks = [];
+    whitelist_types = {};
 
-    // Read the content of the given json configuration file into the config dictionary.
-    $.get(CONFIG_PATH, function(data) {
-        config = data;
-    }).then(function() {
-        whitelist_types = {};
-        $.get("whitelist_types.tsv", function(data) {
+    $.when(
+        // Read the content of the json configuration file into the config dictionary.
+        $.get(CONFIG_PATH, function(data){
+            config = data;
+        }),
+        // Read the whitelist type mapping (type QID to label)
+        $.get("whitelist_types.tsv", function(data){
             var lines = data.split("\n");
             for (line of lines) {
                 if (line.length > 0) {
@@ -691,40 +692,40 @@ function set_benchmark_select_options() {
                     whitelist_types[type_id] = type_label;
                 }
             }
-        }).then(function() {
-            $.get("benchmarks", function(folder_data) {
-                $(folder_data).find("a").each(function() {
-                    var file_name = $(this).attr("href");
-                    if (file_name.endsWith(".benchmark.jsonl")) {
-                        benchmarks.push(file_name);
-                    }
-                });
-            }).then(function() {
-                benchmarks.sort();
-                for (bi in benchmarks) {
-                    var benchmark = benchmarks[bi];
-                    var option = document.createElement("option");
-                    var benchmark_name = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
-
-                    // Hide certain benchmarks as defined in the config file
-                    if ("hide_benchmarks" in config && config["hide_benchmarks"].includes(benchmark_name)) continue;
-                    option.text = benchmark_name;
-                    option.value = benchmark;
-                    benchmark_select.add(option);
+        }),
+        // Get the names of the benchmark files from the benchmarks directory
+        $.get("benchmarks", function(folder_data){
+            $(folder_data).find("a").each(function() {
+                var file_name = $(this).attr("href");
+                if (file_name.endsWith(".benchmark.jsonl")) {
+                    benchmarks.push(file_name);
                 }
-
-                // Set benchmark
-                var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
-                if (url_param_benchmark && benchmark_by_url.length > 0) {
-                    // Set the benchmark according to URL parameter if one with a valid benchmark name exists
-                    $(benchmark_by_url).prop('selected',true);
-                } else {
-                    // Set default value to "wiki-ex".
-                    $('#benchmark option:contains("wiki-ex")').prop('selected',true);
-                }
-                show_benchmark_results(true);
             });
-        });
+        })
+    ).then(function() {
+        benchmarks.sort();
+        for (bi in benchmarks) {
+            var benchmark = benchmarks[bi];
+            var option = document.createElement("option");
+            var benchmark_name = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
+
+            // Hide certain benchmarks as defined in the config file
+            if ("hide_benchmarks" in config && config["hide_benchmarks"].includes(benchmark_name)) continue;
+            option.text = benchmark_name;
+            option.value = benchmark;
+            benchmark_select.add(option);
+        }
+
+        // Set benchmark
+        var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
+        if (url_param_benchmark && benchmark_by_url.length > 0) {
+            // Set the benchmark according to URL parameter if one with a valid benchmark name exists
+            $(benchmark_by_url).prop('selected',true);
+        } else {
+            // Set default value to "wiki-ex".
+            $('#benchmark option:contains("wiki-ex")').prop('selected',true);
+        }
+        show_benchmark_results(true);
     });
 }
 
