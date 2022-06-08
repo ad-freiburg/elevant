@@ -26,6 +26,7 @@ copy_latex_text = "Copy LaTeX code for table";
 tooltip_example_html = "<br><a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.";
 header_descriptions = {
     "undetected": {
+        "": "Errors involving undetected mentions.",
         "all": "<i>Numerator:</i> A ground truth mention span is not linked to an entity.<br><i>Denominator:</i> All ground truth entity mentions.",
         "lowercase": "<i>Numerator:</i> Undetected lowercased ground truth mention.<br><i>Denominator:</i> All lowercased ground truth mentions.",
         "partially_included": "<i>Numerator:</i> A part of the ground truth mention is linked to an entity.<br><i>Denominator:</i> All ground truth mentions consisting of multiple words.",
@@ -33,6 +34,7 @@ header_descriptions = {
         "other": "<i>Numerator:</i> Undetected mention that does not fall into any of the other categories.<br><i>Denominator:</i> All ground truth mentions that are not lowercased."
     },
     "false_detection": {
+        "": "Errors involving false detections.",
         "all": "A mention is predicted whose span is not linked in the ground truth.",
         "abstract_entity": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
         "unknown_entity": "The predicted mention is uppercased and the ground truth is \"Unknown\".",
@@ -40,6 +42,7 @@ header_descriptions = {
         "wrong_span": "<i>Numerator:</i> The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.<br><i>Denominator</i>: All predicted mentions."
     },
     "wrong_disambiguation": {
+        "": "NER true positives where a wrong entity was linked.",
         "all": "<i>Numerator:</i> A ground truth span was detected, but linked to the wrong entity.<br><i>Denominator:</i> All NER true positives.",
         "demonym": "<i>Numerator:</i> FP & FN and the mention text is a demonym, i.e. it is contained in a list of demonyms from Wikidata.<br><i>Denominator:</i> NER true positives where the mention text is a demonym.",
         "metonymy": "<i>Numerator:</i> FP & FN and the most popular entity for the given mention text and the prediction are locations, the ground truth is not a location.<br><i>Denominator:</i> NER true positives where the most popular candidate is a location but the ground truth is not.",
@@ -50,14 +53,67 @@ header_descriptions = {
         "multi_candidates": "<i>Numerator:</i> FP & FN and the candidate set for the mention contains multiple candidate entities, one of which is the ground truth entity, and the linker chose a wrong entity.<br><i>Denominator:</i> NER true positives where the linker returned a candidate set with more than one entity and the ground truth is contained in the candidate set."
     },
     "other_errors": {
+        "": "Errors that are not clearly distinguishable as NER false negatives, NER false positives or disambiguation errors.",
         "hyperlink": "<i>Numerator:</i> Undetected mention that is also a hyperlink.<br><i>Denominator:</i> All ground truth mentions that are hyperlinks."
     },
     "wrong_coreference": {
+        "": "Coreference errors.",
         "false_detection": "NER FP with a mention text in {It, it, This, this, That, that, Its, its}",
         "reference_wrongly_disambiguated": "<i>Numerator:</i> Coreference FN & FP and the reference was wrongly disambiguated.<br><i>Denominator:</i> Coreference mentions where the correct ground truth mention was referenced.",
         "wrong_mention_referenced": "<i>Numerator:</i> Coreference FN + FP and the wrong mention was referenced.<br><i>Denominator:</i> Coreference NER true positives.",
         "undetected": "<i>Numerator:</i> Coreference FN and the mention was not linked.<br><i>Denominator:</i> Ground truth coreference mentions."
-    }
+    },
+    "NER": {
+        "": "Named Entity Recognition results.",
+        "tp": "TP: Predictions with a matching ground truth span.<br>",
+        "fp": "FP: Predictions with no matching ground truth span.<br>",
+        "fn": "FN: Ground truth spans with no matching prediction span."
+    },
+    "all": {
+        "": "Overall entity linking and coreference results.",
+        "tp": "TP: Predictions where the mention span and entity match a groundtruth mention span and entity.<br>",
+        "fp": "FP: Predictions where the mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity.<br>",
+        "fn": "FN: Groundtruth where the mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity."
+    },
+    "entity": {
+        "": "Entity linking results.",
+        "tp": "TP: True positive entities (excluding coreferences).<br>",
+        "fp": "FP: False positive entities (excluding coreferences).<br>",
+        "fn": "FN: False negative entities (excluding coreferences)."
+    },
+    "entity_named": {
+        "": "Entity linking results for named entities, i.e. entities where the first alphabetic character is an uppercase letter.",
+        "tp": "TP: True positive named entities.<br>",
+        "fp": "FP: False positive named entities.<br>",
+        "fn": "FN: False negative named entities."
+    },
+    "entity_other": {
+        "": "Entity linking results for non-named entities, i.e. entities where the first alphabetic character is a lowercase letter.",
+        "tp": "TP: True positive non-named (i.e. lowercase) entities.<br>",
+        "fp": "FP: False positive non-named (i.e. lowercase) entities.<br>",
+        "fn": "FN: False negative non-named (i.e. lowercase) entities."
+    },
+    "coref": {
+        "": "Coreference results.",
+        "tp": "TP: True positive coreferences.<br>",
+        "fp": "FP: False positive coreferences.<br>",
+        "fn": "FN: False negative coreferences."
+    },
+    "coref_pronominal": {
+        "": "Results for pronominal coreference, i.e. the mention text is a pronoun.",
+        "tp": "TP: True positive pronominal coreferences (mention text is a pronoun).<br>",
+        "fp": "FP: False positive pronominal coreferences (mention text is a pronoun).<br>",
+        "fn": "FN: False negative pronominal coreferences (mention text is a pronoun)."
+    },
+    "coref_nominal": {
+        "": "Results for nominal coreference, i.e. the mention text is \"the &lttype&gt\".",
+        "tp": "TP: True positive nominal coreferences (mention text is \"the &lttype&gt\").<br>",
+        "fp": "FP: False positive nominal coreferences (mention text is \"the &lttype&gt\").<br>",
+        "fn": "FN: False negative nominal coreferences (mention text is \"the &lttype&gt\").",
+    },
+    "precision": "Precision = TP / (TP + FP)<br>",
+    "recall": "Recall = TP / (TP + FN)<br>",
+    "f1": "F1 = 2 * (P * R) / (P + R)<br>",
 };
 
 error_category_mapping = {
@@ -1713,7 +1769,10 @@ function add_checkboxes(json_obj, initial_call) {
             var title = get_checkbox_label(key, subkey);
             var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : "";
             var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
-            checkbox_html += "<label>" + title + "</label></span>\n";
+            checkbox_html += "<label>" + title;
+            var tooltip_text = get_header_tooltip_text(subkey, "");
+            if (tooltip_text) checkbox_html += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+            checkbox_html += "</label></span>\n";
             var checkbox_div_id = "";
             if (key == "mention_types") checkbox_div_id = "mention_type_checkboxes";
             if (key == "error_categories") checkbox_div_id = "error_category_checkboxes";
@@ -1779,7 +1838,7 @@ function get_table_header(json_obj) {
                 }
             });
             first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + " tooltip'>" + get_table_heading(key, subkey);
-            var tooltip_text = get_header_tooltip_text(subkey, null);
+            var tooltip_text = get_header_tooltip_text(subkey, "");
             if (tooltip_text) first_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
             first_row += "</th>";
         });
@@ -1861,15 +1920,55 @@ function get_tooltip_text(json_obj) {
 
 function get_header_tooltip_text(key, subkey) {
     if (key in header_descriptions) {
-        if (subkey) {
+        if (typeof header_descriptions[key] == "string") {
+            return header_descriptions[key];
+        }
+        if (subkey in header_descriptions[key]) {
             var tooltip_text = header_descriptions[key][subkey];
-            if (subkey != "all") {
+            if (!["", "all"].includes(subkey)) {
                 tooltip_text += tooltip_example_html;
             }
             return tooltip_text;
+        } else {
+            var tp_string = header_descriptions[key]["tp"];
+            var fp_string = header_descriptions[key]["fp"];
+            var fn_string = header_descriptions[key]["fn"];
+            var string = header_descriptions[subkey];
+            if (subkey == "precision") {
+                string += tp_string;
+                string += fn_string;
+            } else if (subkey == "recall") {
+                string += tp_string;
+                string += fn_string;
+            } else if (subkey == "f1") {
+                string += tp_string;
+                string += fp_string;
+                string += fn_string;
+            }
+            return string;
         }
-        if (typeof header_descriptions[key] == "string") {
-            return header_descriptions[key];
+    } else if (key in whitelist_types || key.toLowerCase() == "other") {
+        var type = (key in whitelist_types) ? whitelist_types[key] : "other";
+        if (subkey) {
+            // Get tooltips for precision, recall and f1
+            var tp_string = "TP: True Positives of type " + type + "<br>";
+            var fp_string = "FP: False Positives of type " + type + "<br>";
+            var fn_string = "FN: False Negatives of type " + type + "<br>";
+            var string = header_descriptions[subkey];
+            if (subkey == "precision") {
+                string += tp_string;
+                string += fp_string;
+            } else if (subkey == "recall") {
+                string += tp_string;
+                string += fn_string;
+            } else if (subkey == "f1") {
+                string += tp_string;
+                string += fp_string;
+                string += fn_string;
+            }
+            return string;
+        } else {
+            return "Results for entities of type \"" + type + "\".";
         }
     }
     return "";
