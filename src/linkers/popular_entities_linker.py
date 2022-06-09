@@ -47,15 +47,14 @@ def get_non_overlapping_span(span: Tuple[int, int],
 
 
 class PopularEntitiesLinker(AbstractEntityLinker):
-    LINKER_IDENTIFIER = "POPULAR_ENTITIES_LINKER"
-
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
         self.entity_db = entity_db
 
         # Get config variables
-        self.name = config["name"] if "name" in config else "PopularEntities"
+        self.linker_identifier = config["name"] if "name" in config else "PopularEntities"
         self.min_score = config["min_score"] if "min_score" in config else 15
         self.longest_alias_ner = config["longest_alias_ner"] if "longest_alias_ner" in config else False
+        self.ner_identifier = "LongestAliasNER" if self.longest_alias_ner else "EnhancedSpacy"
 
         if self.longest_alias_ner:
             self.ner = MaximumMatchingNER(self.entity_db)

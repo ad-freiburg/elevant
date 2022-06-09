@@ -14,14 +14,13 @@ tagme.GCUBE_TOKEN = "56af583d-5f6e-496f-aea2-eab06673b6a3-843339462"
 
 
 class TagMeLinker(AbstractEntityLinker):
-    NER_IDENTIFIER = LINKER_IDENTIFIER = "TAGME"
-
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
         self.entity_db = entity_db
         self.model = None
 
         # Get config variables
-        self.name = config["name"] if "name" in config else "TagMe"
+        self.linker_identifier = config["name"] if "name" in config else "TagMe"
+        self.ner_identifier = self.linker_identifier
         self.rho_threshold = config["rho_threshold"] if "rho_threshold" in config else 0.2
 
     def predict(self,

@@ -12,8 +12,8 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class AbstractEntityLinker(abc.ABC):
-    NER_IDENTIFIER = "NER"
-    LINKER_IDENTIFIER = None
+    ner_identifier = None
+    linker_identifier = None
 
     @abc.abstractmethod
     def predict(self,
@@ -49,4 +49,4 @@ class AbstractEntityLinker(abc.ABC):
         else:
             entity_predictions = self.predict(article.text, doc=doc, uppercase=uppercase)
 
-        article.link_entities(entity_predictions, self.NER_IDENTIFIER, self.LINKER_IDENTIFIER)
+        article.link_entities(entity_predictions, self.ner_identifier, self.linker_identifier)

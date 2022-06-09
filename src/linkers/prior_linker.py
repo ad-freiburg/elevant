@@ -16,14 +16,13 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class PriorLinker(AbstractEntityLinker):
-    LINKER_IDENTIFIER = "PRIOR_LINKER"
-
     def __init__(self, entity_database: EntityDatabase, config: Dict[str, Any]):
         self.entity_db = entity_database
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
 
         # Get config variables
-        self.name = config["name"] if "name" in config else "Prior"
+        self.linker_identifier = config["name"] if "name" in config else "Prior"
+        self.ner_identifier = self.linker_identifier
         whitelist_type_file = config["whitelist_type_file"] if "whitelist_type_file" in config else "data/whitelist.txt"
         self.use_pos = config["use_pos"] if "use_pos" in config else True
 

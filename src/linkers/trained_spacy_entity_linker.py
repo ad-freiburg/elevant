@@ -12,12 +12,11 @@ from src.utils.dates import is_date
 
 
 class TrainedSpacyEntityLinker(AbstractEntityLinker):
-    LINKER_IDENTIFIER = "TRAINED_SPACY_LINKER"
-
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
 
         # Get config variables
-        self.name = config["name"] if "name" in config else "Spacy"
+        self.linker_identifier = config["name"] if "name" in config else "Spacy"
+        self.ner_identifier = "EnhancedSpacy"
         model_name = config["model_name"] if "model_name" in config else "prior_trained"
         kb_name = config["kb"] if "kb" in config else "wikidata"
 

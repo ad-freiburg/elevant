@@ -25,13 +25,12 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class BertEntityLinker(AbstractEntityLinker):
-    LINKER_IDENTIFIER = "BERT_LINKER"
-
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
 
         # Get config variables
-        self.name = config["name"] if "name" in config else "BERTModel"
+        self.linker_identifier = config["name"] if "name" in config else "BERTModel"
+        self.ner_identifier = "EnhancedSpacy"
         model_path = config["model_path"] if "model_path" in config else None
         if model_path is None:
             raise KeyError("BERT entity linker config does not contain the required attribute \"model_path\".")

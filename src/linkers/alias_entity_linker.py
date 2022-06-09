@@ -14,17 +14,16 @@ from src.utils.dates import is_date
 
 
 class AliasEntityLinker(AbstractEntityLinker):
-    LINKER_IDENTIFIER = "ALIAS"
-
     def __init__(self,
                  entity_database: EntityDatabase,
                  config: Dict[str, Any]):
         self.entity_db = entity_database
 
         # Get config variables
-        self.name = config["name"] if "name" in config else "Baseline"
+        self.linker_identifier = config["name"] if "name" in config else "Baseline"
         self.strategy = config["strategy"] if "strategy" in config else "wikipedia"
         self.longest_alias_ner = config["longest_alias_ner"] if "longest_alias_ner" in config else False
+        self.ner_identifier = "LongestAliasNER" if self.longest_alias_ner else "EnhancedSpacy"
 
         self.ner = None
         if self.longest_alias_ner:

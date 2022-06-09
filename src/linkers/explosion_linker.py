@@ -13,12 +13,11 @@ from src.utils.dates import is_date
 
 
 class ExplosionEntityLinker(AbstractEntityLinker):
-    LINKER_IDENTIFIER = "EXPLOSION"
-
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
 
         # Get config variables
-        self.name = config["name"] if "name" in config else "Explosion"
+        self.linker_identifier = config["name"] if "name" in config else "Explosion"
+        self.ner_identifier = "EnhancedSpacy"
         model_path = config["model_path"] if "model_path" in config else None
         if model_path is None:
             raise KeyError("Explosion entity linker config does not contain the required attribute \"model_path\".")
