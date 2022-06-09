@@ -34,8 +34,9 @@ The script call to convert linking results into our format is
     python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat <linking_results_format> -pname <linker_name> -b <benchmark_name>
 
 The converted linking results will be written to
- `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.jsonl`. If the `-pname` option is
- omitted, `linker_name` is replaced by `unknown_linker`.
+ `evaluation-results/<adjusted_linker_name>/<experiment_name>.<benchmark_name>.jsonl` where `<adjusted_linker_name>`
+ is a lowercased version of `<linker_name>` with non-alphanumerical characters replaced by `_`. If the `-pname` option
+ is omitted, `<adjusted_linker_name>` is `unknown_linker`.
 
 #### Linking Results in NIF
 If you have linking results for a certain benchmark in NIF format, use `-pformat nif` in the script call described

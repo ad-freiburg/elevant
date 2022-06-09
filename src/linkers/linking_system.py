@@ -22,23 +22,10 @@ from src.linkers.trained_spacy_entity_linker import TrainedSpacyEntityLinker
 from src.linkers.xrenner_coref_linker import XrennerCorefLinker
 from src.models.article import Article
 from src.models.entity_database import EntityDatabase, MappingName
-from src.models.entity_prediction import EntityPrediction
 
 import logging
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
-
-
-def uppercase_predictions(predictions: Dict[Tuple[int, int], EntityPrediction],
-                          text: str) -> Dict[Tuple[int, int], EntityPrediction]:
-    filtered_predictions = {}
-    for span in predictions:
-        entity_prediction = predictions[span]
-        begin, end = entity_prediction.span
-        snippet = text[begin:end]
-        if any([char.isupper() for char in snippet]):
-            filtered_predictions[span] = entity_prediction
-    return filtered_predictions
 
 
 class LinkingSystem:
@@ -47,11 +34,13 @@ class LinkingSystem:
                  config_path: Optional[str] = None,
                  prediction_file: Optional[str] = None,
                  prediction_format: Optional[str] = None,
+                 prediction_name: Optional[str] = None,
                  coref_linker: Optional[str] = None,
                  min_score: Optional[int] = None,
                  type_mapping_file: Optional[str] = None):
         self.linker = None
         self.prediction_reader = None
+        self.prediction_name = prediction_name
         self.coref_linker = None
         self.coref_prediction_iterator = None
         self.entity_db = None
@@ -171,6 +160,10 @@ class LinkingSystem:
         else:
             linker_exists = False
 
+        if self.prediction_reader and self.prediction_name:
+            # Set the name of the linker
+            self.prediction_reader.set_linker_identifier(self.prediction_name)
+
         if linker_exists:
             logger.info("-> Linker initialized.")
         else:
@@ -212,10 +205,7 @@ class LinkingSystem:
         if self.linker:
             self.linker.link_entities(article, doc, uppercase=uppercase, globally=self.globally)
         elif self.prediction_reader:
-            predicted_entities = self.prediction_reader.get_predictions(article)
-            if uppercase:
-                predicted_entities = uppercase_predictions(predicted_entities, article.text)
-            article.link_entities(predicted_entities, "PREDICTION_READER", "PREDICTION_READER")
+            self.prediction_reader.link_entities(article, uppercase=uppercase)
 
         if self.coref_linker:
             coref_eval_span = evaluation_span if evaluation_span else None

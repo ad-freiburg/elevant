@@ -31,13 +31,15 @@ def main(args):
                                    args.linker_config,
                                    args.prediction_file,
                                    args.prediction_format,
+                                   args.prediction_name,
                                    args.coreference_linker,
                                    args.minimum_score,
                                    args.type_mapping)
 
     example_generator = get_example_generator(args.benchmark)
 
-    linker_dir = args.linker_name if args.linker_name else args.prediction_name
+    prediction_name_dir = "".join(c if c.isalnum() else "_" for c in args.prediction_name.lower())
+    linker_dir = args.linker_name if args.linker_name else prediction_name_dir
     output_dir = args.evaluation_dir + linker_dir
     output_filename = output_dir + "/" + args.experiment_name + "." + args.benchmark + ".jsonl"
     if output_dir and not os.path.exists(output_dir):
@@ -79,9 +81,8 @@ if __name__ == "__main__":
                              "Per default, the system looks for the config file at configs/<linker_name>.config.json")
     parser.add_argument("-pformat", "--prediction_format", choices=[pf.value for pf in PredictionFormats],
                         help="Format of the prediction file.")
-    parser.add_argument("-pname", "--prediction_name", default="unknown_linker",
-                        help="Name of the system that produced the predictions. Used to save the result files at"
-                             "<evaluation_dir>/<prediction_name>/<experiment_name>.<benchmark_name>.jsonl")
+    parser.add_argument("-pname", "--prediction_name", default="Unknown Linker",
+                        help="Name of the system that produced the predictions.")
 
     parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
                         help="Benchmark over which to evaluate the linker.")

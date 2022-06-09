@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, Iterator, List
+from typing import Dict, Tuple, Iterator, List, Optional
 
 import os
 import logging
@@ -7,6 +7,18 @@ from src.models.article import Article
 from src.models.entity_prediction import EntityPrediction
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
+
+
+def uppercase_predictions(predictions: Dict[Tuple[int, int], EntityPrediction],
+                          text: str) -> Dict[Tuple[int, int], EntityPrediction]:
+    filtered_predictions = {}
+    for span in predictions:
+        entity_prediction = predictions[span]
+        begin, end = entity_prediction.span
+        snippet = text[begin:end]
+        if any([char.isupper() for char in snippet]):
+            filtered_predictions[span] = entity_prediction
+    return filtered_predictions
 
 
 class AbstractPredictionReader:
@@ -28,6 +40,7 @@ class AbstractPredictionReader:
     def __init__(self, input_filepath: str, predictions_iterator_implemented: bool):
         self.input_filepath = input_filepath
         self.predictions_iterator_implemented = predictions_iterator_implemented
+        self.linker_identifier = "Unknown Linker"
 
         # Needed only if predictions_iterator_implemented is True
         # Iterator over the predictions for each article
@@ -46,6 +59,9 @@ class AbstractPredictionReader:
             self.iterator = self.predictions_iterator()
         else:
             self.build_prediction_mappings(self.input_filepath)
+
+    def set_linker_identifier(self, linker_identifier: str):
+        self.linker_identifier = linker_identifier
 
     def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """
@@ -126,3 +142,12 @@ class AbstractPredictionReader:
             return next(self.iterator)
         else:
             return self.get_predictions_by_article(article)
+
+    def link_entities(self, article: Article, uppercase: Optional[bool] = False):
+        """
+        Link the entities in the article as retrieved with the prediction reader.
+        """
+        predictions = self.get_predictions(article)
+        if uppercase:
+            predictions = uppercase_predictions(predictions, article.text)
+        article.link_entities(predictions, self.linker_identifier, self.linker_identifier)
