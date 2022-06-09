@@ -51,29 +51,43 @@ def nif_api():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
 
-    parser.add_argument("linker_type", choices=[li.value for li in Linkers],
-                        help="Entity linker type.")
-    parser.add_argument("linker",
-                        help="Specify the linker to be used, depending on its type:\n"
-                        "BASELINE: Choose baseline from {wikipedia, wikidata, max-match-ner}.\n"
-                        "SPACY: Name of the linker.\n"
-                        "EXPLOSION: Full path to the saved model.\n"
-                        "AMBIVERSE: Full path to the predictions directory (for Wikipedia or own benchmark only).\n"
-                        "IOB: Full path to the prediction file in IOB format (for CoNLL benchmark only).\n")
-    parser.add_argument("-kb", "--kb_name", type=str, choices=["wikipedia"],
-                        help="Name of the knowledge base to use with a spacy linker.")
+    parser.add_argument("experiment_name", type=str,
+                        help="Name for the resulting file. The linking results will be written to "
+                             "<evaluation_dir>/<linker_name>/<experiment_name>.<benchmark_name>.jsonl")
+
+    linker_group = parser.add_mutually_exclusive_group(required=True)
+    linker_group.add_argument("-l", "--linker_name", choices=[li.value for li in Linkers],
+                              help="Entity linker name.")
+    linker_group.add_argument("-pfile", "--prediction_file",
+                              help="Path to predictions file.")
+
+    parser.add_argument("--linker_config",
+                        help="Configuration file for the specified linker."
+                             "Per default, the system looks for the config file at configs/<linker_name>.config.json")
+    parser.add_argument("-pformat", "--prediction_format", choices=[pf.value for pf in PredictionFormats],
+                        help="Format of the prediction file.")
+    parser.add_argument("-pname", "--prediction_name", default="Unknown Linker",
+                        help="Name of the system that produced the predictions.")
+
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
+                        help="Benchmark over which to evaluate the linker.")
+    parser.add_argument("-dir", "--evaluation_dir", default=settings.EVALUATION_RESULTS_DIR,
+                        help="Directory to which the evaluation result files are written.")
     parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers],
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
                         help="Only link coreferences that are pronouns.")
+    parser.add_argument("--evaluation_span", action="store_true",
+                        help="If specified, let coreference linker refer only to entities within the evaluation span")
     parser.add_argument("-min", "--minimum_score", type=int, default=0,
                         help="Minimum entity score to include entity in database")
-    parser.add_argument("--longest_alias_ner", action="store_true",
-                        help="For the baselines: use longest matching alias NER instead of SpaCy NER.")
+    parser.add_argument("-small", "--small_database", action="store_true",
+                        help="Load a small version of the database")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
                         help="For pure prior linker: Map predicted entities to types using the given mapping.")
+
     parser.add_argument("-wd", "--wikidata_annotations", action="store_true",
                         help="Resulting entity ids will not be mapped to Wikipedia.")
     parser.add_argument("-p", "--port", type=int, default=8080,
@@ -97,12 +111,13 @@ if __name__ == "__main__":
                                    "One article will be overwritten" % first_characters)
                 article_dict[first_characters] = article
 
-    linking_system = LinkingSystem(args.linker_type,
-                                   args.linker,
+    linking_system = LinkingSystem(args.linker_name,
+                                   args.linker_config,
+                                   args.prediction_file,
+                                   args.prediction_format,
+                                   args.prediction_name,
                                    args.coreference_linker,
-                                   args.kb_name,
                                    args.minimum_score,
-                                   args.longest_alias_ner,
                                    args.type_mapping)
 
     if not args.wikidata_annotations and not linking_system.entity_db.is_wikipedia_wikidata_mapping_loaded():
