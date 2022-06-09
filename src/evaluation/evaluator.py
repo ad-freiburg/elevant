@@ -1,13 +1,11 @@
 import logging
-from typing import List, Set, Optional
+from typing import List, Set, Optional, Dict, Tuple
 
 from src import settings
 from src.evaluation.case import Case, ErrorLabel
 from src.evaluation.coreference_groundtruth_generator import CoreferenceGroundtruthGenerator
 from src.evaluation.case_generator import CaseGenerator
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.evaluation.print_methods import print_colored_text, print_article_nerd_evaluation, \
-    print_article_coref_evaluation, print_evaluation_summary, create_f1_dict_from_counts
 from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.entity_database import EntityDatabase
@@ -35,6 +33,34 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     entity_db.add_link_aliases()
     logger.info("-> Entity database initialized.")
     return entity_db
+
+
+def percentage(nominator: int, denominator: int) -> Tuple[float, int, int]:
+    if denominator == 0:
+        percent = 0
+    else:
+        percent = nominator / denominator * 100
+    return percent, nominator, denominator
+
+
+def create_f1_dict(tp: int, fp: int, fn: int) -> Dict:
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    ground_truth = tp + fn
+    recall = tp / ground_truth if ground_truth > 0 else 0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+    return {
+        "true_positives": tp,
+        "false_positives": fp,
+        "false_negatives": fn,
+        "ground_truth": ground_truth,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1
+    }
+
+
+def create_f1_dict_from_counts(counts: Dict):
+    return create_f1_dict(counts["tp"], counts["fp"], counts["fn"])
 
 
 EVALUATION_CATEGORIES = ("all", "NER", "entity", "entity_named", "entity_other", "coref", "coref_nominal", "coref_pronominal")
@@ -156,15 +182,6 @@ class Evaluator:
 
         return cases
 
-    @staticmethod
-    def print_article_evaluation(article: Article, cases: List[Case]):
-        print_colored_text(cases, article.text)
-        print_article_nerd_evaluation(cases, article.text)
-        print_article_coref_evaluation(cases, article.text)
-
-    def print_results(self):
-        print_evaluation_summary(self.counts)
-
     def get_results_dict(self):
         self.counts["entity"]["tp"] = self.counts["entity_named"]["tp"] + self.counts["entity_other"]["tp"]
         self.counts["entity"]["fp"] = self.counts["entity_named"]["fp"] + self.counts["entity_other"]["fp"]
@@ -284,3 +301,13 @@ class Evaluator:
         for type_id in self.type_counts:
             results_dict["entity_types"][type_id] = create_f1_dict_from_counts(self.type_counts[type_id])
         return results_dict
+
+    def print_results(self):
+        print("== EVALUATION ==")
+        for cat in self.counts:
+            print()
+            print("= %s =" % cat)
+            f1_dict = create_f1_dict(self.counts[cat]["tp"], self.counts[cat]["fp"], self.counts[cat]["fn"])
+            print("precision:\t%.2f%%" % (f1_dict["precision"] * 100))
+            print("recall:\t\t%.2f%%" % (f1_dict["recall"] * 100))
+            print("f1:\t\t%.2f%%" % (f1_dict["f1"] * 100))

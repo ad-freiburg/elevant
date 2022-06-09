@@ -3,29 +3,9 @@ from enum import Enum
 import json
 
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.wikidata_entity import WikidataEntity
 from src.evaluation.mention_type import get_mention_type
 
-
-class CaseType(Enum):
-    UNKNOWN_ENTITY = 0
-    UNDETECTED = 1
-    WRONG_CANDIDATES = 2
-    CORRECT = 3
-    WRONG = 4
-    FALSE_DETECTION = 5
-
-
-CASE_COLORS = {
-    CaseType.UNKNOWN_ENTITY: None,
-    CaseType.UNDETECTED: "blue",
-    CaseType.WRONG_CANDIDATES: "yellow",
-    CaseType.CORRECT: "green",
-    CaseType.WRONG: "red",
-    CaseType.FALSE_DETECTION: "cyan",
-    "mixed": "magenta"
-}
 
 JOKER_LABELS = ("DATETIME", "QUANTITY")
 
@@ -107,8 +87,6 @@ class Case:
         self.error_labels = set() if error_labels is None else error_labels
         self.mention_type = get_mention_type(text, true_entity, predicted_entity)
         self.factor = 1 if factor is None else factor
-        self.eval_type = self._type()
-        self.coref_type = self._coref_type()
 
     def has_ground_truth(self) -> bool:
         return self.true_entity is not None
@@ -156,31 +134,6 @@ class Case:
     def add_error_label(self, error_label: ErrorLabel):
         self.error_labels.add(error_label)
 
-    def _type(self) -> CaseType:
-        if not self.has_ground_truth():
-            return CaseType.FALSE_DETECTION
-        if not self.is_known_entity():
-            return CaseType.UNKNOWN_ENTITY
-        if not self.is_detected():
-            return CaseType.UNDETECTED
-        if not self.true_entity_is_candidate():
-            return CaseType.WRONG_CANDIDATES
-        if self.is_correct():
-            return CaseType.CORRECT
-        else:
-            return CaseType.WRONG
-
-    def _coref_type(self) -> CaseType:
-        if self.is_true_coreference():
-            if not self.is_detected():
-                return CaseType.UNDETECTED
-            elif self.is_correct():
-                return CaseType.CORRECT
-            else:
-                return CaseType.WRONG
-        elif self.predicted_by == AbstractCorefLinker.IDENTIFIER:
-            return CaseType.FALSE_DETECTION
-
     def __lt__(self, other) -> bool:
         return self.span < other.span
 
@@ -190,7 +143,6 @@ class Case:
                 "detected": self.detected,
                 "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in sorted(self.candidates)],
                 "predicted_by": self.predicted_by,
-                "eval_type": self.eval_type.value,
                 "error_labels": sorted([label.value for label in self.error_labels]),
                 "factor": self.factor,
                 "children_correctly_linked": self.children_correctly_linked,
@@ -207,8 +159,6 @@ class Case:
             data["correct_span_referenced"] = self.correct_span_referenced
         if self.referenced_span is not None:
             data["referenced_span"] = self.referenced_span
-        if self.coref_type is not None:
-            data["coref_type"] = self.coref_type.value
         if self.contained is not None:
             data["contained"] = self.contained
         if self.mention_type is not None:
