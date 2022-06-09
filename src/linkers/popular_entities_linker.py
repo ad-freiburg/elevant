@@ -137,9 +137,8 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                 if entity_id is None:
                     candidates = self.entity_db.get_candidates(snippet)
                     entity_id = self.select_entity(candidates)
-            if entity_id is not None:
-                candidates.update(name_and_demonym_candidates)
-                predictions[span] = EntityPrediction(span, entity_id, candidates)
+            candidates.update(name_and_demonym_candidates)
+            predictions[span] = EntityPrediction(span, entity_id, candidates)
         return predictions
 
     def select_entity(self, candidates: Set[str]) -> str:

@@ -6,6 +6,7 @@ import tagme
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
+from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -32,16 +33,16 @@ class TagMeLinker(AbstractEntityLinker):
         predictions = {}
         count = 0
         for ann in annotations:
-            qid = self.entity_db.link2id(ann.entity_title)
-            if qid is not None:
-                span = (ann.begin, ann.end)
-                snippet = text[span[0]:span[1]]
-                if uppercase and snippet.islower():
-                    continue
-                predictions[span] = EntityPrediction(span, qid, {qid})
-            else:
+            entity_id = KnowledgeBaseMapper.get_wikidata_qid(ann.entity_title, self.entity_db)
+            if entity_id is None:
                 logger.warning("\nNo mapping to Wikidata found for label '%s'" % ann.entity_title)
                 count += 1
+            span = (ann.begin, ann.end)
+            snippet = text[span[0]:span[1]]
+            if uppercase and snippet.islower():
+                continue
+            predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+
         if count > 0:
             logger.warning("\n%d entity labels could not be matched to any Wikidata id." % count)
         return predictions

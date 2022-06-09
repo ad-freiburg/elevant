@@ -114,17 +114,20 @@ class Case:
         return self.true_entity is not None
 
     def has_predicted_entity(self) -> bool:
-        return self.predicted_entity is not None
+        return self.predicted_entity is not None and not self.predicted_entity.is_nil()
 
     def is_known_entity(self) -> bool:
         return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown") \
                and not self.true_entity.is_datetime() and not self.true_entity.is_quantity()
 
+    def is_nil_entity(self) -> bool:
+        return self.predicted_entity is not None and self.predicted_entity.is_nil()
+
     def is_detected(self) -> bool:
         return self.detected
 
     def is_correct(self) -> bool:
-        return self.predicted_entity is not None and self.true_entity \
+        return self.has_predicted_entity() and self.true_entity \
                and self.true_entity.entity_id == self.predicted_entity.entity_id \
                or self.children_correctly_linked is True
 

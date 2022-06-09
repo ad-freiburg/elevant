@@ -464,6 +464,12 @@ div.latex textarea {
 .annotation.fp.lowlight {
     background-color: var(--annotation-fp-color-lowlight);
 }
+.annotation.pred.unknown {
+    background-color: var(--annotation-unknown-color);
+}
+.annotation.pred.unknown.lowlight {
+    background-color: var(--annotation-unknown-color-lowlight);
+}
 .annotation.fn {
     border-bottom: var(--annotation-border-size) solid var(--annotation-fp-color);
 }

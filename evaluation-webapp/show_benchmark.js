@@ -17,6 +17,7 @@ MAX_SELECTED_APPROACHES = 2;
 MAX_CACHED_FILES = 15;
 
 MISSING_LABEL_TEXT = "[MISSING LABEL]";
+NIL_PREDICTION_TEXT = "[NIL]";
 NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", "Unknown"];
 
 ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
@@ -965,6 +966,9 @@ function is_correct_optional_case(eval_case) {
             if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
                 // Optional TP are correct
                 return true;
+            } else if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == null) {
+                // GT optional and predicted entity is NIL -> correct
+                return true;
             } else if (!("predicted_entity" in eval_case)) {
                 // Optional FN are correct
                 return true;
@@ -972,6 +976,9 @@ function is_correct_optional_case(eval_case) {
         } else if ("type" in eval_case.true_entity && ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type)) {
             if ("predicted_entity" in eval_case && "type" in eval_case.predicted_entity && eval_case.true_entity.type == eval_case.predicted_entity.type) {
                 // True entity is of type QUANTITY or DATETIME and predicted entity is of the same type -> correct TP
+                return true;
+            } else if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == null) {
+                // True entity is of type QUANTITY or DATETIME and predicted entity is NIL -> correct
                 return true;
             } else if (!("predicted_entity" in eval_case)) {
                 // True entity is of type QUANTITY or DATETIME and no entity was predicted -> correct FN
@@ -1111,7 +1118,7 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
                 // GT entity is NIL
                 gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 if ("predicted_entity" in mention) {
-                    pred_annotation.class = ANNOTATION_CLASS_FP;
+                    pred_annotation.class = (mention.predicted_entity.entity_id == null) ? ANNOTATION_CLASS_UNKNOWN : ANNOTATION_CLASS_FP;
                 }
             } else if (is_correct_optional_case(mention)) {
                 gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
@@ -1127,16 +1134,12 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
                         pred_annotation.class = ANNOTATION_CLASS_TP;
                     } else {
                         // predicted the wrong entity
-                        pred_annotation.class = ANNOTATION_CLASS_FP;
-                        if (is_optional_case(mention)) {
-                            gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
-                        } else {
-                            gt_annotation.class = ANNOTATION_CLASS_FN;
-                        }
+                        pred_annotation.class = (mention.predicted_entity.entity_id == null) ? ANNOTATION_CLASS_UNKNOWN : ANNOTATION_CLASS_FP;
+                        gt_annotation.class = (is_optional_case(mention)) ? ANNOTATION_CLASS_OPTIONAL : ANNOTATION_CLASS_FN;
                     }
                 } else {
                     // wrong span
-                    pred_annotation.class = ANNOTATION_CLASS_FP;
+                    pred_annotation.class = (mention.predicted_entity.entity_id == null) ? ANNOTATION_CLASS_UNKNOWN : ANNOTATION_CLASS_FP;
                 }
             } else {
                 gt_annotation.class = ANNOTATION_CLASS_FN;
@@ -1331,11 +1334,16 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
     } else if (annotation.class == ANNOTATION_CLASS_TP && annotation.gt_entity_id) {
         tooltip_classes += " below";
     } else {
-        if (annotation.pred_entity_id) {
-            var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
-            var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-            var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
-            tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
+        if ("pred_entity_id" in annotation) {
+            if (annotation.pred_entity_id) {
+                var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+                tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
+            } else {
+                // NIL prediction
+                tooltip_header_text += "Prediction: " + NIL_PREDICTION_TEXT;
+            }
         }
         if (annotation.gt_entity_id ) {
             if (tooltip_header_text) { tooltip_header_text += "<br>"; }
@@ -1372,7 +1380,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
         tooltip_classes += " " + annotation.class;
     }
     if (annotation.predicted_by) tooltip_body_text += "Predicted by " + annotation.predicted_by + "<br>";
-    if (annotation.pred_entity_type) {
+    if (![ANNOTATION_CLASS_UNEVALUATED, ANNOTATION_CLASS_UNKNOWN].includes(annotation.class) && annotation.pred_entity_type) {
         var type_string = $.map(annotation.pred_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
         tooltip_body_text += "Types: " + type_string + "<br>";
     }

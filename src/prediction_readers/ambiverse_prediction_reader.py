@@ -6,6 +6,7 @@ import logging
 from src.models.entity_database import EntityDatabase
 from src.models.entity_prediction import EntityPrediction
 from src.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
+from src.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -23,39 +24,35 @@ class AmbiversePredictionReader(AbstractPredictionReader):
         :return: dictionary that contains all predictions for the given file
         """
         result = json.load(open(file_path))
+
+        ambiverse_entity_id_mapping = {}
+        if "entities" in result:
+            # Ambiverse predicted QIDs can contain mistakes, therefore use custom rules to map entites to Wikidata QIDs
+            # instead of using KnowledgeBaseMapping.get_wikidata_qid()
+            for entity in result["entities"]:
+                entity_id = entity["id"].split("/")[-1]
+                if entity_id != "null":
+                    # QIDs predicted by Ambiverse often do not match the predicted entity name.
+                    # The entity name is more trustworthy.
+                    entity_id_from_name = KnowledgeBaseMapper.get_wikidata_qid(entity["name"], self.entity_db,
+                                                                               verbose=False)
+                    ambiverse_entity_id_mapping[entity_id] = entity_id_from_name
+
         predictions = {}
         for match in result["matches"]:
             span_start = match["charOffset"]
             span_end = span_start + match["charLength"]
             span = (span_start, span_end)
             entity_id = match["entity"]["id"].split("/")[-1] if match["entity"] else None
-            if entity_id not in predictions:
-                predictions[entity_id] = []
-            predictions[entity_id].append(span)
-
-        new_predictions = {}
-        if "entities" in result:
-            # Ambiverse predicted QIDs can contain mistakes, therefore use custom rules to map entites to Wikidata QIDs
-            # instead of using KnowledgeBaseMappingl.get_wikidata_qid()
-            for entity in result["entities"]:
-                entity_id = entity["id"].split("/")[-1]
-                if entity_id == "null":
-                    continue
-                matching_predictions_spans = predictions[entity_id]
-                name = entity["name"]
-                entity_id_from_name = self.entity_db.link2id(name)
-                # QIDs predicted by Ambiverse often do not match the predicted entity name.
-                # The entity name is more trustworthy.
-                if entity_id_from_name and entity_id != entity_id_from_name:
+            entity_id = entity_id if entity_id else None  # Change empty string to None
+            if entity_id in ambiverse_entity_id_mapping and ambiverse_entity_id_mapping[entity_id]:
+                if entity_id != ambiverse_entity_id_mapping[entity_id]:
                     logger.debug("Result QID does not match QID retrieved via result Wikipedia URL: %s vs %s" %
-                                 (entity_id, entity_id_from_name))
-                    entity_id = entity_id_from_name
-                for span in matching_predictions_spans:
-                    new_predictions[span] = EntityPrediction(span, entity_id, {entity_id})
-        elif predictions:
-            logger.info("No \"entities\" key in ambiverse jsonl file. The following predictions might be dropped: %s"
-                        % predictions)
-        return new_predictions
+                                 (entity_id, ambiverse_entity_id_mapping[entity_id]))
+                entity_id = ambiverse_entity_id_mapping[entity_id]
+            predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+
+        return predictions
 
     def predictions_iterator(self) -> Iterator[Dict[Tuple[int, int], EntityPrediction]]:
         """

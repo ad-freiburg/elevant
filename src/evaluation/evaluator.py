@@ -88,7 +88,10 @@ class Evaluator:
                     self.counts["NER"]["fn"] += 1
                 if not is_named_entity(case.text):
                     self.n_entity_lowercase += 1
-            elif not case.has_ground_truth() or (not case.is_known_entity() and case.has_predicted_entity()):
+            elif not case.has_ground_truth() or (not case.is_known_entity() and case.predicted_entity is not None):
+                # Don't use case.has_predicted_entity() here, because this is false for NIL predictions,
+                # but NIL predictions should not be ignored when evaluating NER.
+                # TODO: shouldn't case.has_predicted_entity() be outside the brackets?
                 # If case has no GT or if GT entity is unknown, the case has a predicted entity -> FP
                 # otherwise ignore the case (NIL-entities are not expected to be predicted and should not count towards
                 # errors)

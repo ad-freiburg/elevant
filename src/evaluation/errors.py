@@ -153,7 +153,7 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     The most popular candidate is a location, and the ground truth is neither a location, person nor ethnicity.
     """
     true_types = case.true_entity.type.split("|")
-    if LOCATION_TYPE_ID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_ID in true_types :
+    if LOCATION_TYPE_ID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_ID in true_types:
         return False
     most_popular_candidate = get_most_popular_candidate(entity_db, case.text)
     if not most_popular_candidate:
@@ -215,7 +215,7 @@ def label_nonentity_coreference_errors(text: str, cases: List[Case]):
 
 def label_candidate_errors(cases: List[Case]):
     for case in cases:
-        if case.is_false_negative() and not case.is_coreference() and case.is_detected() and \
+        if case.is_false_negative() and not case.is_coreference() and case.is_false_positive() and \
                 not case.true_entity_is_candidate():
             case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG_CANDIDATES)
 
@@ -289,7 +289,7 @@ def label_hyperlink_errors(article: Article, cases: List[Case]):
         if case.span in hyperlink_spans and case.has_ground_truth() and case.is_known_entity():
             if case.is_correct() or case.is_true_quantity_or_datetime():
                 case.add_error_label(ErrorLabel.HYPERLINK_CORRECT)
-            elif not case.is_optional() or case.is_false_positive():
+            elif (not case.is_optional() and not case.is_nil_entity()) or case.is_false_positive():
                 # If the case is optional and not correct, but a "FN", don't add error label, just ignore it
                 case.add_error_label(ErrorLabel.HYPERLINK_WRONG)
 

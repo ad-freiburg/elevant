@@ -1,4 +1,4 @@
-from typing import List, Optional, Set
+from typing import Optional, Set
 
 from src.evaluation.groundtruth_label import GroundtruthLabel
 
@@ -28,3 +28,6 @@ class WikidataEntity:
 
     def add_akronym(self, akronym: str):
         self.akronyms.add(akronym)
+
+    def is_nil(self) -> bool:
+        return self.entity_id is None

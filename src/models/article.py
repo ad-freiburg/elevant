@@ -93,13 +93,12 @@ class Article:
         for span in predictions:
             if not self.get_overlapping_entity(span):
                 prediction = predictions[span]
-                if prediction.entity_id is not None:
-                    entity_mention = EntityMention(span,
-                                                   recognized_by=recognized_by,
-                                                   entity_id=prediction.entity_id,
-                                                   linked_by=linked_by,
-                                                   candidates=prediction.candidates)
-                    new_entity_mentions.append(entity_mention)
+                entity_mention = EntityMention(span,
+                                               recognized_by=recognized_by,
+                                               entity_id=prediction.entity_id,
+                                               linked_by=linked_by,
+                                               candidates=prediction.candidates)
+                new_entity_mentions.append(entity_mention)
         self.add_entity_mentions(new_entity_mentions)
 
     def is_entity_mention(self, span: Tuple[int, int]) -> bool:
