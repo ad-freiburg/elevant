@@ -1086,8 +1086,29 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
     var annotation_count = 0;
     for (mention of mentions) {
         if (mention.factor == 0) {
-            // Do not display overlapping mentions
+            // Do not display overlapping GT mentions
             continue;
+        }
+
+        // Do not display overlapping predictions: Keep the larger one.
+        // Assume that predictions are sorted by span start (but not by span end)
+        if ("predicted_entity" in mention || (!("predicted_entity" in mention) && !("true_entity" in mention))) {
+            // Includes mentions with "predicted_entity" but also mentions outside of the evaluation span
+            // with neither "true_entity" nor "predicted_entity"
+            var last_index = prediction_spans.length - 1;
+            if (prediction_spans.length > 0 && prediction_spans[last_index][1] > mention.span[0]) {
+                // Overlap detected.
+                var previous_span_length = prediction_spans[last_index][1] - prediction_spans[last_index][0];
+                var current_span_length = mention.span[1] - mention.span[0];
+                if (previous_span_length >= current_span_length) {
+                    // Previous span is longer than current span so discard current prediction
+                    continue
+                } else {
+                    delete annotations[prediction_spans[last_index]];
+                    prediction_spans.splice(-1);
+                }
+            }
+            prediction_spans.push(mention.span);
         }
 
         var gt_annotation = {};
@@ -1095,25 +1116,6 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
 
         // mention is an evaluated case
         if ("predicted_entity" in mention || "true_entity" in mention) {
-            // Avoid overlapping prediction_spans: Keep the larger one.
-            // Assume that predictions are sorted by span start (but not by span end)
-            if ("predicted_entity" in mention) {
-                var last_index = prediction_spans.length - 1;
-                if (prediction_spans.length > 0 && prediction_spans[last_index][1] > mention.span[0]) {
-                    // Overlap detected.
-                    var previous_span_length = prediction_spans[last_index][1] - prediction_spans[last_index][0];
-                    var current_span_length = mention.span[1] - mention.span[0];
-                    if (previous_span_length >= current_span_length) {
-                        // Previous span is longer than current span so discard current prediction
-                        continue
-                    } else {
-                        delete annotations[prediction_spans[last_index]];
-                        prediction_spans.splice(-1);
-                    }
-                }
-                prediction_spans.push(mention.span);
-            }
-
             if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
                 // GT entity is NIL
                 gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
