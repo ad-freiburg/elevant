@@ -5,7 +5,8 @@ import argparse
 from pynif import NIFCollection
 from urllib.parse import quote
 from src import settings
-from src.linkers.linkers import Linkers, CoreferenceLinkers
+from src.evaluation.benchmark import get_available_benchmarks
+from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.linking_system import LinkingSystem
 from src.models.article import Article, article_from_json
 
