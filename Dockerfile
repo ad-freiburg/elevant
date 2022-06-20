@@ -17,6 +17,7 @@ RUN mkdir third-party
 COPY third-party/wiki_extractor third-party/wiki_extractor
 COPY wikidata-types wikidata-types
 COPY data data
+COPY configs configs
 COPY Makefile .
 COPY *.py ./
 COPY *.sh ./
