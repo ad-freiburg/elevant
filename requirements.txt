@@ -9,3 +9,4 @@ benepar==0.1.2
 tensorflow==2.3.0
 neuralcoref==4.0
 pynif==0.2.0
+protobuf==3.20.1
