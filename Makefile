@@ -34,7 +34,7 @@ PREDICTIONS = neural_el wikifier ambiverse
 EVALUATE_LINKING_SYSTEM_PREFIX =
 
 # Number of processes used when linking articles (not used for linking benchmark articles)
-NUM_LINKER_PROCESSES = 1
+NUM_LINKER_PROCESSES = 10
 
 # Variables for the Evaluation Web App
 WEB_APP_PORT = 8000
