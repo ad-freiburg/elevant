@@ -199,7 +199,7 @@ split_wiki:
 # Link Wikipedia dump only if it does not exist already at the specified location.
 link_wiki:
 	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "$${RED}Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it if you want to link another dump. Dump not linked.$${RESET}"; echo; else \
-	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} popular_entities 15 -ll link-text-linker -coref entity -m ${NUM_LINKER_PROCESSES}; \
+	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular_entities -coref entity -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
 generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
