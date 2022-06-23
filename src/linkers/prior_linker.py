@@ -23,7 +23,8 @@ class PriorLinker(AbstractEntityLinker):
         # Get config variables
         self.linker_identifier = config["name"] if "name" in config else "Prior"
         self.ner_identifier = self.linker_identifier
-        whitelist_type_file = config["whitelist_type_file"] if "whitelist_type_file" in config else "data/whitelist.txt"
+        whitelist_type_file = config["whitelist_type_file"] if "whitelist_type_file" in config \
+            else settings.WHITELIST_FILE
         self.use_pos = config["use_pos"] if "use_pos" in config else True
 
         self.whitelist_types = {}

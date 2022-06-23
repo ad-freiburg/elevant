@@ -27,7 +27,7 @@ EXTRACTED_WIKIPEDIA_DUMP_FILE = WIKIPEDIA_DUMP_PATH + EXTRACTED_WIKIPEDIA_DUMP_N
 WIKIPEDIA_TRAINING_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/training.jsonl"
 WIKIPEDIA_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/development.jsonl"
 WIKIPEDIA_TEST_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/test.jsonl"
-DEV_AND_TEST_ARTICLE_IDS = "data/dev_and_test_article_ids.pkl"
+DEV_AND_TEST_ARTICLE_IDS = "small-data-files/dev_and_test_article_ids.pkl"
 
 NEWSCRAWL_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/development.jsonl"
 NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/test.jsonl"
@@ -48,12 +48,12 @@ QID_TO_LABEL_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_label.tsv"
 QUANTITY_FILE = DATA_DIRECTORY + "wikidata_mappings/quantity.tsv"
 DATETIME_FILE = DATA_DIRECTORY + "wikidata_mappings/datetime.tsv"
 # Files to generate a mapping from QID to all its relevant types needed for our coref resolver
-COARSE_TYPES = "data/coarse_types.tsv"
+COARSE_TYPES = "small-data-files/coarse_types.tsv"
 QID_TO_ALL_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_all_types.tsv"
 QID_TO_COREF_TYPES_FILE = DATA_DIRECTORY + "wikidata_mappings/qid_to_coreference_types.tsv"
 # Wikidata types files
-WHITELIST_FILE = "data/whitelist_types.tsv"
-WHITELIST_TYPE_ADJUSTMENTS_FILE = "data/type_adjustments.txt"
+WHITELIST_FILE = "small-data-files/whitelist_types.tsv"
+WHITELIST_TYPE_ADJUSTMENTS_FILE = "small-data-files/type_adjustments.txt"
 WHITELIST_TYPE_MAPPING = DATA_DIRECTORY + "wikidata_mappings/entity-types.tsv"
 
 
