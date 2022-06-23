@@ -127,13 +127,13 @@ error_category_mapping = {
     },
     "wrong_disambiguation": {
         "all": ["DISAMBIGUATION_WRONG"],
-        "demonym": ["DISAMBIGUATION_DEMONYM_CORRECT", "DISAMBIGUATION_DEMONYM_WRONG"],
-        "partial_name": ["DISAMBIGUATION_PARTIAL_NAME_CORRECT", "DISAMBIGUATION_PARTIAL_NAME_WRONG"],
-        "metonymy": ["DISAMBIGUATION_METONYMY_CORRECT", "DISAMBIGUATION_METONYMY_WRONG"],
-        "rare": ["DISAMBIGUATION_RARE_CORRECT", "DISAMBIGUATION_RARE_WRONG"],
+        "demonym": ["DISAMBIGUATION_DEMONYM_WRONG"],
+        "partial_name": ["DISAMBIGUATION_PARTIAL_NAME_WRONG"],
+        "metonymy": ["DISAMBIGUATION_METONYMY_WRONG"],
+        "rare": ["DISAMBIGUATION_RARE_WRONG"],
         "other": ["DISAMBIGUATION_WRONG_OTHER"],
         "wrong_candidates": ["DISAMBIGUATION_WRONG_CANDIDATES"],
-        "multi_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_CORRECT", "DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
+        "multi_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
     },
     "false_detection": {
         "all": ["FALSE_DETECTION"],
@@ -324,6 +324,8 @@ $("document").ready(function() {
             }
             if (event.ctrlKey && event.which == 39) {
                 // Jump to next error highlight
+                // This is not needed anymore when only the numerator mentions (i.e. the errors) are highlighted anyway
+                // but keep it until we know for sure that we don't want to display denominator mentions.
                 scroll_to_next_annotation(true);
             } else if (event.ctrlKey && event.which == 37) {
                 scroll_to_previous_annotation(true);
