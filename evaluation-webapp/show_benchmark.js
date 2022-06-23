@@ -119,20 +119,20 @@ header_descriptions = {
 
 error_category_mapping = {
     "undetected": {
-        "all": ["UNDETECTED"],
-        "lowercase": ["UNDETECTED_LOWERCASE"],
-        "partially_included": ["UNDETECTED_PARTIALLY_INCLUDED"],
-        "partial_overlap": ["UNDETECTED_PARTIAL_OVERLAP"],
-        "other": ["UNDETECTED_OTHER"]
+        "all": ["UNDETECTED", "GT_ENTITY_MENTION"],
+        "lowercase": ["UNDETECTED_LOWERCASE", "LOWERCASE_GT_ENTITY_MENTION"],
+        "partially_included": ["UNDETECTED_PARTIALLY_INCLUDED", "WHITESPACE_GT_ENTITY_MENTION"],
+        "partial_overlap": ["UNDETECTED_PARTIAL_OVERLAP", "CAPITAL_GT_ENTITY_MENTION"],
+        "other": ["UNDETECTED_OTHER", "CAPITAL_GT_ENTITY_MENTION"]
     },
     "wrong_disambiguation": {
-        "all": ["DISAMBIGUATION_WRONG"],
+        "all": ["DISAMBIGUATION_WRONG", "NER_TP"],
         "demonym": ["DISAMBIGUATION_DEMONYM_CORRECT", "DISAMBIGUATION_DEMONYM_WRONG"],
         "partial_name": ["DISAMBIGUATION_PARTIAL_NAME_CORRECT", "DISAMBIGUATION_PARTIAL_NAME_WRONG"],
         "metonymy": ["DISAMBIGUATION_METONYMY_CORRECT", "DISAMBIGUATION_METONYMY_WRONG"],
         "rare": ["DISAMBIGUATION_RARE_CORRECT", "DISAMBIGUATION_RARE_WRONG"],
         "other": ["DISAMBIGUATION_WRONG_OTHER"],
-        "wrong_candidates": ["DISAMBIGUATION_WRONG_CANDIDATES"],
+        "wrong_candidates": ["DISAMBIGUATION_WRONG_CANDIDATES", "NER_TP"],
         "multi_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_CORRECT", "DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
     },
     "false_detection": {
@@ -140,16 +140,16 @@ error_category_mapping = {
         "abstract_entity": ["FALSE_DETECTION_ABSTRACT_ENTITY"],
         "unknown_entity": ["FALSE_DETECTION_UNKNOWN_ENTITY"],
         "other": ["FALSE_DETECTION_OTHER"],
-        "wrong_span": ["FALSE_DETECTION_WRONG_SPAN"]
+        "wrong_span": ["FALSE_DETECTION_WRONG_SPAN", "PREDICTED_MENTION"]
     },
     "other_errors": {
-        "hyperlink": ["HYPERLINK_WRONG"]
+        "hyperlink": ["HYPERLINK_WRONG", "HYPERLINK_CORRECT"]
     },
     "wrong_coreference": {
         "false_detection": ["COREFERENCE_FALSE_DETECTION"],
-        "reference_wrongly_disambiguated": ["COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED"],
-        "wrong_mention_referenced": ["COREFERENCE_WRONG_MENTION_REFERENCED"],
-        "undetected": ["COREFERENCE_UNDETECTED"]
+        "reference_wrongly_disambiguated": ["COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED", "COREFERENCE_CORRECT_MENTION_REFERENCED"],
+        "wrong_mention_referenced": ["COREFERENCE_WRONG_MENTION_REFERENCED", "COREFERENCE_NER_TP"],
+        "undetected": ["COREFERENCE_UNDETECTED", "GT_COREFERENCE_MENTION"]
     }
 };
 

@@ -28,6 +28,7 @@ def label_errors(article: Article,
     label_hyperlink_errors(article, cases)
     label_span_errors(cases)
     label_coreference_errors(cases)
+    label_denominators(cases)  # uses coref error labels and thus has to be called after label_coreference_errors
 
 
 def is_subspan(span: Tuple[int, int], subspan: Tuple[int, int]) -> bool:
@@ -69,6 +70,33 @@ def label_undetected_errors(cases: List[Case]):
                 case.add_error_label(ErrorLabel.UNDETECTED_PARTIAL_OVERLAP)
             else:
                 case.add_error_label(ErrorLabel.UNDETECTED_OTHER)
+
+
+def label_denominators(cases: List[Case]):
+    for case in cases:
+        if case.is_known_entity() and not case.is_optional() and case.true_entity.parent is None \
+                and case.is_not_coreference():
+            # This should be exactly the same as ["NER"]["ground_truth"]
+            case.add_error_label(ErrorLabel.GT_ENTITY_MENTION)
+            if not is_named_entity(case.text):
+                case.add_error_label(ErrorLabel.LOWERCASE_GT_ENTITY_MENTION)
+            else:
+                case.add_error_label(ErrorLabel.CAPITAL_GT_ENTITY_MENTION)
+            if case.children_correctly_detected is True:
+                case.add_error_label(ErrorLabel.NER_TP)
+        if case.is_not_coreference() and case.has_ground_truth() and ' ' in case.text:
+            # TODO: Optional GT mentions should be excluded here too, since they are ignored if they are correct and also when they are not detected
+            case.add_error_label(ErrorLabel.WHITESPACE_GT_ENTITY_MENTION)
+        if (case.is_correct() and not case.is_optional() and case.true_entity.parent is None) or \
+                (case.is_false_positive() and not case.is_true_quantity_or_datetime() and case.factor != 0):
+            # Corresponds to all TP + all FP
+            case.add_error_label(ErrorLabel.PREDICTED_MENTION)
+        if case.is_coreference() and case.is_known_entity() and not case.is_optional() and case.true_entity.parent is None:
+            case.add_error_label(ErrorLabel.GT_COREFERENCE_MENTION)
+            if ErrorLabel.COREFERENCE_UNDETECTED not in case.error_labels:
+                case.add_error_label(ErrorLabel.COREFERENCE_NER_TP)
+                if ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED not in case.error_labels:
+                    case.add_error_label(ErrorLabel.COREFERENCE_CORRECT_MENTION_REFERENCED)
 
 
 DEMONYM_TYPES = {"Q27096213", "Q41710", "Q17376908"}
