@@ -109,6 +109,7 @@ class Evaluator:
             # Disregard child GT labels for TP and FN
             if case.has_ground_truth() and case.is_known_entity() and not case.is_optional() and case.true_entity.parent is None:
                 if case.children_correctly_detected is True:
+                    # children_correctly_detected can only be True or False when true_entity.parent is None.
                     self.counts["NER"]["tp"] += 1
                 elif case.children_correctly_detected is False:
                     self.counts["NER"]["fn"] += 1
@@ -224,12 +225,12 @@ class Evaluator:
         results_dict["error_categories"]["false_detection"] = {
             # False detection
             "all": self.error_counts[ErrorLabel.FALSE_DETECTION],
-            "abstract_entity": self.error_counts[ErrorLabel.FALSE_DETECTION_ABSTRACT_ENTITY],
-            "unknown_entity": self.error_counts[ErrorLabel.FALSE_DETECTION_UNKNOWN_ENTITY],
+            "lowercased": self.error_counts[ErrorLabel.FALSE_DETECTION_LOWERCASED],
+            "groundtruth_unknown": self.error_counts[ErrorLabel.FALSE_DETECTION_GROUNDTRUTH_UNKNOWN],
             "other": self.error_counts[ErrorLabel.FALSE_DETECTION_OTHER],
             "wrong_span": {
                 "errors": self.error_counts[ErrorLabel.FALSE_DETECTION_WRONG_SPAN],
-                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]
+                "total": self.counts["all"]["fp"] + self.counts["all"]["tp"]  # TODO: This should be only entities, because for undetected errors, only entities are considered, too. Also, coreference errors are handled separately.
             }
         }
         results_dict["error_categories"]["wrong_disambiguation"] = {
@@ -263,7 +264,7 @@ class Evaluator:
                 "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_WRONG_CANDIDATES],
                 "total": self.counts["NER"]["tp"]
             } if self.has_candidates else None,
-            "multi_candidates": {
+            "multiple_candidates": {
                 "errors": self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG],
                 "total": self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG] +
                          self.error_counts[ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT]

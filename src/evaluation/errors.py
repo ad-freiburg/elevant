@@ -275,10 +275,10 @@ def label_false_detections(cases: List[Case],
                     break
             contains_upper = contains_uppercase_word(case.text)
             if not overlap and not contains_upper:
-                case.add_error_label(ErrorLabel.FALSE_DETECTION_ABSTRACT_ENTITY)
+                case.add_error_label(ErrorLabel.FALSE_DETECTION_LOWERCASED)
             elif contains_upper and \
                     ((not overlap and not contains_unknowns) or case.span in unknown_ground_truth_spans):
-                case.add_error_label(ErrorLabel.FALSE_DETECTION_UNKNOWN_ENTITY)
+                case.add_error_label(ErrorLabel.FALSE_DETECTION_GROUNDTRUTH_UNKNOWN)
             else:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER)
 

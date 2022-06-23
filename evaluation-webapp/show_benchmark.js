@@ -37,8 +37,8 @@ header_descriptions = {
     "false_detection": {
         "": "Errors involving false detections.",
         "all": "A mention is predicted whose span is not linked in the ground truth.",
-        "abstract_entity": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
-        "unknown_entity": "The predicted mention is uppercased and the ground truth is \"Unknown\".",
+        "lowercased": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
+        "groundtruth_unknown": "The predicted mention is uppercased and the ground truth is \"Unknown\".",
         "other": "NER false positive that does not fall into any of the other categories.",
         "wrong_span": "<p><i>Numerator:</i> The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.</p><p><i>Denominator</i>: All predicted mentions.</p>"
     },
@@ -51,7 +51,7 @@ header_descriptions = {
         "rare": "<p><i>Numerator:</i> FP & FN and the most popular entity for the given mention text was predicted instead of the less popular ground truth entity.</p><p><i>Denominator:</i> NER true positives where the most popular candidate is not the correct entity.</p>",
         "other": "Disambiguation error that does not fall into any of the other categories.",
         "wrong_candidates": "<p><i>Numerator:</i> FP & FN and the ground truth entity is not in the candidate set returned by the linker for the mention.</p><p><i>Denominator:</i> All NER true positives.</p>",
-        "multi_candidates": "<p><i>Numerator:</i> FP & FN and the candidate set for the mention contains multiple candidate entities, one of which is the ground truth entity, and the linker chose a wrong entity.</p><p><i>Denominator:</i> NER true positives where the linker returned a candidate set with more than one entity and the ground truth is contained in the candidate set.</p>"
+        "multiple_candidates": "<p><i>Numerator:</i> FP & FN and the candidate set for the mention contains multiple candidate entities, one of which is the ground truth entity, and the linker chose a wrong entity.</p><p><i>Denominator:</i> NER true positives where the linker returned a candidate set with more than one entity and the ground truth is contained in the candidate set.</p>"
     },
     "other_errors": {
         "": "Errors that are not clearly distinguishable as NER false negatives, NER false positives or disambiguation errors.",
@@ -133,12 +133,12 @@ error_category_mapping = {
         "rare": ["DISAMBIGUATION_RARE_WRONG"],
         "other": ["DISAMBIGUATION_WRONG_OTHER"],
         "wrong_candidates": ["DISAMBIGUATION_WRONG_CANDIDATES"],
-        "multi_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
+        "multiple_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
     },
     "false_detection": {
         "all": ["FALSE_DETECTION"],
-        "abstract_entity": ["FALSE_DETECTION_ABSTRACT_ENTITY"],
-        "unknown_entity": ["FALSE_DETECTION_UNKNOWN_ENTITY"],
+        "lowercased": ["FALSE_DETECTION_LOWERCASED"],
+        "groundtruth_unknown": ["FALSE_DETECTION_GROUNDTRUTH_UNKNOWN"],
         "other": ["FALSE_DETECTION_OTHER"],
         "wrong_span": ["FALSE_DETECTION_WRONG_SPAN"]
     },
