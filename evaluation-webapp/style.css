@@ -107,6 +107,10 @@ a {
     position: relative;
 }
 
+.tooltiptext p {
+    margin: 0.3em 0em 0.3em 0em;
+}
+
 #top_scrollbar_wrapper {
     width: 100%;
     overflow-x: auto;

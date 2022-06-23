@@ -24,15 +24,15 @@ ignore_headers = ["true_positives", "false_positives", "false_negatives", "groun
 percentage_headers = ["precision", "recall", "f1"];
 copy_latex_text = "Copy LaTeX code for table";
 
-tooltip_example_html = "<br><a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.";
+tooltip_example_html = "<p><a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.</p>";
 header_descriptions = {
     "undetected": {
         "": "Errors involving undetected mentions.",
-        "all": "<i>Numerator:</i> A ground truth mention span is not linked to an entity.<br><i>Denominator:</i> All ground truth entity mentions.",
-        "lowercase": "<i>Numerator:</i> Undetected lowercased ground truth mention.<br><i>Denominator:</i> All lowercased ground truth mentions.",
-        "partially_included": "<i>Numerator:</i> A part of the ground truth mention is linked to an entity.<br><i>Denominator:</i> All ground truth mentions consisting of multiple words.",
-        "partial_overlap": "<i>Numerator:</i> Undetected mention that overlaps with a predicted mention.<br><i>Denominator:</i> All ground truth mentions that are not lowercased.",
-        "other": "<i>Numerator:</i> Undetected mention that does not fall into any of the other categories.<br><i>Denominator:</i> All ground truth mentions that are not lowercased."
+        "all": "<p><i>Numerator:</i> A ground truth mention span is not linked to an entity.</p><p><i>Denominator:</i> All ground truth entity mentions.</p>",
+        "lowercase": "<p><i>Numerator:</i> Undetected lowercased ground truth mention.</p><p><i>Denominator:</i> All lowercased ground truth mentions.</p>",
+        "partially_included": "<p><i>Numerator:</i> A part of the ground truth mention is linked to an entity.</p><p><i>Denominator:</i> All ground truth mentions consisting of multiple words.</p>",
+        "partial_overlap": "<p><i>Numerator:</i> Undetected mention that overlaps with a predicted mention.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>",
+        "other": "<p><i>Numerator:</i> Undetected mention that does not fall into any of the other categories.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>"
     },
     "false_detection": {
         "": "Errors involving false detections.",
@@ -40,81 +40,81 @@ header_descriptions = {
         "abstract_entity": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
         "unknown_entity": "The predicted mention is uppercased and the ground truth is \"Unknown\".",
         "other": "NER false positive that does not fall into any of the other categories.",
-        "wrong_span": "<i>Numerator:</i> The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.<br><i>Denominator</i>: All predicted mentions."
+        "wrong_span": "<p><i>Numerator:</i> The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.</p><p><i>Denominator</i>: All predicted mentions.</p>"
     },
     "wrong_disambiguation": {
         "": "NER true positives where a wrong entity was linked.",
-        "all": "<i>Numerator:</i> A ground truth span was detected, but linked to the wrong entity.<br><i>Denominator:</i> All NER true positives.",
-        "demonym": "<i>Numerator:</i> FP & FN and the mention text is a demonym, i.e. it is contained in a list of demonyms from Wikidata.<br><i>Denominator:</i> NER true positives where the mention text is a demonym.",
-        "metonymy": "<i>Numerator:</i> FP & FN and the most popular entity for the given mention text and the prediction are locations, the ground truth is not a location.<br><i>Denominator:</i> NER true positives where the most popular candidate is a location but the ground truth is not.",
-        "partial_name": "<i>Numerator:</i> FP & FN and the mention text is a part of the ground truth entity name.<br><i>Denominator:</i> NER true positives that are a part of the ground truth entity name.",
-        "rare": "<i>Numerator:</i> FP & FN and the most popular entity for the given mention text was predicted instead of the less popular ground truth entity.<br><i>Denominator:</i> NER true positives where the most popular candidate is not the correct entity.",
+        "all": "<p><i>Numerator:</i> A ground truth span was detected, but linked to the wrong entity.</p><p><i>Denominator:</i> All NER true positives.</p>",
+        "demonym": "<p><i>Numerator:</i> FP & FN and the mention text is a demonym, i.e. it is contained in a list of demonyms from Wikidata.</p><p><i>Denominator:</i> NER true positives where the mention text is a demonym.</p>",
+        "metonymy": "<p><i>Numerator:</i> FP & FN and the most popular entity for the given mention text and the prediction are locations, the ground truth is not a location.</p><p><i>Denominator:</i> NER true positives where the most popular candidate is a location but the ground truth is not.</p>",
+        "partial_name": "<p><i>Numerator:</i> FP & FN and the mention text is a part of the ground truth entity name.</p><p><i>Denominator:</i> NER true positives that are a part of the ground truth entity name.</p>",
+        "rare": "<p><i>Numerator:</i> FP & FN and the most popular entity for the given mention text was predicted instead of the less popular ground truth entity.</p><p><i>Denominator:</i> NER true positives where the most popular candidate is not the correct entity.</p>",
         "other": "Disambiguation error that does not fall into any of the other categories.",
-        "wrong_candidates": "<i>Numerator:</i> FP & FN and the ground truth entity is not in the candidate set returned by the linker for the mention.<br><i>Denominator:</i> All NER true positives.",
-        "multi_candidates": "<i>Numerator:</i> FP & FN and the candidate set for the mention contains multiple candidate entities, one of which is the ground truth entity, and the linker chose a wrong entity.<br><i>Denominator:</i> NER true positives where the linker returned a candidate set with more than one entity and the ground truth is contained in the candidate set."
+        "wrong_candidates": "<p><i>Numerator:</i> FP & FN and the ground truth entity is not in the candidate set returned by the linker for the mention.</p><p><i>Denominator:</i> All NER true positives.</p>",
+        "multi_candidates": "<p><i>Numerator:</i> FP & FN and the candidate set for the mention contains multiple candidate entities, one of which is the ground truth entity, and the linker chose a wrong entity.</p><p><i>Denominator:</i> NER true positives where the linker returned a candidate set with more than one entity and the ground truth is contained in the candidate set.</p>"
     },
     "other_errors": {
         "": "Errors that are not clearly distinguishable as NER false negatives, NER false positives or disambiguation errors.",
-        "hyperlink": "<i>Numerator:</i> Undetected mention that is also a hyperlink.<br><i>Denominator:</i> All ground truth mentions that are hyperlinks."
+        "hyperlink": "<p><i>Numerator:</i> Undetected mention that is also a hyperlink.</p><p><i>Denominator:</i> All ground truth mentions that are hyperlinks.</p>"
     },
     "wrong_coreference": {
         "": "Coreference errors.",
         "false_detection": "NER FP with a mention text in {It, it, This, this, That, that, Its, its}",
-        "reference_wrongly_disambiguated": "<i>Numerator:</i> Coreference FN & FP and the reference was wrongly disambiguated.<br><i>Denominator:</i> Coreference mentions where the correct ground truth mention was referenced.",
-        "wrong_mention_referenced": "<i>Numerator:</i> Coreference FN + FP and the wrong mention was referenced.<br><i>Denominator:</i> Coreference NER true positives.",
-        "undetected": "<i>Numerator:</i> Coreference FN and the mention was not linked.<br><i>Denominator:</i> Ground truth coreference mentions."
+        "reference_wrongly_disambiguated": "<p><i>Numerator:</i> Coreference FN & FP and the reference was wrongly disambiguated.</p><p><i>Denominator:</i> Coreference mentions where the correct ground truth mention was referenced.</p>",
+        "wrong_mention_referenced": "<p><i>Numerator:</i> Coreference FN + FP and the wrong mention was referenced.</p><p><i>Denominator:</i> Coreference NER true positives.</p>",
+        "undetected": "<p><i>Numerator:</i> Coreference FN and the mention was not linked.</p><p><i>Denominator:</i> Ground truth coreference mentions.</p>"
     },
     "NER": {
         "": "Named Entity Recognition results.",
-        "tp": "TP: Predictions with a matching ground truth span.<br>",
-        "fp": "FP: Predictions with no matching ground truth span.<br>",
-        "fn": "FN: Ground truth spans with no matching prediction span."
+        "tp": "<i>TP</i>: Predictions with a matching ground truth span.",
+        "fp": "<i>FP</i>: Predictions with no matching ground truth span.",
+        "fn": "<i>FN</i>: Ground truth spans with no matching prediction span."
     },
     "all": {
         "": "Overall entity linking and coreference results.",
-        "tp": "TP: Predictions where the mention span and entity match a groundtruth mention span and entity.<br>",
-        "fp": "FP: Predictions where the mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity.<br>",
-        "fn": "FN: Groundtruth where the mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity."
+        "tp": "<i>TP</i>: Predictions where the mention span and entity match a groundtruth mention span and entity.",
+        "fp": "<i>FP</i>: Predictions where the mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity.",
+        "fn": "<i>FN</i>: Groundtruth where the mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity."
     },
     "entity": {
         "": "Entity linking results.",
-        "tp": "TP: True positive entities (excluding coreferences).<br>",
-        "fp": "FP: False positive entities (excluding coreferences).<br>",
-        "fn": "FN: False negative entities (excluding coreferences)."
+        "tp": "<i>TP</i>: True positive entities (excluding coreferences).",
+        "fp": "<i>FP</i>: False positive entities (excluding coreferences).",
+        "fn": "<i>FN</i>: False negative entities (excluding coreferences)."
     },
     "entity_named": {
         "": "Entity linking results for named entities, i.e. entities where the first alphabetic character is an uppercase letter.",
-        "tp": "TP: True positive named entities.<br>",
-        "fp": "FP: False positive named entities.<br>",
-        "fn": "FN: False negative named entities."
+        "tp": "<i>TP</i>: True positive named entities.",
+        "fp": "<i>FP</i>: False positive named entities.",
+        "fn": "<i>FN</i>: False negative named entities."
     },
     "entity_other": {
         "": "Entity linking results for non-named entities, i.e. entities where the first alphabetic character is a lowercase letter.",
-        "tp": "TP: True positive non-named (i.e. lowercase) entities.<br>",
-        "fp": "FP: False positive non-named (i.e. lowercase) entities.<br>",
-        "fn": "FN: False negative non-named (i.e. lowercase) entities."
+        "tp": "<i>TP</i>: True positive non-named (i.e. lowercase) entities.",
+        "fp": "<i>FP</i>: False positive non-named (i.e. lowercase) entities.",
+        "fn": "<i>FN</i>: False negative non-named (i.e. lowercase) entities."
     },
     "coref": {
         "": "Coreference results.",
-        "tp": "TP: True positive coreferences.<br>",
-        "fp": "FP: False positive coreferences.<br>",
-        "fn": "FN: False negative coreferences."
+        "tp": "<i>TP</i>: True positive coreferences.",
+        "fp": "<i>FP</i>: False positive coreferences.",
+        "fn": "<i>FN</i>: False negative coreferences."
     },
     "coref_pronominal": {
         "": "Results for pronominal coreference, i.e. the mention text is a pronoun.",
-        "tp": "TP: True positive pronominal coreferences (mention text is a pronoun).<br>",
-        "fp": "FP: False positive pronominal coreferences (mention text is a pronoun).<br>",
-        "fn": "FN: False negative pronominal coreferences (mention text is a pronoun)."
+        "tp": "<i>TP</i>: True positive pronominal coreferences (mention text is a pronoun).",
+        "fp": "<i>FP</i>: False positive pronominal coreferences (mention text is a pronoun).",
+        "fn": "<i>FN</i>: False negative pronominal coreferences (mention text is a pronoun)."
     },
     "coref_nominal": {
         "": "Results for nominal coreference, i.e. the mention text is \"the &lttype&gt\".",
-        "tp": "TP: True positive nominal coreferences (mention text is \"the &lttype&gt\").<br>",
-        "fp": "FP: False positive nominal coreferences (mention text is \"the &lttype&gt\").<br>",
-        "fn": "FN: False negative nominal coreferences (mention text is \"the &lttype&gt\").",
+        "tp": "<i>TP</i>: True positive nominal coreferences (mention text is \"the &lttype&gt\").",
+        "fp": "<i>FP</i>: False positive nominal coreferences (mention text is \"the &lttype&gt\").",
+        "fn": "<i>FN</i>: False negative nominal coreferences (mention text is \"the &lttype&gt\").",
     },
-    "precision": "Precision = TP / (TP + FP)<br>",
-    "recall": "Recall = TP / (TP + FN)<br>",
-    "f1": "F1 = 2 * (P * R) / (P + R)<br>",
+    "precision": "<i>Precision = TP / (TP + FP)</i>",
+    "recall": "<i>Recall = TP / (TP + FN)</i>",
+    "f1": "<i>F1 = 2 * (P * R) / (P + R)</i>",
 };
 
 error_category_mapping = {
@@ -410,7 +410,7 @@ function show_example_benchmark_modal(el) {
     // Display error explanation extracted from table header tooltip text
     var keys = classes[1].split("-");
     var error_explanation = header_descriptions[keys[0]][keys[1]];
-    error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*)<br>.*/, "$1");
+    error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*?)<\/p>.*/, "$1");
     $("#error_explanation").text("Description: " + error_explanation);
     // Display annotated text
     var textfield = $("#example_prediction_overview tr td");
@@ -1942,10 +1942,10 @@ function get_header_tooltip_text(key, subkey) {
             }
             return tooltip_text;
         } else {
-            var tp_string = header_descriptions[key]["tp"];
-            var fp_string = header_descriptions[key]["fp"];
-            var fn_string = header_descriptions[key]["fn"];
-            var string = header_descriptions[subkey];
+            var tp_string = "<p>" + header_descriptions[key]["tp"] + "</p>";
+            var fp_string = "<p>" + header_descriptions[key]["fp"] + "</p>";
+            var fn_string = "<p>" + header_descriptions[key]["fn"] + "</p>";
+            var string = "<p>" + header_descriptions[subkey] + "</p>";
             if (subkey == "precision") {
                 string += tp_string;
                 string += fp_string;
@@ -1963,10 +1963,10 @@ function get_header_tooltip_text(key, subkey) {
         var type = (key in whitelist_types) ? whitelist_types[key] : "other";
         if (subkey) {
             // Get tooltips for precision, recall and f1
-            var tp_string = "TP: True Positives of type " + type + "<br>";
-            var fp_string = "FP: False Positives of type " + type + "<br>";
-            var fn_string = "FN: False Negatives of type " + type + "<br>";
-            var string = header_descriptions[subkey];
+            var tp_string = "<p><i>TP</i>: True Positives of type " + type + "</p>";
+            var fp_string = "<p><i>FP</i>: False Positives of type " + type + "</p>";
+            var fn_string = "<p><i>FN</i>: False Negatives of type " + type + "</p>";
+            var string = "<p>" + header_descriptions[subkey] + "</p>";
             if (subkey == "precision") {
                 string += tp_string;
                 string += fp_string;
