@@ -1946,7 +1946,7 @@ function get_header_tooltip_text(key, subkey) {
             var string = header_descriptions[subkey];
             if (subkey == "precision") {
                 string += tp_string;
-                string += fn_string;
+                string += fp_string;
             } else if (subkey == "recall") {
                 string += tp_string;
                 string += fn_string;
