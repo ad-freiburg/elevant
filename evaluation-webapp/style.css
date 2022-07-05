@@ -164,6 +164,10 @@ a {
     visibility: visible;
 }
 
+#evaluation_modes label {
+    position: relative;
+}
+
 /* ----------------------------------------- */
 /* Begin evaluation results table  */
 

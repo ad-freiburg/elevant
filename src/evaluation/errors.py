@@ -1,8 +1,6 @@
-from typing import List, Set, Tuple, Optional
+from typing import List, Tuple, Optional
 
-from itertools import chain
-
-from src.evaluation.case import Case, ErrorLabel
+from src.evaluation.case import Case, ErrorLabel, EvaluationMode
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.evaluation.mention_type import MentionType, is_named_entity
 from src.models.entity_database import EntityDatabase
@@ -13,21 +11,17 @@ from src.models.article import Article
 def label_errors(article: Article,
                  cases: List[Case],
                  entity_db: EntityDatabase,
+                 eval_mode: EvaluationMode,
                  contains_unknowns: bool):
-    text = article.text
-    unknown_ground_truth_spans = {case.span for case in cases if case.has_ground_truth()
-                                  and not case.is_known_entity()}
-    cases = [case for case in cases if (case.is_false_positive() or case.is_known_entity())]
-    label_undetected_errors(cases)
-    label_correct(cases, entity_db)
-    label_disambiguation_errors(cases, entity_db)
-    label_false_detections(cases, unknown_ground_truth_spans, contains_unknowns)
-    label_nonentity_coreference_errors(text, cases)
-    label_candidate_errors(cases)
-    label_multi_candidates(cases)
-    label_hyperlink_errors(article, cases)
-    label_span_errors(cases)
-    label_coreference_errors(cases)
+    label_undetected_errors(cases, eval_mode)
+    label_correct(cases, entity_db, eval_mode)
+    label_disambiguation_errors(cases, entity_db, eval_mode)
+    label_false_detections(cases, contains_unknowns, eval_mode)
+    label_candidate_errors(cases, eval_mode)
+    label_multi_candidates(cases, eval_mode)
+    label_hyperlink_errors(article, cases, eval_mode)
+    label_span_errors(cases, eval_mode)
+    label_coreference_errors(cases, article.text, eval_mode)
 
 
 def is_subspan(span: Tuple[int, int], subspan: Tuple[int, int]) -> bool:
@@ -39,7 +33,7 @@ def is_subspan(span: Tuple[int, int], subspan: Tuple[int, int]) -> bool:
     return span[0] <= subspan[0] and span[1] >= subspan[1]
 
 
-def is_specificity_error(case: Case, false_positive_spans: List[Tuple[int, int]]) -> bool:
+def is_partially_included_error(case: Case, false_positive_spans: List[Tuple[int, int]]) -> bool:
     """
     A false positive span is subspan of the ground truth span.
     """
@@ -49,7 +43,7 @@ def is_specificity_error(case: Case, false_positive_spans: List[Tuple[int, int]]
     return False
 
 
-def label_undetected_errors(cases: List[Case]):
+def label_undetected_errors(cases: List[Case], eval_mode: EvaluationMode):
     """
     Label undetected mentions as undetected and one of:
     - undetected lowercase
@@ -57,13 +51,13 @@ def label_undetected_errors(cases: List[Case]):
     - undetected overlap
     - undetected other
     """
-    false_positive_spans = [case.span for case in cases if case.is_false_positive()]
+    false_positive_spans = [case.span for case in cases if case.is_ner_fp(eval_mode)]
     for case in cases:
-        if case.is_not_coreference() and case.is_false_negative() and case.predicted_entity is None:
+        if not case.is_coreference() and case.is_ner_fn(eval_mode):
             case.add_error_label(ErrorLabel.UNDETECTED)
             if not is_named_entity(case.text):
                 case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE)
-            elif is_specificity_error(case, false_positive_spans):
+            elif is_partially_included_error(case, false_positive_spans):
                 case.add_error_label(ErrorLabel.UNDETECTED_PARTIALLY_INCLUDED)
             elif overlaps_any(case.span, false_positive_spans):
                 case.add_error_label(ErrorLabel.UNDETECTED_PARTIAL_OVERLAP)
@@ -88,6 +82,9 @@ def is_partial_name(case: Case) -> bool:
     """
     The ground truth entity name is a multi word, and the mention is contained in it.
     """
+    if not case.ground_truth_is_known():
+        # Cases with unknown groundtruth are not considered as partial name errors
+        return False
     name = case.true_entity.name
     return " " in name and len(case.text) < len(name) and case.text in name
 
@@ -96,11 +93,13 @@ def is_rare_case(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is not the ground truth entity.
     """
+    # Right now, this is always true when the entity is Unknown
+    # So all evaluated cases with unknown GT are automatically rare errors.
     most_popular_candidate = get_most_popular_candidate(entity_db, case.text)
     return most_popular_candidate and case.true_entity.entity_id != most_popular_candidate
 
 
-def label_correct(cases: List[Case], entity_db: EntityDatabase):
+def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: EvaluationMode):
     """
     Label correct predictions with one of (or no label):
     - demonym correct
@@ -109,7 +108,7 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase):
     - rare correct
     """
     for case in cases:
-        if case.is_not_coreference() and case.is_correct():
+        if not case.is_coreference() and case.is_linking_tp(eval_mode):
             if is_demonym(case, entity_db):
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_DEMONYM_CORRECT)
             elif is_metonymy(case, entity_db):
@@ -152,6 +151,9 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is a location, and the ground truth is neither a location, person nor ethnicity.
     """
+    if not case.ground_truth_is_known():
+        # Cases with unknown groundtruth are not considered as metonymy errors
+        return False
     true_types = case.true_entity.type.split("|")
     if LOCATION_TYPE_ID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_ID in true_types:
         return False
@@ -173,8 +175,7 @@ def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
     return LOCATION_TYPE_ID in predicted_types
 
 
-def label_disambiguation_errors(cases: List[Case],
-                                entity_db: EntityDatabase):
+def label_disambiguation_errors(cases: List[Case], entity_db: EntityDatabase, eval_mode: EvaluationMode):
     """
     Mention was detected, but linked to the wrong entity.
     Cases get labeled with disambiguation errors, and one of the following:
@@ -185,7 +186,7 @@ def label_disambiguation_errors(cases: List[Case],
     - disambiguation other
     """
     for case in cases:
-        if case.is_not_coreference() and case.is_false_negative() and case.is_false_positive():
+        if not case.is_coreference() and case.is_linking_fn(eval_mode) and case.is_linking_fp(eval_mode):
             case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG)
             if is_demonym(case, entity_db):
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG)
@@ -200,33 +201,20 @@ def label_disambiguation_errors(cases: List[Case],
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG_OTHER)
 
 
-NONENTITY_PRONOUNS = {"it", "this", "that", "its"}
-
-
-def label_nonentity_coreference_errors(text: str, cases: List[Case]):
+def label_candidate_errors(cases: List[Case], eval_mode: EvaluationMode):
     for case in cases:
-        if case.is_optional():
-            continue
-        if not case.has_ground_truth():
-            snippet = text[case.span[0]:case.span[1]]
-            if len(snippet) > 1 and snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
-                case.add_error_label(ErrorLabel.COREFERENCE_FALSE_DETECTION)
-
-
-def label_candidate_errors(cases: List[Case]):
-    for case in cases:
-        if case.is_false_negative() and not case.is_coreference() and case.is_false_positive() and \
+        if not case.is_coreference() and case.is_linking_fn(eval_mode) and case.is_linking_fp(eval_mode) and \
                 not case.true_entity_is_candidate():
             case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG_CANDIDATES)
 
 
-def label_multi_candidates(cases: List[Case]):
+def label_multi_candidates(cases: List[Case], eval_mode: EvaluationMode):
     for case in cases:
-        if case.has_ground_truth() and len(case.candidates) > 1 and case.true_entity_is_candidate():
-            if case.is_correct():
+        if not case.is_coreference() and case.has_ground_truth() and len(case.candidates) > 1 and \
+                case.true_entity_is_candidate():
+            if case.is_linking_tp(eval_mode):
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT)
-            elif not case.is_optional() or case.is_false_positive():
-                # If the case is optional and not correct, but a "FN", don't add error label, just ignore it
+            elif case.is_linking_fn(eval_mode) and case.is_linking_fp(eval_mode):
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG)
 
 
@@ -252,8 +240,8 @@ def contains_uppercase_word(text: str) -> bool:
 
 
 def label_false_detections(cases: List[Case],
-                           unknown_ground_truth_spans: Set[Tuple[int, int]],
-                           contains_unknowns: bool):
+                           contains_unknowns: bool,
+                           eval_mode: EvaluationMode):
     """
     Labels false positives with false positive and one of the following:
     - abstraction
@@ -264,12 +252,13 @@ def label_false_detections(cases: List[Case],
     Otherwise, it is also labeled when the mention does not overlap with any ground truth (because unknown labels can
     be missing, e.g. in the MSNBC and ACE benchmarks).
     """
-    ground_truth_spans = [case.span for case in cases if case.has_ground_truth()]
+    ground_truth_spans = [case.span for case in cases if case.has_relevant_ground_truth(eval_mode)]
+
     for case in cases:
-        if case.is_not_coreference() and case.is_false_positive() and not case.is_known_entity():
+        if not case.is_coreference() and case.is_ner_fp(eval_mode):
             case.add_error_label(ErrorLabel.FALSE_DETECTION)
             overlap = False
-            for gt_span in chain(ground_truth_spans, unknown_ground_truth_spans):
+            for gt_span in ground_truth_spans:
                 if overlaps(case.span, gt_span):
                     overlap = True
                     break
@@ -277,30 +266,37 @@ def label_false_detections(cases: List[Case],
             if not overlap and not contains_upper:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_LOWERCASED)
             elif contains_upper and \
-                    ((not overlap and not contains_unknowns) or case.span in unknown_ground_truth_spans):
+                    ((not overlap and not contains_unknowns) or not case.ground_truth_is_known()):
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_GROUNDTRUTH_UNKNOWN)
             else:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER)
 
 
-def label_hyperlink_errors(article: Article, cases: List[Case]):
+def label_hyperlink_errors(article: Article, cases: List[Case], eval_mode: EvaluationMode):
     hyperlink_spans = set(span for span, target in article.hyperlinks)
     for case in cases:
-        if case.span in hyperlink_spans and case.has_ground_truth() and case.is_known_entity():
-            if case.is_correct() or case.is_true_quantity_or_datetime():
+        if case.span in hyperlink_spans:
+            if case.is_linking_tp(eval_mode):
                 case.add_error_label(ErrorLabel.HYPERLINK_CORRECT)
-            elif (not case.is_optional() and not case.is_nil_entity()) or case.is_false_positive():
-                # If the case is optional and not correct, but a "FN", don't add error label, just ignore it
+            elif case.is_linking_fn(eval_mode) or case.is_linking_fp(eval_mode):
                 case.add_error_label(ErrorLabel.HYPERLINK_WRONG)
 
 
-def label_coreference_errors(cases: List[Case]):
+NONENTITY_PRONOUNS = {"it", "this", "that", "its"}
+
+
+def label_coreference_errors(cases: List[Case], text, eval_mode):
     for i, case in enumerate(cases):
-        if case.is_coreference() and case.is_false_negative():
-            if not case.has_predicted_entity():
-                # Coreference FN
+        if case.is_ner_fp(eval_mode):
+            # Coreference NER FP
+            snippet = text[case.span[0]:case.span[1]]
+            if len(snippet) > 1 and snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
+                case.add_error_label(ErrorLabel.COREFERENCE_FALSE_DETECTION)
+        elif case.is_coreference():
+            if case.is_ner_fn(eval_mode):
+                # Coreference NER FN
                 case.add_error_label(ErrorLabel.COREFERENCE_UNDETECTED)
-            else:
+            elif case.is_linking_fn(eval_mode) and case.is_linking_fp(eval_mode):
                 # Coreference FN + FP = disambiguation error
                 true_reference = None
                 for j in range(i - 1, -1, -1):
@@ -309,22 +305,22 @@ def label_coreference_errors(cases: List[Case]):
                         true_reference = cases[j]
                         break
                 if true_reference is not None:
-                    if true_reference.has_predicted_entity() and \
+                    if true_reference.prediction_is_known() and \
                             true_reference.predicted_entity.entity_id == case.predicted_entity.entity_id:
                         case.add_error_label(ErrorLabel.COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED)
                     else:
                         case.add_error_label(ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED)
 
 
-def label_span_errors(cases: List[Case]):
+def label_span_errors(cases: List[Case], eval_mode: EvaluationMode):
     """
     False positives, that overlap with a ground truth mention with the same entity id.
     """
-    ground_truth = {case.span: case.true_entity for case in cases if case.has_ground_truth()}
+    ground_truth_spans = {case.span: case.true_entity for case in cases if case.has_relevant_ground_truth(eval_mode)}
     for case in cases:
-        if case.is_false_positive():
-            for gt_span in ground_truth:
-                gt_label = ground_truth[gt_span]
+        if case.is_ner_fp(eval_mode):
+            for gt_span in ground_truth_spans:
+                gt_label = ground_truth_spans[gt_span]
                 if gt_span == case.span:
                     # Span is correct -> no need to consider it
                     continue

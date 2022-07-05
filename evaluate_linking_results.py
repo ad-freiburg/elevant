@@ -15,7 +15,6 @@ import re
 
 from src import settings
 from src.evaluation.benchmark import get_available_benchmarks
-from src.evaluation.case import case_from_dict
 from src.evaluation.examples_generator import get_example_generator
 from src.models.article import article_from_json
 from src.evaluation.evaluator import Evaluator
@@ -25,10 +24,6 @@ def main(args):
     logger.info("Evaluating linking results from %s ..." % args.input_file)
     input_file = open(args.input_file, 'r', encoding='utf8')
     idx = args.input_file.rfind('.')
-
-    output_file = None
-    case_file = None
-    output_filename = None
 
     # Get a set of entity ids of all predicted entities and candidate entities
     # to load their information into the entity_db
@@ -61,17 +56,11 @@ def main(args):
                     whitelist_types.add(type)
 
     whitelist_file = args.type_whitelist if args.type_whitelist else settings.WHITELIST_FILE
-    if args.input_case_file:
-        logger.info("Using cases from %s" % args.input_case_file)
-        case_file = open(args.input_case_file, 'r', encoding='utf8')
-        evaluator = Evaluator(relevant_entity_ids, None, whitelist_file=whitelist_file, load_data=False,
-                              coreference=not args.no_coreference, contains_unknowns=not args.no_unknowns)
-    else:
-        type_mapping_file = args.type_mapping if args.type_mapping else settings.WHITELIST_TYPE_MAPPING
-        evaluator = Evaluator(relevant_entity_ids, type_mapping_file, whitelist_file=whitelist_file, load_data=True,
-                              contains_unknowns=not args.no_unknowns)
-        output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
-        output_file = open(output_filename, 'w', encoding='utf8')
+    type_mapping_file = args.type_mapping if args.type_mapping else settings.WHITELIST_TYPE_MAPPING
+    evaluator = Evaluator(relevant_entity_ids, type_mapping_file, whitelist_file=whitelist_file,
+                          contains_unknowns=not args.no_unknowns)
+    output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
+    output_file = open(output_filename, 'w', encoding='utf8')
     results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
 
     example_iterator = None
@@ -127,16 +116,10 @@ def main(args):
                             break
                 article.entity_mentions = filtered_entity_mentions
 
-        if args.input_case_file:
-            dump = json.loads(case_file.readline())
-            cases = [case_from_dict(case_dict) for case_dict in dump]
-        else:
-            cases = evaluator.get_cases(article)
-        evaluator.add_cases(cases)
+        cases = evaluator.evaluate_article(article)
 
-        if not args.input_case_file:
-            case_list = [case.to_dict() for case in cases]
-            output_file.write(json.dumps(case_list) + "\n")
+        case_list = {eval_mode.value: [case.to_dict() for case in cases[eval_mode]] for eval_mode in cases}
+        output_file.write(json.dumps(case_list) + "\n")
 
     results_dict = evaluator.get_results_dict()
     evaluator.print_results()
@@ -158,11 +141,8 @@ def main(args):
     else:
         input_file.close()
 
-    if args.input_case_file:
-        case_file.close()
-    else:
-        output_file.close()
-        logger.info("Wrote evaluation cases to %s" % output_filename)
+    output_file.close()
+    logger.info("Wrote evaluation cases to %s" % output_filename)
 
 
 if __name__ == "__main__":
@@ -174,8 +154,6 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output_file", type=str,
                         help="Output file for the evaluation results."
                              " The input file with .cases extension if none is specified.")
-    parser.add_argument("-icf", "--input_case_file", type=str,
-                        help="Input file that contains the evaluation cases. Cases are not written to file.")
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evaluation.")
     parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),

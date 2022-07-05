@@ -2,7 +2,6 @@ from typing import Tuple, List
 
 from src.evaluation.case import Case
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.entity_database import EntityDatabase
 from src.models.entity_mention import EntityMention
 from src.models.wikidata_entity import WikidataEntity
@@ -40,7 +39,6 @@ class CaseGenerator:
     def __init__(self, entity_db: EntityDatabase):
         self.entity_db = entity_db
         self.article = None
-        self.coref_ground_truth = None
         self.label_dict = None
         self.all_predictions = None
         self.factor_dict = None
@@ -60,12 +58,11 @@ class CaseGenerator:
             entity_type = "|".join(type_ids)
         return entity_type
 
-    def get_evaluation_cases(self, article: Article, coref_ground_truth) -> List[Case]:
+    def get_evaluation_cases(self, article: Article) -> List[Case]:
         """
         Return all evaluation cases for a given article.
         """
         self.article = article
-        self.coref_ground_truth = coref_ground_truth
 
         # all_predictions contains predicted spans and predicted spans that were expanded to word boundaries
         predictions = article.entity_mentions
@@ -99,7 +96,6 @@ class CaseGenerator:
             expanded_span = word_boundary(span, article.text)
             text = article.text[span[0]:span[1]]
             detected = span in self.all_predictions or expanded_span in self.all_predictions
-            predicted_mention = None
             if detected:
                 predicted_mention = self.all_predictions[span] if span in self.all_predictions else \
                     self.all_predictions[expanded_span]
@@ -114,27 +110,14 @@ class CaseGenerator:
 
                 predicted_entity_type = self.determine_entity_type(predicted_entity_id)
 
-                predicted_entity = WikidataEntity(predicted_entity_name, 0, predicted_mention.entity_id,
+                predicted_entity = WikidataEntity(predicted_entity_name,
+                                                  0,
+                                                  predicted_mention.entity_id,
                                                   type=predicted_entity_type)
-                contained = predicted_mention.contained
             else:
                 predicted_by = None
                 predicted_entity = None
                 candidates = set()
-                contained = None
-
-            referenced_span = None
-            is_true_coref = span in coref_ground_truth
-            correct_span_referenced = False
-            if detected and predicted_by == AbstractCorefLinker.IDENTIFIER:
-                referenced_span = predicted_mention.referenced_span
-                if is_true_coref:
-                    for poss_ref_span in coref_ground_truth[span]:
-                        # Do not require a perfect match of the spans but look for overlaps
-                        if poss_ref_span[0] <= referenced_span[1] <= poss_ref_span[1] or \
-                                poss_ref_span[0] <= referenced_span[0] <= poss_ref_span[1]:
-                            correct_span_referenced = True
-                            break
 
             # Due to our overlapping gt labels, some cases should not count
             # If gt_label is parent of a child label that was detected, don't count parent label -> factor = 0
@@ -147,11 +130,7 @@ class CaseGenerator:
             else:
                 factor = self.factor_dict[gt_label.id] if gt_label.id in self.factor_dict else 0
 
-            case = Case(span, text, gt_label, detected, predicted_entity, candidates, predicted_by,
-                        contained=contained,
-                        is_true_coref=is_true_coref,
-                        correct_span_referenced=correct_span_referenced,
-                        referenced_span=referenced_span,
+            case = Case(span, text, gt_label, predicted_entity, candidates, predicted_by,
                         factor=factor,
                         children_correctly_linked=children_correctly_linked,
                         children_correctly_detected=children_correctly_detected)
@@ -178,9 +157,8 @@ class CaseGenerator:
                     predicted_entity_id is not None and span[0] >= evaluation_span[0] and span[1] <= evaluation_span[1]:
                 text = article.text[span[0]:span[1]]
                 predicted_by = predicted_mention.linked_by
-                contained = predicted_mention.contained
-                case = Case(span, text, None, True, predicted_entity, contained=contained, candidates=candidates,
-                            predicted_by=predicted_by, referenced_span=predicted_mention.referenced_span, factor=1)
+                case = Case(span, text, None, predicted_entity, candidates=candidates,
+                            predicted_by=predicted_by, factor=1)
                 cases.append(case)
 
         return sorted(cases)

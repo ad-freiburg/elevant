@@ -110,7 +110,12 @@ header_descriptions = {
         "": "Results for nominal coreference, i.e. the mention text is \"the &lttype&gt\".",
         "tp": "<i>TP</i>: True positive nominal coreferences (mention text is \"the &lttype&gt\").",
         "fp": "<i>FP</i>: False positive nominal coreferences (mention text is \"the &lttype&gt\").",
-        "fn": "<i>FN</i>: False negative nominal coreferences (mention text is \"the &lttype&gt\").",
+        "fn": "<i>FN</i>: False negative nominal coreferences (mention text is \"the &lttype&gt\")."
+    },
+    "evaluation_mode": {
+        "ignored": "Unknown ground truth entities, unknown predicted entities and optional ground truth entities are completely ignored.",
+        "optional": "Linking unknown and optional ground truth entities is not required, but is ok (i.e. not evaluated) iff the linked entity is correct. For unknown ground truth entities only NIL predictions are correct. Linking errors are penalized.",
+        "required": "Linking unknown and optional ground truth entities is compulsory. Unknown ground truth entities have to be linked to NIL."
     },
     "precision": "<i>Precision = TP / (TP + FP)</i>",
     "recall": "<i>Recall = TP / (TP + FN)</i>",
@@ -627,6 +632,7 @@ function read_url_parameters() {
     url_param_show_columns = get_url_parameter_array(get_url_parameter("show_columns"), false);
     url_param_sort_order = get_url_parameter_array(get_url_parameter("sort_order"), true);
     url_param_access = get_url_parameter_string(get_url_parameter("access"));
+    url_param_evaluation_mode = get_url_parameter_string(get_url_parameter("evaluation_mode"));
 }
 
 function get_url_parameter_boolean(url_parameter) {
@@ -1037,7 +1043,9 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
         var article_cases = evaluation_cases_example_benchmark[article_index];  // information from the .cases file
         var article_data = articles_data_example_benchmark[article_index];  // information from the .jsonl file
     } else {
-        var article_cases = evaluation_cases[approach_name][article_index];  // information from the .cases file
+        // Get currently selected evaluation mode
+        var eval_mode = get_evaluation_mode();
+        var article_cases = evaluation_cases[approach_name][article_index][eval_mode];  // information from the .cases file
         var article_data = articles_data[approach_name][article_index];  // information from the .jsonl file
     }
 
@@ -1116,37 +1124,37 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
         var gt_annotation = {};
         var pred_annotation = {};
 
-        // mention is an evaluated case
         if ("predicted_entity" in mention || "true_entity" in mention) {
-            if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
-                // GT entity is NIL
-                gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
-                if ("predicted_entity" in mention) {
-                    pred_annotation.class = (mention.predicted_entity.entity_id == null) ? ANNOTATION_CLASS_UNKNOWN : ANNOTATION_CLASS_FP;
+            // mention is an evaluated case. Get the annotation class.
+            var linking_eval_types = mention.linking_eval_types[get_evaluation_mode()];
+            if (linking_eval_types.includes("TP")) {
+                gt_annotation.class = ANNOTATION_CLASS_TP;
+                pred_annotation.class = ANNOTATION_CLASS_TP;
+            } else if (linking_eval_types.includes("FP")) {
+                pred_annotation.class = ANNOTATION_CLASS_FP;
+                if (linking_eval_types.includes("FN")) {
+                    gt_annotation.class = ANNOTATION_CLASS_FN;
+                } else if (mention.optional) {
+                    gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
+                } else if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
+                    gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 }
-            } else if (is_correct_optional_case(mention)) {
-                gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
-                if ("predicted_entity" in mention) {
-                    // Prediction is a correct optional, i.e. unevaluated.
-                    pred_annotation.class = ANNOTATION_CLASS_UNEVALUATED;
-                }
-            } else if ("predicted_entity" in mention) {
-                 if ("true_entity" in mention && !mention.true_entity.entity_id.startsWith("Unknown")) {
-                     if (mention.true_entity.entity_id == mention.predicted_entity.entity_id) {
-                        // predicted the true entity
-                        gt_annotation.class = ANNOTATION_CLASS_TP;
-                        pred_annotation.class = ANNOTATION_CLASS_TP;
-                    } else {
-                        // predicted the wrong entity
-                        pred_annotation.class = (mention.predicted_entity.entity_id == null) ? ANNOTATION_CLASS_UNKNOWN : ANNOTATION_CLASS_FP;
-                        gt_annotation.class = (is_optional_case(mention)) ? ANNOTATION_CLASS_OPTIONAL : ANNOTATION_CLASS_FN;
-                    }
-                } else {
-                    // wrong span
-                    pred_annotation.class = (mention.predicted_entity.entity_id == null) ? ANNOTATION_CLASS_UNKNOWN : ANNOTATION_CLASS_FP;
+            } else if (linking_eval_types.includes("FN")) {
+                gt_annotation.class = ANNOTATION_CLASS_FN;
+                if ("predicted_entity" in mention && mention.predicted_entity.entity_id == null) {
+                    pred_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 }
             } else {
-                gt_annotation.class = ANNOTATION_CLASS_FN;
+                if (mention.optional) {
+                    gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
+                } else if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
+                    gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
+                }
+                if ("predicted_entity" in mention && mention.predicted_entity.entity_id == null) {
+                    pred_annotation.class = ANNOTATION_CLASS_UNKNOWN;
+                } else if ("predicted_entity" in mention) {
+                    pred_annotation.class = ANNOTATION_CLASS_UNEVALUATED;
+                }
             }
 
             if ("true_entity" in mention) {
@@ -1664,6 +1672,14 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
             // Retrieve contents of each .results file for the selected benchmark and store it in an array
             $.when.apply($, urls.map(function(url) {
                 return $.getJSON(url, function(results) {
+                    // Add the radio buttons for the different evaluation modes if they haven't been added yet
+                    if ($('#evaluation_overview #evaluation_modes').find("input").length == 0) {
+                        add_radio_buttons(results);
+                    }
+                    // Get the selected evaluation mode and filter the results accordingly
+                    var eval_mode = get_evaluation_mode();
+                    results = results[eval_mode];
+
                     var approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
                     // Remove the benchmark extension from the approach name
                     if (approach_name.endsWith("." + benchmark_name)) approach_name = approach_name.substring(0, approach_name.lastIndexOf("."))
@@ -1745,6 +1761,49 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
             });
         });
     });
+}
+
+function add_radio_buttons(json_obj) {
+    /*
+    Add radio buttons for the evaluation modes as extracted from the jsonl results file
+    */
+    $.each(json_obj, function(key) {
+        var class_name = get_class_name(key);
+        var label = to_title_case(key.toLowerCase());
+        var checked = ((class_name == "ignored" && url_param_evaluation_mode == null) || url_param_evaluation_mode == class_name) ? "checked" : "";
+        var radio_button_html = "<span><input type=\"radio\" class=\"radio_button_" + class_name + "\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_radio_button_change(this)\" " + checked + ">";
+        radio_button_html += "<label>" + label;
+        var tooltip_text = header_descriptions["evaluation_mode"][class_name];
+        if (tooltip_text) radio_button_html += "<span class='tooltiptext'>" + tooltip_text + "</span>";
+        radio_button_html += "</label></span>\n";
+        $("#evaluation_modes").append(radio_button_html);
+    });
+}
+
+function on_radio_button_change(el) {
+    $("#table_loading").addClass("show");
+    $("#evaluation_table_wrapper table").trigger("update");
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('evaluation_mode', get_class_name($(el).val()));
+    window.history.replaceState({}, '', url);
+
+    // Remove previous evaluation table content
+    $("#evaluation_table_wrapper table thead").empty();
+    $("#evaluation_table_wrapper table tbody").empty();
+
+    // Remove previous article evaluation content
+    $("#prediction_overview").hide();
+    selected_systems = copy(selected_approach_names);
+    selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null});
+
+    // Build an overview table over all .results-files from the evaluation-results folder.
+    build_overview_table(benchmark_name, selected_systems, selected_emphasis, false);
+}
+
+function get_evaluation_mode() {
+    return $('input[name=eval_mode]:checked', '#evaluation_modes').val();
 }
 
 function build_evaluation_table_body(result_list) {
