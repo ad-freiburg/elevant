@@ -122,7 +122,7 @@ class PriorLinker(AbstractEntityLinker):
 
     def has_whitelist_type(self, entity_id: str) -> bool:
         if self.entity_db.contains_entity(entity_id):
-            types = self.entity_db.get_entity(entity_id).type.split("|")
+            types = self.entity_db.get_entity(entity_id).get_types()
             for typ in types:
                 if typ in self.whitelist_types:
                     return True

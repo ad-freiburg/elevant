@@ -54,7 +54,7 @@ def main(args):
             if label.entity_id.startswith("Unknown"):
                 types = ["UNKNOWN"]
             else:
-                types = label.type.split("|")
+                types = label.get_types()
             entity_name = entity_names[label.entity_id] if label.entity_id in entity_names else "Unknown"
             labels_tsv_file.write("\t".join((mention,
                                              label.entity_id,

@@ -1,4 +1,4 @@
-from typing import Optional, Set
+from typing import Optional, Set, List
 
 from src.evaluation.groundtruth_label import GroundtruthLabel
 
@@ -31,3 +31,6 @@ class WikidataEntity:
 
     def is_nil(self) -> bool:
         return self.entity_id is None
+
+    def get_types(self) -> List[str]:
+        return self.type.split("|")

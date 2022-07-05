@@ -52,8 +52,8 @@ def main(args):
             for line in file:
                 type_match = re.search(r"Q[0-9]+", line)
                 if type_match:
-                    type = type_match.group(0)
-                    whitelist_types.add(type)
+                    typ = type_match.group(0)
+                    whitelist_types.add(typ)
 
     whitelist_file = args.type_whitelist if args.type_whitelist else settings.WHITELIST_FILE
     type_mapping_file = args.type_mapping if args.type_mapping else settings.WHITELIST_TYPE_MAPPING
@@ -95,7 +95,7 @@ def main(args):
                 # Add all children of a parent as well. This works because article.labels are sorted -
                 # parents always come before children
                 if gt_label.parent is None or gt_label.parent in added_label_ids:
-                    types = gt_label.type.split("|")
+                    types = gt_label.get_types()
                     for type in types:
                         if type in whitelist_types or gt_label.parent is not None \
                                 or gt_label.entity_id.startswith("Unknown"):
@@ -109,9 +109,9 @@ def main(args):
             filtered_entity_mentions = {}
             if args.type_filter_predictions:
                 for span, em in article.entity_mentions.items():
-                    types = evaluator.entity_db.get_entity(em.entity_id).type.split("|")
-                    for type in types:
-                        if type in whitelist_types:
+                    types = evaluator.entity_db.get_entity(em.entity_id).get_types()
+                    for typ in types:
+                        if typ in whitelist_types:
                             filtered_entity_mentions[span] = em
                             break
                 article.entity_mentions = filtered_entity_mentions

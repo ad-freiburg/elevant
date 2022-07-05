@@ -54,7 +54,7 @@ class CaseGenerator:
         elif self.entity_db.is_datetime(entity_id):
             entity_type = GroundtruthLabel.DATETIME
         elif self.entity_db.contains_entity(entity_id):
-            type_ids = self.entity_db.get_entity(entity_id).type.split("|")
+            type_ids = self.entity_db.get_entity(entity_id).get_types()
             entity_type = "|".join(type_ids)
         return entity_type
 

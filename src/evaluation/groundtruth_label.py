@@ -28,10 +28,13 @@ class GroundtruthLabel:
         return self.optional or self.is_quantity() or self.is_datetime()
 
     def is_quantity(self) -> bool:
-        return self.type == self.QUANTITY
+        return self.QUANTITY in self.get_types()
 
     def is_datetime(self) -> bool:
-        return self.type == self.DATETIME
+        return self.DATETIME in self.get_types()
+
+    def get_types(self) -> List[str]:
+        return self.type.split("|")
 
     def to_dict(self) -> Dict:
         d = {"id": self.id,
