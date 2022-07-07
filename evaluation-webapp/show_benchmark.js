@@ -1039,12 +1039,14 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
     with the evaluated predictions inside the evaluation span (from the file <approach>.cases),
     and then generates annotations for all of them.
     */
+    var eval_mode;
     if (example_benchmark) {
-        var article_cases = evaluation_cases_example_benchmark[article_index];  // information from the .cases file
+        eval_mode = "IGNORED";
+        var article_cases = evaluation_cases_example_benchmark[article_index][eval_mode];  // information from the .cases file
         var article_data = articles_data_example_benchmark[article_index];  // information from the .jsonl file
     } else {
         // Get currently selected evaluation mode
-        var eval_mode = get_evaluation_mode();
+        eval_mode = get_evaluation_mode();
         var article_cases = evaluation_cases[approach_name][article_index][eval_mode];  // information from the .cases file
         var article_data = articles_data[approach_name][article_index];  // information from the .jsonl file
     }
@@ -1123,10 +1125,9 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
 
         var gt_annotation = {};
         var pred_annotation = {};
-
         if ("predicted_entity" in mention || "true_entity" in mention) {
             // mention is an evaluated case. Get the annotation class.
-            var linking_eval_types = mention.linking_eval_types[get_evaluation_mode()];
+            var linking_eval_types = mention.linking_eval_types[eval_mode];
             if (linking_eval_types.includes("TP")) {
                 gt_annotation.class = ANNOTATION_CLASS_TP;
                 pred_annotation.class = ANNOTATION_CLASS_TP;
