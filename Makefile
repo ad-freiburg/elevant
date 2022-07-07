@@ -23,7 +23,7 @@ DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL
 WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
 
 # Variables for benchmark linking and evaluation
-EVALUATION_RESULTS_DIR = evaluation-results-eval-modes/
+EVALUATION_RESULTS_DIR = evaluation-results/
 # Adjust if you only want to link or evaluate certain benchmarks
 BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test msnbc kore50 spotlight aida-conll-dev msnbc-updated
 # Adjust if you only want to link with certain linking systems.
