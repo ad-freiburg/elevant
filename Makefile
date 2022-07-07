@@ -23,7 +23,7 @@ DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL
 WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
 
 # Variables for benchmark linking and evaluation
-EVALUATION_RESULTS_DIR = evaluation-results/
+EVALUATION_RESULTS_DIR = evaluation-results-eval-modes/
 # Adjust if you only want to link or evaluate certain benchmarks
 BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test msnbc kore50 spotlight aida-conll-dev msnbc-updated
 # Adjust if you only want to link with certain linking systems.
@@ -66,7 +66,6 @@ link_benchmarks:
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "LINKING_SYSTEMS = $(LINKING_SYSTEMS)"
-	@echo "PREDICTIONS FROM = $(PREDICTIONS)"
 	for BENCHMARK_NAME in $(BENCHMARK_NAMES); do echo; \
 	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} link_benchmark; \
 	done
@@ -164,19 +163,19 @@ generate_entity_types_mapping:
 
 download_wikidata_mappings:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
-	wget http://ad-research/data/entity-linking/wikidata_mappings.tar.gz
+	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/wikidata_mappings.tar.gz
 	tar -xvzf wikidata_mappings.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
 	rm wikidata_mappings.tar.gz
 
 download_wikipedia_mappings:
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
-	wget http://ad-research/data/entity-linking/wikipedia_mappings.tar.gz
+	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/wikipedia_mappings.tar.gz
 	tar -xvzf wikipedia_mappings.tar.gz -C ${WIKIPEDIA_MAPPINGS_DIR}
 	rm wikipedia_mappings.tar.gz
 
 download_entity_types_mapping:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
-	wget http://ad-research/data/entity-linking/entity-types.tar.gz
+	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/entity-types.tar.gz
 	tar -xvzf entity-types.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
 	rm entity-types.tar.gz
 
