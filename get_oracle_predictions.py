@@ -18,10 +18,12 @@ def main(args):
     for i, article in enumerate(example_generator.iterate()):
         predicted_entities = dict()
         for gt_label in article.labels:
-            # Only include non-optional (no optionals, quantities or datetimes), known root gt labels in the predictions
-            if gt_label.parent is None and not gt_label.is_optional() and not gt_label.entity_id.startswith("Unknown"):
-                predicted_entities[gt_label.span] = EntityPrediction(gt_label.span, gt_label.entity_id,
-                                                                     {gt_label.entity_id})
+            # Only include non-optional (no optionals, quantities or datetimes), root gt labels in the predictions
+            if gt_label.parent is None and not gt_label.is_optional():
+                entity_id = gt_label.entity_id
+                if gt_label.entity_id.startswith("Unknown"):
+                    entity_id = None
+                predicted_entities[gt_label.span] = EntityPrediction(gt_label.span, entity_id, {entity_id})
         article.link_entities(predicted_entities, "ORACLE", "ORACLE")
         output_file.write(article.to_json() + '\n')
 
