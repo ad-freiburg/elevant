@@ -6,7 +6,8 @@ spacy_conll==2.0.0
 xrenner
 nltk==3.5
 benepar==0.1.2
-tensorflow==2.3.0
+tensorflow==2.9.1
 neuralcoref==4.0
 pynif==0.2.0
-protobuf==3.20.1
+protobuf==3.19.4
+numpy==1.21.6
