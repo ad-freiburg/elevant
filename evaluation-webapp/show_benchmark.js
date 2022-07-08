@@ -260,7 +260,7 @@ $("document").ready(function() {
     });
 
     // Position table tooltips
-    $("#evaluation_table_wrapper").on("mouseenter", ".tooltip", function() {
+    $("#evaluation_table_wrapper tbody").on("mouseenter", ".tooltip", function() {
         position_table_tooltip(this);
     });
 
@@ -395,10 +395,11 @@ function show_example_benchmark_modal(el) {
     to the error category of the clicked table header tooltip.
     */
     // Get example error category of the table tooltip to highlight only corresponding mentions
-    var selected_category = get_error_category_or_type($(el).closest("th")[0]);
+    // Hack to get the reference object from the clicked tippy tooltip.
+    var table_header_cell = $(el).parent().parent().parent().parent()[0]._tippy.reference;
+    var selected_category = get_error_category_or_type(table_header_cell);
 
     // Get table header title
-    var table_header_cell = $(el).closest("th")[0];
     var classes = $(table_header_cell).attr('class').split(/\s+/);
     var error_category_title = classes[1].replace(/_/g, " ").replace("-", " - ");
 
@@ -673,11 +674,7 @@ function position_table_tooltip(anchor_el) {
     $(anchor_el).find(".tooltiptext").each(function() {
         var tooltip_rect = this.getBoundingClientRect();
         var font_size = $(this).css("font-size").replace("px", "");
-        if (tag_name =="th") {
-            var top = anchor_el_rect.bottom;
-        } else {
-            var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
-        }
+        var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
         $(this).css({"left": anchor_el_rect.left + "px", "top": top + "px"});
     });
 }
@@ -1715,8 +1712,7 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                     var results = result_tuple[1];
                     if (!$('#evaluation_table_wrapper table thead').html()) {
                         // Add table header if it has not yet been added
-                        var table_header = get_table_header(results, "evaluation");
-                        $('#evaluation_table_wrapper table thead').html(table_header);
+                        add_table_header(results, "evaluation");
                     }
 
                     if (!$('#evaluation_overview .checkboxes').html()) {
@@ -1772,12 +1768,16 @@ function add_radio_buttons(json_obj) {
         var class_name = get_class_name(key);
         var label = to_title_case(key.toLowerCase());
         var checked = ((class_name == "ignored" && url_param_evaluation_mode == null) || url_param_evaluation_mode == class_name) ? "checked" : "";
-        var radio_button_html = "<span><input type=\"radio\" class=\"radio_button_" + class_name + "\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_radio_button_change(this)\" " + checked + ">";
-        radio_button_html += "<label>" + label;
-        var tooltip_text = header_descriptions["evaluation_mode"][class_name];
-        if (tooltip_text) radio_button_html += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-        radio_button_html += "</label></span>\n";
+        var radio_button_html = "<span class=\"radio_button_" + class_name + "\"><input type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_radio_button_change(this)\" " + checked + ">";
+        radio_button_html += "<label>" + label + "</label></span>\n";
         $("#evaluation_modes").append(radio_button_html);
+
+        // Add radio button tooltip
+        tippy('#evaluation_modes .radio_button_' + class_name, {
+            content: header_descriptions["evaluation_mode"][class_name],
+            allowHTML: true,
+            theme: 'light-border',
+        });
     });
 }
 
@@ -1816,10 +1816,7 @@ function build_evaluation_table_body(result_list) {
     result_list.forEach(function(result_tuple) {
         var approach_name = result_tuple[0];
         var results = result_tuple[1];
-        if (results) {
-            var row = get_table_row(approach_name, results);
-            $('#evaluation_table_wrapper table tbody').append(row);
-        }
+        if (results) add_table_row(approach_name, results);
     });
 
     // Show / Hide columns according to checkbox state
@@ -1840,16 +1837,20 @@ function add_checkboxes(json_obj, initial_call) {
             var class_name = get_class_name(subkey);
             var title = get_checkbox_label(key, subkey);
             var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : "";
-            var checkbox_html = "<span><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
-            checkbox_html += "<label>" + title;
-            var tooltip_text = get_header_tooltip_text(subkey, "");
-            if (tooltip_text) checkbox_html += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-            checkbox_html += "</label></span>\n";
+            var checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
+            checkbox_html += "<label>" + title + "</label></span>\n";
             var checkbox_div_id = "";
             if (key == "mention_types") checkbox_div_id = "mention_type_checkboxes";
             if (key == "error_categories") checkbox_div_id = "error_category_checkboxes";
             if (key == "entity_types") checkbox_div_id = "entity_type_checkboxes";
             $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
+
+            // Add tooltip for checkbox
+            tippy("#checkbox_span_" + class_name, {
+                content: get_header_tooltip_text(subkey, ""),
+                allowHTML: true,
+                theme: 'light-border',
+            });
         });
     });
 }
@@ -1888,7 +1889,7 @@ function show_hide_columns(element, resize) {
     }
 }
 
-function get_table_header(json_obj) {
+function add_table_header(json_obj) {
     /*
     Get html for the table header.
     */
@@ -1902,77 +1903,90 @@ function get_table_header(json_obj) {
                 if (!(ignore_headers.includes(subsubkey))) {
                     var subclass_name = get_class_name(subsubkey);
                     var sort_order = (subkey in error_category_mapping) ? " data-sortinitialorder=\"asc\"" : "";
-                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " tooltip sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey);
-                    var tooltip_text = get_header_tooltip_text(subkey, subsubkey);
-                    if (tooltip_text) second_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-                    second_row += "</th>";
+                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey) + "</th>";
                     colspan += 1;
                 }
             });
-            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + " tooltip'>" + get_table_heading(key, subkey);
-            var tooltip_text = get_header_tooltip_text(subkey, "");
-            if (tooltip_text) first_row += "<span class='tooltiptext'>" + tooltip_text + "</span>";
-            first_row += "</th>";
+            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_table_heading(key, subkey) + "</th>";
         });
     });
     first_row += "</tr>";
     second_row += "</tr>";
-    return first_row + second_row;
+    $('#evaluation_table_wrapper table thead').html(first_row + second_row);
+
+    // Add table header tooltips
+    $.each(json_obj, function(key) {
+        $.each(json_obj[key], function(subkey) {
+            var class_name = get_class_name(subkey);
+            $.each(json_obj[key][subkey], function(subsubkey) {
+                if (!(ignore_headers.includes(subsubkey))) {
+                    var subclass_name = get_class_name(subsubkey);
+                    var tooltiptext = get_header_tooltip_text(subkey, subsubkey);
+                    tippy('#evaluation_table_wrapper th.' + class_name + "." + class_name + "-" + subclass_name, {
+                        content: tooltiptext,
+                        allowHTML: true,
+                        interactive: (tooltiptext.includes("</a>")),
+                        appendTo: document.body,
+                        theme: 'light-border',
+                    });
+                }
+            });
+            tippy('#evaluation_table_wrapper tr:first-child th.' + class_name, {
+                content: get_header_tooltip_text(subkey, ""),
+                allowHTML: true,
+                theme: 'light-border',
+            });
+        });
+    });
 }
 
-function get_table_row(approach_name, json_obj) {
+function add_table_row(approach_name, json_obj) {
     /*
     Get html for the table row with the given approach name and result values.
     */
     var row = "<tr onclick='on_row_click(this)'>";
     var onclick_str = " onclick='on_cell_click(this)'";
     row += "<td " + onclick_str + ">" + approach_name + "</td>";
-    $.each(json_obj, function(key) {
-        $.each(json_obj[key], function(subkey) {
-            row += get_table_row_by_json_key(json_obj[key], subkey, onclick_str);
+    $.each(json_obj, function(basekey) {
+        $.each(json_obj[basekey], function(key) {
+            var new_json_obj = json_obj[basekey][key];
+            var class_name = get_class_name(key);
+            $.each(new_json_obj, function(subkey) {
+                // Include only keys in the table, that are not on the ignore list
+                if (!(ignore_headers.includes(subkey))) {
+                    var value = new_json_obj[subkey];
+                    if (value == null) {
+                        // This means, the category does not apply to the given approach
+                        value = "-";
+                    } else if (Object.keys(value).length > 0) {
+                        // Values that consist not of a single number but of multiple
+                        // key-value pairs are displayed in a single column.
+                        var processed_value = "<div class='" + class_name + " tooltip'>";
+                        var percentage = get_error_percentage(value);
+                        processed_value += percentage + "%";
+                        processed_value += "<span class='tooltiptext'>";
+                        processed_value += value["errors"] + " / " + value["total"];
+                        processed_value += "</span></div>";
+                        value = processed_value;
+                    } else if (percentage_headers.includes(subkey)) {
+                        // Get rounded percentage but only if number is a decimal < 1
+                        processed_value = "<div class='" + class_name + " tooltip'>";
+                        processed_value += (value * 100).toFixed(2) + "%";
+                        // Create tooltip text
+                        processed_value += "<span class='tooltiptext'>" + get_tooltip_text(new_json_obj) + "</span></div>";
+                        value = processed_value;
+                    } else {
+                        Math.round(new_json_obj[subkey] * 100) / 100;
+                    }
+                    var subclass_name = get_class_name(subkey);
+                    var data_string = "data-category='" + class_name + "," + subclass_name + "'";
+                    row += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
+                }
+            });
         });
     });
     row += "</tr>";
-    return row;
-}
-
-function get_table_row_by_json_key(json_obj, key, onclick_str) {
-    var row_addition = "";
-    var class_name = get_class_name(key);
-    var tooltip_text = "";
-    $.each(json_obj[key], function(subkey) {
-        // Include only keys in the table, that are not on the ignore list
-        if (!(ignore_headers.includes(subkey))) {
-            var value = json_obj[key][subkey];
-            if (value == null) {
-                // This means, the category does not apply to the given approach
-                value = "-";
-            } else if (Object.keys(value).length > 0) {
-                // Values that consist not of a single number but of multiple
-                // key-value pairs are displayed in a single column.
-                var processed_value = "<div class='" + class_name + " tooltip'>";
-                var percentage = get_error_percentage(value);
-                processed_value += percentage + "%";
-                processed_value += "<span class='tooltiptext'>";
-                processed_value += value["errors"] + " / " + value["total"];
-                processed_value += "</span></div>";
-                value = processed_value;
-            } else if (percentage_headers.includes(subkey)) {
-                // Get rounded percentage but only if number is a decimal < 1
-                processed_value = "<div class='" + class_name + " tooltip'>";
-                processed_value += (value * 100).toFixed(2) + "%";
-                // Create tooltip text
-                processed_value += "<span class='tooltiptext'>" + get_tooltip_text(json_obj[key]) + "</span></div>";
-                value = processed_value;
-            } else {
-                Math.round(json_obj[key][subkey] * 100) / 100;
-            }
-            var subclass_name = get_class_name(subkey);
-            var data_string = "data-category='" + class_name + "," + subclass_name + "'";
-            row_addition += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
-        }
-    });
-    return row_addition;
+    $('#evaluation_table_wrapper table tbody').append(row);
 }
 
 function get_error_percentage(value) {

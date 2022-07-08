@@ -107,10 +107,6 @@ a {
     position: relative;
 }
 
-.tooltiptext p {
-    margin: 0.3em 0em 0.3em 0em;
-}
-
 #top_scrollbar_wrapper {
     width: 100%;
     overflow-x: auto;
@@ -150,22 +146,15 @@ a {
 }
 
 .checkboxes label {
-    position: relative;
     padding-right: 1em;
     padding-left: 2px;
 }
 
-#evaluation_overview label .tooltiptext {
-    /* Make the tooltip non-reachable so it doesn't get in the way */
-    bottom: 120%;
-}
+/* ----------------------------------------- */
+/* Begin radio buttons for selecting the evaluation mode */
 
-#evaluation_overview label:hover .tooltiptext {
-    visibility: visible;
-}
-
-#evaluation_modes label {
-    position: relative;
+#evaluation_modes span {
+    white-space: nowrap;
 }
 
 /* ----------------------------------------- */
@@ -268,11 +257,6 @@ a {
 /* Show the tooltip text when you mouse over the tooltip container */
 #evaluation_table_wrapper .tooltip:hover .tooltiptext {
     visibility: visible;
-}
-
-/* Show the tooltip text when you mouse over a table header cell that comes with a description */
-#evaluation_table_wrapper th .tooltiptext {
-    font-weight: 300;
 }
 
 /* Cell tooltip for precision / recall / F1 cells */
