@@ -1860,7 +1860,7 @@ function on_column_checkbox_change(element, resize) {
 
     // Update current URL without refreshing the site
     var checkbox_classes = [];
-    var checkboxes = $("#evaluation_overview .checkboxes input:checked").each(function() {
+    var checkboxes = $("#evaluation_overview .checkboxes input[type=checkbox]:checked").each(function() {
         checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
     });
     const url = new URL(window.location);
