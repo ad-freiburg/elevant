@@ -125,16 +125,16 @@ class Evaluator:
                 self.counts[eval_mode]["NER"]["tp"] += 1
                 if not is_named_entity(case.text):
                     self.n_entity_lowercase[eval_mode] += 1
-            elif case.is_ner_fn(eval_mode) and case.true_entity.parent is None:
+            if case.is_ner_fn(eval_mode) and case.true_entity.parent is None:
                 self.counts[eval_mode]["NER"]["fn"] += 1
                 if not is_named_entity(case.text):
                     self.n_entity_lowercase[eval_mode] += 1
-            elif case.is_ner_fp(eval_mode):
+            if case.is_ner_fp(eval_mode) and case.factor != 0:
                 self.counts[eval_mode]["NER"]["fp"] += 1
 
     def count_mention_type_case(self, case: Case, eval_mode: EvaluationMode):
         key = case.mention_type.value.lower()
-        # Disregard child labels for TP and FN (case.is_correct() is also true if all child labels are linked correctly)
+        # Disregard child labels for TP and FN
         # Parent could be 0 so check explicitly if parent is None.
         if case.is_linking_tp(eval_mode) and case.true_entity.parent is None:
             # TODO: I still need to handle children_correctly detected...
@@ -146,7 +146,7 @@ class Evaluator:
             else:
                 for type_id in get_type_ids(case.true_entity.type):
                     self.type_counts[eval_mode][type_id]["tp"] += 1
-        elif case.is_linking_fn(eval_mode) and case.true_entity.parent is None:
+        if case.is_linking_fn(eval_mode) and case.true_entity.parent is None:
             self.counts[eval_mode]["all"]["fn"] += 1
             self.counts[eval_mode][key]["fn"] += 1
 
@@ -155,7 +155,7 @@ class Evaluator:
             else:
                 for type_id in get_type_ids(case.true_entity.type):
                     self.type_counts[eval_mode][type_id]["fn"] += 1
-        elif case.is_linking_fp(eval_mode):
+        if case.is_linking_fp(eval_mode) and case.factor != 0:
             self.counts[eval_mode]["all"]["fp"] += 1
             self.counts[eval_mode][key]["fp"] += 1
 
