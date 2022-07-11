@@ -1,6 +1,7 @@
-from typing import Tuple, List
+from collections import defaultdict
+from typing import Tuple, List, Set, Dict
 
-from src.evaluation.case import Case
+from src.evaluation.case import Case, EvaluationType, EvaluationMode
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.entity_mention import EntityMention
@@ -42,6 +43,7 @@ class CaseGenerator:
         self.label_dict = None
         self.all_predictions = None
         self.factor_dict = None
+        self.gt_case_dict = None
 
     def determine_entity_type(self, entity_id: str) -> str:
         """
@@ -87,6 +89,7 @@ class CaseGenerator:
 
         self.factor_dict = dict()
         cases = []
+        self.gt_case_dict = dict()
 
         # Ground truth cases:
         # Go through root ground truth labels first to compute the factor for all its children
@@ -121,20 +124,14 @@ class CaseGenerator:
 
             # Due to our overlapping gt labels, some cases should not count
             # If gt_label is parent of a child label that was detected, don't count parent label -> factor = 0
-            children_correctly_linked = None
-            children_correctly_detected = None
             if gt_label.parent is None:
-                children_correctly_linked = self.recursively_check_children_correctly_linked(gt_label.id)
-                children_correctly_detected = self.recursively_check_children_correctly_detected(gt_label.id)
                 factor = self.recursively_determine_factor(gt_label.id)
             else:
                 factor = self.factor_dict[gt_label.id] if gt_label.id in self.factor_dict else 0
 
-            case = Case(span, text, gt_label, predicted_entity, candidates, predicted_by,
-                        factor=factor,
-                        children_correctly_linked=children_correctly_linked,
-                        children_correctly_detected=children_correctly_detected)
+            case = Case(span, text, gt_label, predicted_entity, candidates, predicted_by, factor=factor)
             cases.append(case)
+            self.gt_case_dict[gt_label.id] = case
 
         # predicted cases (potential false detections):
         for span in sorted(predictions):
@@ -161,123 +158,53 @@ class CaseGenerator:
                             predicted_by=predicted_by, factor=1)
                 cases.append(case)
 
+        self.reevaluate_root_gt_cases()
+
         return sorted(cases)
 
-    def recursively_check_children_correctly_linked(self, label_id: int) -> bool:
+    def reevaluate_root_gt_cases(self) -> None:
         """
-        Returns True if all paths in the tree from the root parent have a
-        correctly predicted entity on them.
-
-        >>> cg = CaseGenerator(EntityDatabase())
-        >>> text = "aa, bb, cc"
-        >>> article = Article(0, "", text, [])
-        >>> cg.article = article
-        >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2, 5])
-        >>> l2 = GroundtruthLabel(2, (0, 2), "Q2", "Q2", 1, [3])
-        >>> l3 = GroundtruthLabel(3, (0, 2), "Q3", "Q3", 2, [4])
-        >>> l4 = GroundtruthLabel(4, (0, 2), "Q4", "Q4", 3, None)
-        >>> l5 = GroundtruthLabel(5, (4, 10), "Q5", "Q5", 1, [6, 7])
-        >>> l6 = GroundtruthLabel(6, (4, 6), "Q6", "Q6", 5, [8])
-        >>> l7 = GroundtruthLabel(7, (8, 10), "Q7", "Q7", 5, None)
-        >>> l8 = GroundtruthLabel(8, (4, 6), "Q8", "Q8", 6, None)
-        >>> labels = [l1, l2, l3, l4, l5, l6, l7, l8]
-        >>> cg.label_dict = {label.id: label for label in labels}
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p2 = EntityMention((4, 6), "Test", "Q8")
-        >>> p3 = EntityMention((8, 10), "Test", "Q7")
-        >>> cg.all_predictions ={p1.span: p1, p2.span: p2, p3.span: p3}
-        >>> cg.recursively_check_children_correctly_linked(1)
-        True
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p2 = EntityMention((4, 6), "Test", "Q9")
-        >>> p3 = EntityMention((8, 10), "Test", "Q7")
-        >>> cg.all_predictions ={p1.span: p1, p2.span: p2, p3.span: p3}
-        >>> cg.recursively_check_children_correctly_linked(1)
-        False
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p2 = EntityMention((4, 10), "Test", "Q5")
-        >>> cg.all_predictions ={p1.span: p1, p2.span: p2}
-        >>> cg.recursively_check_children_correctly_linked(1)
-        True
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p3 = EntityMention((8, 10), "Test", "Q7")
-        >>> cg.all_predictions ={p1.span: p1, p3.span: p3}
-        >>> cg.recursively_check_children_correctly_linked(1)
-        False
+        Re-evaluate all root cases with a ground truth and factor == 0 by first
+        retrieving all their relevant child evaluation types (children are
+        relevant when their factor is != 0) and then re-computing their
+        evaluation type using these child evaluation types.
         """
-        label = self.label_dict[label_id]
-        expanded_label_span = word_boundary(label.span, self.article.text)
+        for case in self.gt_case_dict.values():
+            if case.true_entity.parent is None:
+                if case.true_entity.children and case.factor == 0:
+                    # Get relevant child evaluation types for both linking and NER
+                    child_linking_et, child_ner_et = self.get_relevant_child_eval_types(case.true_entity)
+                    case.set_child_linking_eval_types(child_linking_et)
+                    case.set_child_ner_eval_types(child_ner_et)
 
-        # Get predicted entity id for label span
-        if label.span in self.all_predictions:
-            pred_entity_id = self.all_predictions[label.span].entity_id
-        elif expanded_label_span in self.all_predictions:
-            pred_entity_id = self.all_predictions[expanded_label_span].entity_id
-        else:
-            pred_entity_id = None
+                    # Re-compute evaluation types for parent GT labels with children
+                    case.compute_eval_types()
 
-        if pred_entity_id and label.entity_id == pred_entity_id:
-            return True
-        elif label.children:
-            result = True
-            for child_id in label.children:
-                result = result and self.recursively_check_children_correctly_linked(child_id)
-            return result
-        return False
-
-    def recursively_check_children_correctly_detected(self, label_id: int) -> bool:
+    def get_relevant_child_eval_types(self, gt_label: GroundtruthLabel) \
+            -> Tuple[Dict[EvaluationMode, Set[EvaluationType]], Dict[EvaluationMode, Set[EvaluationType]]]:
         """
-        Returns True if all paths in the tree from the root parent have a
-        correctly detected mention on them.
-                >>> cg = CaseGenerator(EntityDatabase())
-        >>> text = "aa, bb, cc"
-        >>> article = Article(0, "", text, [])
-        >>> cg.article = article
-        >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2, 5])
-        >>> l2 = GroundtruthLabel(2, (0, 2), "Q2", "Q2", 1, [3])
-        >>> l3 = GroundtruthLabel(3, (0, 2), "Q3", "Q3", 2, [4])
-        >>> l4 = GroundtruthLabel(4, (0, 2), "Q4", "Q4", 3, None)
-        >>> l5 = GroundtruthLabel(5, (4, 10), "Q5", "Q5", 1, [6, 7])
-        >>> l6 = GroundtruthLabel(6, (4, 6), "Q6", "Q6", 5, [8])
-        >>> l7 = GroundtruthLabel(7, (8, 10), "Q7", "Q7", 5, None)
-        >>> l8 = GroundtruthLabel(8, (4, 6), "Q8", "Q8", 6, None)
-        >>> labels = [l1, l2, l3, l4, l5, l6, l7, l8]
-        >>> cg.label_dict = {label.id: label for label in labels}
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p2 = EntityMention((4, 6), "Test", "Q8")
-        >>> p3 = EntityMention((8, 10), "Test", "Q7")
-        >>> cg.all_predictions ={p1.span: p1, p2.span: p2, p3.span: p3}
-        >>> cg.recursively_check_children_correctly_detected(1)
-        True
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p2 = EntityMention((4, 6), "Test", "Q9")
-        >>> p3 = EntityMention((8, 10), "Test", "Q7")
-        >>> cg.all_predictions ={p1.span: p1, p2.span: p2, p3.span: p3}
-        >>> cg.recursively_check_children_correctly_detected(1)
-        True
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p2 = EntityMention((4, 10), "Test", "Q5")
-        >>> cg.all_predictions ={p1.span: p1, p2.span: p2}
-        >>> cg.recursively_check_children_correctly_detected(1)
-        True
-        >>> p1 = EntityMention((0, 2), "Test", "Q3")
-        >>> p3 = EntityMention((8, 10), "Test", "Q7")
-        >>> cg.all_predictions ={p1.span: p1, p3.span: p3}
-        >>> cg.recursively_check_children_correctly_detected(1)
-        False
+        Recursively retrieve all evaluation types (linking and NER) for the
+        current label and its child labels if they have factor != 0.
+        Retrieve the evaluation types separately for each evaluation mode.
         """
-        label = self.label_dict[label_id]
-        expanded_label_span = word_boundary(label.span, self.article.text)
+        linking_eval_types = defaultdict(set)
+        ner_eval_types = defaultdict(set)
+        for child_id in gt_label.children:
+            # Recursively retrieve evaluation types for children of the current label
+            child_gt_label = self.label_dict[child_id]
+            child_linking_eval_types, child_ner_eval_types = self.get_relevant_child_eval_types(child_gt_label)
+            for mode in EvaluationMode:
+                linking_eval_types[mode].update(child_linking_eval_types[mode])
+                ner_eval_types[mode].update(child_ner_eval_types[mode])
 
-        # Check if label span or expanded label span is in predictions
-        if label.span in self.all_predictions or expanded_label_span in self.all_predictions:
-            return True
-        elif label.children:
-            result = True
-            for child_id in label.children:
-                result = result and self.recursively_check_children_correctly_detected(child_id)
-            return result
-        return False
+            # Get evaluation types for the current label if it has factor != 0
+            case = self.gt_case_dict[child_id]
+            if case.factor != 0:
+                for mode in EvaluationMode:
+                    linking_eval_types[mode].update(set(case.linking_eval_types[mode]))
+                    ner_eval_types[mode].update(set(case.ner_eval_types[mode]))
+
+        return linking_eval_types, ner_eval_types
 
     def recursively_determine_factor(self, label_id: int, determining_siblings=False) -> int:
         """

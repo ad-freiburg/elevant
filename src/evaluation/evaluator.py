@@ -121,7 +121,6 @@ class Evaluator:
     def count_ner_case(self, case: Case, eval_mode: EvaluationMode):
         if not case.is_coreference():
             if case.is_ner_tp(eval_mode) and case.true_entity.parent is None:
-                # TODO: I still need to handle children_correctly detected...
                 self.counts[eval_mode]["NER"]["tp"] += 1
                 if not is_named_entity(case.text):
                     self.n_entity_lowercase[eval_mode] += 1
@@ -137,7 +136,6 @@ class Evaluator:
         # Disregard child labels for TP and FN
         # Parent could be 0 so check explicitly if parent is None.
         if case.is_linking_tp(eval_mode) and case.true_entity.parent is None:
-            # TODO: I still need to handle children_correctly detected...
             self.counts[eval_mode]["all"]["tp"] += 1
             self.counts[eval_mode][key]["tp"] += 1
 

@@ -75,8 +75,8 @@ class Case:
                  predicted_by: str,
                  error_labels: Optional[Set[ErrorLabel]] = None,
                  factor: Optional[float] = None,
-                 children_correctly_linked: Optional[bool] = None,
-                 children_correctly_detected: Optional[bool] = None):
+                 child_linking_eval_types: Optional[Dict[EvaluationMode, Set[EvaluationType]]] = None,
+                 child_ner_eval_types: Optional[Dict[EvaluationMode, Set[EvaluationType]]] = None):
         self.span = span
         self.text = text
         self.true_entity = true_entity
@@ -84,18 +84,47 @@ class Case:
         self.candidates = candidates
         self.predicted_by = predicted_by
         self.optional = true_entity.is_optional() if true_entity else False
-        self.children_correctly_linked = children_correctly_linked
-        self.children_correctly_detected = children_correctly_detected
         self.error_labels = set() if error_labels is None else error_labels
         self.mention_type = get_mention_type(text, true_entity, predicted_entity)
         self.factor = 1 if factor is None else factor
+        self.child_linking_eval_types = child_linking_eval_types
+        self.child_ner_eval_types = child_ner_eval_types
         self.linking_eval_types = {}
         self.ner_eval_types = {}
+        self.compute_eval_types()
+
+    def compute_eval_types(self):
         for mode in EvaluationMode:
             self.linking_eval_types[mode] = self._get_linking_eval_type(mode)
             self.ner_eval_types[mode] = self._get_ner_eval_type(mode)
 
+    def set_child_linking_eval_types(self, child_eval_types=Dict[EvaluationMode, Set[EvaluationType]]):
+        self.child_linking_eval_types = child_eval_types
+
+    def set_child_ner_eval_types(self, child_eval_types=Set[EvaluationType]):
+        self.child_ner_eval_types = child_eval_types
+
     def _get_linking_eval_type(self, eval_mode: EvaluationMode) -> List[EvaluationType]:
+        if self.factor == 0:
+            if self.child_linking_eval_types is None:
+                # Child evaluation types have not been initialized (yet) so the
+                # parent evaluation type can't be inferred
+                return []
+
+            # Get eval type of child cases with factor != 0.
+            if EvaluationType.FN in self.child_linking_eval_types[eval_mode]:
+                # Return FN if at least one is FN
+                return [EvaluationType.FN]
+            elif EvaluationType.TP in self.child_linking_eval_types[eval_mode] and \
+                    len(self.child_linking_eval_types[eval_mode]) == 1:
+                # Return TP if all are TP (or None).
+                return [EvaluationType.TP]
+            else:
+                # Don't return FP. FPs are counted for all cases with factor != 0 so there's
+                # no special treatment of the parent needed
+                print("THIS SHOULD NEVER HAPPEN")
+                return []
+
         if not self.has_ground_truth():
             if self.has_prediction():
                 if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL) and not self.prediction_is_known():
@@ -137,7 +166,7 @@ class Case:
                     # optent / ent: IGN
                     # optunk / ent: IGN
                     return [EvaluationType.FP]
-                elif self.true_entity.entity_id == self.predicted_entity.entity_id or self.children_correctly_linked or \
+                elif self.true_entity.entity_id == self.predicted_entity.entity_id or \
                         self.is_true_quantity_or_datetime():
                     if eval_mode == EvaluationMode.OPTIONAL:
                         # optent / ent: OPT (true)
@@ -166,7 +195,7 @@ class Case:
                         return [EvaluationType.TP]
         elif self.ground_truth_is_known():
             if self.prediction_is_known():
-                if self.true_entity.entity_id == self.predicted_entity.entity_id or self.children_correctly_linked:
+                if self.true_entity.entity_id == self.predicted_entity.entity_id:
                     # ent / ent: IGN, OPT, REQ (true)
                     return [EvaluationType.TP]
                 else:
@@ -193,7 +222,25 @@ class Case:
                 return[EvaluationType.TP]
 
     def _get_ner_eval_type(self, eval_mode: EvaluationMode) -> Optional[List[EvaluationType]]:
-        # TODO: I still need to handle children_correctly detected...
+        if self.factor == 0:
+            if self.child_ner_eval_types is None:
+                # Child evaluation types have not been initialized (yet) so the
+                # parent evaluation type can't be inferred
+                return []
+
+            # Get eval type of child cases with factor != 0.
+            if EvaluationType.FN in self.child_ner_eval_types:
+                # Return FN if at least one is FN
+                return [EvaluationType.FN]
+            elif EvaluationType.TP in self.child_ner_eval_types and len(self.child_ner_eval_types) == 1:
+                # Return TP if all are TP (or None).
+                return [EvaluationType.TP]
+            else:
+                # Don't return FP. FPs are counted for all cases with factor != 0 so there's
+                # no special treatment of the parent needed
+                print("THIS SHOULD NEVER HAPPEN NER")
+                return []
+
         if not self.has_ground_truth():
             if self.has_prediction():
                 if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL) and not self.prediction_is_known():
@@ -345,10 +392,10 @@ class Case:
                 "predicted_by": self.predicted_by,
                 "error_labels": sorted([label.value for label in self.error_labels]),
                 "factor": self.factor,
-                "children_correctly_linked": self.children_correctly_linked,
-                "children_correctly_detected": self.children_correctly_detected,
-                "linking_eval_types": {mode.value: [et.value for et in self.linking_eval_types[mode]] for mode in EvaluationMode},
-                "ner_eval_types": {mode.value: [et.value for et in self.ner_eval_types[mode]] for mode in EvaluationMode},
+                "linking_eval_types": {mode.value: [et.value for et in self.linking_eval_types[mode]]
+                                       for mode in EvaluationMode},
+                "ner_eval_types": {mode.value: [et.value for et in self.ner_eval_types[mode]]
+                                   for mode in EvaluationMode},
                 "optional": self.optional}
         if self.true_entity is not None:
             data["true_entity"] = self.true_entity.to_dict()
@@ -358,6 +405,12 @@ class Case:
                                         "type": self.predicted_entity.type}
         if self.mention_type is not None:
             data["mention_type"] = self.mention_type.value
+        if self.child_linking_eval_types is not None:
+            data["child_linking_eval_types"] = {m.value: [et.value for et in self.child_linking_eval_types[m]]
+                                                for m in EvaluationMode}
+        if self.child_ner_eval_types is not None:
+            data["child_ner_eval_types"] = {m.value: [et.value for et in self.child_ner_eval_types[m]]
+                                            for m in EvaluationMode}
         return data
 
     def to_json(self) -> str:
@@ -376,6 +429,15 @@ def case_from_dict(data) -> Case:
     if "candidates" in data:
         candidates = set([WikidataEntity(cand["name"], 0, cand["entity_id"])
                           for cand in data["candidates"]])
+    child_linking_eval_types = None
+    if "child_linking_eval_types" in data:
+        child_linking_eval_types = {EvaluationMode(m): set([EvaluationType(t)
+                                                            for t in data["child_linking_eval_types"]])
+                                    for m in data["child_linking_eval_types"]}
+    child_ner_eval_types = None
+    if "child_ner_eval_types" in data:
+        child_ner_eval_types = {EvaluationMode(m): set([EvaluationType(t) for t in data["child_ner_eval_types"]])
+                                for m in data["child_ner_eval_types"]}
     error_labels = {ERROR_LABELS[label] for label in data["error_labels"]}
     return Case(span=data["span"],
                 text=data["text"],
@@ -385,8 +447,8 @@ def case_from_dict(data) -> Case:
                 predicted_by=data["predicted_by"],
                 error_labels=error_labels,
                 factor=data["factor"] if "factor" in data else 1,
-                children_correctly_linked=data["children_correctly_linked"] if "children_correctly_linked" in data else None,
-                children_correctly_detected=data["children_correctly_detected"] if "children_correctly_detected" in data else None)
+                child_linking_eval_types=child_linking_eval_types,
+                child_ner_eval_types=child_ner_eval_types)
 
 
 def case_from_json(dump) -> Case:
