@@ -4,8 +4,8 @@ stanza==1.1.1
 tagme==0.1.3
 spacy_conll==2.0.0
 xrenner
-nltk==3.5
-benepar==0.1.2
+nltk==3.6.7
+benepar==0.1.3
 tensorflow==2.9.1
 neuralcoref==4.0
 pynif==0.2.0
