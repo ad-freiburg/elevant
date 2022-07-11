@@ -266,7 +266,8 @@ def label_false_detections(cases: List[Case],
             if not overlap and not contains_upper:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_LOWERCASED)
             elif contains_upper and \
-                    ((not overlap and not contains_unknowns) or not case.ground_truth_is_known()):
+                    ((not overlap and not contains_unknowns) or (case.has_ground_truth() and
+                                                                 not case.ground_truth_is_known())):
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_GROUNDTRUTH_UNKNOWN)
             else:
                 case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER)
