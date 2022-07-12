@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Tuple, Set, Dict, List
 from enum import Enum
 import json
@@ -6,6 +7,8 @@ from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.wikidata_entity import WikidataEntity
 from src.evaluation.mention_type import get_mention_type
 
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 JOKER_LABELS = ("DATETIME", "QUANTITY")
 
@@ -122,7 +125,9 @@ class Case:
             else:
                 # Don't return FP. FPs are counted for all cases with factor != 0 so there's
                 # no special treatment of the parent needed
-                print("THIS SHOULD NEVER HAPPEN")
+                # This case should never happen, since cases with factor = 0 are always caess
+                # with a GT and therefore have at least one FN or TP.
+                logger.warning("Evaluation case with factor = 0 is neither FN nor TP.")
                 return []
 
         if not self.has_ground_truth():
@@ -229,16 +234,19 @@ class Case:
                 return []
 
             # Get eval type of child cases with factor != 0.
-            if EvaluationType.FN in self.child_ner_eval_types:
+            if EvaluationType.FN in self.child_ner_eval_types[eval_mode]:
                 # Return FN if at least one is FN
                 return [EvaluationType.FN]
-            elif EvaluationType.TP in self.child_ner_eval_types and len(self.child_ner_eval_types) == 1:
+            elif EvaluationType.TP in self.child_ner_eval_types[eval_mode] and \
+                    len(self.child_ner_eval_types[eval_mode]) == 1:
                 # Return TP if all are TP (or None).
                 return [EvaluationType.TP]
             else:
                 # Don't return FP. FPs are counted for all cases with factor != 0 so there's
-                # no special treatment of the parent needed
-                print("THIS SHOULD NEVER HAPPEN NER")
+                # no special treatment of the parent needed.
+                # This case should never happen, since cases with factor = 0 are always caess
+                # with a GT and therefore have at least one FN or TP.
+                logger.warning("Evaluation case with factor = 0 is neither NER FN nor TP.")
                 return []
 
         if not self.has_ground_truth():

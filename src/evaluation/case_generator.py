@@ -158,6 +158,8 @@ class CaseGenerator:
                             predicted_by=predicted_by, factor=1)
                 cases.append(case)
 
+        # Now, after all cases are computed together with their evaluation case, go through
+        # root GT cases and re-compute their evaluation type from their child evaluation types.
         self.reevaluate_root_gt_cases()
 
         return sorted(cases)
