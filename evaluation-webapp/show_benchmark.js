@@ -64,7 +64,7 @@ header_descriptions = {
         "wrong_mention_referenced": "<p><i>Numerator:</i> Coreference FN + FP and the wrong mention was referenced.</p><p><i>Denominator:</i> Coreference NER true positives.</p>",
         "undetected": "<p><i>Numerator:</i> Coreference FN and the mention was not linked.</p><p><i>Denominator:</i> Ground truth coreference mentions.</p>"
     },
-    "NER": {
+    "ner": {
         "": "Named Entity Recognition results.",
         "tp": "<i>TP</i>: Predictions with a matching ground truth span.",
         "fp": "<i>FP</i>: Predictions with no matching ground truth span.",
@@ -313,6 +313,23 @@ $("document").ready(function() {
         sortRestart: true
     });
 
+    $('table').on('stickyHeadersInit', function() {
+        // Add table header tooltips to sticky header
+        $("#evaluation_table_wrapper .tablesorter-sticky-wrapper th").each(function() {
+            var keys = get_table_header_keys(this);
+            var tooltiptext = get_header_tooltip_text(keys[0], keys[1]);
+            if (tooltiptext) {
+                tippy(this, {
+                    content: tooltiptext,
+                    allowHTML: true,
+                    interactive: (tooltiptext.includes("</a>")),
+                    appendTo: document.body,
+                    theme: 'light-border',
+                });
+            }
+        });
+    });
+
     // Update URL on table sort
     $("#evaluation_table_wrapper table").bind("sortEnd",function() {
         // Update current URL without refreshing the site
@@ -404,8 +421,8 @@ function show_example_benchmark_modal(el) {
     var selected_category = get_error_category_or_type(table_header_cell);
 
     // Get table header title
-    var classes = $(table_header_cell).attr('class').split(/\s+/);
-    var error_category_title = classes[1].replace(/_/g, " ").replace("-", " - ");
+    var keys = get_table_header_keys(table_header_cell);
+    var error_category_title = keys[0].replace(/_/g, " ") + " - " + keys[1].replace(/_/g, " ");
 
     // Determine article index of selected example
     var article_index = 0;
@@ -418,7 +435,6 @@ function show_example_benchmark_modal(el) {
     }
 
     // Display error explanation extracted from table header tooltip text
-    var keys = classes[1].split("-");
     var error_explanation = header_descriptions[keys[0]][keys[1]];
     error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*?)<\/p>.*/, "$1");
     $("#error_explanation").text("Description: " + error_explanation);
@@ -1944,29 +1960,43 @@ function add_table_header(json_obj) {
     $('#evaluation_table_wrapper table thead').html(first_row + second_row);
 
     // Add table header tooltips
-    $.each(json_obj, function(key) {
-        $.each(json_obj[key], function(subkey) {
-            var class_name = get_class_name(subkey);
-            $.each(json_obj[key][subkey], function(subsubkey) {
-                if (!(ignore_headers.includes(subsubkey))) {
-                    var subclass_name = get_class_name(subsubkey);
-                    var tooltiptext = get_header_tooltip_text(subkey, subsubkey);
-                    tippy('#evaluation_table_wrapper th.' + class_name + "." + class_name + "-" + subclass_name, {
-                        content: tooltiptext,
-                        allowHTML: true,
-                        interactive: (tooltiptext.includes("</a>")),
-                        appendTo: document.body,
-                        theme: 'light-border',
-                    });
-                }
-            });
-            tippy('#evaluation_table_wrapper tr:first-child th.' + class_name, {
-                content: get_header_tooltip_text(subkey, ""),
+    $("#evaluation_table_wrapper th").each(function() {
+        var keys = get_table_header_keys(this);
+        var tooltiptext = get_header_tooltip_text(keys[0], keys[1]);
+        if (tooltiptext) {
+            tippy(this, {
+                content: tooltiptext,
                 allowHTML: true,
+                interactive: (tooltiptext.includes("</a>")),
+                appendTo: document.body,
                 theme: 'light-border',
             });
-        });
+        }
     });
+}
+
+function get_table_header_keys(th_element) {
+    /*
+    Get keys for table headers.
+    For the first table header row this is a single key, e.g. "entity_named".
+    For the second table header row this is two keys, e.g. "entity_named" and "precision".
+    */
+    var keys = ["", ""];
+    var all_classes_string = $(th_element).attr('class');
+    // Experiment column has no attribute 'class'
+    if (all_classes_string) {
+        var all_classes = all_classes_string.split(/\s+/);
+        if (all_classes.length > 1) {
+            // Second table header row
+            var classes = all_classes[1].split("-");
+            keys[0] = classes[0];
+            keys[1] = classes[1]
+        } else if (all_classes.length == 1) {
+            // First table header row
+            keys[0] = all_classes[0];
+        }
+    }
+    return keys;
 }
 
 function add_table_row(approach_name, json_obj) {
@@ -2034,7 +2064,9 @@ function get_tooltip_text(json_obj) {
 }
 
 function get_header_tooltip_text(key, subkey) {
-    if (key in header_descriptions) {
+    if (key.toLowerCase() in header_descriptions) {
+        key = key.toLowerCase();
+        subkey = subkey.toLowerCase();
         if (typeof header_descriptions[key] == "string") {
             return header_descriptions[key];
         }
@@ -2062,8 +2094,9 @@ function get_header_tooltip_text(key, subkey) {
             }
             return string;
         }
-    } else if (key in whitelist_types || key.toLowerCase() == "other") {
-        var type = (key in whitelist_types) ? whitelist_types[key] : "other";
+    } else if (key.toUpperCase() in whitelist_types || key.toLowerCase() == "other") {
+        key = key.toUpperCase();
+        var type = (key in whitelist_types) ? whitelist_types[key] : "Other";
         if (subkey) {
             // Get tooltips for precision, recall and f1
             var tp_string = "<p><i>TP</i>: True Positives of type " + type + "</p>";
@@ -2090,24 +2123,30 @@ function get_header_tooltip_text(key, subkey) {
 }
 
 function get_class_name(text) {
-    return text.toLowerCase().replace(/[ ,.#:]/g, "_");
+    var name = text.toLowerCase().replace(/[ ,.#:]/g, "_");
+    if (name != text.toLowerCase()) console.log("WARNING! Class name is not identical to key: " + name + " vs. " + text);
+    return name;
 }
 
 function get_checkbox_label(key, subkey) {
+    var lower_key = key.toLowerCase();
+    var lower_subkey = subkey.toLowerCase();
     if (key == "entity_types" && subkey in whitelist_types) {
         return whitelist_types[subkey];
-    } else if (key in result_titles && subkey in result_titles[key]) {
-        return result_titles[key][subkey]["checkbox_label"];
+    } else if (lower_key in result_titles && lower_subkey in result_titles[lower_key]) {
+        return result_titles[lower_key][lower_subkey]["checkbox_label"];
     } else {
         return to_title_case(subkey.replace(/_/g, " "));
     }
 }
 
 function get_table_heading(key, subkey) {
+    var lower_key = key.toLowerCase();
+    var lower_subkey = subkey.toLowerCase();
     if (key == "entity_types" && subkey in whitelist_types) {
         return "Type: " + whitelist_types[subkey];
-    } else if (key in result_titles && subkey in result_titles[key]) {
-        return result_titles[key][subkey]["table_heading"];
+    } else if (lower_key in result_titles && lower_subkey in result_titles[lower_key]) {
+        return result_titles[lower_key][lower_subkey]["table_heading"];
     } else {
         return to_title_case(subkey.replace(/_/g, " "));
     }
