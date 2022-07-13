@@ -10,8 +10,6 @@ from src.evaluation.mention_type import get_mention_type
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
-JOKER_LABELS = ("DATETIME", "QUANTITY")
-
 
 class EvaluationMode(Enum):
     IGNORED = "IGNORED"

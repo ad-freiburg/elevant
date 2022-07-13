@@ -7,11 +7,11 @@ ANNOTATION_CLASS_UNKNOWN = "unknown";
 ANNOTATION_CLASS_OPTIONAL = "optional";
 ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 
-RESULTS_EXTENSION = ".results";
+RESULTS_EXTENSION = ".eval_results.json";
 EVALUATION_RESULT_PATH = "evaluation-results";
 
 EXAMPLE_BENCHMARK_PATH = "example-benchmark/error-category-examples.benchmark.jsonl";
-EXAMPLE_BENCHMARK_RESULTS_PATH = "example-benchmark/example.error-category-examples.results";
+EXAMPLE_BENCHMARK_RESULTS_PATH = "example-benchmark/example.error-category-examples.eval_results.json";
 
 MAX_SELECTED_APPROACHES = 2;
 MAX_CACHED_FILES = 15;
@@ -376,8 +376,8 @@ function get_type_label(qid) {
 
 function read_example_benchmark_data() {
     var filename = EXAMPLE_BENCHMARK_RESULTS_PATH.substring(0, EXAMPLE_BENCHMARK_RESULTS_PATH.length - RESULTS_EXTENSION.length);
-    var articles_path = filename + ".jsonl";
-    var cases_path = filename + ".cases";
+    var articles_path = filename + ".linked_articles.jsonl";
+    var cases_path = filename + ".eval_cases.jsonl";
 
     articles_example_benchmark = [];
     $.get(EXAMPLE_BENCHMARK_PATH, function(data) {
@@ -891,7 +891,7 @@ function show_benchmark_results(initial_call) {
     selected_cells = [];
     reset_selected_cell_categories();
 
-    // Build an overview table over all .results-files from the evaluation-results folder.
+    // Build an overview table over all eval_results.json-files from the evaluation-results folder.
     build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis, initial_call);
 
     // Read the article and ground truth information from the benchmark.
@@ -1076,20 +1076,20 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
     /*
     Generate annotations for the predicted entities of the selected approach and article.
 
-    This method first combines the predictions outside the evaluation span (from the file <approach>.jsonl)
-    with the evaluated predictions inside the evaluation span (from the file <approach>.cases),
+    This method first combines the predictions outside the evaluation span (from the file <approach>.linked_articles.jsonl)
+    with the evaluated predictions inside the evaluation span (from the file <approach>.eval_cases.jsonl),
     and then generates annotations for all of them.
     */
     var eval_mode;
     if (example_benchmark) {
         eval_mode = "IGNORED";
-        var article_cases = evaluation_cases_example_benchmark[article_index][eval_mode];  // information from the .cases file
-        var article_data = articles_data_example_benchmark[article_index];  // information from the .jsonl file
+        var article_cases = evaluation_cases_example_benchmark[article_index][eval_mode];  // info from the eval_cases file
+        var article_data = articles_data_example_benchmark[article_index];  // info from the linked_articles file
     } else {
         // Get currently selected evaluation mode
         eval_mode = get_evaluation_mode();
-        var article_cases = evaluation_cases[approach_name][article_index][eval_mode];  // information from the .cases file
-        var article_data = articles_data[approach_name][article_index];  // information from the .jsonl file
+        var article_cases = evaluation_cases[approach_name][article_index][eval_mode];  // info from the eval_cases file
+        var article_data = articles_data[approach_name][article_index];  // info from the linked_articles file
     }
 
     var child_label_to_parent = {};
@@ -1682,7 +1682,7 @@ function get_emphasis_string(selected_cell_category) {
 
 function build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis, initial_call) {
     /*
-    Build the overview table from the .results files found in the subdirectories of the given path.
+    Build the overview table from the .eval_results.json files found in the subdirectories of the given path.
     */
     var path = EVALUATION_RESULT_PATH;
     var folders = [];
@@ -1697,14 +1697,14 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
             folders.push(name);
         });
     }).done(function() {
-        // Retrieve file path of .results files for the selected benchmark in each folder
+        // Retrieve file path of .eval_results.json files for the selected benchmark in each folder
         $.when.apply($, folders.map(function(folder) {
             return $.get(path + "/" + folder, function(folder_data) {
                 $(folder_data).find("a").each(function() {
                     var file_name = $(this).attr("href");
                     // This assumes the benchmark is specified in the last dot separated column before the
                     // file extension.
-                    var benchmark = file_name.split(".").slice(-2)[0];
+                    var benchmark = file_name.substring(0, file_name.length - RESULTS_EXTENSION.length).split(".").slice(-1);
                     if (file_name.endsWith(RESULTS_EXTENSION) && benchmark == benchmark_name) {
                         var url = path + "/" + folder + "/" + file_name;
                         urls.push(url);
@@ -1712,7 +1712,7 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                 });
             });
         })).then(function() {
-            // Retrieve contents of each .results file for the selected benchmark and store it in an array
+            // Retrieve contents of each .eval_results.json file for the selected benchmark and store it in an array
             $.when.apply($, urls.map(function(url) {
                 return $.getJSON(url, function(results) {
                     // Add the radio buttons for the different evaluation modes if they haven't been added yet
@@ -1844,7 +1844,7 @@ function on_radio_button_change(el) {
     selected_systems = copy(selected_approach_names);
     selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null});
 
-    // Build an overview table over all .results-files from the evaluation-results folder.
+    // Build an overview table over all .eval_results.json-files from the evaluation-results folder.
     build_overview_table(benchmark_name, selected_systems, selected_emphasis, false);
 }
 
@@ -2207,7 +2207,7 @@ function read_articles_data(path, approach_name) {
     They are needed later to visualise the predictions outside the evaluation span of an article.
     
     Arguments:
-    - path: the .jsonl file of the selected approach
+    - path: the .linked_articles.jsonl file of the selected approach
     */
     // Clear articles data cache
     if (Object.keys(articles_data).length >= MAX_CACHED_FILES) {
@@ -2245,11 +2245,11 @@ function read_evaluation(approach_name, selected_approaches, timestamp) {
     Read the predictions and evaluation cases for the selected approach for all articles.
     */
     console.log("read_evaluation() called for ", approach_name, "and ", selected_approaches);
-    var cases_path = result_files[approach_name] + ".cases";
-    var articles_path = result_files[approach_name] + ".jsonl";
+    var cases_path = result_files[approach_name] + ".eval_cases.jsonl";
+    var articles_path = result_files[approach_name] + ".linked_articles.jsonl";
 
     reading_promise = read_articles_data(articles_path, approach_name);
-    reading_promise.then(function() {  // wait until the predictions from the .jsonl file are read, because run_evaluation updates the prediction textfield
+    reading_promise.then(function() {  // wait until the predictions from the file are read, because run_evaluation updates the prediction textfield
         read_evaluation_cases(cases_path, approach_name, selected_approaches, timestamp);
     });
 }

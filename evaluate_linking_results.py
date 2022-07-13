@@ -23,7 +23,6 @@ from src.evaluation.evaluator import Evaluator
 def main(args):
     logger.info("Evaluating linking results from %s ..." % args.input_file)
     input_file = open(args.input_file, 'r', encoding='utf8')
-    idx = args.input_file.rfind('.')
 
     # Get a set of entity ids of all predicted entities and candidate entities
     # to load their information into the entity_db
@@ -59,9 +58,11 @@ def main(args):
     type_mapping_file = args.type_mapping if args.type_mapping else settings.WHITELIST_TYPE_MAPPING
     evaluator = Evaluator(relevant_entity_ids, type_mapping_file, whitelist_file=whitelist_file,
                           contains_unknowns=not args.no_unknowns)
-    output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".cases"
+    idx = args.input_file.rfind('.linked_articles.jsonl')
+    output_filename = args.output_file if args.output_file else args.input_file[:idx] + ".eval_cases.jsonl"
     output_file = open(output_filename, 'w', encoding='utf8')
-    results_file = (args.output_file[:-6] if args.output_file else args.input_file[:idx]) + ".results"
+    results_file = (args.output_file[:-len(".eval_cases.jsonl")] if args.output_file else args.input_file[:idx]) \
+        + ".eval_results.json"
 
     example_iterator = None
     if args.benchmark:
@@ -96,8 +97,8 @@ def main(args):
                 # parents always come before children
                 if gt_label.parent is None or gt_label.parent in added_label_ids:
                     types = gt_label.get_types()
-                    for type in types:
-                        if type in whitelist_types or gt_label.parent is not None \
+                    for typ in types:
+                        if typ in whitelist_types or gt_label.parent is not None \
                                 or gt_label.entity_id.startswith("Unknown"):
                             filtered_labels.append(gt_label)
                             added_label_ids.add(gt_label.id)
@@ -153,7 +154,7 @@ if __name__ == "__main__":
                         help="Input file. Linked articles with ground truth labels.")
     parser.add_argument("-o", "--output_file", type=str,
                         help="Output file for the evaluation results."
-                             " The input file with .cases extension if none is specified.")
+                             " The input file with .eval_cases.jsonl extension if none is specified.")
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evaluation.")
     parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),

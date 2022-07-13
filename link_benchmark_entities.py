@@ -41,7 +41,7 @@ def main(args):
     prediction_name_dir = "".join(c if c.isalnum() else "_" for c in args.prediction_name.lower())
     linker_dir = args.linker_name if args.linker_name else prediction_name_dir
     output_dir = args.evaluation_dir + linker_dir
-    output_filename = output_dir + "/" + args.experiment_name + "." + args.benchmark + ".jsonl"
+    output_filename = output_dir + "/" + args.experiment_name + "." + args.benchmark + ".linked_articles.jsonl"
     if output_dir and not os.path.exists(output_dir):
         logger.info("Creating directory %s" % output_dir)
         os.makedirs(output_dir)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     parser.add_argument("experiment_name", type=str,
                         help="Name for the resulting file. The linking results will be written to "
-                             "<evaluation_dir>/<linker_name>/<experiment_name>.<benchmark_name>.jsonl")
+                             "<evaluation_dir>/<linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl")
 
     linker_group = parser.add_mutually_exclusive_group(required=True)
     linker_group.add_argument("-l", "--linker_name", choices=[li.value for li in Linkers],

@@ -96,15 +96,17 @@ To link the articles of a benchmark with a single linker configuration, use the 
 
     python3 link_benchmark_entities.py <experiment_name> -l <linker_name> -b <benchmark_name>
 
-The linking results will be written to `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.jsonl`.
+The linking results will be written to
+ `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl`.
 For example
 
     python3 link_benchmark_entities.py tagme.thresh02 -l tagme -b kore50
 
-will create the file `evaluation-results/tagme/tagme.thresh02.kore50.jsonl`. The result file contains one article as
- JSON object per line. Each JSON object contains benchmark article information such as the article title, text, and
- ground truth labels, as well as the entity mentions produced by the specified linker. `<experiment_name>` is the
- name that will be displayed in the first column of the evaluation results table in the web app.
+will create the file `evaluation-results/tagme/tagme.thresh02.kore50.linked_articles.jsonl`. The result file contains
+ one article as JSON object per line. Each JSON object contains benchmark article information such as the article
+ title, text, and ground truth labels, as well as the entity mentions produced by the specified linker.
+ `<experiment_name>` is the name that will be displayed in the first column of the evaluation results table in the
+ web app.
 
 See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information on how you can transform your existing
  linking result files into our format, and instructions for how to link multiple benchmarks using multiple linkers
@@ -116,15 +118,15 @@ To evaluate a linker's predictions use the script `evaluate_linking_results.py`:
 
     python3 evaluate_linking_results.py <path_to_linking_result_file>
 
-This will print precision, recall and F1 scores and create two new files where the `.jsonl` file extension is
- replaced by `.cases` and `.results` respectively. For example
+This will print precision, recall and F1 scores and create two new files where the `linked_articles.jsonl` file extension is
+ replaced by `.eval_cases.jsonl` and `.eval_results.json` respectively. For example
 
-    python3 evaluate_linking_results.py evaluation-results/tagme/tagme.thresh02.kore50.jsonl
+    python3 evaluate_linking_results.py evaluation-results/tagme/tagme.thresh02.kore50.linked_articles.jsonl
 
-will create the files `evaluation-results/tagme/tagme.thresh02.kore50.cases` and
-`evaluation-results/tagme/tagme.thresh02.kore50.results`. The `.cases` file contains information about each true
- positive, false positive and false negative case. The `.results` file contains the scores that are shown in the web
- app's evaluation results table.
+will create the files `evaluation-results/tagme/tagme.thresh02.kore50.eval_cases.jsonl` and
+`evaluation-results/tagme/tagme.thresh02.kore50.eval_results.json`. The `eval_cases` file contains information about
+ each true positive, false positive and false negative case. The `eval_results` file contains the scores that are shown
+ in the web app's evaluation results table.
 
 In the web app, simply reload the page and the experiment will show up as a row in the evaluation results table of
  the corresponding benchmark.

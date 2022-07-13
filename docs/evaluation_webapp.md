@@ -12,7 +12,7 @@ Steps 1 - 4 are executed automatically when running `make start_webapp`.
        cd evaluation-webapp
 
 2. Link to the results directory `evaluation-results`. This is the directory containing subfolders with
-`<approach>.cases` files.
+`*.linked_articles.jsonl`, `*.eval_cases.jsonl` and `*.eval_results.json` files.
 
        ln -s ../evaluation-results
 
