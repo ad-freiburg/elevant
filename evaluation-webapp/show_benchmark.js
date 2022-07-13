@@ -2451,15 +2451,15 @@ function produce_latex() {
     var row_count = 0;
     var header_string = "";
     $('#evaluation_table_wrapper table thead tr').each(function(){
+        // Tablesorter sticky table duplicates the thead. Don't include the duplicate.
+        if ($(this).closest(".tablesorter-sticky-wrapper").length > 0) return;
+
         $(this).find('th').each(function() {
+            // Do not add hidden table columns
             if (!$(this).is(":hidden")) {
-                // Do not add hidden table columns
                 if (row_count > 0) num_cols += 1;
-                var title = $(this).html();
-                title = title.replace(/_/g, " ");  // Underscore not within $ yields error
-                // Filter out sorting order and tooltip html
-                var match = title.match(/(<div [^<>]*>)?([^<>]*)<(span|div)/);
-                if (match) title = match[2];
+                // Underscore not within $ yields error
+                var title = $(this).text().replace(/_/g, " ");
                 // Get column span of the current header
                 var colspan = parseInt($(this).attr("colspan"), 10);
                 if (colspan) {
