@@ -252,18 +252,14 @@ a {
     position: fixed;
     right: auto;
     bottom: auto;
+    width: 5em;
+    min-width: 5em;
+    font-size: 1em;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
 #evaluation_table_wrapper .tooltip:hover .tooltiptext {
     visibility: visible;
-}
-
-/* Cell tooltip for precision / recall / F1 cells */
-#evaluation_table_wrapper td .tooltiptext {
-    width: 5em;
-    min-width: 5em;
-    font-size: 1em;
 }
 
 /* ----------------------------------------- */
@@ -313,6 +309,8 @@ div.latex textarea {
 
 #over-table-row {
     display: flex;
+    /* Allow wrapping if necessary so the annotation explanation button does not overlap with the right window edge */
+    flex-wrap: wrap;
     justify-content: space-between; /* Put left child at the left end and right child at the right end */
 }
 
