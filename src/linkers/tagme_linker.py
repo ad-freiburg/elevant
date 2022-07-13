@@ -30,20 +30,14 @@ class TagMeLinker(AbstractEntityLinker):
         annotations = tagme.annotate(text).get_annotations(self.rho_threshold)
         annotations = sorted(annotations, key=lambda a: a.score, reverse=True)
         predictions = {}
-        count = 0
         for ann in annotations:
             entity_id = KnowledgeBaseMapper.get_wikidata_qid(ann.entity_title, self.entity_db)
-            if entity_id is None:
-                logger.warning("\nNo mapping to Wikidata found for label '%s'" % ann.entity_title)
-                count += 1
             span = (ann.begin, ann.end)
             snippet = text[span[0]:span[1]]
             if uppercase and snippet.islower():
                 continue
             predictions[span] = EntityPrediction(span, entity_id, {entity_id})
 
-        if count > 0:
-            logger.warning("\n%d entity labels could not be matched to any Wikidata id." % count)
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:
