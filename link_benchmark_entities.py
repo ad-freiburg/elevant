@@ -18,6 +18,7 @@ import argparse
 import log
 import sys
 import os
+from tqdm import tqdm
 
 from src import settings
 from src.evaluation.benchmark import get_available_benchmarks
@@ -50,12 +51,10 @@ def main(args):
 
     logger.info("Linking entities in %s benchmark ..." % args.benchmark)
 
-    for i, article in enumerate(example_generator.iterate()):
+    for i, article in enumerate(tqdm(example_generator.iterate(), desc="Linking progress", unit=" articles")):
         evaluation_span = article.evaluation_span if args.evaluation_span else None
         linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
         output_file.write(article.to_json() + '\n')
-        print("\r%i articles" % (i + 1), end='')
-    print()
 
     output_file.close()
 
