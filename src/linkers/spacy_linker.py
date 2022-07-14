@@ -11,7 +11,7 @@ from src.ner.ner_postprocessing import NERPostprocessor
 from src.utils.dates import is_date
 
 
-class TrainedSpacyEntityLinker(AbstractEntityLinker):
+class SpacyLinker(AbstractEntityLinker):
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
 
         # Get config variables

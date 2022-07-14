@@ -13,7 +13,7 @@ from src.ner.maximum_matching_ner import MaximumMatchingNER
 from src.utils.dates import is_date
 
 
-class AliasEntityLinker(AbstractEntityLinker):
+class BaselineLinker(AbstractEntityLinker):
     def __init__(self,
                  entity_database: EntityDatabase,
                  config: Dict[str, Any]):

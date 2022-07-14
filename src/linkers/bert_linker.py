@@ -24,7 +24,7 @@ from src.utils.dates import is_date
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class BertEntityLinker(AbstractEntityLinker):
+class BertLinker(AbstractEntityLinker):
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
 

@@ -7,8 +7,8 @@ from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPre
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
 from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
-from src.linkers.alias_entity_linker import AliasEntityLinker
-from src.linkers.bert_entity_linker import BertEntityLinker
+from src.linkers.baseline_linker import BaselineLinker
+from src.linkers.bert_linker import BertLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
@@ -18,7 +18,7 @@ from src.linkers.hobbs_coref_linker import HobbsCorefLinker
 from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.linkers.tagme_linker import TagMeLinker
-from src.linkers.trained_spacy_entity_linker import TrainedSpacyEntityLinker
+from src.linkers.spacy_linker import SpacyLinker
 from src.linkers.xrenner_coref_linker import XrennerCorefLinker
 from src.models.article import Article
 from src.models.entity_database import EntityDatabase, MappingName
@@ -96,7 +96,7 @@ class LinkingSystem:
         linker_exists = True
 
         if linker_type == Linkers.SPACY.value:
-            self.linker = TrainedSpacyEntityLinker(self.entity_db, self.linker_config)
+            self.linker = SpacyLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.EXPLOSION.value:
             self.linker = ExplosionEntityLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.AMBIVERSE.value:
@@ -125,9 +125,9 @@ class LinkingSystem:
                                             MappingName.LINK_FREQUENCIES,
                                             MappingName.NAME_ALIASES,
                                             MappingName.WIKIDATA_ALIASES})
-            self.linker = AliasEntityLinker(self.entity_db, self.linker_config)
+            self.linker = BaselineLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.BERT_MODEL.value:
-            self.linker = BertEntityLinker(self.entity_db, self.linker_config)
+            self.linker = BertLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
             min_score = self.linker_config["min_score"]
             self.load_missing_mappings({MappingName.NAME_ALIASES,
