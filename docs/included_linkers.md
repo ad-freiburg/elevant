@@ -1,5 +1,5 @@
 # List of Included Linkers
-ELEVANT comes with a number of entity linkers that can be used out of the box or have to be trained first.
+ELEVANT comes with a number of entity linkers that can be used out of the box and some that have to be trained first.
 This document gives an overview of these entity linkers and how they can be used.
 
 #### TagMe
@@ -8,14 +8,31 @@ TagMe was introduced by Ferragina & Scaiella in the 2010 paper [TAGME: On-the-fl
  entities in very short texts like tweets or snippets of search engine results. The code is available on [Github
  ](https://github.com/marcocor/tagme-python).
  
-In ELEVANT, you can use the TagMe linker for example with the `link_benchmark_entities.py` script by providing the
- linker name `tagme` and the score threshold. The threshold is a value between 0 and 1. Predicted entities with a score
- lower than the threshold will be discarded.
+In ELEVANT, you can use the TagMe linker with the `link_benchmark_entities.py` script and the linker name `tagme`. In
+ the corresponding config file `configs/tagme.config.json` you can additionally specify a score threshold. The
+ threshold is a value between 0 and 1. Predicted entities with a score lower than the threshold will be discarded.
+ Per default, the threshold is 0.2.
  
-    python3 link_benchmark_entities.py <experiment_name> tagme 0.2 -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -l tagme -b <benchmark_name>
 
 The TagMe linker class is implemented [here](../src/linkers/tagme_linker.py) and uses the TagMe API. TagMe predicts
  Wikipedia entity links. We map the predicted Wikipedia entities to Wikidata using our mappings.
+
+#### DBpedia Spotlight
+DBpedia Spotlight is a linking system developed by Daiber et al. and described in the 2013 paper
+ [Improving Efficiency and Accuracy in Multilingual Entity Extraction](http://jodaiber.de/doc/entity.pdf). The system
+ links entities to their entries in DBpedia.
+
+In ELEVANT, you can use the DBpedia linker with the `link_benchmark_entities.py` script and the linker name
+ `dbpedia_spotlight`. In the corresponding config file `configs/dbpedia_spotlight.config.json` you can set the API
+ URL - the official DBpedia Spotlight API URL per default, but you can also run the system yourself, e.g. using Docker
+ as described in the [GitHub repo](https://github.com/dbpedia-spotlight/dbpedia-spotlight-model), and provide a custom
+ API URL. You can also specify a confidence threshold, which is set to 0.35 per default.
+
+    python3 link_benchmark_entities.py <experiment_name> -l dbpedia_spotlight -b <benchmark_name>
+
+DBpedia predicts DBpedia entities which we map to Wikidata entities using our mappings. The DBpedia Spotlight linker
+ class is implemented [here](../src/linkers/dbpedia_spotlight_linker.py).
 
 #### Baseline
 ELEVANT comes with a simple baseline that performs Entity Recognition using the SpaCy NER component and that links
@@ -24,21 +41,19 @@ ELEVANT comes with a simple baseline that performs Entity Recognition using the 
  times the text *m* was linked to *e* in our Wikipedia training split) over the number of times the text *m* was
  linked to any entity in our Wikipedia training split.
  
-You can use the Baseline by providing the linker name `baseline` and the additional specification `wikipedia` to the
- linking script:
+You can use the Baseline by providing the linker name `baseline` to the linking script:
  
-    python3 link_benchmark_entities.py <experiment_name> baseline wikipedia -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -l baseline -b <benchmark_name>
 
-The Baseline linker class is implemented [here](../src/linkers/alias_entity_linker.py).
+The Baseline linker class is implemented [here](../src/linkers/baseline_linker.py).
 
 #### POS Prior
 This linker is similar to the baseline linker described above. The main difference is, that instead of using the
  SpaCy NER component, a set of simple rules based on POS tags are used for entity recognition.
  
-You can use the POS Prior linker by providing the linker name `pos_prior` and a file with whitelist types. Only
- entities with a type from the whitelist are linked.
+You can use the POS Prior linker by providing the linker name `pos_prior`.
 
-    python3 link_benchmark_entities.py <experiment_name> pos_prior data/whitelist_types.txt -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -l pos_prior -b <benchmark_name>
 
 The POS Prior linker class is implemented [here](../src/linkers/prior_linker.py).
 
@@ -61,6 +76,8 @@ This requires the following steps:
        python3 train_spacy_entity_linker.py <linker_name> <n_batches> wikipedia
        
 The SpaCy linker can then be used with the created wikipedia knowledge base by providing the linker name `spacy` and
- the knowledge base name `wikipedia` to the linking script:
+ setting the knowledge base name to `wikipedia` in the corresponding config file `configs/spacy.config.json`.
  
-    python3 link_benchmark_entities.py <experiment_name> spacy wikipedia -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -l spacy -b <benchmark_name>
+
+The Spacy linker class is implemented [here](../src/linkers/spacy_linker.py).
