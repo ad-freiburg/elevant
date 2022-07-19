@@ -18,7 +18,6 @@ class CoreferenceLinkers(Enum):
     ENTITY = "entity"
     STANFORD = "stanford"
     XRENNER = "xrenner"
-    HOBBS = "hobbs"
 
 
 class PredictionFormats(Enum):

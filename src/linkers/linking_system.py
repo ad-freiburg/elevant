@@ -14,7 +14,6 @@ from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
 from src.linkers.prior_linker import PriorLinker
 from src.linkers.explosion_linker import ExplosionEntityLinker
-from src.linkers.hobbs_coref_linker import HobbsCorefLinker
 from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.linkers.tagme_linker import TagMeLinker
@@ -182,8 +181,6 @@ class LinkingSystem:
             self.coref_linker = StanfordCoreNLPCorefLinker()
         elif linker_type == CoreferenceLinkers.XRENNER.value:
             self.coref_linker = XrennerCorefLinker()
-        elif linker_type == CoreferenceLinkers.HOBBS.value:
-            self.coref_linker = HobbsCorefLinker(self.entity_db)
         else:
             linker_exists = False
 
