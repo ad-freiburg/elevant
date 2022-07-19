@@ -1,5 +1,5 @@
 {
   "name": "Prior",
-  "whitelist_type_file": "data/whitelist_types.txt",
+  "whitelist_type_file": "small-data-files/whitelist_types.tsv",
   "use_pos": true
 }
