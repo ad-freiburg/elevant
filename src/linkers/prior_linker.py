@@ -55,7 +55,16 @@ class PriorLinker(AbstractEntityLinker):
                 else:
                     lower_sent = lower_sents[sent_span]
                 idx_in_sent = OffsetConverter.get_token_idx_in_sent(tok.idx, doc)
-                if lower_sent[idx_in_sent].pos_ == "PROPN":
+
+                # Tokenization of lower_sent can differ from doc in rare cases.
+                # Make sure indices are in range.
+                if idx_in_sent >= len(lower_sent) or lower_sent[idx_in_sent].text != tok.text.lower():
+                    if idx_in_sent < len(lower_sent):
+                        for i, t in enumerate(lower_sent):
+                            if t.text == tok.text.lower():
+                                idx_in_sent = i
+
+                if idx_in_sent < len(lower_sent) and lower_sent[idx_in_sent].pos_ == "PROPN":
                     new_text += tok.text[0] + tok.text[1:].lower()
                 else:
                     new_text += tok.text.lower()
