@@ -7,9 +7,9 @@ The linking results will be written to
  `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl`.
  For example
 
-    python3 link_benchmark_entities.py tagme.thresh02 -l tagme -b kore50
+    python3 link_benchmark_entities.py baseline -l baseline -b kore50
 
-will create the file `evaluation-results/tagme/tagme.thresh02.kore50.linked_articles.jsonl`. The result file contains
+will create the file `evaluation-results/baseline/baseline.kore50.linked_articles.jsonl`. The result file contains
  one article as JSON object per line. Each JSON object contains benchmark article information such as the article
  title, text, and ground truth labels, as well as the entity mentions predicted by the specified linker. Properties
  specific to the selected linker such as confidence thresholds, model paths, ... are read from the linker's config

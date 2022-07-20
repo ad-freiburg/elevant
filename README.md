@@ -100,9 +100,9 @@ The linking results will be written to
  `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl`.
 For example
 
-    python3 link_benchmark_entities.py tagme.thresh02 -l tagme -b kore50
+    python3 link_benchmark_entities.py baseline -l baseline -b kore50
 
-will create the file `evaluation-results/tagme/tagme.thresh02.kore50.linked_articles.jsonl`. The result file contains
+will create the file `evaluation-results/baseline/baseline.kore50.linked_articles.jsonl`. The result file contains
  one article as JSON object per line. Each JSON object contains benchmark article information such as the article
  title, text, and ground truth labels, as well as the entity mentions produced by the specified linker.
  `<experiment_name>` is the name that will be displayed in the first column of the evaluation results table in the
@@ -118,13 +118,13 @@ To evaluate a linker's predictions use the script `evaluate_linking_results.py`:
 
     python3 evaluate_linking_results.py <path_to_linking_result_file>
 
-This will print precision, recall and F1 scores and create two new files where the `linked_articles.jsonl` file extension is
- replaced by `.eval_cases.jsonl` and `.eval_results.json` respectively. For example
+This will print precision, recall and F1 scores and create two new files where the `linked_articles.jsonl` file
+ extension is replaced by `.eval_cases.jsonl` and `.eval_results.json` respectively. For example
 
-    python3 evaluate_linking_results.py evaluation-results/tagme/tagme.thresh02.kore50.linked_articles.jsonl
+    python3 evaluate_linking_results.py evaluation-results/baseline/baseline.kore50.linked_articles.jsonl
 
-will create the files `evaluation-results/tagme/tagme.thresh02.kore50.eval_cases.jsonl` and
-`evaluation-results/tagme/tagme.thresh02.kore50.eval_results.json`. The `eval_cases` file contains information about
+will create the files `evaluation-results/baseline/baseline.kore50.eval_cases.jsonl` and
+`evaluation-results/baseline/baseline.kore50.eval_results.json`. The `eval_cases` file contains information about
  each true positive, false positive and false negative case. The `eval_results` file contains the scores that are shown
  in the web app's evaluation results table.
 

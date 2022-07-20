@@ -1,4 +1,5 @@
 {
   "name": "TagMe",
-  "rho_threshold": 0.2
+  "rho_threshold": 0.2,
+  "token": "replace with your own access token"
 }

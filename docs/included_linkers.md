@@ -11,12 +11,14 @@ TagMe was introduced by Ferragina & Scaiella in the 2010 paper [TAGME: On-the-fl
 In ELEVANT, you can use the TagMe linker with the `link_benchmark_entities.py` script and the linker name `tagme`. In
  the corresponding config file `configs/tagme.config.json` you can additionally specify a score threshold. The
  threshold is a value between 0 and 1. Predicted entities with a score lower than the threshold will be discarded.
- Per default, the threshold is 0.2.
+ Per default, the threshold is 0.2. NOTE: You need a personal access token to access the TagMe API which ELEVANT
+ uses. The process is easy and is described at <https://github.com/marcocor/tagme-python>. Once you have your token,
+ specify it in the config file under the key word `token`.
  
     python3 link_benchmark_entities.py <experiment_name> -l tagme -b <benchmark_name>
 
-The TagMe linker class is implemented [here](../src/linkers/tagme_linker.py) and uses the TagMe API. TagMe predicts
- Wikipedia entity links. We map the predicted Wikipedia entities to Wikidata using our mappings.
+The TagMe linker class is implemented [here](../src/linkers/tagme_linker.py). TagMe predicts Wikipedia entity links.
+ We map the predicted Wikipedia entities to Wikidata using our mappings.
 
 #### DBpedia Spotlight
 DBpedia Spotlight is a linking system developed by Daiber et al. and described in the 2013 paper
