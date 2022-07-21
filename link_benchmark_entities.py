@@ -1,12 +1,10 @@
 """
-Links entities in a specified benchmark to their WikiData entry.
-The linker pipeline consists of three main components:
+Links entities in a specified benchmark to their Wikidata entry.
+The linker pipeline consists of two main components:
 
-    1) link linker: use intra-Wikipedia links to detect entity mentions and
-       link them to their WikiData entry.
-    2) linker: use a NER system and a NED system to detect and link remaining
+    1) linker: use a NER system and a NED system to detect and link remaining
        entity mentions.
-    3) coreference linker: link coreferences to their WikiData entry.
+    2) coreference linker: link coreferences to their Wikidata entry.
 
 For each component, you can choose between different linker variants or omit
 the component from the pipeline.
@@ -95,8 +93,6 @@ if __name__ == "__main__":
                         help="If specified, let coreference linker refer only to entities within the evaluation span")
     parser.add_argument("-min", "--minimum_score", type=int, default=0,
                         help="Minimum entity score to include entity in database")
-    parser.add_argument("-small", "--small_database", action="store_true",
-                        help="Load a small version of the database")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
