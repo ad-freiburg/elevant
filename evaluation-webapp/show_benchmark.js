@@ -113,9 +113,8 @@ header_descriptions = {
         "fn": "<i>FN</i>: False negative nominal coreferences (mention text is \"the &lttype&gt\")."
     },
     "evaluation_mode": {
-        "ignored": "Unknown ground truth entities, unknown predicted entities and optional ground truth entities are completely ignored. This is equivalent to GERBIL's \"inKB\" mode.",
-        "optional": "Linking unknown and optional ground truth entities is not required, but is ok (i.e. not evaluated) iff the linked entity is correct. For unknown ground truth entities only NIL predictions are correct.",
-        "required": "Linking unknown and optional ground truth entities is compulsory. Unknown ground truth entities have to be linked to NIL. This is equivalent to GERBIL's \"normal\" mode."
+        "ignored": "Unknown ground truth entities and unknown predicted entities are completely ignored. This is equivalent to GERBIL's \"inKB\" mode.",
+        "required": "Unknown ground truth entities must be linked to NIL (or an unknown entity). This is equivalent to GERBIL's \"normal\" mode."
     },
     "precision": "<i>Precision = TP / (TP + FP)</i>",
     "recall": "<i>Recall = TP / (TP + FN)</i>",

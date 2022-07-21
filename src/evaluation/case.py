@@ -13,7 +13,6 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 class EvaluationMode(Enum):
     IGNORED = "IGNORED"
-    OPTIONAL = "OPTIONAL"
     REQUIRED = "REQUIRED"
 
 
@@ -123,18 +122,20 @@ class Case:
             else:
                 # Don't return FP. FPs are counted for all cases with factor != 0 so there's
                 # no special treatment of the parent needed
-                # This case should never happen, since cases with factor = 0 are always caess
+                # This case should never happen, since cases with factor = 0 are always cases
                 # with a GT and therefore have at least one FN or TP.
+                # Unless... children are unknowns/optional and mode is ignored/optional?
+                # This case happens on msnbc where overlaps happen.
                 logger.warning("Evaluation case with factor = 0 is neither FN nor TP.")
                 return []
 
         if not self.has_ground_truth():
             if self.has_prediction():
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL) and not self.prediction_is_known():
-                    # --- / unk: IGN, OPT
+                if eval_mode == EvaluationMode.IGNORED and not self.prediction_is_known():
+                    # --- / unk: IGN
                     return []
                 # --- / unk: REQ
-                # --- / ent: IGN, OPT, REQ
+                # --- / ent: IGN, REQ
                 return [EvaluationType.FP]
             else:
                 # The case (not self.predicted_entity) should not happen
@@ -143,20 +144,15 @@ class Case:
 
         if not self.has_prediction():
             if self.is_optional():
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL):
-                    # optent / ---: IGN, OPT
-                    # optunk / ---: IGN, OPT
-                    return []
-                else:
-                    # optent / ---: REQ
-                    # optunk / ---: REQ
-                    return [EvaluationType.FN]
+                # optent / ---: IGN, REQ
+                # optunk / ---: IGN, REQ
+                return []
             elif self.has_ground_truth():
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL) and not self.ground_truth_is_known():
-                    # unk / ---: IGN, OPT
+                if eval_mode == EvaluationMode.IGNORED and not self.ground_truth_is_known():
+                    # unk / ---: IGN
                     return []
                 # unk / ---: REQ
-                # ent / ---: IGN, OPT, REQ
+                # ent / ---: IGN, REQ
                 return [EvaluationType.FN]
             else:
                 # The case (not self.true_entity) should not happen
@@ -165,61 +161,47 @@ class Case:
 
         if self.is_optional():
             if self.prediction_is_known():
-                if eval_mode == EvaluationMode.IGNORED:
-                    # optent / ent: IGN
-                    # optunk / ent: IGN
-                    return [EvaluationType.FP]
-                elif self.true_entity.entity_id == self.predicted_entity.entity_id or \
+                if (self.ground_truth_is_known() and self.true_entity.entity_id == self.predicted_entity.entity_id) or \
                         self.is_true_quantity_or_datetime():
-                    if eval_mode == EvaluationMode.OPTIONAL:
-                        # optent / ent: OPT (true)
-                        return []
-                    else:
-                        # optent / ent: REQ (true)
-                        return [EvaluationType.TP]
+                    # optent / ent: IGN, REQ (true)
+                    return []
                 else:
-                    # optent / ent: OPT, REQ (false)
-                    # optunk / ent: OPT, REQ
-                    return [EvaluationType.FN, EvaluationType.FP]
+                    # optent / ent: IGN, REQ (false)
+                    # optunk / ent: IGN, REQ
+                    return [EvaluationType.FP]
             else:
-                if self.ground_truth_is_known() or self.ground_truth_is_datetime_or_quantity():
-                    if eval_mode == EvaluationMode.IGNORED:
-                        # optent / unk: IGN
-                        return []
-                    else:
-                        # optent / unk: OPT, REQ
-                        return [EvaluationType.FN, EvaluationType.FP]
-                else:
-                    if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL):
-                        # optunk / unk: IGN, OPT
-                        return []
-                    else:
-                        # optunk / unk: REQ
-                        return [EvaluationType.TP]
+                if (self.ground_truth_is_known() or self.ground_truth_is_datetime_or_quantity()) and \
+                        eval_mode == EvaluationMode.REQUIRED:
+                    # optent / unk: REQ
+                    return [EvaluationType.FP]
+                # optent / unk: IGN
+                # optunk / unk: IGN
+                # optunk / unk: REQ
+                return []
         elif self.ground_truth_is_known():
             if self.prediction_is_known():
                 if self.true_entity.entity_id == self.predicted_entity.entity_id:
-                    # ent / ent: IGN, OPT, REQ (true)
+                    # ent / ent: IGN, REQ (true)
                     return [EvaluationType.TP]
                 else:
-                    # ent / ent: IGN, OPT, REQ (false)
+                    # ent / ent: IGN, REQ (false)
                     return [EvaluationType.FN, EvaluationType.FP]
             else:
                 if eval_mode == EvaluationMode.IGNORED:
                     # ent / unk: IGN
                     return [EvaluationType.FN]
-                # ent / unk: OPT, REQ
+                # ent / unk: REQ
                 return [EvaluationType.FN, EvaluationType.FP]
         else:
             if self.prediction_is_known():
                 if eval_mode == EvaluationMode.IGNORED:
                     # unk / ent: IGN
                     return [EvaluationType.FP]
-                # unk / ent: OPT, REQ
+                # unk / ent: REQ
                 return [EvaluationType.FN, EvaluationType.FP]
             else:
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL):
-                    # unk / unk: IGN, OPT
+                if eval_mode == EvaluationMode.IGNORED:
+                    # unk / unk: IGN
                     return []
                 # unk / unk: REQ
                 return[EvaluationType.TP]
@@ -249,11 +231,11 @@ class Case:
 
         if not self.has_ground_truth():
             if self.has_prediction():
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL) and not self.prediction_is_known():
-                    # --- / unk: IGN, OPT
+                if eval_mode == EvaluationMode.IGNORED and not self.prediction_is_known():
+                    # --- / unk: IGN
                     return []
                 # --- / unk: REQ
-                # --- / ent: IGN, OPT, REQ
+                # --- / ent: IGN, REQ
                 return [EvaluationType.FP]
             else:
                 # The case (not self.predicted_entity) should not happen
@@ -262,20 +244,15 @@ class Case:
 
         if not self.has_prediction():
             if self.is_optional():
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL):
-                    # optent / ---: IGN, OPT
-                    # optunk / ---: IGN, OPT
-                    return []
-                else:
-                    # optent / ---: REQ
-                    # optunk / ---: REQ
-                    return [EvaluationType.FN]
+                # optent / ---: IGN, REQ
+                # optunk / ---: IGN, REQ
+                return []
             elif self.has_ground_truth():
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL) and not self.ground_truth_is_known():
-                    # unk / ---: IGN, OPT
+                if eval_mode == EvaluationMode.IGNORED and not self.ground_truth_is_known():
+                    # unk / ---: IGN
                     return []
                 # unk / ---: REQ
-                # ent / ---: IGN, OPT, REQ
+                # ent / ---: IGN, REQ
                 return [EvaluationType.FN]
             else:
                 # The case (not self.true_entity) should not happen
@@ -283,48 +260,35 @@ class Case:
                 return []
 
         if self.is_optional():
-            if self.prediction_is_known():
-                if eval_mode == EvaluationMode.IGNORED:
-                    # optent / ent: IGN
-                    # optunk / ent: IGN
-                    return [EvaluationType.FP]
-                elif eval_mode == EvaluationMode.OPTIONAL:
-                    # optent / ent: OPT
-                    # optunk / ent: OPT
-                    return []
-                else:
-                    # optent / ent: OPT, REQ
-                    # optunk / ent: OPT, REQ
-                    return [EvaluationType.TP]
-            else:
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL):
-                    # optent / unk: IGN, OPT
-                    # optunk / unk: IGN, OPT
-                    return []
-                else:
-                    # optent / unk: REQ
-                    # optunk / unk: REQ
-                    return [EvaluationType.TP]
+            if not (self.ground_truth_is_known() or self.ground_truth_is_datetime_or_quantity()) and \
+                    self.prediction_is_known() and eval_mode == EvaluationMode.IGNORED:
+                # optunk / ent: IGN
+                return [EvaluationType.FP]
+            # optent / ent: IGN, REQ
+            # optent / unk: IGN, REQ
+            # optunk / ent: REQ
+            # optunk / unk: IGN, REQ
+            return []
         elif self.ground_truth_is_known():
             if self.prediction_is_known():
-                # ent / ent: IGN, OPT, REQ
+                # ent / ent: IGN, REQ
                 return [EvaluationType.TP]
             else:
                 if eval_mode == EvaluationMode.IGNORED:
                     # ent / unk: IGN
                     return [EvaluationType.FN]
-                # ent / unk: OPT, REQ
+                # ent / unk: REQ
                 return [EvaluationType.TP]
         else:
             if self.prediction_is_known():
                 if eval_mode == EvaluationMode.IGNORED:
                     # unk / ent: IGN
                     return [EvaluationType.FP]
-                # unk / ent: OPT, REQ
+                # unk / ent: REQ
                 return [EvaluationType.TP]
             else:
-                if eval_mode in (EvaluationMode.IGNORED, EvaluationMode.OPTIONAL):
-                    # unk / unk: IGN, OPT
+                if eval_mode == EvaluationMode.IGNORED:
+                    # unk / unk: IGN
                     return []
                 # unk / unk: REQ
                 return[EvaluationType.TP]
