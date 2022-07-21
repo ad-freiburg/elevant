@@ -1005,45 +1005,6 @@ function show_article_link() {
     $("#article_link").show();
 }
 
-function is_correct_optional_case(eval_case) {
-    /*
-    Return true iff the given evaluation case is a correctly linked optional case.
-    */
-    if ("true_entity" in eval_case) {
-        if ("optional" in eval_case.true_entity && eval_case.true_entity.optional) {
-            if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == eval_case.true_entity.entity_id) {
-                // Optional TP are correct
-                return true;
-            } else if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == null) {
-                // GT optional and predicted entity is NIL -> correct
-                return true;
-            } else if (!("predicted_entity" in eval_case)) {
-                // Optional FN are correct
-                return true;
-            }
-        } else if ("type" in eval_case.true_entity && ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type)) {
-            if ("predicted_entity" in eval_case && "type" in eval_case.predicted_entity && eval_case.true_entity.type == eval_case.predicted_entity.type) {
-                // True entity is of type QUANTITY or DATETIME and predicted entity is of the same type -> correct TP
-                return true;
-            } else if ("predicted_entity" in eval_case && eval_case.predicted_entity.entity_id == null) {
-                // True entity is of type QUANTITY or DATETIME and predicted entity is NIL -> correct
-                return true;
-            } else if (!("predicted_entity" in eval_case)) {
-                // True entity is of type QUANTITY or DATETIME and no entity was predicted -> correct FN
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-function is_optional_case(eval_case) {
-    /*
-    Returns true iff the given evaluation case is optional, a datetime or a quantity.
-    */
-     return "true_entity" in eval_case && (eval_case.true_entity.optional ||
-                                           ["QUANTITY", "DATETIME"].includes(eval_case.true_entity.type));
-}
 
 function show_annotated_text(approach_name, textfield, selected_cell_category, column_idx, article_index, example_benchmark) {
     /*
