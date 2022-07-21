@@ -25,11 +25,11 @@ WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation-results/
 # Adjust if you only want to link or evaluate certain benchmarks
-BENCHMARK_NAMES = wiki-ex newscrawl aida-conll-test msnbc kore50 spotlight aida-conll-dev msnbc-updated
+BENCHMARK_NAMES = aida-conll-test aida-conll-dev kore50 msnbc msnbc-updated spotlight
 # Adjust if you only want to link with certain linking systems.
 # The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
-LINKING_SYSTEMS = baseline pos_prior tagme dbpedia_spotlight popular_entities explosion spacy.prior_trained spacy.wikipedia
-PREDICTIONS = neural_el wikifier ambiverse
+LINKING_SYSTEMS = dbpedia_spotlight tagme baseline # spacy.wikipedia spacy.wikidata
+PREDICTIONS = # neural_el ambiverse
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
 
@@ -88,12 +88,12 @@ link_benchmark:
 	  echo "LINKING SYSTEM: $${SYSTEM}"; \
 	  ARGUMENTS=""; \
 	  RESULT_NAME=$${SYSTEM}; \
-	  if [ $${SYSTEM} == "spacy.prior_trained" ]; then \
+	  if [ $${SYSTEM} == "spacy.wikidata" ]; then \
 	    SYSTEM=spacy; \
-	    RESULT_NAME=$${SYSTEM}.prior_trained; \
+	    RESULT_NAME=$${SYSTEM}.wikidata; \
+	    ARGUMENTS="--linker_config configs/spacy_wikidata.config.json"; \
 	  elif [ $${SYSTEM} == "spacy.wikipedia" ]; then \
 	    SYSTEM=spacy; \
-	    ARGUMENTS="--linker_config configs/spacy_wikipedia.config.json"; \
 	    RESULT_NAME=$${SYSTEM}.wikipedia; \
 	  fi; \
 	  python3 link_benchmark_entities.py $${RESULT_NAME} -l $${SYSTEM} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR} $${ARGUMENTS}; \
@@ -127,8 +127,8 @@ evaluate_linking_results:
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "EVALUATION_RESULTS_DIR = $(EVALUATION_RESULTS_DIR)"
 	@echo
-	for FILENAME in ${EVALUATION_RESULTS_DIR}*/*.jsonl ; do \
-	  BENCHMARK_SUFFIX=$$(echo $${FILENAME} | sed -r 's|.+\.([^\.]*)\.jsonl|\1|') ; \
+	for FILENAME in ${EVALUATION_RESULTS_DIR}*/*.linked_articles.jsonl ; do \
+	  BENCHMARK_SUFFIX=$$(echo $${FILENAME} | sed -r 's|.+\.([^\.]*)\.linked_articles\.jsonl|\1|') ; \
 	  HAS_SYSTEM_PREFIX=$$(echo $${FILENAME} | sed 's|${EVALUATE_LINKING_SYSTEM_PREFIX}||') ; \
 	  if [[ "$${HAS_SYSTEM_PREFIX}" == "$${FILENAME}" ]]; then \
 	    echo -e "$${DIM}Skipping $${FILENAME} because filename does not match EVALUATE_LINKING_SYSTEM_PREFIX$${RESET}"; \
