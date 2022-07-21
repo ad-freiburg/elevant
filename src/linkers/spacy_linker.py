@@ -17,8 +17,8 @@ class SpacyLinker(AbstractEntityLinker):
         # Get config variables
         self.linker_identifier = config["name"] if "name" in config else "Spacy"
         self.ner_identifier = "EnhancedSpacy"
-        model_name = config["model_name"] if "model_name" in config else "prior_trained"
-        kb_name = config["kb"] if "kb" in config else "wikidata"
+        model_name = config["model_name"] if "model_name" in config else "wikipedia"
+        kb_name = config["kb"] if "kb" in config else "wikipedia"
 
         self.model = EntityLinkerLoader.load_trained_linker(model_name, kb_name=kb_name)
         if not self.model.has_pipe("ner_postprocessor"):
