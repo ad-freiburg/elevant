@@ -164,6 +164,11 @@ mention_type_headers = {"entity": ["entity_named", "entity_other"],
                         "coref_nominal": ["coref_nominal"],
                         "coref_pronominal": ["coref_pronominal"]};
 
+evaluation_mode_labels = {
+    "ignored": "Unknown entities are ignored",
+    "required": "Unknown entities are considered"
+}
+
 result_titles = {
     "mention_types": {
         "all": {"checkbox_label": "All", "table_heading": "All"},
@@ -1771,10 +1776,9 @@ function add_radio_buttons(json_obj) {
     */
     $.each(json_obj, function(key) {
         var class_name = get_class_name(key);
-        var label = to_title_case(key.toLowerCase());
         var checked = ((class_name == "ignored" && url_param_evaluation_mode == null) || url_param_evaluation_mode == class_name) ? "checked" : "";
         var radio_button_html = "<span class=\"radio_button_" + class_name + "\"><input type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_radio_button_change(this)\" " + checked + ">";
-        radio_button_html += "<label>" + label + "</label></span>\n";
+        radio_button_html += "<label>" + evaluation_mode_labels[class_name] + "</label></span>\n";
         $("#evaluation_modes").append(radio_button_html);
 
         // Add radio button tooltip
