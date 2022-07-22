@@ -4,7 +4,6 @@ from enum import Enum
 class Linkers(Enum):
     BASELINE = "baseline"
     SPACY = "spacy"
-    EXPLOSION = "explosion"
     TAGME = "tagme"
     BERT_MODEL = "bert_model"
     POPULAR_ENTITIES = "popular_entities"

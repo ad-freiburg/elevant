@@ -13,7 +13,6 @@ from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
 from src.linkers.prior_linker import PriorLinker
-from src.linkers.explosion_linker import ExplosionEntityLinker
 from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
 from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
 from src.linkers.tagme_linker import TagMeLinker
@@ -96,8 +95,6 @@ class LinkingSystem:
 
         if linker_type == Linkers.SPACY.value:
             self.linker = SpacyLinker(self.entity_db, self.linker_config)
-        elif linker_type == Linkers.EXPLOSION.value:
-            self.linker = ExplosionEntityLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.AMBIVERSE.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
