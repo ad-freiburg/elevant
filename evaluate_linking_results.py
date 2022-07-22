@@ -119,7 +119,7 @@ def main(args):
 
         cases = evaluator.evaluate_article(article)
 
-        case_list = {eval_mode.value: [case.to_dict() for case in cases[eval_mode]] for eval_mode in cases}
+        case_list = [case.to_dict() for case in cases]
         output_file.write(json.dumps(case_list) + "\n")
 
     results_dict = evaluator.get_results_dict()

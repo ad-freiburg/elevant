@@ -84,7 +84,7 @@ class Case:
         self.candidates = candidates
         self.predicted_by = predicted_by
         self.optional = true_entity.is_optional() if true_entity else False
-        self.error_labels = set() if error_labels is None else error_labels
+        self.error_labels = {m: set() for m in EvaluationMode} if error_labels is None else error_labels
         self.mention_type = get_mention_type(text, true_entity, predicted_entity)
         self.factor = 1 if factor is None else factor
         self.child_linking_eval_types = child_linking_eval_types
@@ -349,8 +349,8 @@ class Case:
     def is_coreference(self) -> bool:
         return self.mention_type.is_coreference()
 
-    def add_error_label(self, error_label: ErrorLabel):
-        self.error_labels.add(error_label)
+    def add_error_label(self, error_label: ErrorLabel, eval_mode: EvaluationMode):
+        self.error_labels[eval_mode].add(error_label)
 
     def __lt__(self, other) -> bool:
         return self.span < other.span
@@ -360,7 +360,8 @@ class Case:
                 "text": self.text,
                 "candidates": [{"entity_id": cand.entity_id, "name": cand.name} for cand in sorted(self.candidates)],
                 "predicted_by": self.predicted_by,
-                "error_labels": sorted([label.value for label in self.error_labels]),
+                "error_labels": {mode.value: sorted([label.value for label in self.error_labels[mode]])
+                                 for mode in EvaluationMode},
                 "factor": self.factor,
                 "linking_eval_types": {mode.value: [et.value for et in self.linking_eval_types[mode]]
                                        for mode in EvaluationMode},
@@ -402,13 +403,14 @@ def case_from_dict(data) -> Case:
     child_linking_eval_types = None
     if "child_linking_eval_types" in data:
         child_linking_eval_types = {EvaluationMode(m): set([EvaluationType(t)
-                                                            for t in data["child_linking_eval_types"]])
+                                                            for t in data["child_linking_eval_types"][m]])
                                     for m in data["child_linking_eval_types"]}
     child_ner_eval_types = None
     if "child_ner_eval_types" in data:
-        child_ner_eval_types = {EvaluationMode(m): set([EvaluationType(t) for t in data["child_ner_eval_types"]])
+        child_ner_eval_types = {EvaluationMode(m): set([EvaluationType(t) for t in data["child_ner_eval_types"][m]])
                                 for m in data["child_ner_eval_types"]}
-    error_labels = {ERROR_LABELS[label] for label in data["error_labels"]}
+    error_labels = {EvaluationMode(m): {ERROR_LABELS[label] for label in data["error_labels"][m]}
+                    for m in data["error_labels"]}
     return Case(span=data["span"],
                 text=data["text"],
                 true_entity=true_entity,

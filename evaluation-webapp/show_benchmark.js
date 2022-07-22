@@ -1043,12 +1043,12 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
     var eval_mode;
     if (example_benchmark) {
         eval_mode = "IGNORED";
-        var article_cases = evaluation_cases_example_benchmark[article_index][eval_mode];  // info from the eval_cases file
+        var article_cases = evaluation_cases_example_benchmark[article_index];  // info from the eval_cases file
         var article_data = articles_data_example_benchmark[article_index];  // info from the linked_articles file
     } else {
         // Get currently selected evaluation mode
         eval_mode = get_evaluation_mode();
-        var article_cases = evaluation_cases[approach_name][article_index][eval_mode];  // info from the eval_cases file
+        var article_cases = evaluation_cases[approach_name][article_index];  // info from the eval_cases file
         var article_data = articles_data[approach_name][article_index];  // info from the linked_articles file
     }
 
@@ -1205,17 +1205,17 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
         // If the case has a GT and a prediction, don't add error cases to GT if it's an unknown or optional case
         if (!$.isEmptyObject(gt_annotation) && !$.isEmptyObject(pred_annotation)) {
             if (gt_annotation.class == ANNOTATION_CLASS_OPTIONAL || gt_annotation.class == ANNOTATION_CLASS_UNKNOWN) {
-                pred_annotation.error_labels = mention.error_labels;
+                pred_annotation.error_labels = mention.error_labels[eval_mode];
             } else {
-                gt_annotation.error_labels = mention.error_labels;
-                pred_annotation.error_labels = mention.error_labels;
+                gt_annotation.error_labels = mention.error_labels[eval_mode];
+                pred_annotation.error_labels = mention.error_labels[eval_mode];
             }
             gt_annotation.id = column_idx + "_" + article_index+ "_" + annotation_count;
             annotation_count++;
             pred_annotation.id = column_idx + "_" + article_index+ "_" + annotation_count;
             annotation_count++;
         } else {
-            annotation.error_labels = mention.error_labels;
+            if (mention.error_labels) annotation.error_labels = mention.error_labels[eval_mode];
             annotation.id = column_idx + "_" + article_index+ "_" + annotation_count;
             annotation_count++;
         }

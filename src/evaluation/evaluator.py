@@ -8,7 +8,6 @@ from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.entity_database import EntityDatabase
-from src.models.article import Article
 from src.evaluation.errors import label_errors
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -90,9 +89,7 @@ class Evaluator:
         self.type_counts = {}
         self.n_entity_lowercase = {}
         self.n_entity_contains_space = {}
-        self.all_cases = {}
         for mode in EvaluationMode:
-            self.all_cases[mode] = []
             self.counts[mode] = {}
             for key in EVALUATION_CATEGORIES:
                 self.counts[mode][key] = {"tp": 0, "fp": 0, "fn": 0}
@@ -104,11 +101,10 @@ class Evaluator:
             self.n_entity_contains_space[mode] = 0
 
     def evaluate_article(self, article):
-        article_cases = {}
+        cases = self.case_generator.get_evaluation_cases(article)
         for mode in EvaluationMode:
-            article_cases[mode] = self.compute_cases(article, mode)
-            self.all_cases[mode].extend(article_cases[mode])
-            for case in article_cases[mode]:
+            label_errors(article, cases, self.entity_db, mode, contains_unknowns=self.contains_unknowns)
+            for case in cases:
                 self.count_ner_case(case, mode)
                 self.count_mention_type_case(case, mode)
                 self.count_error_labels(case, mode)
@@ -116,7 +112,7 @@ class Evaluator:
                     self.has_candidates = True
                 if case.has_relevant_ground_truth(mode) and not case.is_coreference() and ' ' in case.text:
                     self.n_entity_contains_space[mode] += 1
-        return article_cases
+        return cases
 
     def count_ner_case(self, case: Case, eval_mode: EvaluationMode):
         if not case.is_coreference():
@@ -169,13 +165,8 @@ class Evaluator:
                     self.type_counts[eval_mode][type_id]["fp"] += 1
 
     def count_error_labels(self, case: Case, eval_mode: EvaluationMode):
-        for label in case.error_labels:
+        for label in case.error_labels[eval_mode]:
             self.error_counts[eval_mode][label] += case.factor  # factor is 0 or 1
-
-    def compute_cases(self, article: Article, eval_mode: EvaluationMode):
-        cases = self.case_generator.get_evaluation_cases(article)
-        label_errors(article, cases, self.entity_db, eval_mode, contains_unknowns=self.contains_unknowns)
-        return cases
 
     def get_results_dict(self):
         results_dict = {}
@@ -300,7 +291,7 @@ class Evaluator:
         return results_dict
 
     def print_results(self):
-        print("== EVALUATION (Mode: Ignored (= InKB)) ==")
+        print("*** EVALUATION (results shown for mode \"Ignored\" (= InKB)) ***")
         for cat in self.counts[EvaluationMode.IGNORED]:
             print()
             print("= %s =" % cat)
