@@ -132,16 +132,20 @@
 									<td><b>False negative:</b> Groundtruth mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity</td>
 								</tr>
 								<tr>
-									<td><span class="annotation gt unknown">Mention Text</span></td>
-									<td>Groundtruth entity that could not be mapped to an entity in the knowledge base</td>
+									<td><span class="annotation pred unknown">Mention Text</span></td>
+									<td>Unknown predicted entity that could not be mapped to an entity in the knowledge base (= unknown) and is unevaluated</td>
 								</tr>
 								<tr>
-									<td><span class="annotation gt optional">Mention Text</span></td>
-									<td>Optional groundtruth mention</td>
+									<td><span class="annotation gt unknown">Mention Text</span></td>
+									<td>Groundtruth entity that could not be mapped to an entity in the knowledge base (= unknown) and is unevaluated</td>
 								</tr>
 								<tr>
 									<td><span class="annotation pred unevaluated">Mention Text</span></td>
 									<td>Prediction is unevaluated either because it matches an optional groundtruth mention span and entity or because it is outside of the evaluation span</td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt optional">Mention Text</span></td>
+									<td>Optional groundtruth mention</td>
 								</tr>
 								<tr>
 									<td><u>Some Text</u></td>
