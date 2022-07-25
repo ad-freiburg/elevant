@@ -113,6 +113,11 @@ class JsonBenchmarkExampleReader:
                 if i == n:
                     break
                 article = article_from_json(json_line)
+                if i == 0 and "aida-conll" in self.benchmark_filename and article.text.count("*") > 20:
+                    logger.warning("The AIDA-CoNLL benchmark texts are obscured in ELEVANT for license reasons. "
+                                   "Make sure the task you're executing does not depend on the benchmark text "
+                                   "or get your own copy of the AIDA-CoNLL benchmark and add it to ELEVANT as "
+                                   "described in docs/add_benchmark.md.")
                 yield article
 
 
@@ -175,9 +180,10 @@ def get_example_generator(benchmark_name: str, from_json_file: Optional[bool] = 
                                                      settings.MSNBC_ORIGINAL_BENCHMARK_TEXTS)
             elif benchmark_name == Benchmark.WIKIPEDIA.value:
                 example_generator = WikipediaExampleReader(entity_db)
-            elif benchmark_name in [Benchmark.AIDA_CONLL.value, Benchmark.AIDA_CONLL_TRAIN.value, Benchmark.AIDA_CONLL_DEV.value,
-                                    Benchmark.AIDA_CONLL_TEST.value]:
-                example_generator = AidaConllExampleReader(entity_db, settings.AIDA_CONLL_BENCHMARK_FILE, benchmark_name)
+            elif benchmark_name in [Benchmark.AIDA_CONLL.value, Benchmark.AIDA_CONLL_TRAIN.value,
+                                    Benchmark.AIDA_CONLL_DEV.value, Benchmark.AIDA_CONLL_TEST.value]:
+                example_generator = AidaConllExampleReader(entity_db, settings.AIDA_CONLL_BENCHMARK_FILE,
+                                                           benchmark_name)
             else:
                 raise ValueError("%s is not a known benchmark." % benchmark_name)
     return example_generator
