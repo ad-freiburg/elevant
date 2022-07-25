@@ -18,7 +18,7 @@ class DbpediaSpotlightLinker(AbstractEntityLinker):
     """
     Instead of using the official DBpedia Spotlight API (default) you can also
     run your own instance of DBpedia Spotlight and adjust the api_url in the
-    DBpedia Spotlight config at configs/dbpedia_spotlight.config.json accordingly.
+    DBpedia Spotlight config at configs/dbpedia-spotlight.config.json accordingly.
     For instructions on starting your own API using Docker see
     https://hub.docker.com/r/dbpedia/dbpedia-spotlight
     """

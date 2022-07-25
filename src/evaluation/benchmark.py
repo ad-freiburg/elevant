@@ -32,5 +32,5 @@ class BenchmarkFormat(Enum):
     OURS_JSONL = "ours"
     NIF = "nif"
     AIDA_CONLL = "aida-conll"
-    SIMPLE_JSONL = "simple_jsonl"
+    SIMPLE_JSONL = "simple-jsonl"
     # MSNBC_XML = "msnbc"  # Not yet supported: 2 files are needed: annotation xml file/directory and raw text directory

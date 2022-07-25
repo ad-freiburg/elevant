@@ -28,8 +28,8 @@ EVALUATION_RESULTS_DIR = evaluation-results/
 BENCHMARK_NAMES = aida-conll-test aida-conll-dev kore50 msnbc msnbc-updated spotlight
 # Adjust if you only want to link with certain linking systems.
 # The script arguments for a linking system can be adjusted in the link_benchmark target if needed.
-LINKING_SYSTEMS = dbpedia_spotlight tagme baseline # spacy.wikipedia spacy.wikidata
-PREDICTIONS = # neural_el ambiverse
+LINKING_SYSTEMS = dbpedia-spotlight tagme baseline # spacy.wikipedia spacy.wikidata
+PREDICTIONS = # neural-el ambiverse
 # Edit if you only want to evaluate a linking system that matches a certain prefix.
 EVALUATE_LINKING_SYSTEM_PREFIX =
 
@@ -107,9 +107,9 @@ convert_benchmark_predictions:
 	  if [ $${PREDICTION} == "ambiverse" ]; then \
 	    PFILE=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
 	    PFORMAT=ambiverse; \
-	  elif [ $${PREDICTION} == "neural_el" ]; then \
+	  elif [ $${PREDICTION} == "neural-el" ]; then \
 	    PFILE=/nfs/students/natalie-prange/neural-el-data/results/linked_articles_$${BENCHMARK}.jsonl; \
-	    PFORMAT=simple_jsonl; \
+	    PFORMAT=simple-jsonl; \
 	  elif [ $${PREDICTION} == "wikifier" ]; then \
 	    PFILE=/nfs/students/natalie-prange/wikifier_data/output/benchmark_$${BENCHMARK}/; \
 	    PFORMAT=wikifier; \
@@ -198,7 +198,7 @@ split_wiki:
 # Link Wikipedia dump only if it does not exist already at the specified location.
 link_wiki:
 	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "$${RED}Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it if you want to link another dump. Dump not linked.$${RESET}"; echo; else \
-	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular_entities -coref entity -m ${NUM_LINKER_PROCESSES}; \
+	  python3 link_entities.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular-entities -coref entity -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
 generate_wikipedia_mappings: download_wiki extract_wiki split_wiki

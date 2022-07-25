@@ -26,12 +26,12 @@ DBpedia Spotlight is a linking system developed by Daiber et al. and described i
  links entities to their entries in DBpedia.
 
 In ELEVANT, you can use the DBpedia linker with the `link_benchmark_entities.py` script and the linker name
- `dbpedia_spotlight`. In the corresponding config file `configs/dbpedia_spotlight.config.json` you can set the API
+ `dbpedia-spotlight`. In the corresponding config file `configs/dbpedia-spotlight.config.json` you can set the API
  URL - the official DBpedia Spotlight API URL per default, but you can also run the system yourself, e.g. using Docker
  as described in the [GitHub repo](https://github.com/dbpedia-spotlight/dbpedia-spotlight-model), and provide a custom
  API URL. You can also specify a confidence threshold, which is set to 0.35 per default.
 
-    python3 link_benchmark_entities.py <experiment_name> -l dbpedia_spotlight -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -l dbpedia-spotlight -b <benchmark_name>
 
 DBpedia predicts DBpedia entities which we map to Wikidata entities using our mappings. The DBpedia Spotlight linker
  class is implemented [here](../src/linkers/dbpedia_spotlight_linker.py).
@@ -53,9 +53,9 @@ The Baseline linker class is implemented [here](../src/linkers/baseline_linker.p
 This linker is similar to the baseline linker described above. The main difference is, that instead of using the
  SpaCy NER component, a set of simple rules based on POS tags are used for entity recognition.
  
-You can use the POS Prior linker by providing the linker name `pos_prior`.
+You can use the POS Prior linker by providing the linker name `pos-prior`.
 
-    python3 link_benchmark_entities.py <experiment_name> -l pos_prior -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -l pos-prior -b <benchmark_name>
 
 The POS Prior linker class is implemented [here](../src/linkers/prior_linker.py).
 

@@ -73,9 +73,9 @@ The NIF prediction reader is implemented [here](../src/prediction_readers/nif_pr
 
 #### Linking Results in a Simple JSONL Format
 If you have linking results for a certain benchmark in a very simple JSONL format as described below, use
- `-pformat simple_jsonl` in the script call described above, i.e.
+ `-pformat simple-jsonl` in the script call described above, i.e.
 
-    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat simple_jsonl -pname <linker_name> -b <benchmark_name>
+    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat simple-jsonl -pname <linker_name> -b <benchmark_name>
 
 The file `<path_to_linking_results>` should contain one line per benchmark article. The order of the predictions
  should correspond to the article order of the benchmark in the `benchmarks` directory. The linking results file
