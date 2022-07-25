@@ -1705,9 +1705,9 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                                                                  config["hide_type_checkboxes"].includes(type_label)))
                             delete results["entity_types"][key];
                     });
-                    $.each(results, function(key) {
+                    $.each(results["mention_types"], function(key) {
                         if ("hide_mention_checkboxes" in config && config["hide_mention_checkboxes"].includes(key))
-                            delete results[key];
+                            delete results["mention_types"][key];
                     });
 
                     // Add results for approach to array
