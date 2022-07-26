@@ -1,11 +1,17 @@
 :root {
-    --row-hover-color: #E0E0E0;
-    --row-selected-color: #D1D1D1;
-    --cell-header-color: #999999;
-    --cell-first-column-color: #BBBBBB;
-    --cell-color: #EEEEEE;
-    --cell-hover-color: #F9E29B;
-    --cell-selected-color: #F6CF59;
+    --uni-blue: #004A99;
+    --uni-blue-tint-4: #b2c8e0;
+    --uni-blue-tint-3: #ccdaea;
+    --uni-blue-tint-2: #dbe5f0;
+    --uni-blue-tint-1: #e5ecf4;
+    --uni-blue-tint-0: #eff3f8;
+    --row-hover-color: var(--uni-blue-tint-1);
+    --row-selected-color: var(--uni-blue-tint-2);
+    --cell-header-color: var(--uni-blue-tint-4);
+    --cell-first-column-color: var(--uni-blue-tint-3);
+    --cell-color: var(--uni-blue-tint-0);
+    --cell-hover-color: #b9c7d6;
+    --cell-selected-color: #99adc3;
     --annotation-tp-color: rgb(125,206,160);
     --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
     --annotation-tp-color-dark: rgb(21,55,35);
@@ -24,7 +30,7 @@ html, input, select {
 }
 
 header {
-    background-color: #004A99;
+    background-color: var(--uni-blue);
     color: white;
     margin: 0;
     padding: 5pt;
@@ -196,8 +202,9 @@ a {
 #evaluation_table_wrapper th {
     cursor: default;
     border: 1px solid white;
-    padding-top: 4px;
-    padding-bottom: 4px;
+    border-radius: 4px;
+    padding-top: 6px;
+    padding-bottom: 6px;
 }
 #evaluation_table_wrapper thead tr:nth-child(1) {
     text-align: center;
@@ -389,13 +396,12 @@ div.latex textarea {
 .article_table td {
     vertical-align: top;
     line-height: 220%;
-    padding-top: 3em;
-    padding-bottom: 3em;
+    padding: 3em 1em;
 }
 
 .article_table td,
 .article_table th {
-    border: 1px solid #aaa;
+    border: 1px solid white;
 }
 
 .article_table th {
