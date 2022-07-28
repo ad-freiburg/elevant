@@ -12,11 +12,11 @@ When evaluating the performance of a linking system with Elevant, we distinguish
 2. For some linkers, an entire code base is needed to produce linking results and this code base does not run
  out of the box or does not produce output in a format that can be mapped to Elevant's internal format, e.g. because
  important information such as the mention span is missing. We put those linker's code here into
- `third-party/linkers/` and include the necessary adjustments. The following linkers belong to this class:
+ `third-party/linkers/` or in extra repositories, and include the necessary adjustments. The following linkers belong to this class:
     - Neural EL (by Gupta et al.)
     - Wikifier
-    - GENRE
-    - Efficient EL
+    - GENRE: see [our reproducible GENRE repository](https://github.com/ad-freiburg/GENRE)
+    - Efficient EL: see [our reproducible efficient-autoregressive-EL repository](https://github.com/ad-freiburg/efficient-autoregressive-EL)
 
 3. For linkers where an entire code base is needed which can be run without bigger problems out of the box and yields
  output in a format that can easily be mapped to Elevant's internal format, it is enough to write a prediction reader
