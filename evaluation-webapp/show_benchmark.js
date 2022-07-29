@@ -838,7 +838,7 @@ function set_benchmark_select_options() {
             $(benchmark_by_url).prop('selected',true);
         } else {
             // Set default value to "wiki-ex".
-            $('#benchmark option:contains("wiki-ex")').prop('selected',true);
+            // $('#benchmark option:contains("wiki-ex")').prop('selected',true);
         }
         show_benchmark_results(true);
     });
