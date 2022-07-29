@@ -48,10 +48,10 @@ html, body {
     background-color: #eeeeee;
 }
 
-#documentation {
+.documentation {
     text-align: center;
 }
-#documentation a {
+.documentation a {
     color: white;
 }
 
