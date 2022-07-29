@@ -21,6 +21,7 @@
     --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
     --annotation-optional-color: rgb(211,211,211);
     --annotation-optional-color-lowlight: rgba(211,211,211,0.3);
+    --annotation-selected-color: #ffd966;
     --annotation-border-size: 5px;
 }
 
@@ -498,10 +499,10 @@ div.latex textarea {
 }
 
 .annotation.gt.selected {
-    border-bottom-color: var(--cell-selected-color);
+    border-bottom-color: var(--annotation-selected-color);
 }
 .annotation.pred.selected {
-    background-color: var(--cell-selected-color);
+    background-color: var(--annotation-selected-color);
 }
 
 /* ----------------------------------------- */
