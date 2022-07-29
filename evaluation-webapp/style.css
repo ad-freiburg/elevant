@@ -1,17 +1,16 @@
 :root {
     --uni-blue: #004A99;
-    --uni-blue-tint-4: #b2c8e0;
     --uni-blue-tint-3: #ccdaea;
     --uni-blue-tint-2: #dbe5f0;
     --uni-blue-tint-1: #e5ecf4;
     --uni-blue-tint-0: #eff3f8;
-    --row-hover-color: var(--uni-blue-tint-1);
-    --row-selected-color: var(--uni-blue-tint-2);
-    --cell-header-color: var(--uni-blue-tint-4);
-    --cell-first-column-color: var(--uni-blue-tint-3);
+    --row-hover-color: var(--uni-blue-tint-2);
+    --row-selected-color: var(--uni-blue-tint-3);
+    --cell-header-color: #7e93aa;
+    --cell-first-column-color: #a3b5c9;
     --cell-color: var(--uni-blue-tint-0);
-    --cell-hover-color: #b9c7d6;
-    --cell-selected-color: #99adc3;
+    --cell-hover-color: #becbd9;
+    --cell-selected-color: #a3b5c9;
     --annotation-tp-color: rgb(125,206,160);
     --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
     --annotation-tp-color-dark: rgb(21,55,35);
@@ -401,11 +400,11 @@ div.latex textarea {
 
 .article_table td,
 .article_table th {
-    border: 1px solid white;
+    border: 1px solid var(--cell-first-column-color);
 }
 
 .article_table th {
-    background: var(--cell-header-color);
+    background: var(--cell-first-column-color);
 }
 
 .article_table hr {
