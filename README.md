@@ -13,7 +13,11 @@ Get the code, and build and start the docker container:
 where `<data_directory>` is the directory in which the required data files will be stored. What these data files are
  and how they are generated is explained in section [Get the Data](#get-the-data). Make sure you can read from and
  write to all directories that are being mounted as volumes from within the docker container (i.e. your
- `<data_directory>`, `evaluation-results` and `benchmarks`).
+ `<data_directory>`, `evaluation-results` and `benchmarks`), for example (if security is not an issue) by giving all
+ users read and write permissions to the directories in question with:
+
+    chmod a+rw -R <data_directory> evaluation-results/ benchmarks/
+
 
 Unless otherwise noted, all the following commands should be run inside the docker container. If you want to use the
  system without docker, follow the instructions in [Setup without Docker](docs/setup_without_docker.md) before
