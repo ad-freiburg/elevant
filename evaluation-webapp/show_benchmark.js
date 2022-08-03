@@ -38,7 +38,7 @@ header_descriptions = {
         "": "Errors involving false detections.",
         "all": "A mention is predicted whose span is not linked in the ground truth.",
         "lowercased": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
-        "groundtruth_unknown": "The predicted mention is uppercased and the ground truth is \"Unknown\".",
+        "groundtruth_unknown": "The predicted mention is uppercased and the ground truth is an unknown entity.",
         "other": "NER false positive that does not fall into any of the other categories.",
         "wrong_span": "<p><i>Numerator:</i> The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.</p><p><i>Denominator</i>: All predicted mentions.</p>"
     },
