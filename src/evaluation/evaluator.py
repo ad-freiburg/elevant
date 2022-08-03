@@ -192,8 +192,8 @@ class Evaluator:
                     "errors": self.error_counts[mode][ErrorLabel.UNDETECTED],
                     "total": results_dict[mode.value]["error_categories"]["NER"]["ground_truth"]
                 },
-                "lowercase": {
-                    "errors": self.error_counts[mode][ErrorLabel.UNDETECTED_LOWERCASE],
+                "lowercased": {
+                    "errors": self.error_counts[mode][ErrorLabel.UNDETECTED_LOWERCASED],
                     "total": self.n_entity_lowercase[mode]
                 },
                 "partially_included": {

@@ -29,7 +29,7 @@ header_descriptions = {
     "undetected": {
         "": "Errors involving undetected mentions.",
         "all": "<p><i>Numerator:</i> A ground truth mention span is not linked to an entity.</p><p><i>Denominator:</i> All ground truth entity mentions.</p>",
-        "lowercase": "<p><i>Numerator:</i> Undetected lowercased ground truth mention.</p><p><i>Denominator:</i> All lowercased ground truth mentions.</p>",
+        "lowercased": "<p><i>Numerator:</i> Undetected lowercased ground truth mention.</p><p><i>Denominator:</i> All lowercased ground truth mentions.</p>",
         "partially_included": "<p><i>Numerator:</i> A part of the ground truth mention is linked to an entity.</p><p><i>Denominator:</i> All ground truth mentions consisting of multiple words.</p>",
         "partial_overlap": "<p><i>Numerator:</i> Undetected mention that overlaps with a predicted mention.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>",
         "other": "<p><i>Numerator:</i> Undetected mention that does not fall into any of the other categories.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>"
@@ -124,7 +124,7 @@ header_descriptions = {
 error_category_mapping = {
     "undetected": {
         "all": ["UNDETECTED"],
-        "lowercase": ["UNDETECTED_LOWERCASE"],
+        "lowercased": ["UNDETECTED_LOWERCASED"],
         "partially_included": ["UNDETECTED_PARTIALLY_INCLUDED"],
         "partial_overlap": ["UNDETECTED_PARTIAL_OVERLAP"],
         "other": ["UNDETECTED_OTHER"]

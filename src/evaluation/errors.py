@@ -56,7 +56,7 @@ def label_undetected_errors(cases: List[Case], eval_mode: EvaluationMode):
         if not case.is_coreference() and case.is_ner_fn(eval_mode):
             case.add_error_label(ErrorLabel.UNDETECTED, eval_mode)
             if not is_named_entity(case.text):
-                case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASE, eval_mode)
+                case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASED, eval_mode)
             elif is_partially_included_error(case, false_positive_spans):
                 case.add_error_label(ErrorLabel.UNDETECTED_PARTIALLY_INCLUDED, eval_mode)
             elif overlaps_any(case.span, false_positive_spans):
