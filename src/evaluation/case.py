@@ -73,7 +73,7 @@ class Case:
                  predicted_entity: Optional[WikidataEntity],
                  candidates: Set[WikidataEntity],
                  predicted_by: str,
-                 error_labels: Optional[Set[ErrorLabel]] = None,
+                 error_labels: Optional[Dict[EvaluationMode, Set[ErrorLabel]]] = None,
                  factor: Optional[float] = None,
                  child_linking_eval_types: Optional[Dict[EvaluationMode, Set[EvaluationType]]] = None,
                  child_ner_eval_types: Optional[Dict[EvaluationMode, Set[EvaluationType]]] = None):
