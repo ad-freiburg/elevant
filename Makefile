@@ -126,22 +126,11 @@ evaluate_linking_results:
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "EVALUATION_RESULTS_DIR = $(EVALUATION_RESULTS_DIR)"
+	@echo "EVALUATE_LINKING_SYSTEM_PREFIX = $(EVALUATE_LINKING_SYSTEM_PREFIX)"
 	@echo
-	for FILENAME in ${EVALUATION_RESULTS_DIR}*/*.linked_articles.jsonl ; do \
-	  BENCHMARK_SUFFIX=$$(echo $${FILENAME} | sed -r 's|.+\.([^\.]*)\.linked_articles\.jsonl|\1|') ; \
-	  HAS_SYSTEM_PREFIX=$$(echo $${FILENAME} | sed 's|${EVALUATE_LINKING_SYSTEM_PREFIX}||') ; \
-	  if [[ "$${HAS_SYSTEM_PREFIX}" == "$${FILENAME}" ]]; then \
-	    echo -e "$${DIM}Skipping $${FILENAME} because filename does not match EVALUATE_LINKING_SYSTEM_PREFIX$${RESET}"; \
-	    continue; \
-	  fi; \
-	  echo "FILENAME = $${FILENAME}"; \
-	  echo "BENCHMARK_SUFFIX = $${BENCHMARK_SUFFIX}"; \
-	  if [[ " $${BENCHMARK_NAMES[*]} " =~ " $${BENCHMARK_SUFFIX} " ]]; then \
-		python3 evaluate_linking_results.py $${FILENAME} -b $${BENCHMARK_SUFFIX}; \
-	  else \
-	    echo -e "$${DIM}Skipping file because benchmark suffix is not in BENCHMARK_NAMES$${RESET}"; \
-	  fi; \
-	  echo; \
+	for BENCHMARK in $(BENCHMARK_NAMES); do \
+		echo -e "$${DIM}Evaluating all linking results that match ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl .$${RESET}"; \
+		python3 evaluate_linking_results.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
 	done
 
 # Only clone or build qlever if no qlever.master docker image exists

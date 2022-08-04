@@ -84,6 +84,15 @@ class Evaluator:
         self.has_candidates = False
 
         # Case counts
+        self.counts = None
+        self.error_counts = None
+        self.type_counts = None
+        self.n_entity_lowercase = None
+        self.n_entity_contains_space = None
+        self.reset_variables()
+
+    def reset_variables(self):
+        self.has_candidates = False
         self.counts = {}
         self.error_counts = {}
         self.type_counts = {}
