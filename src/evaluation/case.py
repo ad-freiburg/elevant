@@ -363,9 +363,9 @@ class Case:
                 "error_labels": {mode.value: sorted([label.value for label in self.error_labels[mode]])
                                  for mode in EvaluationMode},
                 "factor": self.factor,
-                "linking_eval_types": {mode.value: [et.value for et in self.linking_eval_types[mode]]
+                "linking_eval_types": {mode.value: sorted([et.value for et in self.linking_eval_types[mode]])
                                        for mode in EvaluationMode},
-                "ner_eval_types": {mode.value: [et.value for et in self.ner_eval_types[mode]]
+                "ner_eval_types": {mode.value: sorted([et.value for et in self.ner_eval_types[mode]])
                                    for mode in EvaluationMode},
                 "optional": self.optional}
         if self.true_entity is not None:
@@ -377,10 +377,10 @@ class Case:
         if self.mention_type is not None:
             data["mention_type"] = self.mention_type.value
         if self.child_linking_eval_types is not None:
-            data["child_linking_eval_types"] = {m.value: [et.value for et in self.child_linking_eval_types[m]]
+            data["child_linking_eval_types"] = {m.value: sorted([et.value for et in self.child_linking_eval_types[m]])
                                                 for m in EvaluationMode}
         if self.child_ner_eval_types is not None:
-            data["child_ner_eval_types"] = {m.value: [et.value for et in self.child_ner_eval_types[m]]
+            data["child_ner_eval_types"] = {m.value: sorted([et.value for et in self.child_ner_eval_types[m]])
                                             for m in EvaluationMode}
         return data
 
