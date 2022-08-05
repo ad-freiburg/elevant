@@ -69,7 +69,7 @@ def main(args):
 
         example_iterator = None
         if args.benchmark:
-            # If a benchmark is given, labels are retrieved from the benchmark
+            # If a benchmark is given, labels and article texts are retrieved from the benchmark
             # and not from the given jsonl file. The user has to make sure the files match.
             logger.info("Retrieving labels from %s benchmark file instead of %s" % (args.benchmark, input_file_name))
             example_iterator = get_example_generator(args.benchmark).iterate()
@@ -81,6 +81,7 @@ def main(args):
             if example_iterator:
                 benchmark_article = next(example_iterator)
                 article.labels = benchmark_article.labels
+                article.text = benchmark_article.text
 
             if args.type_mapping:
                 # Map benchmark label entities to types in the mapping
@@ -163,8 +164,8 @@ if __name__ == "__main__":
     parser.add_argument("--no_coreference", action="store_true",
                         help="Exclude coreference cases from the evaluation.")
     parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
-                        help="Benchmark over which to evaluate the linked entities. If none is given, labels are"
-                             "retrieved from the given jsonl file")
+                        help="Benchmark over which to evaluate the linked entities. If none is given,"
+                             "labels and benchmark texts are retrieved from the given jsonl file.")
     parser.add_argument("-w", "--write_labels", action="store_true",
                         help="Write the labels of the provided benchmark to the input file.")
     parser.add_argument("--no-unknowns", action="store_true",
