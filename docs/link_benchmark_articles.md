@@ -180,7 +180,7 @@ You can provide multiple benchmark names to link all of them at once with the sp
     python3 link_benchmark_entities.py baseline -l baseline -b kore50 msnbc spotlight
 
 will link the KORE50, MSNBC and DBpedia Spotlight benchmarks using the baseline entity linker. This saves a lot of time
- in comparison to calling `link_benchmark_entities.py` separately for each benchmark, since most of the time is
+ in comparison to calling `link_benchmark_entities.py` separately for each benchmark, since a lot of the time is
  needed to load entity information which only has to be done once per call.
 
 You can use the Makefile to link multiple benchmarks using multiple linkers with one command.
