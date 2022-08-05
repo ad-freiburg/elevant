@@ -67,6 +67,7 @@ link_benchmarks:
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "LINKING_SYSTEMS = $(LINKING_SYSTEMS)"
 	for SYSTEM in $(LINKING_SYSTEMS); do \
+	  echo; \
 	  ARGUMENTS=""; \
 	  RESULT_NAME=$${SYSTEM}; \
 	  if [ $${SYSTEM} == "spacy.wikidata" ]; then \
@@ -95,6 +96,7 @@ convert_predictions:
 
 convert_benchmark_predictions:
 	for PREDICTION in $(PREDICTIONS); do \
+	  echo; \
 	  echo "BENCHMARK: $${BENCHMARK}"; \
 	  echo "PREDICTIONS FROM: $${PREDICTION}"; \
 	  RESULT_NAME=$${PREDICTION}; \
@@ -129,6 +131,7 @@ evaluate_linking_results:
 	@echo "EVALUATE_LINKING_SYSTEM_PREFIX = $(EVALUATE_LINKING_SYSTEM_PREFIX)"
 	@echo
 	for BENCHMARK in $(BENCHMARK_NAMES); do \
+		echo; \
 		echo -e "$${DIM}python3 evaluate_linking_results.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}$${RESET}"; \
 		python3 evaluate_linking_results.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
 	done
