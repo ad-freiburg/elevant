@@ -93,9 +93,13 @@ def is_rare_case(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is not the ground truth entity.
     """
-    # Right now, this is always true when the entity is Unknown
-    # So all evaluated cases with unknown GT are automatically rare errors.
+    # The get_most_popular_candidate method depends on which entities have been loaded (because aliases
+    # are used to retrieve candidates and aliases are only loaded for entities in the DB). Since all Wikipedia entities
+    # are loaded no matter what in evaluator.py, this rarely makes a difference though.
+    # So far differences have only been observed in AIDA-CoNLL in a single article
     most_popular_candidate = get_most_popular_candidate(entity_db, case.text)
+    # Right now, this is always true when the entity is Unknown and there exists at least one candidate.
+    # So many evaluated cases with unknown GT are automatically rare errors.
     return most_popular_candidate and case.true_entity.entity_id != most_popular_candidate
 
 
