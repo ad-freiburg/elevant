@@ -1,6 +1,29 @@
 # List of Included Linkers
-ELEVANT comes with a number of entity linkers that can be used out of the box and some that have to be trained first.
-This document gives an overview of these entity linkers and how they can be used.
+We distinguish between three classes of linkers in Elevant:
+1. Some linkers can be incorporated into our framework without writing much code, e.g. by accessing an external
+ linker API. These linkers can be used directly with Elevant's `link_benchmark_entities.py` script to generate linking
+ results. The following linkers belong to this class:
+    - TagMe (requires an access token that can easily be obtained)
+    - DBPedia Spotlight
+    - Spacy (needs to be trained before usage)
+    - Our baselines
+
+    All of these linkers are described further down in this document.
+
+2. For some linkers, an entire code base is needed to produce linking results and this code base does not run
+ out of the box or does not produce output in a format that can be mapped to Elevant's internal format, e.g. because
+ important information such as the mention span is missing. We make the necessary adjustments to these linkers,
+ dockerize them for an easy setup and put them into separate repositories. The following linkers belong to this class:
+    - Neural EL (by Gupta et al.): see [our reproducible Neural EL repository](https://github.com/ad-freiburg/neural-el)
+    - GENRE: see [our reproducible GENRE repository](https://github.com/ad-freiburg/GENRE)
+    - Efficient EL: see [our reproducible efficient-autoregressive-EL repository](https://github.com/ad-freiburg/efficient-autoregressive-EL)
+
+3. For linkers where an entire code base is needed which can be run without bigger problems out of the box and which
+ yields output in a format that can easily be mapped to Elevant's internal format, it is enough to write a prediction
+ reader that converts the linker's output into Elevant's internal format. Such prediction reader's are located in
+ `src/prediction_readers/`. The following linkers are examples for this class:
+    - Ambiverse
+
 
 #### TagMe
 TagMe was introduced by Ferragina & Scaiella in the 2010 paper [TAGME: On-the-fly Annotation of Short Text Fragments
