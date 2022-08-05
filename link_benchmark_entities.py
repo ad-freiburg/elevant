@@ -38,7 +38,7 @@ def main(args):
     for benchmark in args.benchmark:
         example_generator = get_example_generator(benchmark)
 
-        prediction_name_dir = "".join(c if c.isalnum() else "_" for c in args.prediction_name.lower())
+        prediction_name_dir = "".join(c if c.isalnum() or "-" else "_" for c in args.prediction_name.lower())
         linker_dir = args.linker_name if args.linker_name else prediction_name_dir
         output_dir = args.evaluation_dir.rstrip("/") + "/" + linker_dir
         output_filename = output_dir + "/" + args.experiment_name + "." + benchmark + ".linked_articles.jsonl"
