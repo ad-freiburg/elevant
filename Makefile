@@ -66,8 +66,19 @@ link_benchmarks:
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "LINKING_SYSTEMS = $(LINKING_SYSTEMS)"
-	for BENCHMARK_NAME in $(BENCHMARK_NAMES); do echo; \
-	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} link_benchmark; \
+	for SYSTEM in $(LINKING_SYSTEMS); do \
+	  ARGUMENTS=""; \
+	  RESULT_NAME=$${SYSTEM}; \
+	  if [ $${SYSTEM} == "spacy.wikidata" ]; then \
+	    SYSTEM=spacy; \
+	    RESULT_NAME=$${SYSTEM}.wikidata; \
+	    ARGUMENTS="--linker_config configs/spacy_wikidata.config.json"; \
+	  elif [ $${SYSTEM} == "spacy.wikipedia" ]; then \
+	    SYSTEM=spacy; \
+	    RESULT_NAME=$${SYSTEM}.wikipedia; \
+	  fi; \
+	  echo -e "$${DIM}python3 link_benchmark_entities.py $${RESULT_NAME} -l $${SYSTEM} -b ${BENCHMARK_NAMES} -dir ${EVALUATION_RESULTS_DIR} $${ARGUMENTS}$${RESET}"; \
+	  python3 link_benchmark_entities.py $${RESULT_NAME} -l $${SYSTEM} -b ${BENCHMARK_NAMES} -dir ${EVALUATION_RESULTS_DIR} $${ARGUMENTS}; \
 	done
 	@echo
 
@@ -81,23 +92,6 @@ convert_predictions:
 	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} convert_benchmark_predictions; \
 	done
 	@echo
-
-link_benchmark:
-	for SYSTEM in $(LINKING_SYSTEMS); do \
-	  echo "BENCHMARK: $${BENCHMARK}"; \
-	  echo "LINKING SYSTEM: $${SYSTEM}"; \
-	  ARGUMENTS=""; \
-	  RESULT_NAME=$${SYSTEM}; \
-	  if [ $${SYSTEM} == "spacy.wikidata" ]; then \
-	    SYSTEM=spacy; \
-	    RESULT_NAME=$${SYSTEM}.wikidata; \
-	    ARGUMENTS="--linker_config configs/spacy_wikidata.config.json"; \
-	  elif [ $${SYSTEM} == "spacy.wikipedia" ]; then \
-	    SYSTEM=spacy; \
-	    RESULT_NAME=$${SYSTEM}.wikipedia; \
-	  fi; \
-	  python3 link_benchmark_entities.py $${RESULT_NAME} -l $${SYSTEM} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR} $${ARGUMENTS}; \
-	done
 
 convert_benchmark_predictions:
 	for PREDICTION in $(PREDICTIONS); do \
@@ -129,7 +123,7 @@ evaluate_linking_results:
 	@echo "EVALUATE_LINKING_SYSTEM_PREFIX = $(EVALUATE_LINKING_SYSTEM_PREFIX)"
 	@echo
 	for BENCHMARK in $(BENCHMARK_NAMES); do \
-		echo -e "$${DIM}Evaluating all linking results that match ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl .$${RESET}"; \
+		echo -e "$${DIM}python3 evaluate_linking_results.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}$${RESET}"; \
 		python3 evaluate_linking_results.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
 	done
 

@@ -35,28 +35,31 @@ def main(args):
                                    args.minimum_score,
                                    args.type_mapping)
 
-    example_generator = get_example_generator(args.benchmark)
+    for benchmark in args.benchmark:
+        example_generator = get_example_generator(benchmark)
 
-    prediction_name_dir = "".join(c if c.isalnum() else "_" for c in args.prediction_name.lower())
-    linker_dir = args.linker_name if args.linker_name else prediction_name_dir
-    output_dir = args.evaluation_dir + linker_dir
-    output_filename = output_dir + "/" + args.experiment_name + "." + args.benchmark + ".linked_articles.jsonl"
-    if output_dir and not os.path.exists(output_dir):
-        logger.info("Creating directory %s" % output_dir)
-        os.makedirs(output_dir)
+        prediction_name_dir = "".join(c if c.isalnum() else "_" for c in args.prediction_name.lower())
+        linker_dir = args.linker_name if args.linker_name else prediction_name_dir
+        output_dir = args.evaluation_dir.rstrip("/") + "/" + linker_dir
+        output_filename = output_dir + "/" + args.experiment_name + "." + benchmark + ".linked_articles.jsonl"
+        if output_dir and not os.path.exists(output_dir):
+            logger.info("Creating directory %s" % output_dir)
+            os.makedirs(output_dir)
 
-    output_file = open(output_filename, 'w', encoding='utf8')
+        output_file = open(output_filename, 'w', encoding='utf8')
 
-    logger.info("Linking entities in %s benchmark ..." % args.benchmark)
+        logger.info("Linking entities in %s benchmark ..." % benchmark)
 
-    for i, article in enumerate(tqdm(example_generator.iterate(), desc="Linking progress", unit=" articles")):
-        evaluation_span = article.evaluation_span if args.evaluation_span else None
-        linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
-        output_file.write(article.to_json() + '\n')
+        n_articles = 0
+        for i, article in enumerate(tqdm(example_generator.iterate(), desc="Linking progress", unit=" articles")):
+            evaluation_span = article.evaluation_span if args.evaluation_span else None
+            linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
+            output_file.write(article.to_json() + '\n')
+            n_articles = i+1
 
-    output_file.close()
+        output_file.close()
 
-    logger.info("Wrote %d linked articles to %s" % (i+1, output_filename))
+        logger.info("Wrote %d linked articles to %s" % (n_articles, output_filename))
 
 
 if __name__ == "__main__":
@@ -81,8 +84,8 @@ if __name__ == "__main__":
     parser.add_argument("-pname", "--prediction_name", default="Unknown Linker",
                         help="Name of the system that produced the predictions.")
 
-    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
-                        help="Benchmark over which to evaluate the linker.")
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True, nargs='+',
+                        help="Benchmark(s) over which to evaluate the linker.")
     parser.add_argument("-dir", "--evaluation_dir", default=settings.EVALUATION_RESULTS_DIR,
                         help="Directory to which the evaluation result files are written.")
     parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers],
@@ -104,5 +107,12 @@ if __name__ == "__main__":
     cmdl_args = parser.parse_args()
     if cmdl_args.prediction_file and cmdl_args.prediction_format is None:
         parser.error("--prediction_file requires --prediction_format.")
+
+    if len(cmdl_args.benchmark) > 1 and cmdl_args.prediction_file:
+            # Since otherwise one would have to provide multiple pfiles as well and those would
+            # have to be provided in the exact order of the benchmarks. User errors could easily happen.
+            # Also, the structure of linking system would have to be changed, since it currently takes a
+            # prediction file upon initialization.
+            parser.error('--prediction_file/-pfile is not supported when linking multiple benchmarks at once.')
 
     main(cmdl_args)

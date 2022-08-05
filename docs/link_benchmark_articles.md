@@ -175,6 +175,14 @@ You can then convert your linking results into our JSONL format by running
 
 
 ## Link Multiple Benchmarks with Multiple Linkers
+You can provide multiple benchmark names to link all of them at once with the specified linker. E.g.
+
+    python3 link_benchmark_entities.py baseline -l baseline -b kore50 msnbc spotlight
+
+will link the KORE50, MSNBC and DBpedia Spotlight benchmarks using the baseline entity linker. This saves a lot of time
+ in comparison to calling `link_benchmark_entities.py` separately for each benchmark, since most of the time is
+ needed to load entity information which only has to be done once per call.
+
 You can use the Makefile to link multiple benchmarks using multiple linkers with one command.
 
 To link all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable using all linking systems specified in
@@ -184,8 +192,8 @@ To link all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable us
 
 You can examine or adjust each system's exact linking arguments in the Makefile's `link_benchmark` target if needed.
 
-NOTE: In order to run the systems Spacy and Explosion, you first need to train the respective linkers.
-TODO: How to train Spacy and Explosion
+NOTE: In order to run the systems Spacy you first need to train the respective linkers.
+TODO: How to train Spacy
 
 ## Convert Linking Results of Multiple Systems for Multiple Benchmarks
 You can use the Makefile to convert the linking results of multiple systems for multiple benchmarks with one command.
