@@ -172,9 +172,9 @@ download_entity_types_mapping:
 	rm entity-types.tar.gz
 
 download_spacy_linking_files:
-	@[ -d ${DATA_DIR}/linker_files ] || mkdir ${DATA_DIR}/linker_files
+	@[ -d ${DATA_DIR}linker_files ] || mkdir ${DATA_DIR}linker_files
 	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/spacy_linker_files.tar.gz
-	tar -xvzf spacy_linker_files.tar.gz -C ${DATA_DIR}/linker_files
+	tar -xvzf spacy_linker_files.tar.gz -C ${DATA_DIR}linker_files
 	rm spacy_linker_files.tar.gz
 
 
