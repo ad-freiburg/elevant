@@ -109,6 +109,7 @@ class Case:
             if self.child_linking_eval_types is None:
                 # Child evaluation types have not been initialized (yet) so the
                 # parent evaluation type can't be inferred
+                # This is always the case for 0-factor cases with a non-root GT label
                 return []
 
             # Get eval type of child cases with factor != 0.
@@ -121,12 +122,10 @@ class Case:
                 return [EvaluationType.TP]
             else:
                 # Don't return FP. FPs are counted for all cases with factor != 0 so there's
-                # no special treatment of the parent needed
+                # no special treatment of the parent needed.
                 # This case should never happen, since cases with factor = 0 are always cases
                 # with a GT and therefore have at least one FN or TP.
-                # Unless... children are unknowns/optional and mode is ignored/optional?
-                # This case happens on msnbc where overlaps happen.
-                logger.warning("Evaluation case with factor = 0 is neither FN nor TP.")
+                # Unless children are unknown and mode is IGNORED.
                 return []
 
         if not self.has_ground_truth():
@@ -224,9 +223,9 @@ class Case:
             else:
                 # Don't return FP. FPs are counted for all cases with factor != 0 so there's
                 # no special treatment of the parent needed.
-                # This case should never happen, since cases with factor = 0 are always caess
+                # This case should never happen, since cases with factor = 0 are always cases
                 # with a GT and therefore have at least one FN or TP.
-                logger.warning("Evaluation case with factor = 0 is neither NER FN nor TP.")
+                # Unless children are unknown and mode is IGNORED.
                 return []
 
         if not self.has_ground_truth():
