@@ -11,7 +11,7 @@ from src.helpers.label_generator import LabelGenerator
 
 
 def save_model(model: Language, model_name: str):
-    path = settings.LINKERS_DIRECTORY + model_name
+    path = settings.SPACY_MODEL_DIRECTORY + model_name
     model_bytes = model.to_bytes()
     with open(path, "wb") as f:
         f.write(model_bytes)

@@ -67,14 +67,14 @@ UNIGRAMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/unigrams.txt"
 WIKIPEDIA_ABSTRACTS_FILE = DATA_DIRECTORY + "wikipedia_mappings/article_abstracts.tsv"
 
 # Spacy knowledge base files
-KB_FILE = DATA_DIRECTORY + "spacy_knowledge_bases/wikidata/kb"
-KB_DIRECTORY = DATA_DIRECTORY + "spacy_knowledge_bases/"
-VOCAB_DIRECTORY = DATA_DIRECTORY + "spacy_knowledge_bases/wikidata/vocab"
-VECTORS_DIRECTORY = DATA_DIRECTORY + "spacy_knowledge_bases/vectors/vectors"
-VECTORS_ABSTRACTS_DIRECTORY = DATA_DIRECTORY + "spacy_knowledge_bases/vectors/vectors_abstracts/"
+KB_FILE = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/wikidata/kb"
+KB_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/"
+VOCAB_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/wikidata/vocab"
+VECTORS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/vectors/vectors"
+VECTORS_ABSTRACTS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/vectors/vectors_abstracts/"
 
 # Linker files
-LINKERS_DIRECTORY = DATA_DIRECTORY + "linker_files/trained_spacy_linker_models/"
+LINKERS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/models/"
 
 # Benchmark files
 AIDA_CONLL_BENCHMARK_FILE = DATA_DIRECTORY + "benchmarks/aida/AIDA-YAGO2-dataset.tsv"

@@ -16,7 +16,7 @@ class EntityLinkerLoader:
     @staticmethod
     def load_trained_linker(name: str, kb_name: Optional[str] = None):
         logger.info("Loading linker model...")
-        path = settings.LINKERS_DIRECTORY + name
+        path = settings.SPACY_MODEL_DIRECTORY + name
         with open(path, "rb") as f:
             model_bytes = f.read()
         model = spacy.blank("en")

@@ -171,6 +171,13 @@ download_entity_types_mapping:
 	tar -xvzf entity-types.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
 	rm entity-types.tar.gz
 
+download_spacy_linking_files:
+	@[ -d ${DATA_DIR}/linker_files ] || mkdir ${DATA_DIR}/linker_files
+	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/spacy_linker_files.tar.gz
+	tar -xvzf spacy_linker_files.tar.gz -C ${DATA_DIR}/linker_files
+	rm spacy_linker_files.tar.gz
+
+
 # Download Wikipedia dump only if it does not exist already at the specified location.
 download_wiki:
 	@[ -d ${WIKIPEDIA_DUMP_FILES_DIR} ] || mkdir ${WIKIPEDIA_DUMP_FILES_DIR}

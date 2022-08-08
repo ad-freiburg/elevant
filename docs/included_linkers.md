@@ -85,8 +85,19 @@ The POS Prior linker class is implemented [here](../src/linkers/prior_linker.py)
 
 #### SpaCy
 
-The SpaCy linker does not work out of the box and needs to be trained first.
-This requires the following steps:
+In order to run the spaCy linker, you first need to download the knowledge base, vocabulary and model files needed by
+ the linker using the Makefile:
+
+    make download_spacy_linking_files
+
+The SpaCy linker can then be used by providing the linker name `spacy`:
+
+    python3 link_benchmark_entities.py <experiment_name> -l spacy -b <benchmark_name>
+
+In the corresponding config file `configs/spacy.config.json` you can adjust the model and knowledge base name if needed.
+ The Spacy linker class is implemented [here](../src/linkers/spacy_linker.py).
+
+Alternatively you can train the linker yourself. This requires the following steps:
 
 1. Generate word vectors:
 
@@ -100,9 +111,3 @@ This requires the following steps:
 
        python3 train_spacy_entity_linker.py <linker_name> <n_batches> wikipedia
        
-The SpaCy linker can then be used with the created wikipedia knowledge base by providing the linker name `spacy` and
- setting the knowledge base name to `wikipedia` in the corresponding config file `configs/spacy.config.json`.
- 
-    python3 link_benchmark_entities.py <experiment_name> -l spacy -b <benchmark_name>
-
-The Spacy linker class is implemented [here](../src/linkers/spacy_linker.py).
