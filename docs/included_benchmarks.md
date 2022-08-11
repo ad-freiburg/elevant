@@ -7,7 +7,7 @@ This document gives an overview of the benchmarks that are included in ELEVANT.
 
 **Paper:** [Robust Disambiguation of Named Entities in Text](https://www.aclweb.org/anthology/D11-1072.pdf)
 
-**ELEVANT benchmark name:** `aida-conll`
+**ELEVANT benchmark name:** `aida-conll-test` and `aida-conll-dev`
 
 **Volume:** 1393 articles with 34,956 mentions all in all, 7,136 of which link to NIL. Thus, the dataset contains
  27,820 non-NIL mentions. The dataset is split into train, dev and test set where the training dataset contains the
