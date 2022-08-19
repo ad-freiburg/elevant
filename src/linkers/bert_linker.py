@@ -29,7 +29,7 @@ class BertLinker(AbstractEntityLinker):
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
 
         # Get config variables
-        self.linker_identifier = config["name"] if "name" in config else "BERTModel"
+        self.linker_identifier = config["linker_name"] if "linker_name" in config else "BERTModel"
         self.ner_identifier = "EnhancedSpacy"
         model_path = config["model_path"] if "model_path" in config else None
         if model_path is None:

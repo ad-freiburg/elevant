@@ -1,5 +1,6 @@
 {
-  "name": "TagMe",
+  "linker_name": "TagMe",
   "rho_threshold": 0.2,
-  "token": "replace with your own access token"
+  "token": "replace with your own access token",
+  "experiment_description": "Using the official TagMe API and a threshold of 0.2."
 }

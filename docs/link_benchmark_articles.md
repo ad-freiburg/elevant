@@ -3,17 +3,10 @@ To link the articles of a benchmark with a single linker configuration, use the 
 
     python3 link_benchmark_entities.py <experiment_name> -l <linker_name> -b <benchmark_name>
 
-The linking results will be written to
- `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl`.
- For example
+Properties specific to the selected linker such as confidence thresholds, model paths, etc. are read from the linker's
+ config file at `configs/<linker_name>.config.json`.
 
-    python3 link_benchmark_entities.py baseline -l baseline -b kore50
-
-will create the file `evaluation-results/baseline/baseline.kore50.linked_articles.jsonl`. The result file contains
- one article as JSON object per line. Each JSON object contains benchmark article information such as the article
- title, text, and ground truth labels, as well as the entity mentions predicted by the specified linker. Properties
- specific to the selected linker such as confidence thresholds, model paths, ... are read from the linker's config
- file at `configs/<linker_name>.config.json`.
+For a list of entity linkers included in ELEVANT, see [Included Linkers](included_linkers.md).
 
 ## Use Existing Linking Results
 If you already have linking results for a certain benchmark that you want to evaluate with ELEVANT, you can use the
@@ -35,9 +28,10 @@ The script call to convert linking results into our format is
     python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat <linking_results_format> -pname <linker_name> -b <benchmark_name>
 
 The converted linking results will be written to
- `evaluation-results/<adjusted_linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl` where
- `<adjusted_linker_name>` is a lowercased version of `<linker_name>` with non-alphanumerical characters replaced by
- `_`. If the `-pname` option is omitted, `<adjusted_linker_name>` is `unknown_linker`.
+ `evaluation-results/<adjusted_linker_name>/<adjusted_experiment_name>.<benchmark_name>.linked_articles.jsonl` where
+ `<adjusted_linker_name>` and `<adjusted_experiment_name>` are lowercased versions of `<linker_name>` and
+ `<experiment_name>` with characters other than `[a-z0-9-]` replaced by `_`. If the `-pname` option is omitted,
+ `<adjusted_linker_name>` is `unknown_linker`.
 
 #### Linking Results in NIF
 If you have linking results for a certain benchmark in NIF format, use `-pformat nif` in the script call described
@@ -191,9 +185,6 @@ To link all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable us
     make link_benchmarks
 
 You can examine or adjust each system's exact linking arguments in the Makefile's `link_benchmark` target if needed.
-
-NOTE: In order to run the systems Spacy you first need to train the respective linkers.
-TODO: How to train Spacy
 
 ## Convert Linking Results of Multiple Systems for Multiple Benchmarks
 You can use the Makefile to convert the linking results of multiple systems for multiple benchmarks with one command.

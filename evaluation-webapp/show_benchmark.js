@@ -8,6 +8,7 @@ ANNOTATION_CLASS_OPTIONAL = "optional";
 ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 
 RESULTS_EXTENSION = ".eval_results.json";
+METADATA_EXTENSION = ".metadata.json";
 EVALUATION_RESULT_PATH = "evaluation-results";
 
 EXAMPLE_BENCHMARK_PATH = "example-benchmark/error-category-examples.benchmark.jsonl";
@@ -200,6 +201,7 @@ $("document").ready(function() {
 
     evaluation_cases = {};
     articles_data = {};
+    experiments_metadata = {};
 
     last_show_article_request_timestamp = 0;
 
@@ -905,7 +907,7 @@ function show_benchmark_results(initial_call) {
 function filter_table_rows() {
     var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
     $("#evaluation_table_wrapper tbody tr").each(function() {
-        var name = $(this).children(":first-child").text();
+        var name = $(this).children("td:first").text();
         // Filter row according to filter keywords
         var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
 
@@ -1593,16 +1595,18 @@ async function show_article(selected_approaches, timestamp) {
     // Show columns
     // Show first prediction column
     show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0], column_idx, selected_article_index, false);
+    var displayed_exp_name = get_displayed_experiment_name(selected_approaches[0]);
     var benchmark_name = $("#benchmark option:selected").text();
-    var emphasis_str = get_emphasis_string(selected_cell_categories[0])
-    $(column_headers[column_idx]).html(selected_approaches[0] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
+    var emphasis_str = get_emphasis_string(selected_cell_categories[0]);
+    $(column_headers[column_idx]).html(displayed_exp_name + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
     show_table_column("prediction_overview", column_idx);
     column_idx++;
     if(is_compare_checked() && selected_approaches.length > 1) {
         // Show second prediction column
         show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1], column_idx, selected_article_index, false);
+        displayed_exp_name = get_displayed_experiment_name(selected_approaches[1]);
         emphasis_str = get_emphasis_string(selected_cell_categories[1])
-        $(column_headers[column_idx]).html(selected_approaches[1] + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
+        $(column_headers[column_idx]).html(displayed_exp_name + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
         show_table_column("prediction_overview", column_idx);
         column_idx++;
     }
@@ -1653,7 +1657,8 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
     var folders = [];
     result_files = {};
     result_array = [];
-    var urls = [];
+    var results_urls = [];
+    var metadata_urls = [];
     $.get(path, function(data) {
         // Get all folders from the evaluation results directory
         $(data).find("a").each(function() {
@@ -1668,17 +1673,21 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                 $(folder_data).find("a").each(function() {
                     var file_name = $(this).attr("href");
                     // This assumes the benchmark is specified in the last dot separated column before the
-                    // file extension.
-                    var benchmark = file_name.substring(0, file_name.length - RESULTS_EXTENSION.length).split(".").slice(-1);
-                    if (file_name.endsWith(RESULTS_EXTENSION) && benchmark == benchmark_name) {
+                    // file extension (.linked_articles.jsonl, .eval_cases.jsonl, .eval_results.json, metadata.json).
+                    var benchmark = file_name.split(".").slice(-3)[0];
+                    if (benchmark == benchmark_name) {
                         var url = path + "/" + folder + "/" + file_name;
-                        urls.push(url);
+                        if (file_name.endsWith(RESULTS_EXTENSION)) results_urls.push(url);
+                        if (file_name.endsWith(METADATA_EXTENSION)) metadata_urls.push(url);
                     }
                 });
             });
         })).then(function() {
             // Retrieve contents of each .eval_results.json file for the selected benchmark and store it in an array
-            $.when.apply($, urls.map(function(url) {
+            $.when.apply($, results_urls.map(function(url) {
+                var experiment_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
+                // Remove the benchmark extension from the experiment name
+                experiment_name = experiment_name.substring(0, experiment_name.lastIndexOf("."))
                 return $.getJSON(url, function(results) {
                     // Add the radio buttons for the different evaluation modes if they haven't been added yet
                     if ($('#evaluation_overview #evaluation_modes').find("input").length == 0) {
@@ -1688,10 +1697,7 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                     var eval_mode = get_evaluation_mode();
                     results = results[eval_mode];
 
-                    var approach_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
-                    // Remove the benchmark extension from the approach name
-                    if (approach_name.endsWith("." + benchmark_name)) approach_name = approach_name.substring(0, approach_name.lastIndexOf("."))
-                    result_files[approach_name] = url.substring(0, url.length - RESULTS_EXTENSION.length);
+                    result_files[experiment_name] = url.substring(0, url.length - RESULTS_EXTENSION.length);
 
                     // Filter out certain keys in results according to config
                     $.each(results["error_categories"], function(key) {
@@ -1711,60 +1717,73 @@ function build_overview_table(benchmark_name, default_selected_systems, default_
                     });
 
                     // Add results for approach to array
-                    result_array.push([approach_name, results]);
+                    result_array.push([experiment_name, results]);
                 });
             })).then(function() {
-                // Sort the result array
-                result_array.sort();
-                // Add table header and checkboxes
-                result_array.forEach(function(result_tuple) {
-                    var approach_name = result_tuple[0];
-                    var results = result_tuple[1];
-                    if (!$('#evaluation_table_wrapper table thead').html()) {
-                        // Add table header if it has not yet been added
-                        add_table_header(results, "evaluation");
-                    }
+                $.when.apply($, metadata_urls.map(function(url) {
+                    // Retrieve experiments metadata for table tooltips and the first table column text
+                    var experiment_name = url.substring(url.lastIndexOf("/") + 1, url.length - METADATA_EXTENSION.length);
+                    // Remove the benchmark extension from the experiment name
+                    experiment_name = experiment_name.substring(0, experiment_name.lastIndexOf("."))
+                    return $.getJSON(url, function(metadata) {
+                        experiments_metadata[experiment_name] = metadata;
+                    });
+                })).done(function() {
+                    // Sort the result array
+                    result_array.sort();
+                    // Add table header and checkboxes
+                    result_array.forEach(function(result_tuple) {
+                        var approach_name = result_tuple[0];
+                        var results = result_tuple[1];
+                        if (!$('#evaluation_table_wrapper table thead').html()) {
+                            // Add table header if it has not yet been added
+                            add_table_header(results, "evaluation");
+                        }
 
-                    if (!$('#evaluation_overview .checkboxes').html()) {
-                        // Add checkboxes if they have not yet been added
-                        add_checkboxes(results, initial_call);
-                    }
-                    return;
-                });
-                // Add table body
-                build_evaluation_table_body(result_array);
+                        if (!$('#evaluation_overview .checkboxes').html()) {
+                            // Add checkboxes if they have not yet been added
+                            add_checkboxes(results, initial_call);
+                        }
+                        return;
+                    });
+                    // Add table body
+                    build_evaluation_table_body(result_array);
 
-                // Select default rows and cells
-                if (default_selected_systems) {
-                    for (var i=0; i<default_selected_systems.length; i++) {
-                        var system = default_selected_systems[i];
-                        var row = $('#evaluation_table_wrapper table tbody tr').filter(function(){ return $(this).children(":first-child").text() === system;});
-                        if (row.length > 0) {
-                            if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
-                                var cell = $(row).children("." + default_selected_emphasis[i]);
-                                if (cell.length > 0) {
-                                    on_cell_click(cell[0]);
+                    // Select default rows and cells
+                    if (default_selected_systems) {
+                        for (var i=0; i<default_selected_systems.length; i++) {
+                            var system = default_selected_systems[i];
+                            var row = $('#evaluation_table_wrapper table tbody tr').filter(function() {
+                                return get_experiment_name_from_td($(this).children("td:first")) === system;
+                            });
+                            if (row.length > 0) {
+                                if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
+                                    var cell = $(row).children("." + default_selected_emphasis[i]);
+                                    if (cell.length > 0) {
+                                        on_cell_click(cell[0]);
+                                    } else {
+                                        on_cell_click($(row).children("td:first")[0]);
+                                    }
                                 } else {
-                                    on_cell_click($(row).children(":first-child")[0]);
+                                    on_cell_click($(row).children("td:first")[0]);
                                 }
-                            } else {
-                                on_cell_click($(row).children(":first-child")[0]);
+                                on_row_click(row[0]);
                             }
-                            on_row_click(row[0]);
                         }
                     }
-                }
 
-                // Update the tablesorter. The sort order is automatically adapted from the previous table.
-                $("#evaluation_table_wrapper table").trigger("updateAll")
+                    // Update the tablesorter. The sort order is automatically adapted from the previous table.
+                    $("#evaluation_table_wrapper table").trigger("updateAll")
 
-                // Remove the table loading GIF
-                $("#table_loading").removeClass("show");
+                    // Remove the table loading GIF
+                    $("#table_loading").removeClass("show");
 
-                if (initial_call && url_param_sort_order.length > 0) {
-                    // Use sort order from URL parameter
-                    $.tablesorter.sortOn( $("#evaluation_table_wrapper table")[0].config, [ url_param_sort_order ]);
-                }
+                    if (initial_call && url_param_sort_order.length > 0) {
+                        // Use sort order from URL parameter
+                        $.tablesorter.sortOn( $("#evaluation_table_wrapper table")[0].config, [ url_param_sort_order ]);
+                    }
+                    add_experiment_tooltips();
+                });
             });
         });
     });
@@ -1831,10 +1850,31 @@ function build_evaluation_table_body(result_list) {
     // Show / Hide columns according to checkbox state
     $("input[class^='checkbox_']").each(function() {
         show_hide_columns(this, false);
-    })
+    });
 
     // Show / Hide rows according to filter-result input field
     filter_table_rows();
+}
+
+function add_experiment_tooltips() {
+    $("#evaluation_table_wrapper table tbody tr").each(function(index) {
+        var experiment_name = get_experiment_name_from_td($(this).find('td:first'));
+        var metadata = experiments_metadata[experiment_name];
+        if (metadata) {
+            var tooltiptext = "";
+            if (metadata.experiment_description) tooltiptext += "<p><i>" + metadata.experiment_description + "</i></p>";
+            tooltiptext += "<p>";
+            if (metadata.linking_time) tooltiptext += "Linking took " + metadata.linking_time.toFixed(2) + "s<br>";
+            tooltiptext += metadata.timestamp + "</p>";
+            tippy("#evaluation_table_wrapper table tbody tr:nth-child(" + (index + 1) + ") td:nth-child(1)", {
+                content: tooltiptext,
+                allowHTML: true,
+                interactive: (tooltiptext.includes("</a>")),
+                appendTo: document.body,
+                theme: 'light-border',
+            });
+        }
+    });
 }
 
 function add_checkboxes(json_obj, initial_call) {
@@ -1969,7 +2009,8 @@ function add_table_row(approach_name, json_obj) {
     */
     var row = "<tr onclick='on_row_click(this)'>";
     var onclick_str = " onclick='on_cell_click(this)'";
-    row += "<td " + onclick_str + ">" + approach_name + "</td>";
+    var displayed_experiment_name = get_displayed_experiment_name(approach_name);
+    row += "<td " + onclick_str + " data-name=\"" + approach_name + "\">" + displayed_experiment_name + "</td>";
     $.each(json_obj, function(basekey) {
         $.each(json_obj[basekey], function(key) {
             var new_json_obj = json_obj[basekey][key];
@@ -2218,6 +2259,16 @@ function read_evaluation(approach_name, selected_approaches, timestamp) {
     });
 }
 
+function get_experiment_name_from_td(td) {
+    return $(td).data("name");
+}
+
+function get_displayed_experiment_name(exp_name) {
+    var metadata_exp_name = (exp_name in experiments_metadata) ? experiments_metadata[exp_name].experiment_name : null;
+    var displayed_experiment_name = (metadata_exp_name) ? metadata_exp_name : exp_name;
+    return displayed_experiment_name;
+}
+
 function on_row_click(el) {
     /*
     This method is called when a table body row was clicked.
@@ -2230,7 +2281,7 @@ function on_row_click(el) {
     // Show the loading GIF
     $("#loading").addClass("show");
 
-    var approach_name = $(el).find('td:first').text();
+    var approach_name = get_experiment_name_from_td($(el).find('td:first'));
 
     // De-select previously selected rows
     if (!is_compare_checked() || selected_approach_names.length >= MAX_SELECTED_APPROACHES) {

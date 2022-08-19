@@ -101,10 +101,12 @@ To link the articles of a benchmark with a single linker configuration, use the 
     python3 link_benchmark_entities.py <experiment_name> -l <linker_name> -b <benchmark_name>
 
 The linking results will be written to
- `evaluation-results/<linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl`.
+ `evaluation-results/<linker_name>/<adjusted_experiment_name>.<benchmark_name>.linked_articles.jsonl` where
+ `<adjusted_experiment_name>` is `<experiment_name>` in lowercase and characters other than `[a-z0-9-]` replaced by
+ `_`.
 For example
 
-    python3 link_benchmark_entities.py baseline -l baseline -b kore50
+    python3 link_benchmark_entities.py Baseline -l baseline -b kore50
 
 will create the file `evaluation-results/baseline/baseline.kore50.linked_articles.jsonl`. The result file contains
  one article as JSON object per line. Each JSON object contains benchmark article information such as the article

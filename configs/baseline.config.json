@@ -1,5 +1,6 @@
 {
-  "name": "Baseline",
+  "linker_name": "Baseline",
   "strategy": "wikipedia",
-  "longest_alias_ner": false
+  "longest_alias_ner": false,
+  "experiment_description": "Using prior probabilities derived from Wikipedia and Wikipedia + Wikidata aliases."
 }

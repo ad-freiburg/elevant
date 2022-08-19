@@ -103,17 +103,20 @@ convert_benchmark_predictions:
 	  if [ $${PREDICTION} == "ambiverse" ]; then \
 	    PFILE=/nfs/students/natalie-prange/ambiverse_data/results/benchmark_$${BENCHMARK}/; \
 	    PFORMAT=ambiverse; \
+	    PNAME=Ambiverse; \
 	  elif [ $${PREDICTION} == "neural-el" ]; then \
 	    PFILE=/nfs/students/natalie-prange/neural-el-data/results/linked_articles_$${BENCHMARK}.jsonl; \
 	    PFORMAT=simple-jsonl; \
+	    PNAME="Neural EL"; \
 	  elif [ $${PREDICTION} == "wikifier" ]; then \
 	    PFILE=/nfs/students/natalie-prange/wikifier_data/output/benchmark_$${BENCHMARK}/; \
 	    PFORMAT=wikifier; \
+	    PNAME=Wikifier; \
 	  else \
 	    echo -e "$${DIM}No rule for predictions from $${PREDICTION} found in Makefile.$${RESET}"; \
 	    continue; \
 	  fi; \
-	  python3 link_benchmark_entities.py $${RESULT_NAME} -pfile $${PFILE} -pformat $${PFORMAT} -pname $${PREDICTION} -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
+	  python3 link_benchmark_entities.py $${RESULT_NAME} -pfile $${PFILE} -pformat $${PFORMAT} -pname "$${PNAME}" -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
 	done
 
 get_oracle_predictions:

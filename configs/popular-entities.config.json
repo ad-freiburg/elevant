@@ -1,5 +1,6 @@
 {
-  "name": "PopularEntities",
+  "linker_name": "Popular Entities",
   "min_score": 15,
-  "longest_alias_ner": false
+  "longest_alias_ner": false,
+  "experiment_description": "Only entities with a sitelink count >= 15 are considered."
 }

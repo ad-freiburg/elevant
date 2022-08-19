@@ -1,5 +1,6 @@
 {
-  "name": "Prior",
+  "linker_name": "Prior",
   "whitelist_type_file": "small-data-files/whitelist_types.tsv",
-  "use_pos": true
+  "use_pos": true,
+  "experiment_description": "Using prior probabilities and simple POS-based NER."
 }

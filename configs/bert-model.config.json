@@ -1,4 +1,4 @@
 {
-  "name": "BertModel",
+  "linker_name": "BertModel",
   "model_path": ""
 }

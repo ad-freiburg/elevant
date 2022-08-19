@@ -16,6 +16,9 @@ import argparse
 import log
 import sys
 import os
+import json
+import time
+from datetime import datetime
 from tqdm import tqdm
 
 from src import settings
@@ -23,6 +26,14 @@ from src.evaluation.benchmark import get_available_benchmarks
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.linking_system import LinkingSystem
 from src.evaluation.examples_generator import get_example_generator
+
+
+def convert_to_filename(string: str):
+    """
+    Return lowercased version of the given string with non-alphanumerical
+    characters replaced by underscore (except for "-").
+    """
+    return "".join(c if c.isalnum() or c == "-" else "_" for c in string.lower())
 
 
 def main(args):
@@ -38,10 +49,12 @@ def main(args):
     for benchmark in args.benchmark:
         example_generator = get_example_generator(benchmark)
 
-        prediction_name_dir = "".join(c if c.isalnum() or "-" else "_" for c in args.prediction_name.lower())
+        prediction_name_dir = convert_to_filename(args.prediction_name)
         linker_dir = args.linker_name if args.linker_name else prediction_name_dir
         output_dir = args.evaluation_dir.rstrip("/") + "/" + linker_dir
-        output_filename = output_dir + "/" + args.experiment_name + "." + benchmark + ".linked_articles.jsonl"
+        experiment_filename = convert_to_filename(args.experiment_name)
+        output_filename = output_dir + "/" + experiment_filename + "." + benchmark + ".linked_articles.jsonl"
+        metadata_filename = output_filename[:-len(".linked_articles.jsonl")] + ".metadata.json"
         if output_dir and not os.path.exists(output_dir):
             logger.info("Creating directory %s" % output_dir)
             os.makedirs(output_dir)
@@ -51,14 +64,40 @@ def main(args):
         logger.info("Linking entities in %s benchmark ..." % benchmark)
 
         n_articles = 0
+        start_time = time.time()
         for i, article in enumerate(tqdm(example_generator.iterate(), desc="Linking progress", unit=" articles")):
             evaluation_span = article.evaluation_span if args.evaluation_span else None
             linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
             output_file.write(article.to_json() + '\n')
             n_articles = i+1
+        linking_time = time.time() - start_time
 
         output_file.close()
 
+        # Write metadata to metadata file
+        with open(metadata_filename, "w", encoding="utf8") as metadata_file:
+            linker_config = linking_system.get_linker_config()
+            exp_name = args.experiment_name
+            exp_description = None
+            if args.description:
+                exp_description = args.description
+            elif "experiment_description" in linker_config:
+                exp_description = linker_config["experiment_description"]
+            linker_name = None
+            if args.prediction_name:
+                linker_name = args.prediction_name
+            elif "linker_name" in linker_config:
+                linker_name = linker_config["linker_name"]
+            elif args.linker_name:
+                linker_name = args.linker_name
+            metadata = {"experiment_name": exp_name,
+                        "experiment_description": exp_description,
+                        "linker_name": linker_name,
+                        "timestamp": datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+                        "linking_time": linking_time if args.linker_name else None}
+            metadata_file.write(json.dumps(metadata))
+
+        logger.info("Wrote metadata to %s" % metadata_filename)
         logger.info("Wrote %d linked articles to %s" % (n_articles, output_filename))
 
 
@@ -101,6 +140,9 @@ if __name__ == "__main__":
     parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
                         help="For pure prior linker: Map predicted entities to types using the given mapping.")
 
+    parser.add_argument("--description", "-desc", type=str,
+                        help="A description for the experiment. This will be displayed in the webapp.")
+
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))
 
@@ -109,10 +151,10 @@ if __name__ == "__main__":
         parser.error("--prediction_file requires --prediction_format.")
 
     if len(cmdl_args.benchmark) > 1 and cmdl_args.prediction_file:
-            # Since otherwise one would have to provide multiple pfiles as well and those would
-            # have to be provided in the exact order of the benchmarks. User errors could easily happen.
-            # Also, the structure of linking system would have to be changed, since it currently takes a
-            # prediction file upon initialization.
-            parser.error('--prediction_file/-pfile is not supported when linking multiple benchmarks at once.')
+        # Since otherwise one would have to provide multiple pfiles as well and those would
+        # have to be provided in the exact order of the benchmarks. User errors could easily happen.
+        # Also, the structure of linking system would have to be changed, since it currently takes a
+        # prediction file upon initialization.
+        parser.error('--prediction_file/-pfile is not supported when linking multiple benchmarks at once.')
 
     main(cmdl_args)

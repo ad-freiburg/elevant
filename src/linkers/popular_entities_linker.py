@@ -51,7 +51,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         self.entity_db = entity_db
 
         # Get config variables
-        self.linker_identifier = config["name"] if "name" in config else "PopularEntities"
+        self.linker_identifier = config["linker_name"] if "linker_name" in config else "Popular Entities"
         self.min_score = config["min_score"] if "min_score" in config else 15
         self.longest_alias_ner = config["longest_alias_ner"] if "longest_alias_ner" in config else False
         self.ner_identifier = "LongestAliasNER" if self.longest_alias_ner else "EnhancedSpacy"

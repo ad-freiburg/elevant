@@ -20,7 +20,7 @@ class BaselineLinker(AbstractEntityLinker):
         self.entity_db = entity_database
 
         # Get config variables
-        self.linker_identifier = config["name"] if "name" in config else "Baseline"
+        self.linker_identifier = config["linker_name"] if "linker_name" in config else "Baseline"
         self.strategy = config["strategy"] if "strategy" in config else "wikipedia"
         self.longest_alias_ner = config["longest_alias_ner"] if "longest_alias_ner" in config else False
         self.ner_identifier = "LongestAliasNER" if self.longest_alias_ner else "EnhancedSpacy"

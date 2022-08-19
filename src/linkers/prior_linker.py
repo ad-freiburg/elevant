@@ -21,7 +21,7 @@ class PriorLinker(AbstractEntityLinker):
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
 
         # Get config variables
-        self.linker_identifier = config["name"] if "name" in config else "Prior"
+        self.linker_identifier = config["linker_name"] if "linker_name" in config else "Prior"
         self.ner_identifier = self.linker_identifier
         whitelist_type_file = config["whitelist_type_file"] if "whitelist_type_file" in config \
             else settings.WHITELIST_FILE

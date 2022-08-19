@@ -17,7 +17,7 @@ class TagMeLinker(AbstractEntityLinker):
         self.model = None
 
         # Get config variables
-        self.linker_identifier = config["name"] if "name" in config else "TagMe"
+        self.linker_identifier = config["linker_name"] if "linker_name" in config else "TagMe"
         self.ner_identifier = self.linker_identifier
         self.rho_threshold = config["rho_threshold"] if "rho_threshold" in config else 0.2
         if "token" not in config or config["token"] in ("", "replace with your own access token"):

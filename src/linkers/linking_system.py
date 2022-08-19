@@ -44,8 +44,7 @@ class LinkingSystem:
         self.entity_db = None
         self.globally = False
         self.type_mapping_file = type_mapping_file  # Only needed for pure prior linker
-        self.linker_config = None
-        self.linker_config = self.get_linker_config(linker_name, config_path) if linker_name else None
+        self.linker_config = self.read_linker_config(linker_name, config_path) if linker_name else {}
 
         self._initialize_entity_db(linker_name, coref_linker, min_score)
         self._initialize_linker(linker_name, prediction_file, prediction_format)
@@ -63,7 +62,7 @@ class LinkingSystem:
                                                           type_mapping=self.type_mapping_file)
 
     @staticmethod
-    def get_linker_config(linker_name: str, config_path: Optional[str] = None) -> Dict[str, Any]:
+    def read_linker_config(linker_name: str, config_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Get config dictionary for the specified linker or config path.
         """
@@ -80,6 +79,9 @@ class LinkingSystem:
             with open(config_path, "r", encoding="utf8") as file:
                 linker_config = json.load(file)
             return linker_config
+
+    def get_linker_config(self) -> Dict[str, Any]:
+        return self.linker_config
 
     def _initialize_linker(self, linker_name: str, prediction_file: str, prediction_format: str):
         if linker_name:

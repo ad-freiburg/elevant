@@ -27,7 +27,7 @@ class DbpediaSpotlightLinker(AbstractEntityLinker):
         self.model = None
 
         # Get config variables
-        self.linker_identifier = config["name"] if "name" in config else "DBpediaSpotlight"
+        self.linker_identifier = config["linker_name"] if "linker_name" in config else "DBpedia Spotlight"
         self.ner_identifier = self.linker_identifier
         self.api_url = config["api_url"] if "api_url" in config else "https://api.dbpedia-spotlight.org/en/annotate"
         self.confidence = config["confidence"] if "confidence" in config else 0.35
