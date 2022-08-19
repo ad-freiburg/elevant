@@ -25,9 +25,10 @@ class NifBenchmarkReader:
         """
         nif_doc = NIFCollection.loads(nif_content)
 
+        no_mapping_count = 0
+
         # NIF contexts have random order by default. Make sure results are reproducible by sorting by URI
         for context in sorted(nif_doc.contexts, key=lambda c: c.uri):
-            no_mapping_count = 0
             label_id_counter = 0
             text = context.mention
             if not text:
@@ -57,10 +58,11 @@ class NifBenchmarkReader:
             article = Article(id=self.article_id_counter, title=title, text=text, labels=labels)
             self.article_id_counter += 1
 
-            if no_mapping_count > 0:
-                logger.warning("%d Labels could not be mapped to any Wikidata QID." % no_mapping_count)
-
             yield article
+
+        if no_mapping_count > 0:
+            logger.info("%d entity names could not be mapped to any Wikidata QID (includes unknown entities)."
+                           % no_mapping_count)
 
     def get_articles_from_file(self, filepath: str) -> Iterator[Article]:
         """

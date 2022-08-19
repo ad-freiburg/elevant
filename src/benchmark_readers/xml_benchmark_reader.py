@@ -63,7 +63,8 @@ class XMLBenchmarkParser:
         NestedGroundtruthHandler.assign_parent_and_child_ids(labels)
 
         if no_mapping_count > 0:
-            logger.warning("%d Labels could not be matched to any Wikidata ID." % no_mapping_count)
+            logger.info("%d entity names could not be matched to any Wikidata ID (includes unknown entities)."
+                        % no_mapping_count)
 
         return Article(id=-1, title="", text=stripped_text, labels=labels)
 

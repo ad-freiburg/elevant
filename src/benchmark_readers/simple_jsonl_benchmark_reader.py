@@ -23,10 +23,11 @@ class SimpleJsonlBenchmarkReader:
         """
         Yields all articles with their GT labels from the given file.
         """
+        no_mapping_count = 0
+
         with open(filepath, "r", encoding="utf8") as file:
             for line in file:
                 label_id_counter = 0
-                no_mapping_count = 0
                 benchmark_json = json.loads(line)
                 title = benchmark_json["title"] if "title" in benchmark_json else ""
                 text = benchmark_json["text"]
@@ -53,10 +54,11 @@ class SimpleJsonlBenchmarkReader:
                 article = Article(id=self.article_id_counter, title=title, text=text, labels=labels)
                 self.article_id_counter += 1
 
-                if no_mapping_count > 0:
-                    logger.warning("%d Labels could not be mapped to any Wikidata QID." % no_mapping_count)
-
                 yield article
+
+        if no_mapping_count > 0:
+            logger.info("%d entity names could not be mapped to any Wikidata QID (includes unknown entities)."
+                           % no_mapping_count)
 
     def article_iterator(self, benchmark_path: str) -> Iterator[Article]:
         """
