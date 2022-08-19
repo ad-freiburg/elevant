@@ -14,6 +14,7 @@ class KnowledgeBaseName(Enum):
     WIKIDATA = "wikidata"
     WIKIPEDIA = "wikipedia"
     DBPEDIA = "dbpedia"
+    UNIDENTIFIED_KB = "unidentified_kb"
 
 
 class KnowledgeBase:
@@ -23,9 +24,9 @@ class KnowledgeBase:
 
 
 class KnowledgeBaseMapper:
-    wikidata_kb = KnowledgeBase(KnowledgeBaseName.WIKIDATA, "wikidata.org/wiki/")
-    wikipedia_kb = KnowledgeBase(KnowledgeBaseName.WIKIPEDIA, "wikipedia.org/wiki/")
-    dbpedia_kb = KnowledgeBase(KnowledgeBaseName.DBPEDIA, "dbpedia.org/resource/")
+    wikidata_kb = KnowledgeBase(KnowledgeBaseName.WIKIDATA, "wikidata.org/")
+    wikipedia_kb = KnowledgeBase(KnowledgeBaseName.WIKIPEDIA, "wikipedia.org/")
+    dbpedia_kb = KnowledgeBase(KnowledgeBaseName.DBPEDIA, "dbpedia.org/")
     kbs = [wikidata_kb, wikipedia_kb, dbpedia_kb]
 
     @staticmethod
@@ -33,11 +34,14 @@ class KnowledgeBaseMapper:
         """ Identify the knowledge base in which an entity was referenced from
         the given entity URI.
         """
+        if "/notInWiki/" in entity_uri:
+            # This is used e.g. in RSS-500 to indicate unknown entities
+            return None
         for kb in KnowledgeBaseMapper.kbs:
             # Don't use startswith because it could start with http or https
             if kb.entity_uri_prefix in entity_uri:
                 return kb.name
-        return None
+        return KnowledgeBaseName.UNIDENTIFIED_KB
 
     @staticmethod
     def get_wikidata_qid(entity_reference: str, entity_db: EntityDatabase, verbose: Optional[bool] = False)\
@@ -57,12 +61,16 @@ class KnowledgeBaseMapper:
 
         # Try to identify the used KB
         kb_name = KnowledgeBaseMapper.identify_kb(entity_reference)
-        if not kb_name and verbose:
-            logger.info("Unknown knowledge base in entity URI: %s. Trying to infer KB from entity name."
+        if kb_name is None:
+            return None
+
+        if kb_name == KnowledgeBaseName.UNIDENTIFIED_KB and verbose:
+            logger.info("Unidentified knowledge base in entity URI: %s. Trying to infer KB from entity name."
                         % entity_reference)
 
         # Retrieve Wikidata QID based on identified KB or entity name
-        if kb_name == KnowledgeBaseName.WIKIDATA or (not kb_name and re.match(r"Q[0-9]+", entity_name)):
+        if kb_name == KnowledgeBaseName.WIKIDATA or (kb_name == KnowledgeBaseName.UNIDENTIFIED_KB
+                                                     and re.match(r"Q[0-9]+", entity_name)):
             entity_id = entity_name
         elif entity_name:
             if entity_name != entity_reference:
