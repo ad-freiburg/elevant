@@ -89,16 +89,16 @@ def get_ner_text(article, text, offset):
     if article.labels is None:
         return text
 
-    for span, label in sorted(article.labels, reverse=True):
-        if label is None or label.startswith("Unknown"):
-            # Exclude unknown GT entities, since they cannot be correctly linked without predicting NIL
-            continue
-        begin, end = span
-        begin -= offset
-        end -= offset
-        mention_text_snippet = text[begin:end]
-        mention_string = "[[%s]]" % mention_text_snippet
-        text = text[:begin] + mention_string + text[end:]
+    for label in sorted(article.labels, reverse=True):
+        if label.parent is None and not label.is_optional():
+            if label.entity_id.startswith("Unknown"):  # and False:
+                continue
+            begin, end = label.span
+            begin -= offset
+            end -= offset
+            mention_text_snippet = text[begin:end]
+            mention_string = "[[%s]]" % mention_text_snippet
+            text = text[:begin] + mention_string + text[end:]
     return text
 
 
