@@ -1112,9 +1112,9 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
 
         // Do not display overlapping predictions: Keep the larger one.
         // Assume that predictions are sorted by span start (but not by span end)
+        // Includes mentions with "predicted_entity" but also mentions outside of the evaluation span
+        // with neither "true_entity" nor "predicted_entity"
         if ("predicted_entity" in mention || (!("predicted_entity" in mention) && !("true_entity" in mention))) {
-            // Includes mentions with "predicted_entity" but also mentions outside of the evaluation span
-            // with neither "true_entity" nor "predicted_entity"
             var last_index = prediction_spans.length - 1;
             if (prediction_spans.length > 0 && prediction_spans[last_index][1] > mention.span[0]) {
                 // Overlap detected.
@@ -1122,8 +1122,13 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
                 var current_span_length = mention.span[1] - mention.span[0];
                 if (previous_span_length >= current_span_length) {
                     // Previous span is longer than current span so discard current prediction
-                    continue
-                } else {
+                    continue;
+                } else if (!("true_entity" in mention) && "gt_entity_id" in annotations[prediction_spans[last_index]]) {
+                    // Previous span is shorter or equal to current span but the current prediction contains no GT
+                    // entity and the previous did, so discard current prediction
+                    continue;
+                }
+                else {
                     delete annotations[prediction_spans[last_index]];
                     prediction_spans.splice(-1);
                 }
