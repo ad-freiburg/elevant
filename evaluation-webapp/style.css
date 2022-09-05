@@ -56,10 +56,7 @@ html, body {
 }
 
 .content_box {
-    margin-left: 3em;
-    margin-right: 3em;
-    margin-top: 1em;
-    margin-bottom: 2em;
+    margin: 1em 3em 2em;
     padding: 1em 2em;
     background-color: #f8f8f8;
     border: 1px solid #cccccc;
@@ -84,13 +81,13 @@ a {
 
 .with_note {
     margin-bottom: 2px;
-    padding-bottom: 0px;
+    padding-bottom: 0;
 }
 
 .note {
     font-size: 80%;
-    margin-top: 0em;
-    margin-bottom: 0em;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 /* Class for tooltips in the evaluation results box */
@@ -150,8 +147,7 @@ a {
 
 .checkboxes {
     padding: 0;
-    margin: 0;
-    margin-bottom: 1em;
+    margin: 0 0 1em;
 }
 
 .checkboxes span {
@@ -184,9 +180,25 @@ a {
     position: relative;
 }
 
+/* The goal is to visually set different tbodys apart.
+Using a border for tbody only works if the table has border-collapse: collapse set,
+but this leads to problems with sticky table components (e.g. the non-sticky part shines through the gaps).
+Moreover, the selected border color is not shown, only the background color.
+#evaluation_table_wrapper tbody { border: 10px solid white; }
+*/
+#evaluation_table_wrapper tbody:not(.all_hidden)::after
+{
+    content: '';
+    display: block;
+    height: 10px;
+}
+
 /* Make the first column of the evaluation table sticky when scrolling */
-#evaluation_table_wrapper table th:first-child,
-#evaluation_table_wrapper table td:first-child {
+#evaluation_table_wrapper table th:nth-child(1),
+#evaluation_table_wrapper table thead tr:nth-child(2) th:nth-child(2),
+#evaluation_table_wrapper table td:nth-child(1),
+#evaluation_table_wrapper table td:nth-child(2)
+{
     position: -webkit-sticky;
     position: sticky;
     left: 0;
@@ -223,7 +235,9 @@ a {
     text-align: right;
     cursor: pointer;
 }
-#evaluation_table_wrapper td:first-child {
+#evaluation_table_wrapper td:nth-child(1),
+#evaluation_table_wrapper td:nth-child(2)
+{
     text-align: left;
     white-space: nowrap;
     background: var(--cell-first-column-color);
@@ -295,7 +309,7 @@ div.latex {
 }
 div.latex p {
     color: darkred;
-    font-site: 120%;
+    font-size: 120%;
 }
 div.latex textarea {
     display: none;
@@ -304,7 +318,7 @@ div.latex textarea {
 /* ----------------------------------------- */
 /* Begin article results */
 
-# article_results {
+#article_results {
     padding-top: 2em;
 }
 
@@ -329,8 +343,9 @@ div.latex textarea {
 }
 
 #select_article {
+    visibility: hidden;
     display: inline;
-    padding: 5px 0px;
+    padding: 5px 0;
     margin: 0;
 }
 
@@ -359,7 +374,7 @@ div.latex textarea {
     position: absolute;
     z-index: 20;
     bottom: 100%;
-    right: 0%;
+    right: 0;
 }
 
 #annotation_explanation:hover .tooltiptext {
@@ -413,7 +428,7 @@ div.latex textarea {
     height: 1px;
     border: 0;
     border-top: 1px solid #ccc;
-    margin: 2em 0em;
+    margin: 2em 0;
     padding: 0;
 }
 
@@ -518,11 +533,10 @@ div.latex textarea {
     text-align: left;
     padding: 5px;
     border-radius: 6px;
-    border: 3px solid white;
+    border: 3px solid lightgrey;
     line-height: 120%;
     background-color: white;
     white-space: nowrap;
-    border-color: lightgrey;
 
     /* Position of the tooltip text.
     Don't set position absolute yet because tooltips for annotations at the right table edge would stretch
@@ -587,7 +601,7 @@ div.latex textarea {
     background-color: var(--annotation-fp-color);
 }
 .annotation .tooltiptext.tp .error_category_tag {
-    color: var(----annotation-tp-color-dark);
+    color: var(--annotation-tp-color-dark);
     background-color: var(--annotation-tp-color);
 }
 
@@ -621,7 +635,7 @@ div.latex textarea {
 }
 
 #error_explanation {
-    padding: 0% 10%;
+    padding: 0 10%;
     text-align: center;
     font-style: italic;
 }
@@ -788,7 +802,6 @@ button.close {
   background-color: #ffffff;
   -webkit-background-clip: padding-box;
   background-clip: padding-box;
-  border: 1px solid #999999;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);

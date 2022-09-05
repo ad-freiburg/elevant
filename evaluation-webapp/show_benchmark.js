@@ -1,32 +1,34 @@
-CONFIG_PATH = "config.json";
+// Immutable global variables ------------------------------------------------------------------------------------------
+window.CONFIG_PATH = "config.json";
 
-ANNOTATION_CLASS_TP = "tp";
-ANNOTATION_CLASS_FP = "fp";
-ANNOTATION_CLASS_FN = "fn";
-ANNOTATION_CLASS_UNKNOWN = "unknown";
-ANNOTATION_CLASS_OPTIONAL = "optional";
-ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
+window.EXAMPLE_BENCHMARK_PATH = "example-benchmark/error-category-examples.benchmark.jsonl";
+window.EXAMPLE_BENCHMARK_EVAL_CASES_PATH = "example-benchmark/example.error-category-examples.eval_cases.jsonl";
 
-RESULTS_EXTENSION = ".eval_results.json";
-METADATA_EXTENSION = ".metadata.json";
-EVALUATION_RESULT_PATH = "evaluation-results";
+window.BENCHMARK_EXTENSION = ".benchmark.jsonl"
+window.RESULTS_EXTENSION = ".eval_results.json";
+window.METADATA_EXTENSION = ".metadata.json";
+window.EVALUATION_RESULT_PATH = "evaluation-results";
 
-EXAMPLE_BENCHMARK_PATH = "example-benchmark/error-category-examples.benchmark.jsonl";
-EXAMPLE_BENCHMARK_RESULTS_PATH = "example-benchmark/example.error-category-examples.eval_results.json";
+window.MAX_SELECTED_APPROACHES = 2;
+window.MAX_CACHED_FILES = 15;
 
-MAX_SELECTED_APPROACHES = 2;
-MAX_CACHED_FILES = 15;
+window.ANNOTATION_CLASS_TP = "tp";
+window.ANNOTATION_CLASS_FP = "fp";
+window.ANNOTATION_CLASS_FN = "fn";
+window.ANNOTATION_CLASS_UNKNOWN = "unknown";
+window.ANNOTATION_CLASS_OPTIONAL = "optional";
+window.ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 
-MISSING_LABEL_TEXT = "[MISSING LABEL]";
-NIL_PREDICTION_TEXT = "[NIL]";
-NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", "Unknown"];
+window.MISSING_LABEL_TEXT = "[MISSING LABEL]";
+window.NIL_PREDICTION_TEXT = "[NIL]";
+window.NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", "Unknown"];
 
-ignore_headers = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
-percentage_headers = ["precision", "recall", "f1"];
-copy_latex_text = "Copy LaTeX code for table";
+window.IGNORE_HEADERS = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
+window.PERCENTAGE_HEADERS = ["precision", "recall", "f1"];
+window.COPY_LATEX_CELL_TEXT = "Copy LaTeX code for table";
 
-tooltip_example_html = "<p><a href=\"#example_benchmark_modal\"onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.</p>";
-header_descriptions = {
+window.TOOLTIP_EXAMPLE_HTML = "<p><a href=\"#example_benchmark_modal\" onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.</p>";
+window.HEADER_DESCRIPTIONS = {
     "undetected": {
         "": "Errors involving undetected mentions.",
         "all": "<p><i>Numerator:</i> A ground truth mention span is not linked to an entity.</p><p><i>Denominator:</i> All ground truth entity mentions.</p>",
@@ -122,7 +124,7 @@ header_descriptions = {
     "f1": "<i>F1 = 2 * (P * R) / (P + R)</i>",
 };
 
-error_category_mapping = {
+window.ERROR_CATEGORY_MAPPING = {
     "undetected": {
         "all": ["UNDETECTED"],
         "lowercased": ["UNDETECTED_LOWERCASED"],
@@ -158,19 +160,19 @@ error_category_mapping = {
     }
 };
 
-mention_type_headers = {"entity": ["entity_named", "entity_other"],
+window.MENTION_TYPE_HEADERS = {"entity": ["entity_named", "entity_other"],
                         "coref": ["nominal", "pronominal"],
                         "entity_named": ["entity_named"],
                         "entity_other": ["entity_other"],
                         "coref_nominal": ["coref_nominal"],
                         "coref_pronominal": ["coref_pronominal"]};
 
-evaluation_mode_labels = {
+window.EVALUATION_MODE_LABELS = {
     "ignored": "Unknown entities are ignored",
     "required": "Unknown entities are considered"
 }
 
-result_titles = {
+window.EVALUATION_CATEGORY_TITLES = {
     "mention_types": {
         "all": {"checkbox_label": "All", "table_heading": "All"},
         "entity": {"checkbox_label": "Entity: All", "table_heading": "Entity: All"},
@@ -190,70 +192,113 @@ result_titles = {
     }
 }
 
+// Mutable global variables --------------------------------------------------------------------------------------------
+window.config = {};
+window.whitelist_types = {};
+
+window.evaluation_result_files = {};
+window.evaluation_results = [];
+
+window.benchmark_filenames = []
+window.benchmark_articles = {};
+
+window.evaluation_cases = {};
+window.articles_data = {};
+window.experiments_metadata = {};
+
+window.articles_example_benchmark = [];
+window.evaluation_cases_example_benchmark = [];
+
+window.is_show_all_articles = false;
+window.last_show_article_request_timestamp = 0;
+
+window.selected_experiment_ids = [];
+window.selected_rows = [];
+window.selected_cells = [];
+window.selected_cell_categories = null;
+
+window.all_highlighted_annotations = [[], []];
+window.jump_to_annotation_index = [-1, -1];
+window.last_highlighted_side = 0;
+
+window.url_param_experiment_filter = null;
+window.url_param_benchmark_filter = null;
+window.url_param_show_deprecated = null;
+window.url_param_compare = null;
+window.url_param_article = null;
+window.url_param_experiment = null;
+window.url_param_emphasis = null;
+window.url_param_show_columns = null;
+window.url_param_sort_order = null;
+window.url_param_access = null;
+window.url_param_evaluation_mode = null;
+
 $("document").ready(function() {
+    // JQuery selector variables
+    const $experiment_filter = $("input#experiment-filter");
+    const $benchmark_filter = $("input#benchmark-filter");
+    const $evaluation_table_wrapper = $("#evaluation_table_wrapper");
+    const $evaluation_table = $("#evaluation_table_wrapper table");
+
     read_url_parameters();
-
-    // Elements from the HTML document for later usage.
-    benchmark_select = document.getElementById("benchmark");
-    article_select = document.getElementById("article_select");
-
-    show_all_articles_flag = false;
-
-    evaluation_cases = {};
-    articles_data = {};
-    experiments_metadata = {};
-
-    last_show_article_request_timestamp = 0;
-
-    selected_approach_names = [];
-    selected_rows = [];
-    selected_cells = [];
     reset_selected_cell_categories();
 
-    $("#checkbox_compare").prop('checked', url_param_compare);
+    // Read the necessary data files (config, whitelist types, benchmark articles, evaluation results)
+    // and build the evaluation results table.
+    $("#table_loading").addClass("show");
+    read_initial_data().then(function() {
+        build_evaluation_results_table(true);
+    });
 
-    read_example_benchmark_data();
+    $("#checkbox_compare").prop('checked', window.url_param_compare);
 
-    set_benchmark_select_options();
-
-    // Filter results by regex in input field #result-regex (from SPARQL AC evaluation)
-    // Filter on key up
-    $("input#result-filter").keyup(function() {
+    // Filter table rows by regex in input field (from SPARQL AC evaluation) on key up
+    $experiment_filter.keyup(function() {
         filter_table_rows();
 
         // Update current URL without refreshing the site
         const url = new URL(window.location);
-        url.searchParams.set('system_filter', $("input#result-filter").val());
+        url.searchParams.set('experiment_filter', $experiment_filter.val());
+        window.history.replaceState({}, '', url);
+    });
+
+    // Filter results by regex in input field #result-regex on key up
+    $benchmark_filter.keyup(function() {
+        filter_table_rows();
+
+        // Update current URL without refreshing the site
+        const url = new URL(window.location);
+        url.searchParams.set('benchmark_filter', $benchmark_filter.val());
         window.history.replaceState({}, '', url);
     });
 
     // Highlight error category cells on hover
-    $("#evaluation_table_wrapper").on("mouseenter", "td", function() {
+    $evaluation_table_wrapper.on("mouseenter", "td", function() {
         if (is_error_cell(this)) {
             $(this).addClass("hovered");
         }
     });
-    $("#evaluation_table_wrapper").on("mouseleave", "td", function() {
+    $evaluation_table_wrapper.on("mouseleave", "td", function() {
         $(this).removeClass("hovered");
     });
 
     // Highlight all cells in a row belonging to the same mention_type or type or the "all" column on hover
-    $("#evaluation_table_wrapper").on("mouseenter", "td", function() {
+    $evaluation_table_wrapper.on("mouseenter", "td", function() {
         if ($(this).attr('class')) {
-            var cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in mention_type_headers || is_type_string(cls) || cls == "all") {
+            let cls = $(this).attr('class').split(/\s+/)[0];
+            if (cls in MENTION_TYPE_HEADERS || is_type_string(cls) || cls === "all") {
                 // Mark all cells in the corresponding row with the corresponding class
-                $(this).closest('tr').find('.' + cls).each(function(index) {
+                $(this).closest('tr').find('.' + cls).each(function() {
                     $(this).addClass("hovered");
                 });
             }
         }
     });
-    $("#evaluation_table_wrapper").on("mouseleave", "td", function() {
+    $evaluation_table_wrapper.on("mouseleave", "td", function() {
         if ($(this).attr('class')) {
-            var cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in mention_type_headers || is_type_string(cls) || cls == "all") {
-                $(this).closest('tr').find('.' + cls).each(function(index) {
+            let cls = $(this).attr('class').split(/\s+/)[0];
+            if (cls in MENTION_TYPE_HEADERS || is_type_string(cls) || cls === "all") {
+                $(this).closest('tr').find('.' + cls).each(function() {
                     $(this).removeClass("hovered");
                 });
             }
@@ -267,7 +312,7 @@ $("document").ready(function() {
     });
 
     // Position table tooltips
-    $("#evaluation_table_wrapper tbody").on("mouseenter", ".tooltip", function() {
+    $evaluation_table_wrapper.on("mouseenter", ".tooltip", function() {
         position_table_tooltip(this);
     });
 
@@ -275,24 +320,25 @@ $("document").ready(function() {
     // otherwise some might overlap with the left window edge.
     $(window).on('resize', function(){
         $("table .annotation").find(".tooltiptext").each(function() {
-            if ($(this).css("right") == "0px") {
-                $(this).css({"right": "auto", "left": "0px", "white-space": "nowrap", "width": "auto",
+            if (parseInt($(this).css("right")) === 0) {
+                $(this).css({"right": "auto", "left": "0", "white-space": "nowrap", "width": "auto",
                              "transform": "none"});
             }
         });
     });
 
-    // Set the result filter string and show-deprecated checkbox according to the URL parameters
-    if (url_param_filter_string) $("input#result-filter").val(url_param_filter_string);
-    $("#checkbox_deprecated").prop('checked', url_param_show_deprecated);
-    if (url_param_filter_string || !url_param_show_deprecated) filter_table_rows();
+    // Set the table filter strings and show-deprecated checkbox according to the URL parameters
+    if (window.url_param_experiment_filter) $experiment_filter.val(window.url_param_experiment_filter);
+    if (window.url_param_benchmark_filter) $benchmark_filter.val(window.url_param_benchmark_filter);
+    $("#checkbox_deprecated").prop('checked', window.url_param_show_deprecated);
+    if (window.url_param_experiment_filter || window.url_param_benchmark_filter || !window.url_param_show_deprecated) filter_table_rows();
 
     // Synchronize the top and bottom scrollbar of the evaluation table
     // Prevent double calls to .scroll() by using a flag
-    var second_call = false;
-    $("#evaluation_table_wrapper").scroll(function(){
+    let second_call = false;
+    $evaluation_table_wrapper.scroll(function(){
         if (!second_call) {
-            $("#top_scrollbar_wrapper").scrollLeft($("#evaluation_table_wrapper").scrollLeft());
+            $("#top_scrollbar_wrapper").scrollLeft($evaluation_table_wrapper.scrollLeft());
             second_call = true;
         } else {
             second_call = false;
@@ -300,14 +346,14 @@ $("document").ready(function() {
     });
     $("#top_scrollbar_wrapper").scroll(function(){
         if (!second_call) {
-            $("#evaluation_table_wrapper").scrollLeft($("#top_scrollbar_wrapper").scrollLeft());
+            $evaluation_table_wrapper.scrollLeft($("#top_scrollbar_wrapper").scrollLeft());
             second_call = true;
         } else {
             second_call = false;
         }
     });
 
-    $("#evaluation_table_wrapper table").tablesorter({
+    $evaluation_table.tablesorter({
         sortInitialOrder: 'desc',
         selectorHeaders: '> thead > tr:last-child > th',  // First header row should not be sortable
         stringTo: "bottom",  // Columns that are numerically sorted should always have strings (e.g. "-") at the bottom
@@ -322,8 +368,8 @@ $("document").ready(function() {
     $('table').on('stickyHeadersInit', function() {
         // Add table header tooltips to sticky header
         $("#evaluation_table_wrapper .tablesorter-sticky-wrapper th").each(function() {
-            var keys = get_table_header_keys(this);
-            var tooltiptext = get_header_tooltip_text(keys[0], keys[1]);
+            const keys = get_table_header_keys(this);
+            const tooltiptext = get_th_tooltip_text(keys[0], keys[1]);
             if (tooltiptext) {
                 tippy(this, {
                     content: tooltiptext,
@@ -336,35 +382,35 @@ $("document").ready(function() {
         });
     });
 
-    // Update URL on table sort
-    $("#evaluation_table_wrapper table").bind("sortEnd",function() {
-        // Update current URL without refreshing the site
-        var sort_order = $("#evaluation_table_wrapper table")[0].config.sortList;
+    // Update URL on table sort (without refreshing the site)
+    $evaluation_table.bind("sortEnd",function() {
+        const sort_order = $("#evaluation_table_wrapper table")[0].config.sortList;
         const url = new URL(window.location);
         url.searchParams.set('sort_order', sort_order.join(","));
         window.history.replaceState({}, '', url);
     });
 
+    // Jump back and forward between emphasised annotations
     reset_annotation_selection();
     $(document).on("keydown", function(event) {
-        if ($("input#result-filter").is(":focus") || $("#benchmark").is(":focus") || $("#article_select").is(":focus")) return;
+        if ($experiment_filter.is(":focus") || $benchmark_filter.is(":focus") || $("#article_select").is(":focus")) return;
         if ([39, 37].includes(event.which)) {
-            all_highlighted_annotations = [[], []];
-            all_highlighted_annotations[0] = $("#prediction_overview td:nth-child(1) .annotation.beginning").not(".lowlight");
-            if (selected_approach_names.length > 1) {
-                all_highlighted_annotations[1] = $("#prediction_overview td:nth-child(2) .annotation.beginning").not(".lowlight");
+            window.all_highlighted_annotations = [[], []];
+            window.all_highlighted_annotations[0] = $("#prediction_overview td:nth-child(1) .annotation.beginning").not(".lowlight");
+            if (window.selected_experiment_ids.length > 1) {
+                window.all_highlighted_annotations[1] = $("#prediction_overview td:nth-child(2) .annotation.beginning").not(".lowlight");
             }
-            if (event.ctrlKey && event.which == 39) {
+            if (event.ctrlKey && event.which === 39) {
                 // Jump to next error highlight
                 // This is not needed anymore when only the numerator mentions (i.e. the errors) are highlighted anyway
                 // but keep it until we know for sure that we don't want to display denominator mentions.
                 scroll_to_next_annotation(true);
-            } else if (event.ctrlKey && event.which == 37) {
+            } else if (event.ctrlKey && event.which === 37) {
                 scroll_to_previous_annotation(true);
-            } else if (event.which == 39) {
+            } else if (event.which === 39) {
                 // Jump to next highlight
                 scroll_to_next_annotation(false);
-            } else if (event.which == 37) {
+            } else if (event.which === 37) {
                 // Jump to previous highlight
                 scroll_to_previous_annotation(false);
             }
@@ -372,294 +418,41 @@ $("document").ready(function() {
     });
 });
 
-function get_type_label(qid) {
-    var qid_upper = qid.replace("q", "Q");
-    if (qid_upper in whitelist_types) {
-        return whitelist_types[qid_upper];
-    }
-    return qid_upper + " (label missing)";
-}
 
-function read_example_benchmark_data() {
-    var filename = EXAMPLE_BENCHMARK_RESULTS_PATH.substring(0, EXAMPLE_BENCHMARK_RESULTS_PATH.length - RESULTS_EXTENSION.length);
-    var articles_path = filename + ".linked_articles.jsonl";
-    var cases_path = filename + ".eval_cases.jsonl";
-
-    articles_example_benchmark = [];
-    $.get(EXAMPLE_BENCHMARK_PATH, function(data) {
-        lines = data.split("\n");
-        for (line of lines) {
-            if (line.length > 0) {
-                articles_example_benchmark.push(JSON.parse(line));
-            }
-        }
-    });
-
-    articles_data_example_benchmark = [];
-    evaluation_cases_example_benchmark = [];
-    $.get(articles_path, function(data) {
-        lines = data.split("\n");
-        for (line of lines) {
-            if (line.length > 0) {
-                articles_data_example_benchmark.push(JSON.parse(line));
-            }
-        }
-    }).then(function() {
-        $.get(cases_path, function(data) {
-            lines = data.split("\n");
-            for (line of lines) {
-                if (line.length > 0) {
-                    evaluation_cases_example_benchmark.push(JSON.parse(line));
-                }
-            }
-        });
-    });
-}
-
-function show_example_benchmark_modal(el) {
-    /*
-    Open the example benchmark model and show the example article that corresponds
-    to the error category of the clicked table header tooltip.
-    */
-    // Get example error category of the table tooltip to highlight only corresponding mentions
-    // Hack to get the reference object from the clicked tippy tooltip.
-    var table_header_cell = $(el).parent().parent().parent().parent()[0]._tippy.reference;
-    var selected_category = get_error_category_or_type(table_header_cell);
-
-    // Get table header title
-    var keys = get_table_header_keys(table_header_cell);
-    var error_category_title = keys[0].replace(/_/g, " ") + " - " + keys[1].replace(/_/g, " ");
-
-    // Determine article index of selected example
-    var article_index = 0;
-    for (var i=0; i<articles_example_benchmark.length; i++) {
-        var article = articles_example_benchmark[i];
-        if (article.title.toLowerCase().includes(error_category_title)) {
-            article_index = i;
-            break;
-        }
-    }
-
-    // Display error explanation extracted from table header tooltip text
-    var error_explanation = header_descriptions[keys[0]][keys[1]];
-    error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*?)<\/p>.*/, "$1");
-    $("#error_explanation").text("Description: " + error_explanation);
-    // Display annotated text
-    var textfield = $("#example_prediction_overview tr td");
-    show_annotated_text("example_annotations", $(textfield[0]), selected_category, 100, article_index, true);
-    $("#example_prediction_overview tr th").text(articles_example_benchmark[article_index].title);
-}
-
-function scroll_to_next_annotation(only_errors) {
-    /*
-    Scroll to the next annotation in the list of all annotations on the left and on the right side.
-    */
-    // Get potential next highlighted annotation for left and right side
-    var next_annotation_index = [-1, -1];
-    var next_annotations = [null, null];
-    for (var i=0; i<2; i++) {
-        if (all_highlighted_annotations[i].length == 0) continue;
-        if (jump_to_annotation_index[i] + 1 < all_highlighted_annotations[i].length) {
-            if (only_errors) {
-                next_annotation_index[i] = find_next_annotation_index(i);
-                if (next_annotation_index[i] < all_highlighted_annotations[i].length) next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
-            } else {
-                next_annotation_index[i] = jump_to_annotation_index[i] + 1;
-                next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
-            }
-        }
-    }
-
-    var next_annotation;
-    if (next_annotations[0] && next_annotations[1]) {
-        if ($(next_annotations[0]).offset().top <= $(next_annotations[1]).offset().top) {
-            next_annotation = next_annotations[0];
-            jump_to_annotation_index[0] = next_annotation_index[0];
-            last_highlighted_side = 0;
-            if (only_errors && all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
-        } else {
-            next_annotation = next_annotations[1];
-            jump_to_annotation_index[1] = next_annotation_index[1];
-            last_highlighted_side = 1;
-            if (only_errors && all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
-        }
-    } else if (next_annotations[0]) {
-        next_annotation = next_annotations[0];
-        jump_to_annotation_index[0] = next_annotation_index[0];
-        last_highlighted_side = 0;
-        if (only_errors && all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
-    } else if (next_annotations[1]) {
-        next_annotation = next_annotations[1];
-        jump_to_annotation_index[1] = next_annotation_index[1];
-        last_highlighted_side = 1;
-        if (only_errors && all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
-    } else if (!only_errors) {
-        jump_to_annotation_index[last_highlighted_side] = all_highlighted_annotations[last_highlighted_side].length;
-    }
-
-    if (next_annotation) {
-        scroll_to_annotation(next_annotation);
-    }
-}
-
-function bring_jump_index_to_same_height(next_annotation, side_index) {
-    // Bring the jump index for the other side to the same height
-    var original_jump_index = jump_to_annotation_index[side_index];
-    if (side_index == 0) {
-        while (jump_to_annotation_index[side_index] < 0 || (jump_to_annotation_index[side_index] <= all_highlighted_annotations[side_index].length &&
-               $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top <= $(next_annotation).offset().top)) {
-            jump_to_annotation_index[side_index]++;
-        }
-    } else {
-        while (jump_to_annotation_index[side_index] < 0 || (jump_to_annotation_index[side_index] <= all_highlighted_annotations[side_index].length &&
-               $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top < $(next_annotation).offset().top)) {
-            jump_to_annotation_index[side_index]++;
-        }
-    }
-    jump_to_annotation_index[side_index]--; // Minus one, because the next annotation should be the one determined above
-}
-
-function scroll_to_previous_annotation(only_errors) {
-    // Get potential next highlighted annotation for left and right side
-    var next_annotation_index = [-1, -1];
-    var next_annotations = [null, null];
-    for (var i=0; i<2; i++) {
-        if (all_highlighted_annotations[i].length == 0) continue;
-        if (jump_to_annotation_index[i] - 1 >= 0) {
-            if (only_errors) {
-                next_annotation_index[i] = find_previous_annotation_index(i, last_highlighted_side);
-                if (next_annotation_index[i] >= 0) next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
-            } else {
-                next_annotation_index[i] = jump_to_annotation_index[i] - (last_highlighted_side==i);
-                next_annotations[i] = all_highlighted_annotations[i][next_annotation_index[i]];
-            }
-        }
-    }
-
-    var next_annotation;
-    if (next_annotations[0] && next_annotations[1]) {
-        if ($(next_annotations[0]).offset().top > $(next_annotations[1]).offset().top) {
-            next_annotation = next_annotations[0];
-            if (!only_errors || last_highlighted_side == 0) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
-            else {
-                update_index_to_previous_annotation(next_annotation, last_highlighted_side);
-                jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-            }
-            last_highlighted_side = 0;
-        } else {
-            next_annotation = next_annotations[1];
-            if (!only_errors || last_highlighted_side == 1) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
-            else {
-                update_index_to_previous_annotation(next_annotation, last_highlighted_side);
-                jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-            }
-            last_highlighted_side = 1;
-        }
-    } else if (next_annotations[0]) {
-        next_annotation = next_annotations[0];
-        if (!only_errors || last_highlighted_side == 0) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
-        else {
-            update_index_to_previous_annotation(next_annotation, last_highlighted_side);
-            jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-        }
-        last_highlighted_side = 0;
-    } else if (next_annotations[1]) {
-        next_annotation = next_annotations[1];
-        if (!only_errors || last_highlighted_side == 1) jump_to_annotation_index[last_highlighted_side] = next_annotation_index[last_highlighted_side];
-        else {
-            update_index_to_previous_annotation(next_annotation, last_highlighted_side);
-            jump_to_annotation_index[Math.abs(last_highlighted_side - 1)] = next_annotation_index[Math.abs(last_highlighted_side - 1)];
-        }
-        last_highlighted_side = 1;
-    } else if (!only_errors) {
-        jump_to_annotation_index[0] = -1;
-        jump_to_annotation_index[1] = -1;
-    }
-
-    if (next_annotation) {
-        scroll_to_annotation(next_annotation);
-    }
-}
-
-function update_index_to_previous_annotation(next_annotation, side_index) {
-    // Bring the jump index for the other side to the same height
-    var original_jump_index = jump_to_annotation_index[side_index];
-    if (side_index == 0) {
-        while (jump_to_annotation_index[side_index] == all_highlighted_annotations[side_index].length || (
-               jump_to_annotation_index[side_index] >= -1 && $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top > $(next_annotation).offset().top)) {
-            jump_to_annotation_index[side_index]--;
-        }
-    } else {
-        while (jump_to_annotation_index[side_index] == all_highlighted_annotations[side_index].length || (
-               jump_to_annotation_index[side_index] >= -1 && $(all_highlighted_annotations[side_index][jump_to_annotation_index[side_index]]).offset().top >= $(next_annotation).offset().top)) {
-            jump_to_annotation_index[side_index]--;
-        }
-    }
-}
-
-function find_next_annotation_index(side_index) {
-    for (var i=jump_to_annotation_index[side_index] + 1; i<all_highlighted_annotations[side_index].length; i++) {
-        var classes = $(all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
-        if (classes.includes("fn") || classes.includes("fp")) {
-            return i;
-        }
-    }
-    return all_highlighted_annotations[side_index].length;
-}
-
-function find_previous_annotation_index(side_index, last_highlighted_side) {
-    for (var i=jump_to_annotation_index[side_index] - (last_highlighted_side==side_index); i > 0; i--) {
-        var classes = $(all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
-        if (classes.includes("fn") || classes.includes("fp")) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-function decrease_index(index) {
-    return Math.max(0, index - 1);
-}
-
-function increase_index(index, array_length) {
-    return Math.min(index + 1, array_length - 1);
-}
-
-function reset_annotation_selection() {
-    jump_to_annotation_index = [-1, -1];
-    last_highlighted_side = 0;
-}
-
-function scroll_to_annotation(annotation) {
-    /*
-    Scroll to the given annotation and mark it as selected for a second.
-    */
-    var line_height = parseInt($("#prediction_overview td").css('line-height').replace('px',''));
-    var header_size = $("#prediction_overview thead")[0].getBoundingClientRect().height;
-    $([document.documentElement, document.body]).animate({
-        scrollTop: $(annotation).offset().top - header_size - line_height / 2
-    }, 200);
-    // Get annotation id class such that all spans belonging to one annotation can be marked as selected
-    var classes = $(annotation).attr("class").split(/\s+/);
-    var annotation_id_class = classes.filter(function(el) {return el.startsWith("annotation_id_"); });
-    // Mark spans as selected
-    $("." + annotation_id_class).addClass("selected")
-    // Unmark spans as selected after timeout
-    setTimeout(function() { $("." + annotation_id_class).removeClass("selected"); }, 1000);
-}
+/**********************************************************************************************************************
+ Functions for READING URL PARAMETERS
+ *********************************************************************************************************************/
 
 function read_url_parameters() {
-    url_param_filter_string = get_url_parameter_string(get_url_parameter("system_filter"));
-    url_param_show_deprecated = get_url_parameter_boolean(get_url_parameter("show_deprecated"));
-    url_param_compare = get_url_parameter_boolean(get_url_parameter("compare"));
-    url_param_benchmark = get_url_parameter_string(get_url_parameter("benchmark"));
-    url_param_article = get_url_parameter_string(get_url_parameter("article"));
-    url_param_system = get_url_parameter_array(get_url_parameter("system"), false);
-    url_param_emphasis = get_url_parameter_array(get_url_parameter("emphasis"), false);
-    url_param_show_columns = get_url_parameter_array(get_url_parameter("show_columns"), false);
-    url_param_sort_order = get_url_parameter_array(get_url_parameter("sort_order"), true);
-    url_param_access = get_url_parameter_string(get_url_parameter("access"));
-    url_param_evaluation_mode = get_url_parameter_string(get_url_parameter("evaluation_mode"));
+    window.url_param_experiment_filter = get_url_parameter_string(get_url_parameter("experiment_filter"));
+    window.url_param_benchmark_filter = get_url_parameter_string(get_url_parameter("benchmark_filter"));
+    window.url_param_show_deprecated = get_url_parameter_boolean(get_url_parameter("show_deprecated"));
+    window.url_param_compare = get_url_parameter_boolean(get_url_parameter("compare"));
+    window.url_param_article = get_url_parameter_string(get_url_parameter("article"));
+    window.url_param_experiment = get_url_parameter_array(get_url_parameter("experiment"), false);
+    window.url_param_emphasis = get_url_parameter_array(get_url_parameter("emphasis"), false);
+    window.url_param_show_columns = get_url_parameter_array(get_url_parameter("show_columns"), false);
+    window.url_param_sort_order = get_url_parameter_array(get_url_parameter("sort_order"), true);
+    window.url_param_access = get_url_parameter_string(get_url_parameter("access"));
+    window.url_param_evaluation_mode = get_url_parameter_string(get_url_parameter("evaluation_mode"));
+}
+
+function get_url_parameter(parameter_name) {
+    /*
+     * Retrieve URL parameter.
+     * See https://stackoverflow.com/a/21903119/7097579.
+     */
+    const page_url = window.location.search.substring(1);
+    const url_variables = page_url.split('&');
+
+    for (let i = 0; i < url_variables.length; i++) {
+        const curr_parameter = url_variables[i].split('=');
+        if (curr_parameter[0] === parameter_name) {
+            // "+" should be decoded as whitespace
+            return curr_parameter[1] === undefined ? true : decodeURIComponent((curr_parameter[1]+'').replace(/\+/g, '%20'));
+        }
+    }
+    return false;
 }
 
 function get_url_parameter_boolean(url_parameter) {
@@ -668,23 +461,23 @@ function get_url_parameter_boolean(url_parameter) {
 
 function get_url_parameter_string(url_parameter) {
     /*
-    Returns the url_parameter if the url parameter value is a String, otherwise (if
-    it is a boolean) returns null.
-    */
+     * Returns the url_parameter if the url parameter value is a String, otherwise (if
+     * it is a boolean) returns null.
+     */
     if (is_string(url_parameter)) {
         return url_parameter;
     }
     return null;
 }
 
-function get_url_parameter_array(url_parameter, integer_array) {
+function get_url_parameter_array(url_parameter, is_integer_array) {
     /*
     Returns the url_parameter as array if the url parameter value is a String, with elements separated by ",".
     Otherwise (if it is a boolean) returns an empty array.
     */
     if (is_string(url_parameter)) {
-        array = url_parameter.split(",");
-        if (integer_array) array = array.map(function(el) { return parseInt(el) })
+        let array = url_parameter.split(",");
+        if (is_integer_array) array = array.map(function(el) { return parseInt(el) })
         return array;
     }
     return [];
@@ -694,406 +487,546 @@ function is_string(object) {
     return typeof object === 'string' || object instanceof String;
 }
 
-function position_table_tooltip(anchor_el) {
-    var tag_name = $(anchor_el).prop("tagName").toLowerCase();
-    var anchor_el_rect = anchor_el.getBoundingClientRect();
-    $(anchor_el).find(".tooltiptext").each(function() {
-        var tooltip_rect = this.getBoundingClientRect();
-        var font_size = $(this).css("font-size").replace("px", "");
-        var top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
-        $(this).css({"left": anchor_el_rect.left + "px", "top": top + "px"});
-    });
-}
 
-function reposition_annotation_tooltip(annotation_el) {
+/**********************************************************************************************************************
+ Functions for JUMPING BETWEEN ERROR ANNOTATIONS
+ *********************************************************************************************************************/
+
+function scroll_to_next_annotation(only_errors) {
     /*
-    Re-position all tooltips of an annotation such that they don't go outside the window.
-    */
-    var annotation_rect = annotation_el.getBoundingClientRect();
-    // Check whether the annotation contains a line break by checking whether its height is bigger than the line height
-    var line_height = parseInt($(annotation_el).css('line-height'));
-    var line_break = (annotation_rect.height > line_height + 5);
-    $(annotation_el).find(".tooltiptext").each(function() {
-        var tooltip_rect = this.getBoundingClientRect();
-
-        // Table could be either prediction_overview or the table in the example modal
-        var table_rect = $(this).closest("table")[0].getBoundingClientRect();
-
-        // If the tooltip width is larger than the table width, enable line-wrapping
-        // in the tooltip
-        if (tooltip_rect.width > table_rect.width) {
-            // Set the new width to the width of the table, minus tooltip padding and
-            // border since those are added on top of css width.
-            var paddings = parseInt($(this).css('paddingLeft')) + parseInt($(this).css('paddingRight'));
-            var borders = parseInt($(this).css('borderLeftWidth')) + parseInt($(this).css('borderRightWidth'));
-            var new_width = table_rect.width - (paddings + borders);
-            $(this).css({"white-space": "normal", "width": new_width + "px"});
-            // Recompute the tooltip rectangle
-            tooltip_rect = this.getBoundingClientRect();
-        }
-
-        // Correct the tooltip position if it overlaps with the right edge of the table
-        // If the annotation contains a line break, position to the right
-        if ((annotation_rect.left + tooltip_rect.width > table_rect.right) || line_break)  {
-            // Align right tooltip edge with right edge of the annotation.
-            // Left needs to be set to auto since it is otherwise still 0.
-            $(this).css({"right": "0px", "left": "auto"});
-
-            // If now the left tooltip edge overlaps with the left edge of the table
-            // translate the table as far right as possible
-            if (annotation_rect.right - tooltip_rect.width < table_rect.left) {
-                var translation = table_rect.right - annotation_rect.right;
-                this.style.transform = "translateX(" + translation + "px)";
-            }
-        }
-    });
-}
-
-function get_url_parameter(parameter_name) {
-    /*
-    Retrieve URL parameter.
-    See https://stackoverflow.com/a/21903119/7097579.
-    */
-    var page_url = window.location.search.substring(1);
-    var url_variables = page_url.split('&');
-
-    for (var i = 0; i < url_variables.length; i++) {
-        var curr_parameter = url_variables[i].split('=');
-        if (curr_parameter[0] === parameter_name) {
-            // "+" should be decoded as whitespace
-            return curr_parameter[1] === undefined ? true : decodeURIComponent((curr_parameter[1]+'').replace(/\+/g, '%20'));
-        }
-    }
-    return false;
-};
-
-function is_error_cell(el) {
-    if ($(el).attr('class')) {  // Experiment column has no class attribute
-        var classes = $(el).attr('class').split(/\s+/);
-        if (classes.length > 1) {
-            // The second class of a cell is its header and subheader (as class name) connected by "-"
-            var keys = classes[1].split("-");
-            if (keys[0] in error_category_mapping) {
-                if (keys[1] in error_category_mapping[keys[0]]) {
-                    return true;
-                }
+     * Scroll to the next annotation in the list of all annotations on the left and on the right side.
+     */
+    // Get potential next highlighted annotation for left and right side
+    let next_annotation_index = [-1, -1];
+    let next_annotations = [null, null];
+    for (let i=0; i<2; i++) {
+        if (window.all_highlighted_annotations[i].length === 0) continue;
+        if (window.jump_to_annotation_index[i] + 1 < window.all_highlighted_annotations[i].length) {
+            if (only_errors) {
+                next_annotation_index[i] = find_next_annotation_index(i);
+                if (next_annotation_index[i] < window.all_highlighted_annotations[i].length) next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
+            } else {
+                next_annotation_index[i] = window.jump_to_annotation_index[i] + 1;
+                next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
             }
         }
     }
-    return false;
-}
 
-function set_benchmark_select_options() {
-    /*
-    Set the options for the benchmark selector element to the names of the benchmarks in the given directory.
-    */
-    // Show loading GIF
-    $("#table_loading").addClass("show");
-
-    benchmarks = [];
-    whitelist_types = {};
-
-    $.when(
-        // Read the content of the json configuration file into the config dictionary.
-        $.get(CONFIG_PATH, function(data){
-            config = data;
-        }),
-        // Read the whitelist type mapping (type QID to label)
-        $.get("whitelist_types.tsv", function(data){
-            var lines = data.split("\n");
-            for (line of lines) {
-                if (line.length > 0) {
-                    var lst = line.split("\t");
-                    var type_id = lst[0];
-                    var type_label = lst[1];
-                    whitelist_types[type_id] = type_label;
-                }
-            }
-        }),
-        // Get the names of the benchmark files from the benchmarks directory
-        $.get("benchmarks", function(folder_data){
-            $(folder_data).find("a").each(function() {
-                var file_name = $(this).attr("href");
-                if (file_name.endsWith(".benchmark.jsonl")) {
-                    benchmarks.push(file_name);
-                }
-            });
-        })
-    ).then(function() {
-        benchmarks.sort();
-        for (bi in benchmarks) {
-            var benchmark = benchmarks[bi];
-            var option = document.createElement("option");
-            var benchmark_name = benchmark.replace(/(.*)\.benchmark\.jsonl/, "$1");
-
-            // Hide certain benchmarks as defined in the config file
-            if ("hide_benchmarks" in config && config["hide_benchmarks"].includes(benchmark_name)) continue;
-            option.text = benchmark_name;
-            option.value = benchmark;
-            benchmark_select.add(option);
-        }
-
-        // Set benchmark
-        var benchmark_by_url = $('#benchmark option').filter(function () { return $(this).html() == url_param_benchmark; });
-        if (url_param_benchmark && benchmark_by_url.length > 0) {
-            // Set the benchmark according to URL parameter if one with a valid benchmark name exists
-            $(benchmark_by_url).prop('selected',true);
+    let next_annotation;
+    if (next_annotations[0] && next_annotations[1]) {
+        if ($(next_annotations[0]).offset().top <= $(next_annotations[1]).offset().top) {
+            next_annotation = next_annotations[0];
+            window.jump_to_annotation_index[0] = next_annotation_index[0];
+            window.last_highlighted_side = 0;
+            if (only_errors && window.all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
         } else {
-            // Set default value to "wiki-ex".
-            // $('#benchmark option:contains("wiki-ex")').prop('selected',true);
+            next_annotation = next_annotations[1];
+            window.jump_to_annotation_index[1] = next_annotation_index[1];
+            window.last_highlighted_side = 1;
+            if (only_errors && window.all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
         }
-        show_benchmark_results(true);
-    });
-}
-
-function reset_selected_cell_categories() {
-    /*
-    Initialize or reset the selected error categories.
-    The array contains one entry for each approach that can be compared.
-    */
-    selected_cell_categories = new Array(MAX_SELECTED_APPROACHES).fill(null);
-}
-
-function show_benchmark_results(initial_call) {
-    /*
-    Show overview table and set up the article selector for a selected benchmark.
-    */
-    $("#table_loading").addClass("show");
-    $("#evaluation_table_wrapper table").trigger("update");
-    benchmark_file = benchmark_select.value;
-    benchmark_name = $("#benchmark option:selected").text();
-
-    if (benchmark_file == "") {
-        return;
+    } else if (next_annotations[0]) {
+        next_annotation = next_annotations[0];
+        window.jump_to_annotation_index[0] = next_annotation_index[0];
+        window.last_highlighted_side = 0;
+        if (only_errors && window.all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
+    } else if (next_annotations[1]) {
+        next_annotation = next_annotations[1];
+        window.jump_to_annotation_index[1] = next_annotation_index[1];
+        window.last_highlighted_side = 1;
+        if (only_errors && window.all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
+    } else if (!only_errors) {
+        window.jump_to_annotation_index[window.last_highlighted_side] = window.all_highlighted_annotations[window.last_highlighted_side].length;
     }
 
-    if (!initial_call) {
-        // Update current URL without refreshing the site
-        const url = new URL(window.location);
-        url.searchParams.set('benchmark', benchmark_name);
-        window.history.replaceState({}, '', url);
+    if (next_annotation) {
+        scroll_to_annotation(next_annotation);
     }
+}
 
-    // Remove previous evaluation table content
-    $("#evaluation_table_wrapper table thead").empty();
-    $("#evaluation_table_wrapper table tbody").empty();
-
-    // Remove previous article evaluation content
-    $("#prediction_overview").hide();
-    evaluation_cases = {};
-    articles_data = {};
-    var default_selected_systems = [];
-    var default_selected_emphasis = [];
-    if (initial_call) {
-        // If URL parameter is set, select system according to URL parameter
-        default_selected_systems = url_param_system;
-        default_selected_emphasis = url_param_emphasis;
+function bring_jump_index_to_same_height(next_annotation, side_index) {
+    // Bring the jump index for the other side to the same height
+    if (side_index === 0) {
+        while (window.jump_to_annotation_index[side_index] < 0 || (window.jump_to_annotation_index[side_index] <= window.all_highlighted_annotations[side_index].length &&
+               $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top <= $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]++;
+        }
     } else {
-        default_selected_systems = copy(selected_approach_names);
-        default_selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null});
-    }
-    selected_approach_names = [];
-    selected_rows = [];
-    selected_cells = [];
-    reset_selected_cell_categories();
-
-    // Build an overview table over all eval_results.json-files from the evaluation-results folder.
-    build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis, initial_call);
-
-    // Read the article and ground truth information from the benchmark.
-    parse_benchmark(benchmark_file, initial_call);
-}
-
-function filter_table_rows() {
-    var filter_keywords = $.trim($("input#result-filter").val()).split(/\s+/);
-    $("#evaluation_table_wrapper tbody tr").each(function() {
-        var name = $(this).children("td:first").text();
-        // Filter row according to filter keywords
-        var show_row = filter_keywords.every(keyword => name.search(keyword) != -1);
-
-        // Filter row according to show-deprecated checkbox
-        if (!$("#checkbox_deprecated").is(":checked")) {
-            show_row = show_row && !name.includes("deprecated");
+        while (window.jump_to_annotation_index[side_index] < 0 || (window.jump_to_annotation_index[side_index] <= window.all_highlighted_annotations[side_index].length &&
+               $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top < $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]++;
         }
-        if (show_row) $(this).show(); else $(this).hide();
-    });
-    // The table width may have changed due to adding or removing the scrollbar
-    // therefore change the width of the top scrollbar div accordingly
-    set_top_scrollbar_width();
-}
-
-function set_top_scrollbar_width() {
-    /*
-    Set width of the top scrollbar to the current width of the evaluation table + side scrollbar.
-    */
-    var width = $("#evaluation_table_wrapper table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
-    $("#top_scrollbar").css({"width": width + "px"});
-}
-
-function parse_benchmark(benchmark_file, initial_call) {
-    /*
-    Read the articles and ground truth labels from the benchmark.
-
-    Reads the file benchmarks/<benchmark_file> and adds each article to the list 'articles'.
-    Each article is an object identical to the parsed JSON-object.
-
-    Calls set_article_select_options(), which sets the options for the article selector element.
-    */
-    // List of articles with ground truth information from the benchmark.
-    articles = [];
-
-    if ("obscure_aida_conll" in config && config["obscure_aida_conll"]
-        && benchmark_file.startsWith("aida") && url_param_access != "42") {
-        // Show obscured AIDA-CoNLL benchmark if specified in config and no access token is provided
-        benchmark_file = benchmark_file + ".obscured";
     }
+    window.jump_to_annotation_index[side_index]--; // Minus one, because the next annotation should be the one determined above
+}
 
-    $.get("benchmarks/" + benchmark_file,
-        function(data, status) {
-            lines = data.split("\n");
-            for (line of lines) {
-                if (line.length > 0) {
-                    json = JSON.parse(line);
-                    articles.push(json);
-                }
+function scroll_to_previous_annotation(only_errors) {
+    // Get potential next highlighted annotation for left and right side
+    let next_annotation_index = [-1, -1];
+    let next_annotations = [null, null];
+    for (let i=0; i<2; i++) {
+        if (window.all_highlighted_annotations[i].length === 0) continue;
+        if (window.jump_to_annotation_index[i] - 1 >= 0) {
+            if (only_errors) {
+                next_annotation_index[i] = find_previous_annotation_index(i, window.last_highlighted_side);
+                if (next_annotation_index[i] >= 0) next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
+            } else {
+                next_annotation_index[i] = window.jump_to_annotation_index[i] - (window.last_highlighted_side===i);
+                next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
             }
-            // Set options for the article selector element.
-            set_article_select_options(initial_call);
         }
+    }
+
+    let next_annotation;
+    if (next_annotations[0] && next_annotations[1]) {
+        if ($(next_annotations[0]).offset().top > $(next_annotations[1]).offset().top) {
+            next_annotation = next_annotations[0];
+            if (!only_errors || window.last_highlighted_side === 0) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+            else {
+                update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+                window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+            }
+            window.last_highlighted_side = 0;
+        } else {
+            next_annotation = next_annotations[1];
+            if (!only_errors || window.last_highlighted_side === 1) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+            else {
+                update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+                window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+            }
+            window.last_highlighted_side = 1;
+        }
+    } else if (next_annotations[0]) {
+        next_annotation = next_annotations[0];
+        if (!only_errors || window.last_highlighted_side === 0) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+        else {
+            update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+            window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+        }
+        window.last_highlighted_side = 0;
+    } else if (next_annotations[1]) {
+        next_annotation = next_annotations[1];
+        if (!only_errors || window.last_highlighted_side === 1) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+        else {
+            update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+            window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+        }
+        window.last_highlighted_side = 1;
+    } else if (!only_errors) {
+        window.jump_to_annotation_index[0] = -1;
+        window.jump_to_annotation_index[1] = -1;
+    }
+
+    if (next_annotation) {
+        scroll_to_annotation(next_annotation);
+    }
+}
+
+function update_index_to_previous_annotation(next_annotation, side_index) {
+    // Bring the jump index for the other side to the same height
+    if (side_index === 0) {
+        while (window.jump_to_annotation_index[side_index] === window.all_highlighted_annotations[side_index].length || (
+               window.jump_to_annotation_index[side_index] >= -1 && $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top > $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]--;
+        }
+    } else {
+        while (window.jump_to_annotation_index[side_index] === window.all_highlighted_annotations[side_index].length || (
+               window.jump_to_annotation_index[side_index] >= -1 && $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top >= $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]--;
+        }
+    }
+}
+
+function find_next_annotation_index(side_index) {
+    for (let i=window.jump_to_annotation_index[side_index] + 1; i<window.all_highlighted_annotations[side_index].length; i++) {
+        let classes = $(window.all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
+        if (classes.includes("fn") || classes.includes("fp")) {
+            return i;
+        }
+    }
+    return window.all_highlighted_annotations[side_index].length;
+}
+
+function find_previous_annotation_index(side_index, last_highlighted_side) {
+    for (let i=window.jump_to_annotation_index[side_index] - (last_highlighted_side===side_index); i > 0; i--) {
+        let classes = $(window.all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
+        if (classes.includes("fn") || classes.includes("fp")) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function reset_annotation_selection() {
+    window.jump_to_annotation_index = [-1, -1];
+    window.last_highlighted_side = 0;
+}
+
+function scroll_to_annotation(annotation) {
+    /*
+    Scroll to the given annotation and mark it as selected for a second.
+    */
+    const line_height = parseInt($("#prediction_overview td").css('line-height').replace('px',''));
+    const header_size = $("#prediction_overview thead")[0].getBoundingClientRect().height;
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $(annotation).offset().top - header_size - line_height / 2
+    }, 200);
+    // Get annotation id class such that all spans belonging to one annotation can be marked as selected
+    const classes = $(annotation).attr("class").split(/\s+/);
+    const annotation_id_class = classes.filter(function(el) {return el.startsWith("annotation_id_"); });
+    // Mark spans as selected
+    $("." + annotation_id_class).addClass("selected")
+    // Unmark spans as selected after timeout
+    setTimeout(function() { $("." + annotation_id_class).removeClass("selected"); }, 1000);
+}
+
+
+/**********************************************************************************************************************
+Functions for READING DATA FROM FILES
+ *********************************************************************************************************************/
+
+function read_initial_data() {
+    /*
+     * Read all data files that are necessary when the webapp is first loaded.
+     * Start with the config file, since other data readers rely on information from the config.
+     */
+    return read_config().then(function() {
+        return $.when(
+            read_whitelist_types(),
+            read_example_benchmark_data(),
+            read_benchmark_articles(),
+            read_evaluation_results()
+        );
+    });
+}
+
+function read_config() {
+    /*
+     * Read the content of the json configuration file into the config dictionary.
+     */
+    return $.get(CONFIG_PATH, function(data){
+        window.config = data;
+    });
+}
+
+function read_whitelist_types() {
+    /*
+     * Read the whitelist type mapping (type QID to label) and returns a promise.
+     */
+    return $.get("whitelist_types.tsv", function (data) {
+        for (let line of data.split("\n")) {
+            if (line.length > 0) {
+                let lst = line.split("\t");
+                // Map from <type_id> (lst[0]) to <type_label> (lst[1])
+                window.whitelist_types[lst[0]] = lst[1];
+            }
+        }
+    });
+}
+
+function read_example_benchmark_data() {
+    /*
+     * Read the example benchmark articles and evaluation cases.
+     */
+    return $.when(
+        // Read the example benchmark articles
+        $.get(EXAMPLE_BENCHMARK_PATH, function(data) {
+            for (let line of data.split("\n")) {
+                if (line.length > 0) window.articles_example_benchmark.push(JSON.parse(line));
+            }
+        }),
+        // Read the example benchmark evaluation cases
+        $.get(EXAMPLE_BENCHMARK_EVAL_CASES_PATH, function(data) {
+            for (let line of data.split("\n")) {
+                if (line.length > 0) window.evaluation_cases_example_benchmark.push(JSON.parse(line));
+            }
+        })
     );
 }
 
-function set_article_select_options(initial_call) {
+function read_benchmark_articles() {
     /*
-    Set the options for the article selector element to the names of the articles from the list 'articles'.
-    */
-    // Empty previous options
-    $("#article_select").empty();
+     * Read the benchmark articles of all available benchmark files in the benchmarks directory.
+     */
+    // Get the names of the benchmark files from the benchmarks directory
+    return $.get("benchmarks", function(folder_data){
+        $(folder_data).find("a").each(function() {
+            let filename = $(this).attr("href");
+            if (filename.endsWith(".benchmark.jsonl")) window.benchmark_filenames.push(filename);
+        });
+    }).then(function() {
+        // Read all detected benchmark files
+        return $.when.apply($, window.benchmark_filenames.map(function(filename) {
+            if ("obscure_aida_conll" in window.config && window.config["obscure_aida_conll"] && filename.startsWith("aida") && "42" !== window.url_param_access) {
+                // Show obscured AIDA-CoNLL benchmark if specified in config and no access token is provided
+                filename = filename + ".obscured";
+            }
+            return $.get("benchmarks/" + filename, function(data) {
+                let benchmark = filename.replace(BENCHMARK_EXTENSION, "");
+                window.benchmark_articles[benchmark] = [];
+                for (let line of data.split("\n")) {
+                    if (line.length > 0) window.benchmark_articles[benchmark].push(JSON.parse(line));
+                }
+            });
+        }))
+    });
+}
 
-    reset_annotation_selection();
+function read_evaluation_results() {
+    let folders = [];
+    let results_urls = [];
+    let metadata_urls = [];
+    return $.get(EVALUATION_RESULT_PATH, function(data) {
+        // Get all folders from the evaluation results directory
+        $(data).find("a").each(function() {
+            let name = $(this).attr("href");
+            name = name.substring(0, name.length - 1);
+            folders.push(name);
+        });
+    }).then(function() {
+        // Retrieve file path of .eval_results.json files for the selected benchmark in each folder
+        return $.when.apply($, folders.map(function(folder) {
+            return $.get(EVALUATION_RESULT_PATH + "/" + folder, function(folder_data) {
+                $(folder_data).find("a").each(function() {
+                    let filename = $(this).attr("href");
+                    let url = EVALUATION_RESULT_PATH + "/" + folder + "/" + filename;
+                    if (filename.endsWith(RESULTS_EXTENSION)) results_urls.push(url);
+                    if (filename.endsWith(METADATA_EXTENSION)) metadata_urls.push(url);
+                });
+            });
+        })).then(function() {
+            // Retrieve contents of each .eval_results.json file for the selected benchmark and store it in an array
+            return $.when(
+                $.when.apply($, results_urls.map(function (url) {
+                    let experiment_id = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
 
-    // Add default "All articles" option
-    var option = document.createElement("option");
-    var selected_benchmark = $("#benchmark option:selected").text();
-    var option_text_suffix = (["newscrawl", "wiki-ex"].includes(selected_benchmark)) ? " (evaluated span only)" : "";
-    option.text = "All " + articles.length + " articles" + option_text_suffix;
-    option.value = -1;
-    article_select.add(option);
+                    return $.getJSON(url, function (results) {
+                        // Add the radio buttons for the different evaluation modes if they haven't been added yet
+                        if ($('#evaluation_overview #evaluation_modes').find("input").length === 0) {
+                            add_radio_buttons(results);
+                        }
 
-    // Create new options
-    for (ai in articles) {
-        article = articles[ai];
-        option = document.createElement("option");
-        // Shorten the article title if it's longer than 40 characters
-        var title;
-        if (article.title) {
-            title = (article.title.length <= 40) ? article.title : article.title.substring(0, 40) + "..."
-        } else {
-            title = article.text.substring(0, Math.min(40, article.text.length)) + "...";
+                        window.evaluation_result_files[experiment_id] = url.substring(0, url.length - RESULTS_EXTENSION.length);
+
+                        // Filter out certain keys in results according to config
+                        $.each(results, function (eval_mode) {
+                            $.each(results[eval_mode]["error_categories"], function (key) {
+                                if ("hide_error_checkboxes" in window.config && window.config["hide_error_checkboxes"].includes(key))
+                                    delete results[eval_mode]["error_categories"][key];
+                            });
+                            $.each(results[eval_mode]["entity_types"], function (key) {
+                                let type_label = key.toLowerCase().replace(/Q[0-9]+:/g, "");
+                                type_label = type_label.replace(" ", "_");
+                                if ("hide_type_checkboxes" in window.config && (window.config["hide_type_checkboxes"].includes(key) ||
+                                    window.config["hide_type_checkboxes"].includes(type_label)))
+                                    delete results[eval_mode]["entity_types"][key];
+                            });
+                            $.each(results[eval_mode]["mention_types"], function (key) {
+                                if ("hide_mention_checkboxes" in window.config && window.config["hide_mention_checkboxes"].includes(key))
+                                    delete results[eval_mode]["mention_types"][key];
+                            });
+                        })
+                        // Add results for experiment to array
+                        window.evaluation_results.push([experiment_id, results]);
+                    })
+                })),
+                // Retrieve experiments metadata for table tooltips and the first table column text
+                $.when.apply($, metadata_urls.map(function (url) {
+                    let experiment_id = url.substring(url.lastIndexOf("/") + 1, url.length - METADATA_EXTENSION.length);
+                    return $.getJSON(url, function (metadata) {
+                        window.experiments_metadata[experiment_id] = metadata;
+                    });
+                }))
+            );
+        });
+    });
+}
+
+function read_evaluation_cases(experiment_id) {
+    /*
+     * Retrieve evaluation cases from the given file and show the linked currently selected article.
+     */
+    // Clear evaluation case cache
+    if (Object.keys(window.evaluation_cases).length >= MAX_CACHED_FILES) {
+        let position = 0;
+        let key = null;
+        while (position < Object.keys(window.evaluation_cases).length) {
+            key = Object.keys(window.evaluation_cases)[position];
+            if (key !== experiment_id && !window.selected_experiment_ids.includes(key)) {
+                break;
+            }
+            position++;
         }
-        // Conll articles don't have a title. In that case use the first 40 characters of the article
-        option.text = title;
-        option.value = ai;
-        article_select.add(option);
+        delete window.evaluation_cases[key];
+        console.log("Deleting " + key + " from evaluation cases cache.");
     }
 
-    // Set the article according to URL parameter if one with a valid article name exists
-    var article_by_url = $('#article_select option').filter(function () { return $(this).html() == url_param_article; });
-    if (url_param_article && article_by_url.length > 0) {
-        $(article_by_url).prop('selected',true);
+    // Read new evaluation cases
+    if (!(experiment_id in window.evaluation_cases) || window.evaluation_cases[experiment_id].length === 0) {
+        let path = window.evaluation_result_files[experiment_id] + ".eval_cases.jsonl";
+        return $.get(path, function(data) {
+            window.evaluation_cases[experiment_id] = [];
+            for (let line of data.split("\n")) {
+                if (line.length > 0) window.evaluation_cases[experiment_id].push(JSON.parse(line));
+            }
+        }).fail(function() {
+            $("#evaluation_table_wrapper").html("ERROR: no file with cases found.");
+            console.log("FAIL NOW CALL SHOW ARTICLE");
+        });
+    } else {
+        // evaluation cases are already in cache
+        return Promise.resolve(1);
     }
 }
 
-function show_article_link() {
+function read_linked_articles(experiment_id) {
     /*
-    Link the currently selected article in the element #article_link.
-    */
-    $("#article_link").html("<a href=\"" + article.url + "\" target=\"_blank\">Wikipedia article</a>");
-    $("#article_link").show();
+     * Read the predictions of the selected experiment for all articles.
+     * They are needed later to visualise the predictions outside the evaluation span of an article.
+     */
+    // Clear articles data cache
+    if (Object.keys(window.articles_data).length >= MAX_CACHED_FILES) {
+        let position = 0;
+        let key = null;
+        while (position < Object.keys(window.articles_data).length) {
+            key = Object.keys(window.articles_data)[position];
+            if (key !== experiment_id && !window.selected_experiment_ids.includes(key)) {
+                break;
+            }
+            position++;
+        }
+        delete window.articles_data[key];
+        console.log("Deleting " + key + " from articles data cache.");
+    }
+
+    if (!(experiment_id in window.articles_data) || window.articles_data[experiment_id].length === 0) {
+        let path = window.evaluation_result_files[experiment_id] + ".linked_articles.jsonl";
+        window.articles_data[experiment_id] = [];
+        return $.get(path, function(data) {
+            for (let line of data.split("\n")) {
+                if (line.length > 0) window.articles_data[experiment_id].push(JSON.parse(line));
+            }
+        });
+    } else {
+        // linked articles are already in cache
+        return Promise.resolve(1);
+    }
+}
+
+function read_linking_results(experiment_id) {
+    /*
+     * Read the predictions and evaluation cases for the selected experiment for all articles.
+     */
+    let benchmark = get_benchmark_from_experiment_id(experiment_id);
+
+    // The linked_articles.jsonl files are only needed to display linked entities outside the evaluation span.
+    // Therefore, only read these files for benchmarks where the evaluation span can be not the entire article.
+    if (benchmark.toLowerCase() === "wiki-ex" || benchmark.toLowerCase() === "newscrawl") {
+        return $.when(
+            read_linked_articles(experiment_id),
+            read_evaluation_cases(experiment_id)
+        )
+    } else {
+        return read_evaluation_cases(experiment_id)
+    }
 }
 
 
-function show_annotated_text(approach_name, textfield, selected_cell_category, column_idx, article_index, example_benchmark) {
+/**********************************************************************************************************************
+ Functions for DISPLAYING ANNOTATED ARTICLES
+ *********************************************************************************************************************/
+
+function show_annotated_text(experiment_id, textfield, selected_cell_category, column_idx, article_index) {
     /*
-    Generate annotations and tooltips for predicted and groundtruth mentions of the selected approach and article
-    and show them in the textfield.
-    */
-    var benchmark_articles = (example_benchmark) ? articles_example_benchmark : articles;
-    if (show_all_articles_flag && !example_benchmark) {
-        var annotated_texts = [];
-        for (var i=0; i < benchmark_articles.length; i++) {
-            var annotations = get_annotations(i, approach_name, column_idx, example_benchmark);
-            annotated_texts.push(annotate_text(benchmark_articles[i].text, annotations, benchmark_articles[i].hyperlinks, benchmark_articles[i].evaluation_span, selected_cell_category));
+     * Generate annotations and tooltips for predicted and ground truth mentions of the selected experiment
+     * and article and show them in the textfield.
+     */
+    let benchmark = get_benchmark_from_experiment_id(experiment_id);
+    let example_benchmark = is_example_benchmark(benchmark);
+    let articles = (example_benchmark) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
+    let annotated_text = "";
+    if (window.is_show_all_articles && !example_benchmark) {
+        let annotated_texts = [];
+        for (let i=0; i < articles.length; i++) {
+            let annotations = get_annotations(i, experiment_id, benchmark, column_idx);
+            annotated_texts.push(annotate_text(articles[i].text,
+                                               annotations,
+                                               articles[i].hyperlinks,
+                                               articles[i].evaluation_span,
+                                               selected_cell_category));
         }
-        annotated_text = "";
-        for (var i=0; i < annotated_texts.length; i++) {
-            if (i != 0) annotated_text += "<hr/>";
-            if (benchmark_articles[i].title) annotated_text += "<b>" + benchmark_articles[i].title + "</b><br>";
+
+        for (let i=0; i < annotated_texts.length; i++) {
+            if (i !== 0) annotated_text += "<hr/>";
+            if (articles[i].title) annotated_text += "<b>" + articles[i].title + "</b><br>";
             annotated_text += annotated_texts[i];
         }
     } else {
-        var curr_article = benchmark_articles[article_index];
-        var annotations = get_annotations(article_index, approach_name, column_idx, example_benchmark);
-        var annotated_text = annotate_text(curr_article.text, annotations, curr_article.hyperlinks, [0, curr_article.text.length], selected_cell_category);
+        let curr_article = articles[article_index];
+        let annotations = get_annotations(article_index, experiment_id, benchmark, column_idx);
+        annotated_text = annotate_text(curr_article.text, annotations, curr_article.hyperlinks, [0, curr_article.text.length], selected_cell_category);
     }
     textfield.html(annotated_text);
 }
 
-function get_annotations(article_index, approach_name, column_idx, example_benchmark) {
+function get_annotations(article_index, experiment_id, benchmark, column_idx) {
     /*
-    Generate annotations for the predicted entities of the selected approach and article.
-
-    This method first combines the predictions outside the evaluation span (from the file <approach>.linked_articles.jsonl)
-    with the evaluated predictions inside the evaluation span (from the file <approach>.eval_cases.jsonl),
-    and then generates annotations for all of them.
-    */
-    var eval_mode;
+     * Generate annotations for the predicted entities of the selected experiment and article.
+     *
+     * This method first combines the predictions outside the evaluation span (from file <experiment_id>.linked_articles.jsonl)
+     * with the evaluated predictions inside the evaluation span (from file <experiment_id>.eval_cases.jsonl),
+     * and then generates annotations for all of them.
+     */
+    let eval_mode;
+    let example_benchmark = is_example_benchmark(benchmark);
+    let article_cases;
+    let article_data;
     if (example_benchmark) {
         eval_mode = "IGNORED";
-        var article_cases = evaluation_cases_example_benchmark[article_index];  // info from the eval_cases file
-        var article_data = articles_data_example_benchmark[article_index];  // info from the linked_articles file
+        article_cases = window.evaluation_cases_example_benchmark[article_index];
     } else {
         // Get currently selected evaluation mode
         eval_mode = get_evaluation_mode();
-        var article_cases = evaluation_cases[approach_name][article_index];  // info from the eval_cases file
-        var article_data = articles_data[approach_name][article_index];  // info from the linked_articles file
+        article_cases = window.evaluation_cases[experiment_id][article_index];
+        // Get info from the linked_articles file to display mentions outside the evaluation span
+        if (experiment_id in window.articles_data) article_data = window.articles_data[experiment_id][article_index];
+
     }
 
-    var child_label_to_parent = {};
-    var label_id_to_label = {};
-    for (eval_case of article_cases) {
+    let child_label_to_parent = {};
+    let label_id_to_label = {};
+    for (let eval_case of article_cases) {
         // Build the parent mapping
         if ("true_entity" in eval_case && eval_case.true_entity.children) {
             label_id_to_label[eval_case.true_entity.id] = eval_case.true_entity;
-            for (child_id of eval_case.true_entity.children) {
+            for (let child_id of eval_case.true_entity.children) {
                 child_label_to_parent[child_id] = eval_case.true_entity.id;
             }
         }
     }
 
     // evaluation span
-    var evaluation_begin = article_data.evaluation_span[0];
-    var evaluation_end = article_data.evaluation_span[1];
+    let evaluation_begin = window.benchmark_articles[benchmark][article_index].evaluation_span[0];
+    let evaluation_end = window.benchmark_articles[benchmark][article_index].evaluation_span[1];
 
     // list of all predicted mentions (inside and outside the evaluation span)
-    var mentions = [];
+    let mentions = [];
 
     // get the mentions before the evaluation span
-    if ("entity_mentions" in article_data) {
-        for (prediction of article_data.entity_mentions) {
+    if (article_data && "entity_mentions" in article_data) {
+        for (let prediction of article_data.entity_mentions) {
             if (prediction.span[1] < evaluation_begin) {
                 mentions.push(prediction);
             }
         }
     }
-
     // get the cases inside the evaluation span from the cases list
-    for (eval_case of article_cases) {
+    for (let eval_case of article_cases) {
         mentions.push(eval_case);
     }
     // get the mentions after the evaluation span
-    if ("entity_mentions" in article_data) {
-        for (prediction of article_data.entity_mentions) {
+    if (article_data && "entity_mentions" in article_data) {
+        for (let prediction of article_data.entity_mentions) {
             if (prediction.span[0] >= evaluation_end) {
                 mentions.push(prediction);
             }
@@ -1101,25 +1034,25 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
     }
 
     // list with tooltip information for each mention
-    var annotations = {};
-    var prediction_spans = [];
-    var annotation_count = 0;
-    for (mention of mentions) {
-        if (mention.factor == 0) {
+    let annotations = {};
+    let prediction_spans = [];
+    let annotation_count = 0;
+    for (let mention of mentions) {
+        if (mention.factor === 0) {
             // Do not display overlapping GT mentions
             continue;
         }
 
         // Do not display overlapping predictions: Keep the larger one.
         // Assume that predictions are sorted by span start (but not by span end)
-        // Includes mentions with "predicted_entity" but also mentions outside of the evaluation span
+        // Includes mentions with "predicted_entity" but also mentions outside the evaluation span
         // with neither "true_entity" nor "predicted_entity"
         if ("predicted_entity" in mention || (!("predicted_entity" in mention) && !("true_entity" in mention))) {
-            var last_index = prediction_spans.length - 1;
+            let last_index = prediction_spans.length - 1;
             if (prediction_spans.length > 0 && prediction_spans[last_index][1] > mention.span[0]) {
                 // Overlap detected.
-                var previous_span_length = prediction_spans[last_index][1] - prediction_spans[last_index][0];
-                var current_span_length = mention.span[1] - mention.span[0];
+                const previous_span_length = prediction_spans[last_index][1] - prediction_spans[last_index][0];
+                const current_span_length = mention.span[1] - mention.span[0];
                 if (previous_span_length >= current_span_length) {
                     // Previous span is longer than current span so discard current prediction
                     continue;
@@ -1136,11 +1069,11 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
             prediction_spans.push(mention.span);
         }
 
-        var gt_annotation = {};
-        var pred_annotation = {};
+        let gt_annotation = {};
+        let pred_annotation = {};
         if ("predicted_entity" in mention || "true_entity" in mention) {
             // mention is an evaluated case. Get the annotation class.
-            var linking_eval_types = mention.linking_eval_types[eval_mode];
+            let linking_eval_types = mention.linking_eval_types[eval_mode];
             if (linking_eval_types.includes("TP")) {
                 gt_annotation.class = ANNOTATION_CLASS_TP;
                 pred_annotation.class = ANNOTATION_CLASS_TP;
@@ -1173,16 +1106,16 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
 
             if ("true_entity" in mention) {
                 // Use the type of the parent entity because this is the type that counts in the evaluation.
-                var curr_label_id = mention.true_entity.id;
+                let curr_label_id = mention.true_entity.id;
                 while (curr_label_id in child_label_to_parent) {
                     curr_label_id = child_label_to_parent[curr_label_id];
                 }
                 gt_annotation.gt_entity_type = label_id_to_label[curr_label_id].type;
                 // Get text of parent span
-                if (curr_label_id != mention.true_entity.id) {
-                    var parent_span = label_id_to_label[curr_label_id].span;
-                    var benchmark_articles = (example_benchmark) ? articles_example_benchmark : articles;
-                    gt_annotation.parent_text = benchmark_articles[article_index].text.substring(parent_span[0], parent_span[1]);
+                if (curr_label_id !== mention.true_entity.id) {
+                    let parent_span = label_id_to_label[curr_label_id].span;
+                    const articles = (example_benchmark) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
+                    gt_annotation.parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
                 }
                 gt_annotation.gt_entity_id = mention.true_entity.entity_id;
                 gt_annotation.gt_entity_name = mention.true_entity.name;
@@ -1193,7 +1126,7 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
                 pred_annotation.pred_entity_name = mention.predicted_entity.name;
                 pred_annotation.pred_entity_type = mention.predicted_entity.type;
                 pred_annotation.predicted_by = mention.predicted_by;
-                if (pred_annotation.class == ANNOTATION_CLASS_TP) {
+                if (pred_annotation.class === ANNOTATION_CLASS_TP) {
                     // Use the type of the parent entity because this is the type that counts in the evaluation.
                     pred_annotation.pred_entity_type = gt_annotation.gt_entity_type;
                 }
@@ -1207,8 +1140,8 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
             pred_annotation.predicted_by = mention.linked_by;
         }
 
-        var mention_type = (mention.mention_type) ? mention.mention_type.toLowerCase() : null;
-        var annotation = {
+        const mention_type = (mention.mention_type) ? mention.mention_type.toLowerCase() : null;
+        let annotation = {
             "span": mention.span,
             "mention_type": mention_type,
             "error_labels": [],
@@ -1216,7 +1149,7 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
         };
         // If the case has a GT and a prediction, don't add error cases to GT if it's an unknown or optional case
         if (!$.isEmptyObject(gt_annotation) && !$.isEmptyObject(pred_annotation)) {
-            if (gt_annotation.class == ANNOTATION_CLASS_OPTIONAL || gt_annotation.class == ANNOTATION_CLASS_UNKNOWN) {
+            if (gt_annotation.class === ANNOTATION_CLASS_OPTIONAL || gt_annotation.class === ANNOTATION_CLASS_UNKNOWN) {
                 pred_annotation.error_labels = mention.error_labels[eval_mode];
             } else {
                 gt_annotation.error_labels = mention.error_labels[eval_mode];
@@ -1232,17 +1165,17 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
             annotation_count++;
         }
         // Merge basic annotations and case specific annotations into a single annotation object
-        // If the annotation contains both a groundtruth and a prediction, make the prediction the inner annotation of
-        // the groundtruth annotation in order not to create overlapping annotations.
+        // If the annotation contains both a ground truth and a prediction, make the prediction the inner annotation of
+        // the ground truth annotation in order not to create overlapping annotations.
         if (!$.isEmptyObject(gt_annotation)) {
-            var gt_annotation = {...annotation, ...gt_annotation};
+            gt_annotation = {...annotation, ...gt_annotation};
             annotations[mention.span] = gt_annotation;
             if (!$.isEmptyObject(pred_annotation)) {
-                var pred_annotation = {...annotation, ...pred_annotation};
+                pred_annotation = {...annotation, ...pred_annotation};
                 gt_annotation.inner_annotation = pred_annotation;
             }
         } else if (!$.isEmptyObject(pred_annotation)) {
-            var pred_annotation = {...annotation, ...pred_annotation};
+            pred_annotation = {...annotation, ...pred_annotation};
             annotations[mention.span] = pred_annotation;
         }
     }
@@ -1250,34 +1183,27 @@ function get_annotations(article_index, approach_name, column_idx, example_bench
     return annotations
 }
 
-function copy(object) {
-    /*
-    Get a copy of the given object
-    */
-    return JSON.parse(JSON.stringify(object));
-}
-
 function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_cell_category) {
     /*
-    Generate tooltips for the given annotations and html hyperlinks for the given hyperlinks.
-    Tooltips and hyperlinks can overlap.
-
-    Arguments:
-    - text: The original text without tooltips or hyperlinks.
-    - annotations: A sorted (by span) list of objects containing tooltip information
-    - hyperlinks: A sorted (by span) list of tuples (span, target_article)
-    - evaluation_span: The span of the article that can be evaluated
-    - selected_cell_categories: categories of the selected cell for the corresponding approach
-
-    First the overlapping annotations and hyperlinks get combined to combined_annotations.
-    Second, the annotations with hyperlinks are added to the text and a tooltip is generated for each annotation.
-    */
+     * Generate tooltips for the given annotations and html hyperlinks for the given hyperlinks.
+     * Tooltips and hyperlinks can overlap.
+     *
+     * Arguments:
+     * - text: The original text without tooltips or hyperlinks.
+     * - annotations: A sorted (by span) list of objects containing tooltip information
+     * - hyperlinks: A sorted (by span) list of tuples (span, target_article)
+     * - evaluation_span: The span of the article that can be evaluated
+     * - selected_cell_categories: categories of the selected cell for the corresponding experiment
+     *
+     * First the overlapping annotations and hyperlinks get combined to combined_annotations.
+     * Second, the annotations with hyperlinks are added to the text and a tooltip is generated for each annotation.
+     */
     // Separate mention annotations into two distinct lists such that any one list does not contain annotations that
     // overlap.
-    var only_groundtruth_annotations = [];
-    var non_groundtruth_annotations = [];
-    for (var i=0; i<annotations.length; i++) {
-        var ann = annotations[i];
+    let only_groundtruth_annotations = [];
+    let non_groundtruth_annotations = [];
+    for (let i=0; i<annotations.length; i++) {
+        const ann = annotations[i];
         if (ann.gt_entity_id) {
             only_groundtruth_annotations.push([copy(ann.span), ann]);
         } else {
@@ -1286,15 +1212,15 @@ function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_
     }
 
     // Transform hyperlinks into a similar format as the mention annotations
-    var new_hyperlinks = [];
+    let new_hyperlinks = [];
     if (hyperlinks) {
-        for (link of hyperlinks) { new_hyperlinks.push([copy(link[0]), {"span": link[0], "hyperlink": link[1]}]); }
+        for (let link of hyperlinks) { new_hyperlinks.push([copy(link[0]), {"span": link[0], "hyperlink": link[1]}]); }
     }
 
     // STEP 1: Combine overlapping annotations and hyperlinks.
     // Consumes the first element from the link list or annotation list, or a part from both if they overlap.
-    var combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations);
-    // Links must be the last list that is added such that they can only be the inner most annotations, because <div>
+    let combined_annotations = combine_overlapping_annotations(only_groundtruth_annotations, non_groundtruth_annotations);
+    // Links must be the last list that is added such that they can only be the innermost annotations, because <div>
     // tags are not allowed within <a> tags, but the other way round is valid.
     combined_annotations = combine_overlapping_annotations(combined_annotations, new_hyperlinks);
 
@@ -1305,19 +1231,19 @@ function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_
 
     // STEP 2: Add the combined annotations and hyperlinks to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
-    for (annotation of combined_annotations.reverse()) {
-        span = annotation[0];
+    for (const ann of combined_annotations.reverse()) {
+        const span = ann[0];
         if (span[1] > evaluation_span[1]) {
             continue;
         } else if (span[0] < evaluation_span[0]) {
             break;
         }
         // annotation is a tuple with (span, annotation_info)
-        annotation = annotation[1];
-        before = text.substring(0, span[0]);
-        snippet = text.substring(span[0], span[1]);
-        after = text.substring(span[1]);
-        replacement = generate_annotation_html(snippet, annotation, selected_cell_category, null);
+        const annotation = ann[1];
+        const before = text.substring(0, span[0]);
+        const snippet = text.substring(span[0], span[1]);
+        const after = text.substring(span[1]);
+        const replacement = generate_annotation_html(snippet, annotation, selected_cell_category);
         text = before + replacement + after;
     }
     text = text.substring(evaluation_span[0], text.length);
@@ -1325,16 +1251,16 @@ function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_
     return text;
 }
 
-function generate_annotation_html(snippet, annotation, selected_cell_category, parent_text) {
+function generate_annotation_html(snippet, annotation, selected_cell_category) {
     /*
-    Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
-    and can be identified by the property "hyperlink". Inner annotations, e.g. hyperlinks contained in
-    a mention annotation, nested mention annotations are contained given by the property "inner_annotation".
-    */
-    var inner_annotation = snippet;
+     * Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
+     * and can be identified by the property "hyperlink". Inner annotations, e.g. hyperlinks contained in
+     * a mention annotation, nested mention annotations are contained given by the property "inner_annotation".
+     */
+    let inner_annotation = snippet;
 
     if ("inner_annotation" in annotation) {
-        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category, annotation.parent_text);
+        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category);
     }
 
     if ("hyperlink" in annotation) {
@@ -1342,29 +1268,30 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
     }
 
     // Add tooltip
-    var tooltip_classes = "tooltiptext";
-    var tooltip_header_text = "";
-    var tooltip_case_type_html = "";
-    var tooltip_body_text = "";
-    var tooltip_footer_html = "";
-    if (annotation.class == ANNOTATION_CLASS_TP && annotation.pred_entity_id) {
-        wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-        entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+    let tooltip_classes = "tooltiptext";
+    let tooltip_header_text = "";
+    let tooltip_case_type_html = "";
+    let tooltip_body_text = "";
+    let tooltip_footer_html = "";
+    if (annotation.class === ANNOTATION_CLASS_TP && annotation.pred_entity_id) {
+        const wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+        const entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+        let entity_name;
         if (annotation.pred_entity_name != null) {
-            var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+            entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
             entity_name = entity_name + " (" + entity_link + ")";
         } else {
             entity_name = entity_link;
         }
         tooltip_header_text += entity_name;
-    } else if (annotation.class == ANNOTATION_CLASS_TP && annotation.gt_entity_id) {
+    } else if (annotation.class === ANNOTATION_CLASS_TP && annotation.gt_entity_id) {
         tooltip_classes += " below";
     } else {
         if ("pred_entity_id" in annotation) {
             if (annotation.pred_entity_id) {
-                var entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
-                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+                let entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
+                const wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
+                const entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
                 tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
             } else {
                 // NIL prediction
@@ -1376,23 +1303,23 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
             if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
                 // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
                 // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN #xy]" or "[UNKNOWN]"
-                var entity_name = annotation.gt_entity_id;
-                if (annotation.gt_entity_id == "Unknown") {
+                let entity_name = annotation.gt_entity_id;
+                if (annotation.gt_entity_id === "Unknown") {
                     entity_name = "UNKNOWN";
                 } else if (annotation.gt_entity_id.startsWith("Unknown")) {
                     entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
                 }
                 tooltip_header_text += "Groundtruth: [" + entity_name + "]";
             } else {
-                var entity_name = (annotation.gt_entity_name == "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
-                var wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
-                var entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+                let entity_name = (annotation.gt_entity_name === "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
+                const wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
+                const entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
                 tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
             }
-            if (annotation.class == ANNOTATION_CLASS_OPTIONAL) tooltip_body_text += "Note: Detection is optional<br>";
-            if (annotation.class == ANNOTATION_CLASS_UNKNOWN) tooltip_body_text += "Note: Entity not found in the knowledge base<br>";
+            if (annotation.class === ANNOTATION_CLASS_OPTIONAL) tooltip_body_text += "Note: Detection is optional<br>";
+            if (annotation.class === ANNOTATION_CLASS_UNKNOWN) tooltip_body_text += "Note: Entity not found in the knowledge base<br>";
             if (![ANNOTATION_CLASS_OPTIONAL, ANNOTATION_CLASS_UNKNOWN].includes(annotation.class) && annotation.gt_entity_type) {
-                var type_string = $.map(annotation.gt_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
+                const type_string = $.map(annotation.gt_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
                 tooltip_body_text += "Types: " + type_string + "<br>";
             }
             tooltip_classes += " below";
@@ -1407,17 +1334,20 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
     }
     if (annotation.predicted_by) tooltip_body_text += "Predicted by " + annotation.predicted_by + "<br>";
     if (![ANNOTATION_CLASS_UNEVALUATED, ANNOTATION_CLASS_UNKNOWN].includes(annotation.class) && annotation.pred_entity_type) {
-        var type_string = $.map(annotation.pred_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
+        const type_string = $.map(annotation.pred_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
         tooltip_body_text += "Types: " + type_string + "<br>";
     }
     if (annotation.parent_text) tooltip_body_text += "Alternative span: \"" + annotation.parent_text + "\"<br>";
     // Add error category tags
     // Only show error category tags for once in the FP tooltip, i.e. don't double them in the GT tooltip for TP
     // and for disambiguation errors
-    var correct_ner = (annotation.inner_annotation && annotation.inner_annotation.pred_entity_id && annotation.inner_annotation.span[0] == annotation.span[0] && annotation.inner_annotation.span[1] == annotation.span[1]);
+    const correct_ner = (annotation.inner_annotation &&
+                         annotation.inner_annotation.pred_entity_id &&
+                         annotation.inner_annotation.span[0] === annotation.span[0] &&
+                         annotation.inner_annotation.span[1] === annotation.span[1]);
     if (annotation.error_labels && annotation.error_labels.length > 0 && !correct_ner) {
-        for (var e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
-            var error_label = annotation.error_labels[e_i];
+        for (let e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
+            let error_label = annotation.error_labels[e_i];
             error_label = error_label.replace(/_/g, " ").toLowerCase();
             if (e_i > 0) {
                 tooltip_footer_html += " ";
@@ -1428,31 +1358,32 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
 
     // Use transparent version of the color, if an error category or type is selected
     // and the current annotation does not have a corresponding error category or type label
+    let lowlight_mention = false;
     if (selected_cell_category) {
-        var lowlight_mention = true;
-        for (selected_category of selected_cell_category) {
+        lowlight_mention = true;
+        for (const selected_category of selected_cell_category) {
             if (is_type_string(selected_category)) {
-                var pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.toLowerCase().split("|").includes(selected_category);
-                var gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.toLowerCase().split("|").includes(selected_category);
+                const pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.toLowerCase().split("|").includes(selected_category);
+                const gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.toLowerCase().split("|").includes(selected_category);
                 if (pred_type_selected || gt_type_selected) {
                     lowlight_mention = false;
                     break;
                 }
             } else {
-                if ((annotation.error_labels && annotation.error_labels.includes(selected_category)) || annotation.mention_type == selected_category) {
+                if ((annotation.error_labels && annotation.error_labels.includes(selected_category)) || annotation.mention_type === selected_category) {
                     lowlight_mention = false;
                     break;
                 }
             }
         }
     }
-    var lowlight = (lowlight_mention) ? " lowlight" : "";
+    const lowlight = (lowlight_mention) ? " lowlight" : "";
 
-    var annotation_kind = (annotation.gt_entity_id) ? "gt" : "pred";
-    var beginning = (annotation.beginning) ? " beginning" : "";
+    const annotation_kind = (annotation.gt_entity_id) ? "gt" : "pred";
+    const beginning = (annotation.beginning) ? " beginning" : "";
     // Annotation id is a class because several spans can belong to the same annotation.
-    var annotation_id_class = " annotation_id_" + annotation.id;
-    var replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + lowlight + beginning + annotation_id_class + "\">";
+    const annotation_id_class = " annotation_id_" + annotation.id;
+    let replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + lowlight + beginning + annotation_id_class + "\">";
     replacement += inner_annotation;
     if (tooltip_header_text || tooltip_body_text) {
         replacement += "<div class=\"" + tooltip_classes + "\">";
@@ -1471,32 +1402,32 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, p
 
 function combine_overlapping_annotations(list1, list2) {
     /*
-    Combine two lists of potentially overlapping and nested annotations into a single list.
-    Overlaps are resolved by splitting annotations at the overlap into two.
-    Nestings are resolved by adding the inner annotation to the outer annotation via the
-    property "inner_annotation".
-
-    NOTE: Links must be the last list that is added such that they can only be the inner-most
-    annotations, because <div> tags are not allowed within <a> tags.
-    */
-    var combined_annotations = [];
+     * Combine two lists of potentially overlapping and nested annotations into a single list.
+     * Overlaps are resolved by splitting annotations at the overlap into two.
+     * Nestings are resolved by adding the inner annotation to the outer annotation via the
+     * property "inner_annotation".
+     *
+     * NOTE: Links must be the last list that is added such that they can only be the inner-most
+     * annotations, because <div> tags are not allowed within <a> tags.
+     */
+    let combined_annotations = [];
     while (list1.length > 0 || list2.length > 0) {
-        if (list1.length == 0) {
-            var list2_item = list2.shift();
+        if (list1.length === 0) {
+            const list2_item = list2.shift();
             combined_annotations.push([list2_item[0], list2_item[1]]);
-        } else if (list2.length == 0) {
-            var list1_item = list1.shift();
+        } else if (list2.length === 0) {
+            const list1_item = list1.shift();
             combined_annotations.push([list1_item[0], list1_item[1]]);
         } else {
-            var list1_item = list1[0];
-            var list2_item = list2[0];
-            var list1_item_span = list1_item[0];
-            var list2_item_span = list2_item[0];
+            const list1_item = list1[0];
+            const list2_item = list2[0];
+            const list1_item_span = list1_item[0];
+            const list2_item_span = list2_item[0];
             if (list2_item_span[0] < list1_item_span[0]) {
                 // Add element from second list
-                var list2_item_end = Math.min(list2_item_span[1], list1_item_span[0]);
+                const list2_item_end = Math.min(list2_item_span[1], list1_item_span[0]);
                 combined_annotations.push([[list2_item_span[0], list2_item_end], copy(list2_item[1])]);
-                if (list2_item_end == list2_item_span[1]) {
+                if (list2_item_end === list2_item_span[1]) {
                     list2.shift();
                 } else {
                     list2[0][0][0] = list2_item_end;
@@ -1504,9 +1435,9 @@ function combine_overlapping_annotations(list1, list2) {
                 }
             } else if (list1_item_span[0] < list2_item_span[0]) {
                 // Add element from first list
-                var list1_item_end = Math.min(list1_item_span[1], list2_item_span[0]);
+                const list1_item_end = Math.min(list1_item_span[1], list2_item_span[0]);
                 combined_annotations.push([[list1_item_span[0], list1_item_end], copy(list1_item[1])]);
-                if (list1_item_end == list1_item_span[1]) {
+                if (list1_item_end === list1_item_span[1]) {
                     list1.shift();
                 } else {
                     list1_item_span[0] = list1_item_end;
@@ -1514,22 +1445,22 @@ function combine_overlapping_annotations(list1, list2) {
                 }
             } else {
                 // Add both
-                var list1_item_ann = copy(list1_item[1]);
-                var most_inner_ann = list1_item_ann;
+                const list1_item_ann = copy(list1_item[1]);
+                let most_inner_ann = list1_item_ann;
                 // Add element from second list as inner-most annotation of element from first list
                 while ("inner_annotation" in most_inner_ann) {
                     most_inner_ann = most_inner_ann["inner_annotation"];
                 }
                 most_inner_ann["inner_annotation"] = copy(list2_item[1]);
-                var list1_item_end = Math.min(list1_item_span[1], list2_item_span[1]);
+                const list1_item_end = Math.min(list1_item_span[1], list2_item_span[1]);
                 combined_annotations.push([[list1_item_span[0], list1_item_end], list1_item_ann]);
-                if (list1_item_end == list2_item_span[1]) {
+                if (list1_item_end === list2_item_span[1]) {
                     list2.shift();
                 } else {
                     list2[0][0][0] = list1_item_end;
                     list2_item[1].beginning = false;
                 }
-                if (list1_item_end == list1_item_span[1]) {
+                if (list1_item_end === list1_item_span[1]) {
                     list1.shift();
                 } else {
                     list1[0][0][0] = list1_item_end;
@@ -1541,57 +1472,64 @@ function combine_overlapping_annotations(list1, list2) {
     return combined_annotations;
 }
 
-async function show_article(selected_approaches, timestamp) {
+async function show_article(selected_exp_ids, timestamp) {
     /*
-    Generate the ground truth textfield and predicted text field for the selected article
-    (or all articles if this option is selected) and approach.
-    */
-    console.log("show_article() called for selected approaches", selected_approaches, "and evaluation cases for", Object.keys(evaluation_cases));
+     * Generate the ground truth textfield and predicted text field for the selected article
+     * (or all articles if this option is selected) and experiment.
+     */
+    reset_annotation_selection();
 
-    if (timestamp < last_show_article_request_timestamp) {
+    console.log("show_article() called for selected experiments", selected_exp_ids);
+
+    if (timestamp < window.last_show_article_request_timestamp) {
         console.log("Dropping function call since newer call exists.");
-        return
+        return;
     }
 
-    selected_article_index = article_select.value;
+    let selected_article_index = $("#article_select").val();
 
-    if (selected_article_index == -1) {
-        show_all_articles_flag = true;
+    if (selected_article_index === "") {
+        window.is_show_all_articles = true;
         $("#article_link").hide();
     } else {
-        show_all_articles_flag = false;
-        article = articles[selected_article_index];
+        window.is_show_all_articles = false;
+        let benchmark = get_benchmark_from_experiment_id(selected_exp_ids[0]);
+        let article = window.benchmark_articles[benchmark][selected_article_index];
 
+        let $article_link = $("#article_link");
         if (article.url) {
-            show_article_link();
+            $article_link.html("<a href=\"" + article.url + "\" target=\"_blank\">Wikipedia article</a>");
+            $article_link.show();
         } else {
-            $("#article_link").hide();
+            $article_link.hide();
         }
     }
 
     $("#prediction_overview").show();
-    var columns = $("#prediction_overview tbody tr td");
-    var column_headers = $("#prediction_overview thead tr th");
-    var column_idx = 0;
+    let columns = $("#prediction_overview tbody tr td");
+    let column_headers = $("#prediction_overview thead tr th");
+    let column_idx = 0;
 
-    var iteration = 0;
-    while (!(selected_approaches[0] in evaluation_cases) || evaluation_cases[selected_approaches[0]].length == 0) {
+    let iteration = 0;
+    while (!(selected_exp_ids[0] in window.evaluation_cases) || window.evaluation_cases[selected_exp_ids[0]].length === 0) {
         $(column_headers[column_idx]).text("");
-        for (var i=1; i<columns.length; i++) {
+        for (let i=1; i<columns.length; i++) {
             hide_table_column("prediction_overview", i);
         }
         if (iteration >= 10) {
             console.log("ERROR: Stop waiting for result.");
             $(columns[column_idx]).html("<b class='warning'>No experiment selected or no file with cases found.</b>");
             return;
-        } else if (timestamp < last_show_article_request_timestamp) {
+        } else if (timestamp < window.last_show_article_request_timestamp) {
             console.log("ERROR: Stop waiting for result.");
             return;
-        } else if (!selected_approaches[0]) {
+        } else if (!selected_exp_ids[0]) {
             $(columns[column_idx]).html("<b class='warning'>No experiment selected in the evaluation results table.</b>");
             return;
         }
-        console.log("WARNING: selected approach[0]", selected_approaches[0], "not in evaluation cases. Waiting for result.");
+        // TODO: Check if this can still happen
+        // TODO: should be triggerable at least by selecting article or toggle compare directly after selecting new experiment
+        console.log("WARNING: selected experiment", selected_exp_ids[0], "not in evaluation cases. Waiting for result.");
         $(columns[column_idx]).html("<b>Waiting for results...</b>");
         await new Promise(r => setTimeout(r, 1000));
         iteration++;
@@ -1599,46 +1537,46 @@ async function show_article(selected_approaches, timestamp) {
 
     // Show columns
     // Show first prediction column
-    show_annotated_text(selected_approaches[0], $(columns[column_idx]), selected_cell_categories[0], column_idx, selected_article_index, false);
-    var displayed_exp_name = get_displayed_experiment_name(selected_approaches[0]);
-    var benchmark_name = $("#benchmark option:selected").text();
-    var emphasis_str = get_emphasis_string(selected_cell_categories[0]);
+    show_annotated_text(selected_exp_ids[0], $(columns[column_idx]), window.selected_cell_categories[0], column_idx, selected_article_index);
+    let displayed_exp_name = get_displayed_experiment_name(selected_exp_ids[0]);
+    let benchmark_name = get_benchmark_from_experiment_id(selected_exp_ids[0]);
+    let emphasis_str = get_emphasis_string(window.selected_cell_categories[0]);
     $(column_headers[column_idx]).html(displayed_exp_name + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
     show_table_column("prediction_overview", column_idx);
     column_idx++;
-    if(is_compare_checked() && selected_approaches.length > 1) {
+    if(is_compare_checked() && selected_exp_ids.length > 1) {
         // Show second prediction column
-        show_annotated_text(selected_approaches[1], $(columns[column_idx]), selected_cell_categories[1], column_idx, selected_article_index, false);
-        displayed_exp_name = get_displayed_experiment_name(selected_approaches[1]);
-        emphasis_str = get_emphasis_string(selected_cell_categories[1])
+        show_annotated_text(selected_exp_ids[1], $(columns[column_idx]), window.selected_cell_categories[1], column_idx, selected_article_index);
+        displayed_exp_name = get_displayed_experiment_name(selected_exp_ids[1]);
+        emphasis_str = get_emphasis_string(window.selected_cell_categories[1])
         $(column_headers[column_idx]).html(displayed_exp_name + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
         show_table_column("prediction_overview", column_idx);
         column_idx++;
     }
 
     // Hide unused columns
-    for (var i=column_idx; i<columns.length; i++) {
+    for (let i=column_idx; i<columns.length; i++) {
         hide_table_column("prediction_overview", i);
     }
 
     // Set column width
-    var width_percentage = 100 / column_idx;
+    let width_percentage = 100 / column_idx;
     $("#prediction_overview th, #prediction_overview td").css("width", width_percentage + "%");
 
     // Hide the loading GIF
-    if (timestamp >= last_show_article_request_timestamp) $("#loading").removeClass("show");
+    if (timestamp >= window.last_show_article_request_timestamp) $("#loading").removeClass("show");
 }
 
 function get_emphasis_string(selected_cell_category) {
     /*
-    Create an emphasis string for the given selected category.
-    */
-    var emphasis = "all";
-    var emphasis_type = "mention type";
-    var mention_types = $.map( mention_type_headers, function(key){ return mention_type_headers[key]; });
+     * Create an emphasis string for the given selected category.
+     */
+    let emphasis = "all";
+    let emphasis_type = "mention type";
+    const mention_types = $.map( MENTION_TYPE_HEADERS, function(key){ return MENTION_TYPE_HEADERS[key]; });
     if (selected_cell_category) {
-        var emphasis_strs = [];
-        for (selected_category of selected_cell_category) {
+        let emphasis_strs = [];
+        for (const selected_category of selected_cell_category) {
             if (is_type_string(selected_category)) {
                  emphasis_strs.push(get_type_label(selected_category));
                  emphasis_type = "entity type";
@@ -1654,203 +1592,182 @@ function get_emphasis_string(selected_cell_category) {
     return " (emphasis: " + emphasis_type + " \"" + emphasis + "\")";
 }
 
-function build_overview_table(benchmark_name, default_selected_systems, default_selected_emphasis, initial_call) {
+/**********************************************************************************************************************
+ Functions for BUILDING THE EVALUATION RESULTS TABLE
+ *********************************************************************************************************************/
+
+function build_evaluation_results_table(initial_call) {
     /*
-    Build the overview table from the .eval_results.json files found in the subdirectories of the given path.
-    */
-    var path = EVALUATION_RESULT_PATH;
-    var folders = [];
-    result_files = {};
-    result_array = [];
-    var results_urls = [];
-    var metadata_urls = [];
-    $.get(path, function(data) {
-        // Get all folders from the evaluation results directory
-        $(data).find("a").each(function() {
-            var name = $(this).attr("href");
-            var name = name.substring(0, name.length - 1);
-            folders.push(name);
-        });
-    }).done(function() {
-        // Retrieve file path of .eval_results.json files for the selected benchmark in each folder
-        $.when.apply($, folders.map(function(folder) {
-            return $.get(path + "/" + folder, function(folder_data) {
-                $(folder_data).find("a").each(function() {
-                    var file_name = $(this).attr("href");
-                    // This assumes the benchmark is specified in the last dot separated column before the
-                    // file extension (.linked_articles.jsonl, .eval_cases.jsonl, .eval_results.json, metadata.json).
-                    var benchmark = file_name.split(".").slice(-3)[0];
-                    if (benchmark == benchmark_name) {
-                        var url = path + "/" + folder + "/" + file_name;
-                        if (file_name.endsWith(RESULTS_EXTENSION)) results_urls.push(url);
-                        if (file_name.endsWith(METADATA_EXTENSION)) metadata_urls.push(url);
-                    }
-                });
-            });
-        })).then(function() {
-            // Retrieve contents of each .eval_results.json file for the selected benchmark and store it in an array
-            $.when.apply($, results_urls.map(function(url) {
-                var experiment_name = url.substring(url.lastIndexOf("/") + 1, url.length - RESULTS_EXTENSION.length);
-                // Remove the benchmark extension from the experiment name
-                experiment_name = experiment_name.substring(0, experiment_name.lastIndexOf("."))
-                return $.getJSON(url, function(results) {
-                    // Add the radio buttons for the different evaluation modes if they haven't been added yet
-                    if ($('#evaluation_overview #evaluation_modes').find("input").length == 0) {
-                        add_radio_buttons(results);
-                    }
-                    // Get the selected evaluation mode and filter the results accordingly
-                    var eval_mode = get_evaluation_mode();
-                    results = results[eval_mode];
+     * Build the overview table from the .eval_results.json files found in the subdirectories of the given path.
+     */
+    const $table_loading = $("#table_loading");
+    $table_loading.addClass("show");
 
-                    result_files[experiment_name] = url.substring(0, url.length - RESULTS_EXTENSION.length);
-
-                    // Filter out certain keys in results according to config
-                    $.each(results["error_categories"], function(key) {
-                        if ("hide_error_checkboxes" in config && config["hide_error_checkboxes"].includes(key))
-                            delete results["error_categories"][key];
-                    });
-                    $.each(results["entity_types"], function(key) {
-                        var type_label = key.toLowerCase().replace(/Q[0-9]+:/g, "");
-                        type_label = type_label.replace(" ", "_");
-                        if ("hide_type_checkboxes" in config && (config["hide_type_checkboxes"].includes(key) ||
-                                                                 config["hide_type_checkboxes"].includes(type_label)))
-                            delete results["entity_types"][key];
-                    });
-                    $.each(results["mention_types"], function(key) {
-                        if ("hide_mention_checkboxes" in config && config["hide_mention_checkboxes"].includes(key))
-                            delete results["mention_types"][key];
-                    });
-
-                    // Add results for approach to array
-                    result_array.push([experiment_name, results]);
-                });
-            })).then(function() {
-                $.when.apply($, metadata_urls.map(function(url) {
-                    // Retrieve experiments metadata for table tooltips and the first table column text
-                    var experiment_name = url.substring(url.lastIndexOf("/") + 1, url.length - METADATA_EXTENSION.length);
-                    // Remove the benchmark extension from the experiment name
-                    experiment_name = experiment_name.substring(0, experiment_name.lastIndexOf("."))
-                    return $.getJSON(url, function(metadata) {
-                        experiments_metadata[experiment_name] = metadata;
-                    });
-                })).done(function() {
-                    // Sort the result array
-                    result_array.sort();
-                    // Add table header and checkboxes
-                    result_array.forEach(function(result_tuple) {
-                        var approach_name = result_tuple[0];
-                        var results = result_tuple[1];
-                        if (!$('#evaluation_table_wrapper table thead').html()) {
-                            // Add table header if it has not yet been added
-                            add_table_header(results, "evaluation");
-                        }
-
-                        if (!$('#evaluation_overview .checkboxes').html()) {
-                            // Add checkboxes if they have not yet been added
-                            add_checkboxes(results, initial_call);
-                        }
-                        return;
-                    });
-                    // Add table body
-                    build_evaluation_table_body(result_array);
-
-                    // Select default rows and cells
-                    if (default_selected_systems) {
-                        for (var i=0; i<default_selected_systems.length; i++) {
-                            var system = default_selected_systems[i];
-                            var row = $('#evaluation_table_wrapper table tbody tr').filter(function() {
-                                return get_experiment_name_from_td($(this).children("td:first")) === system;
-                            });
-                            if (row.length > 0) {
-                                if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
-                                    var cell = $(row).children("." + default_selected_emphasis[i]);
-                                    if (cell.length > 0) {
-                                        on_cell_click(cell[0]);
-                                    } else {
-                                        on_cell_click($(row).children("td:first")[0]);
-                                    }
-                                } else {
-                                    on_cell_click($(row).children("td:first")[0]);
-                                }
-                                on_row_click(row[0]);
-                            }
-                        }
-                    }
-
-                    // Update the tablesorter. The sort order is automatically adapted from the previous table.
-                    $("#evaluation_table_wrapper table").trigger("updateAll")
-
-                    // Remove the table loading GIF
-                    $("#table_loading").removeClass("show");
-
-                    if (initial_call && url_param_sort_order.length > 0) {
-                        // Use sort order from URL parameter
-                        $.tablesorter.sortOn( $("#evaluation_table_wrapper table")[0].config, [ url_param_sort_order ]);
-                    }
-                    add_experiment_tooltips();
-                });
-            });
-        });
-    });
-}
-
-function add_radio_buttons(json_obj) {
-    /*
-    Add radio buttons for the evaluation modes as extracted from the jsonl results file
-    */
-    $.each(json_obj, function(key) {
-        var class_name = get_class_name(key);
-        var checked = ((class_name == "ignored" && url_param_evaluation_mode == null) || url_param_evaluation_mode == class_name) ? "checked" : "";
-        var radio_button_html = "<span class=\"radio_button_" + class_name + "\"><input type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_radio_button_change(this)\" " + checked + ">";
-        radio_button_html += "<label>" + evaluation_mode_labels[class_name] + "</label></span>\n";
-        $("#evaluation_modes").append(radio_button_html);
-
-        // Add radio button tooltip
-        tippy('#evaluation_modes .radio_button_' + class_name, {
-            content: header_descriptions["evaluation_mode"][class_name],
-            allowHTML: true,
-            theme: 'light-border',
-        });
-    });
-}
-
-function on_radio_button_change(el) {
-    $("#table_loading").addClass("show");
-    $("#evaluation_table_wrapper table").trigger("update");
-
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('evaluation_mode', get_class_name($(el).val()));
-    window.history.replaceState({}, '', url);
+    const $evaluation_table = $("#evaluation_table_wrapper table");
+    $evaluation_table.trigger("update");
 
     // Remove previous evaluation table content
     $("#evaluation_table_wrapper table thead").empty();
-    $("#evaluation_table_wrapper table tbody").empty();
+    $("#evaluation_table_wrapper table tbody").remove();
 
-    // Remove previous article evaluation content
+    // Hide linking results section
     $("#prediction_overview").hide();
-    selected_systems = copy(selected_approach_names);
-    selected_emphasis = selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null});
 
-    // Build an overview table over all .eval_results.json-files from the evaluation-results folder.
-    build_overview_table(benchmark_name, selected_systems, selected_emphasis, false);
+    let default_selected_experiment_ids;
+    let default_selected_emphasis;
+    if (initial_call) {
+        // If URL parameter is set, select experiment according to URL parameter
+        default_selected_experiment_ids = window.url_param_experiment;
+        default_selected_emphasis = window.url_param_emphasis;
+    } else {
+        default_selected_experiment_ids = copy(window.selected_experiment_ids);
+        default_selected_emphasis = window.selected_cells.map(function(el) {
+            return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null;
+        });
+    }
+
+    // Reset variables indicating user selections within the table (they'll be set automatically again))
+    window.selected_experiment_ids = [];
+    window.selected_rows = [];
+    window.selected_cells = [];
+    reset_selected_cell_categories();
+
+    // Add checkboxes. The evaluation mode does not affect the checkboxes, so just choose one.
+    if (initial_call) add_evaluation_checkboxes(window.evaluation_results[0][1][get_evaluation_mode()]);
+    // Add table header. The evaluation mode does not affect the table headers, so just choose one.
+    add_evaluation_table_header(window.evaluation_results[0][1][get_evaluation_mode()]);
+    // Add table body
+    add_evaluation_table_body(window.evaluation_results);
+    // Add tooltips for the experiment column
+    add_experiment_tooltips();
+
+    // Select default rows and cells
+    if (default_selected_experiment_ids) {
+        for (let i=0; i<default_selected_experiment_ids.length; i++) {
+            let experiment_id = default_selected_experiment_ids[i];
+            let row = $('#evaluation_table_wrapper table tbody tr').filter(function() {
+                return get_experiment_id_from_row(this) === experiment_id;
+            });
+            if (row.length > 0) {
+                if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
+                    let cell = $(row).children("." + default_selected_emphasis[i]);
+                    if (cell.length > 0) {
+                        on_cell_click(cell[0]);
+                    } else {
+                        on_cell_click($(row).children("td:first")[0]);
+                    }
+                } else {
+                    on_cell_click($(row).children("td:first")[0]);
+                }
+                on_row_click(row[0]);
+            }
+        }
+    }
+
+    // Update the tablesorter. The sort order is automatically adapted from the previous table.
+    $evaluation_table.trigger("updateAll")
+
+    // Remove the table loading GIF
+    $table_loading.removeClass("show");
+
+    if (initial_call && window.url_param_sort_order.length > 0) {
+        // Use sort order from URL parameter
+        $.tablesorter.sortOn( $evaluation_table[0].config, [ window.url_param_sort_order ]);
+    }
+
+    // Fix the second table column to make it sticky
+    position_second_column();
 }
 
-function get_evaluation_mode() {
-    return $('input[name=eval_mode]:checked', '#evaluation_modes').val();
-}
-
-function build_evaluation_table_body(result_list) {
+function add_evaluation_table_header(json_obj) {
     /*
-    Build the table body.
-    Show / Hide rows and columns according to checkbox state and filter-result input field.
-    */
-    // Add table rows in new sorting order
-    result_list.forEach(function(result_tuple) {
-        var approach_name = result_tuple[0];
-        var results = result_tuple[1];
-        if (results) add_table_row(approach_name, results);
+     * Add html for the table header.
+     */
+    let first_row = "<tr><th colspan=2 onclick='produce_latex()' class='produce_latex'>" + COPY_LATEX_CELL_TEXT + "</th>";
+    let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
+    $.each(json_obj, function(key) {
+        $.each(json_obj[key], function(subkey) {
+            let colspan = 0;
+            let class_name = get_class_name(subkey);
+            $.each(json_obj[key][subkey], function(subsubkey) {
+                if (!(IGNORE_HEADERS.includes(subsubkey))) {
+                    let subclass_name = get_class_name(subsubkey);
+                    let sort_order = (subkey in ERROR_CATEGORY_MAPPING) ? " data-sortinitialorder=\"asc\"" : "";
+                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey) + "</th>";
+                    colspan += 1;
+                }
+            });
+            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_table_heading(key, subkey) + "</th>";
+        });
     });
+    first_row += "</tr>";
+    second_row += "</tr>";
+    $('#evaluation_table_wrapper table thead').html(first_row + second_row);
+
+    // Add table header tooltips
+    $("#evaluation_table_wrapper th").each(function() {
+        let keys = get_table_header_keys(this);
+        let tooltiptext = get_th_tooltip_text(keys[0], keys[1]);
+        if (tooltiptext) {
+            tippy(this, {
+                content: tooltiptext,
+                allowHTML: true,
+                interactive: (tooltiptext.includes("</a>")),
+                appendTo: document.body,
+                theme: 'light-border',
+            });
+        }
+    });
+}
+
+function get_table_heading(key, subkey) {
+    /*
+     * Get the text for the table header cell that is defined via its evaluation results key and subkey.
+     */
+    const lower_key = key.toLowerCase();
+    const lower_subkey = subkey.toLowerCase();
+    if (key === "entity_types" && subkey in window.whitelist_types) {
+        return "Type: " + window.whitelist_types[subkey];
+    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
+        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["table_heading"];
+    } else {
+        return to_title_case(subkey.replace(/_/g, " "));
+    }
+}
+
+function add_evaluation_table_body(result_list) {
+    /*
+     * Add the table bodies.
+     * Show / Hide rows and columns according to checkbox state and filter-result input field.
+     */
+    // Sort result list by benchmark
+    result_list.sort((a, b) => (get_benchmark_from_experiment_id(a[0]) > get_benchmark_from_experiment_id(b[0])) ? 1 : -1);
+
+    let last_element = null;
+    let tbody = "";
+    result_list.forEach(function(result_tuple) {
+        let experiment_id = result_tuple[0];
+        let benchmark = get_benchmark_from_experiment_id(experiment_id);
+        // Get the results for the currently selected evaluation mode.
+        let results = result_tuple[1][get_evaluation_mode()];
+
+        // Append the last tbody if one exists and start the next one
+        if (last_element !== benchmark) {
+            if (tbody.length !== 0) {
+                tbody += "</tbody>";
+                $('#evaluation_table_wrapper table').append(tbody);
+            }
+            tbody = "<tbody id='tbody_" + benchmark + "'>";
+        }
+
+        // Add the new row to the current tbody
+        if (results) tbody += get_table_row(experiment_id, results);
+
+        last_element = benchmark;
+    });
+    // Append last tbody
+    tbody += "</tbody>";
+    $('#evaluation_table_wrapper table').append(tbody);
 
     // Show / Hide columns according to checkbox state
     $("input[class^='checkbox_']").each(function() {
@@ -1861,12 +1778,319 @@ function build_evaluation_table_body(result_list) {
     filter_table_rows();
 }
 
+function get_table_row(experiment_id, json_obj) {
+    /*
+     * Get html for the table row with the given experiment id and result values.
+     */
+    let benchmark = get_benchmark_from_experiment_id(experiment_id);
+    let row = "<tr onclick='on_row_click(this)'>";
+    let onclick_str = " onclick='on_cell_click(this)'";
+    let displayed_experiment_name = get_displayed_experiment_name(experiment_id);
+    row += "<td " + onclick_str + " data-experiment=\"" + experiment_id + "\">" + displayed_experiment_name + "</td>";
+    row += "<td " + onclick_str + ">" + benchmark + "</td>";
+    $.each(json_obj, function(basekey) {
+        $.each(json_obj[basekey], function(key) {
+            let new_json_obj = json_obj[basekey][key];
+            let class_name = get_class_name(key);
+            $.each(new_json_obj, function(subkey) {
+                // Include only keys in the table, that are not on the ignore list
+                if (!(IGNORE_HEADERS.includes(subkey))) {
+                    let value = new_json_obj[subkey];
+                    if (value == null) {
+                        // This means, the category does not apply to the given experiment
+                        value = "-";
+                    } else if (Object.keys(value).length > 0) {
+                        // Values that consist not of a single number but of multiple
+                        // key-value pairs are displayed in a single column.
+                        let processed_value = "<div class='" + class_name + " tooltip'>";
+                        let percentage = get_error_percentage(value);
+                        processed_value += percentage + "%";
+                        processed_value += "<span class='tooltiptext'>";
+                        processed_value += value["errors"] + " / " + value["total"];
+                        processed_value += "</span></div>";
+                        value = processed_value;
+                    } else if (PERCENTAGE_HEADERS.includes(subkey)) {
+                        // Get rounded percentage but only if number is a decimal < 1
+                        let processed_value = "<div class='" + class_name + " tooltip'>";
+                        processed_value += (value * 100).toFixed(2) + "%";
+                        // Create tooltip text
+                        processed_value += "<span class='tooltiptext'>" + get_td_tooltip_text(new_json_obj) + "</span></div>";
+                        value = processed_value;
+                    }
+                    let subclass_name = get_class_name(subkey);
+                    let data_string = "data-category='" + class_name + "," + subclass_name + "'";
+                    row += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
+                }
+            });
+        });
+    });
+    row += "</tr>";
+    return row;
+}
+
+function position_second_column() {
+    /*
+     * Fix the position of the second column in the evaluation results table to make it sticky.
+     */
+    // Get the width of any visible cell in the first table column
+    let first_col_width = $("#evaluation_table_wrapper td:nth-child(1):visible").outerWidth();
+    // Position the header cell in the second row, second column
+    $("#evaluation_table_wrapper table thead tr:nth-child(2) th:nth-child(2)").css('left', first_col_width);
+    // Position the normal cells in the second column
+    $("#evaluation_table_wrapper table td:nth-child(2)").css('left', first_col_width);
+}
+
+function filter_table_rows() {
+    /*
+     * Filter table rows according to the experiment and benchmark filters.
+     * Also filter table rows according to whether the show-deprecated checkbox is checked.
+     */
+    let experiment_keywords = $.trim($("input#experiment-filter").val()).split(/\s+/);
+    let benchmark_keywords = $.trim($("input#benchmark-filter").val()).split(/\s+/);
+    $("#evaluation_table_wrapper tbody tr").each(function() {
+        let name = $(this).children("td:nth-child(1)").text();
+        let benchmark = $(this).children("td:nth-child(2)").text();
+        // Filter row according to filter keywords
+        let show_row = experiment_keywords.every(keyword => name.search(keyword) !== -1);
+        show_row &= benchmark_keywords.every(keyword => benchmark.search(keyword) !== -1);
+
+        // Filter row according to show-deprecated checkbox
+        if (!$("#checkbox_deprecated").is(":checked")) {
+            show_row = show_row && !name.includes("deprecated");
+        }
+        if (show_row) $(this).show(); else $(this).hide();
+    });
+
+    // Check if a table body consists only of hidden rows and if so add the class 'all_hidden'
+    const $evaluation_tbody = $('#evaluation_table_wrapper tbody');
+    $.each($evaluation_tbody, function() {
+        if($(this).find("tr:visible").length === 0) {
+            $(this).addClass("all_hidden");
+            console.log("Tbody has only hidden rows!", this);
+        } else {
+            $(this).removeClass("all_hidden");
+        }
+    });
+
+    // The table width may have changed due to adding or removing the scrollbar
+    // therefore change the width of the top scrollbar div accordingly and re-position
+    // the sticky second column.
+    set_top_scrollbar_width();
+    position_second_column();
+}
+
+
+/**********************************************************************************************************************
+ Functions for HANDLING TABLE CLICKS
+ *********************************************************************************************************************/
+
+function comparing_different_benchmarks(selected_exp_id) {
+    /*
+     * Return true if the user is trying to compare linking results of different benchmarks.
+     */
+    if (is_compare_checked() && window.selected_experiment_ids.length === 1) {
+        let b1 = get_benchmark_from_experiment_id(window.selected_experiment_ids[0]);
+        let b2 = get_benchmark_from_experiment_id(selected_exp_id);
+        return b1 !== b2;
+    }
+    return false;
+}
+
+function on_row_click(el) {
+    /*
+     * This method is called when a table body row was clicked.
+     * This marks the row as selected and reads the evaluation cases.
+     */
+    // Get a timestamp for the click to help maintain the order in which evaluation cases are loaded
+    let timestamp = new Date().getTime();
+    window.last_show_article_request_timestamp = timestamp;
+
+    let experiment_id = get_experiment_id_from_row(el);
+    let previous_benchmark = (window.selected_experiment_ids.length >= 1) ? get_benchmark_from_experiment_id(window.selected_experiment_ids[0]) : null;
+    let new_benchmark = get_benchmark_from_experiment_id(experiment_id);
+
+    // De-select previously selected rows
+    if (!is_compare_checked() || window.selected_experiment_ids.length >= MAX_SELECTED_APPROACHES) {
+        deselect_all_table_rows();
+        window.selected_experiment_ids = [];
+    }
+
+    // Show alert message if the user tries to compare experiments on different benchmarks
+    if (comparing_different_benchmarks(experiment_id)) {
+        alert("Linking results can only be compared side-by-side if the experiments have been run on " +
+            "the same benchmark. You tried to select the experiments "
+            + window.selected_experiment_ids[0] + " and " + experiment_id);
+        return;
+    }
+
+    // Show the loading GIF
+    $("#loading").addClass("show");
+
+    if (!window.selected_experiment_ids.includes(experiment_id)) {
+        window.selected_experiment_ids.push(experiment_id);
+        // Select clicked row
+        $(el).addClass("selected");
+        window.selected_rows.push(el);
+    }
+    let selected_exp_ids_copy = [...window.selected_experiment_ids];
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('experiment', window.selected_experiment_ids.join(","));
+    window.history.replaceState({}, '', url);
+
+    read_linking_results(experiment_id).then(function() {
+        // Reset article select options only if a different benchmark was previously selected
+        if (previous_benchmark !== new_benchmark) set_article_select_options(new_benchmark, previous_benchmark==null);
+        show_article(selected_exp_ids_copy, timestamp);
+    });
+}
+
+function deselect_all_table_rows() {
+    /*
+     * Deselect all rows in all evaluation tables
+     */
+    $("#evaluation_table_wrapper tbody tr").each(function() {
+        $(this).removeClass("selected");
+    });
+    window.selected_rows = [];
+}
+
+function on_cell_click(el) {
+    /*
+     * Highlight error category / type cells on click and un-highlight previously clicked cell.
+     * Add or remove error categories and types to/from current selection.
+     */
+    // Reject the cell click if the user tries to compare experiments on different benchmarks
+    let experiment_id = get_experiment_id_from_row($(el).closest("tr"));
+    if (comparing_different_benchmarks(experiment_id)) return;
+
+    // Determine whether an already selected cell has been clicked
+    let curr_row = $(el).closest("tr").index();
+    let prev_selected_rows = $.map(window.selected_rows, function(sel_row) { return $(sel_row).index(); });
+    let already_selected_row_clicked = $.inArray(curr_row, prev_selected_rows);
+    if (window.selected_cells.length > 0) {
+        if (!is_compare_checked() || window.selected_rows.length >= MAX_SELECTED_APPROACHES) {
+            // Remove selected classes for all currently selected cells
+            for (let i=0; i<window.selected_cells.length; i++) {
+                remove_selected_classes(window.selected_cells[i]);
+            }
+            window.selected_cells = [];
+            reset_selected_cell_categories();
+        } else {
+            // Remove selected class for cells in the same row
+            let last_rows = $.map(window.selected_cells, function(sel_cell) { return $(sel_cell).closest('tr').index(); });
+            let index = $.inArray(curr_row, last_rows);
+            if (index >= 0) {
+                remove_selected_classes(window.selected_cells[index]);
+                window.selected_cells.splice(index, 1);
+                window.selected_cell_categories[index] = null;
+            }
+        }
+    }
+
+    // Make new selection
+    let classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // Experiment column has no class attribute
+    if (is_error_cell(el)) {
+        $(el).addClass("selected");
+        window.selected_cells.push(el);
+    } else if (classes.length > 0 && (classes[0] in MENTION_TYPE_HEADERS || is_type_string(classes[0]))) {
+        $(el).closest('tr').find('.' + classes[0]).each(function() {
+            $(this).addClass("selected");
+        });
+        window.selected_cells.push(el);
+    } else {
+        // Select "all" column
+        let added = false;
+        $(el).closest('tr').find('.all').each(function() {
+            $(this).addClass("selected");
+            if (!added) {
+                // Add a single cell from the "all" column. Which one does not matter.
+                window.selected_cells.push(this);
+                added = true;
+            }
+        });
+    }
+
+    // Updated selected cell categories
+    // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
+    let exp_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : window.selected_rows.length % MAX_SELECTED_APPROACHES;
+    window.selected_cell_categories[exp_index] = get_error_category_or_type(el);
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('emphasis', window.selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
+    window.history.replaceState({}, '', url);
+}
+
+
+/**********************************************************************************************************************
+ Functions for HANDLING TOOLTIPS
+ *********************************************************************************************************************/
+
+function position_table_tooltip(anchor_el) {
+    const anchor_el_rect = anchor_el.getBoundingClientRect();
+    $(anchor_el).find(".tooltiptext").each(function() {
+        const tooltip_rect = this.getBoundingClientRect();
+        const font_size = $(this).css("font-size").replace("px", "");
+        const top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
+        $(this).css({"left": anchor_el_rect.left + "px", "top": top + "px"});
+    });
+}
+
+function reposition_annotation_tooltip(annotation_el) {
+    /*
+     * Re-position all tooltips of an annotation such that they don't go outside the window.
+     */
+    const annotation_rect = annotation_el.getBoundingClientRect();
+    // Check whether the annotation contains a line break by checking whether its height is bigger than the line height
+    const line_height = parseInt($(annotation_el).css('line-height'));
+    const line_break = (annotation_rect.height > line_height + 5);
+    $(annotation_el).find(".tooltiptext").each(function() {
+        let tooltip_rect = this.getBoundingClientRect();
+
+        // Table could be either prediction_overview or the table in the example modal
+        const table_rect = $(this).closest("table")[0].getBoundingClientRect();
+
+        // If the tooltip width is larger than the table width, enable line-wrapping
+        // in the tooltip
+        if (tooltip_rect.width > table_rect.width) {
+            // Set the new width to the width of the table, minus tooltip padding and
+            // border since those are added on top of css width.
+            const paddings = parseInt($(this).css('paddingLeft')) + parseInt($(this).css('paddingRight'));
+            const borders = parseInt($(this).css('borderLeftWidth')) + parseInt($(this).css('borderRightWidth'));
+            const new_width = table_rect.width - (paddings + borders);
+            $(this).css({"white-space": "normal", "width": new_width + "px"});
+            // Recompute the tooltip rectangle
+            tooltip_rect = this.getBoundingClientRect();
+        }
+
+        // Correct the tooltip position if it overlaps with the right edge of the table
+        // If the annotation contains a line break, position to the right
+        if ((annotation_rect.left + tooltip_rect.width > table_rect.right) || line_break)  {
+            // Align right tooltip edge with right edge of the annotation.
+            // Left needs to be set to auto since it is otherwise still 0.
+            $(this).css({"right": "0px", "left": "auto"});
+
+            // If now the left tooltip edge overlaps with the left edge of the table
+            // translate the table as far right as possible
+            if (annotation_rect.right - tooltip_rect.width < table_rect.left) {
+                const translation = table_rect.right - annotation_rect.right;
+                this.style.transform = "translateX(" + translation + "px)";
+            }
+        }
+    });
+}
+
 function add_experiment_tooltips() {
+    /*
+     * Add tooltips to the experiment column of the table.
+     */
     $("#evaluation_table_wrapper table tbody tr").each(function(index) {
-        var experiment_name = get_experiment_name_from_td($(this).find('td:first'));
-        var metadata = experiments_metadata[experiment_name];
+        let experiment_id = get_experiment_id_from_row(this);
+        let metadata = window.experiments_metadata[experiment_id];
         if (metadata) {
-            var tooltiptext = "";
+            let tooltiptext = "";
             if (metadata.experiment_description) tooltiptext += "<p><i>" + metadata.experiment_description + "</i></p>";
             tooltiptext += "<p>";
             if (metadata.linking_time) tooltiptext += "Linking took " + metadata.linking_time.toFixed(2) + "s<br>";
@@ -1882,26 +2106,105 @@ function add_experiment_tooltips() {
     });
 }
 
-function add_checkboxes(json_obj, initial_call) {
+function get_td_tooltip_text(json_obj) {
     /*
-    Add checkboxes for showing / hiding columns.
-    */
+     * Get the tooltip text for the table cell from the given json obj.
+     */
+    let tooltip_text = "TP: " + Math.round(json_obj["true_positives"] * 100) / 100 + "<br>";
+    tooltip_text += "FP: " + Math.round(json_obj["false_positives"] * 100) / 100 + "<br>";
+    tooltip_text += "FN: " + Math.round(json_obj["false_negatives"] * 100) / 100 + "<br>";
+    tooltip_text += "GT: " + Math.round(json_obj["ground_truth"] * 100) / 100;
+    return tooltip_text;
+}
+
+function get_th_tooltip_text(key, subkey) {
+    /*
+     * Get the tooltip text (including html) for the table header cell specified by the
+     * given evaluation results key and subkey.
+     */
+    if (key.toLowerCase() in HEADER_DESCRIPTIONS) {
+        key = key.toLowerCase();
+        subkey = subkey.toLowerCase();
+        if (typeof HEADER_DESCRIPTIONS[key] == "string") {
+            return HEADER_DESCRIPTIONS[key];
+        }
+        if (subkey in HEADER_DESCRIPTIONS[key]) {
+            let tooltip_text = HEADER_DESCRIPTIONS[key][subkey];
+            if (!["", "all"].includes(subkey)) {
+                tooltip_text += TOOLTIP_EXAMPLE_HTML;
+            }
+            return tooltip_text;
+        } else {
+            const tp_string = "<p>" + HEADER_DESCRIPTIONS[key]["tp"] + "</p>";
+            const fp_string = "<p>" + HEADER_DESCRIPTIONS[key]["fp"] + "</p>";
+            const fn_string = "<p>" + HEADER_DESCRIPTIONS[key]["fn"] + "</p>";
+            let string = "<p>" + HEADER_DESCRIPTIONS[subkey] + "</p>";
+            if (subkey === "precision") {
+                string += tp_string;
+                string += fp_string;
+            } else if (subkey === "recall") {
+                string += tp_string;
+                string += fn_string;
+            } else if (subkey === "f1") {
+                string += tp_string;
+                string += fp_string;
+                string += fn_string;
+            }
+            return string;
+        }
+    } else if (key.toUpperCase() in window.whitelist_types || key.toLowerCase() === "other") {
+        key = key.toUpperCase();
+        const type = (key in window.whitelist_types) ? window.whitelist_types[key] : "Other";
+        if (subkey) {
+            // Get tooltips for precision, recall and f1
+            const tp_string = "<p><i>TP</i>: True Positives of type " + type + "</p>";
+            const fp_string = "<p><i>FP</i>: False Positives of type " + type + "</p>";
+            const fn_string = "<p><i>FN</i>: False Negatives of type " + type + "</p>";
+            let string = "<p>" + HEADER_DESCRIPTIONS[subkey] + "</p>";
+            if (subkey === "precision") {
+                string += tp_string;
+                string += fp_string;
+            } else if (subkey === "recall") {
+                string += tp_string;
+                string += fn_string;
+            } else if (subkey === "f1") {
+                string += tp_string;
+                string += fp_string;
+                string += fn_string;
+            }
+            return string;
+        } else {
+            return "Results for entities of type \"" + type + "\".";
+        }
+    }
+    return "";
+}
+
+
+/**********************************************************************************************************************
+ Functions for EVALUATION RESULT CHECKBOXES
+ *********************************************************************************************************************/
+
+function add_evaluation_checkboxes(json_obj) {
+    /*
+     * Add checkboxes for showing / hiding columns.
+     */
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
-            var class_name = get_class_name(subkey);
-            var title = get_checkbox_label(key, subkey);
-            var checked = ((class_name == "all" && url_param_show_columns.length == 0) || url_param_show_columns.includes(class_name)) ? "checked" : "";
-            var checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
-            checkbox_html += "<label>" + title + "</label></span>\n";
-            var checkbox_div_id = "";
-            if (key == "mention_types") checkbox_div_id = "mention_type_checkboxes";
-            if (key == "error_categories") checkbox_div_id = "error_category_checkboxes";
-            if (key == "entity_types") checkbox_div_id = "entity_type_checkboxes";
+            const class_name = get_class_name(subkey);
+            const label = get_checkbox_label(key, subkey);
+            const checked = ((class_name === "all" && window.url_param_show_columns.length === 0) || window.url_param_show_columns.includes(class_name)) ? "checked" : "";
+            let checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
+            checkbox_html += "<label>" + label + "</label></span>\n";
+            let checkbox_div_id = "";
+            if (key === "mention_types") checkbox_div_id = "mention_type_checkboxes";
+            if (key === "error_categories") checkbox_div_id = "error_category_checkboxes";
+            if (key === "entity_types") checkbox_div_id = "entity_type_checkboxes";
             $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
 
             // Add tooltip for checkbox
             tippy("#checkbox_span_" + class_name, {
-                content: get_header_tooltip_text(subkey, ""),
+                content: get_th_tooltip_text(subkey, ""),
                 allowHTML: true,
                 theme: 'light-border',
             });
@@ -1909,12 +2212,27 @@ function add_checkboxes(json_obj, initial_call) {
     });
 }
 
+function get_checkbox_label(key, subkey) {
+    /*
+     * Get the label for the checkbox specified via the given evaluation results key and subkey.
+     */
+    const lower_key = key.toLowerCase();
+    const lower_subkey = subkey.toLowerCase();
+    if (key === "entity_types" && subkey in window.whitelist_types) {
+        return window.whitelist_types[subkey];
+    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
+        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["checkbox_label"];
+    } else {
+        return to_title_case(subkey.replace(/_/g, " "));
+    }
+}
+
 function on_column_checkbox_change(element, resize) {
     show_hide_columns(element, resize);
 
     // Update current URL without refreshing the site
-    var checkbox_classes = [];
-    var checkboxes = $("#evaluation_overview .checkboxes input[type=checkbox]:checked").each(function() {
+    let checkbox_classes = [];
+    $("#evaluation_overview .checkboxes input[type=checkbox]:checked").each(function() {
         checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
     });
     const url = new URL(window.location);
@@ -1924,12 +2242,12 @@ function on_column_checkbox_change(element, resize) {
 
 function show_hide_columns(element, resize) {
     /*
-    This function should be called when the state of a checkbox is changed.
-    This can't be simply added in on document ready, because checkboxes are added dynamically.
-    */
-    var col_class = $(element).attr("class");
+     * This function should be called when the state of a checkbox is changed.
+     * This can't be simply added in on document ready, because checkboxes are added dynamically.
+     */
+    let col_class = $(element).attr("class");
     col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
-    var column = $("#evaluation_table_wrapper table ." + col_class);
+    const column = $("#evaluation_table_wrapper table ." + col_class);
     if($(element).is(":checked")) {
         column.show();
     } else {
@@ -1943,551 +2261,94 @@ function show_hide_columns(element, resize) {
     }
 }
 
-function add_table_header(json_obj) {
+
+/**********************************************************************************************************************
+ Functions for EVALUATION MODE RADIO BUTTONS
+ *********************************************************************************************************************/
+
+function on_radio_button_change(el) {
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('evaluation_mode', get_class_name($(el).val()));
+    window.history.replaceState({}, '', url);
+
+    // Re-build the overview table over all .eval_results.json-files from the evaluation-results folder.
+    build_evaluation_results_table(false);
+}
+
+function add_radio_buttons(json_obj) {
     /*
-    Get html for the table header.
-    */
-    var first_row = "<tr><th onclick='produce_latex()' class='produce_latex'>" + copy_latex_text + "</th>";
-    var second_row = "<tr><th>Experiment</th>";
+     * Add radio buttons for the evaluation modes as extracted from the jsonl results file.
+     */
     $.each(json_obj, function(key) {
-        $.each(json_obj[key], function(subkey) {
-            var colspan = 0;
-            var class_name = get_class_name(subkey);
-            $.each(json_obj[key][subkey], function(subsubkey) {
-                if (!(ignore_headers.includes(subsubkey))) {
-                    var subclass_name = get_class_name(subsubkey);
-                    var sort_order = (subkey in error_category_mapping) ? " data-sortinitialorder=\"asc\"" : "";
-                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey) + "</th>";
-                    colspan += 1;
-                }
-            });
-            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_table_heading(key, subkey) + "</th>";
+        const class_name = get_class_name(key);
+        const checked = ((class_name === "ignored" && window.url_param_evaluation_mode == null) || window.url_param_evaluation_mode === class_name) ? "checked" : "";
+        let radio_button_html = "<span class=\"radio_button_" + class_name + "\">"
+        radio_button_html += "<input type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_radio_button_change(this)\" " + checked + ">";
+        radio_button_html += "<label>" + EVALUATION_MODE_LABELS[class_name] + "</label></span>\n";
+        $("#evaluation_modes").append(radio_button_html);
+
+        // Add radio button tooltip
+        tippy('#evaluation_modes .radio_button_' + class_name, {
+            content: HEADER_DESCRIPTIONS["evaluation_mode"][class_name],
+            allowHTML: true,
+            theme: 'light-border',
         });
     });
-    first_row += "</tr>";
-    second_row += "</tr>";
-    $('#evaluation_table_wrapper table thead').html(first_row + second_row);
-
-    // Add table header tooltips
-    $("#evaluation_table_wrapper th").each(function() {
-        var keys = get_table_header_keys(this);
-        var tooltiptext = get_header_tooltip_text(keys[0], keys[1]);
-        if (tooltiptext) {
-            tippy(this, {
-                content: tooltiptext,
-                allowHTML: true,
-                interactive: (tooltiptext.includes("</a>")),
-                appendTo: document.body,
-                theme: 'light-border',
-            });
-        }
-    });
 }
 
-function get_table_header_keys(th_element) {
+
+/**********************************************************************************************************************
+ Functions for ARTICLE SELECTION
+ *********************************************************************************************************************/
+
+function set_article_select_options(benchmark, is_initial_call) {
     /*
-    Get keys for table headers.
-    For the first table header row this is a single key, e.g. "entity_named".
-    For the second table header row this is two keys, e.g. "entity_named" and "precision".
-    */
-    var keys = ["", ""];
-    var all_classes_string = $(th_element).attr('class');
-    // Experiment column has no attribute 'class'
-    if (all_classes_string) {
-        var all_classes = all_classes_string.split(/\s+/);
-        if (all_classes.length > 1) {
-            // Second table header row
-            var classes = all_classes[1].split("-");
-            keys[0] = classes[0];
-            keys[1] = classes[1]
-        } else if (all_classes.length == 1) {
-            // First table header row
-            keys[0] = all_classes[0];
-        }
-    }
-    return keys;
-}
+     * Set the options for the article selector element to the names of the articles from the list 'articles'.
+     */
+    // Empty previous options
+    const $article_select = $("#article_select");
+    $article_select.empty();
 
-function add_table_row(approach_name, json_obj) {
-    /*
-    Get html for the table row with the given approach name and result values.
-    */
-    var row = "<tr onclick='on_row_click(this)'>";
-    var onclick_str = " onclick='on_cell_click(this)'";
-    var displayed_experiment_name = get_displayed_experiment_name(approach_name);
-    row += "<td " + onclick_str + " data-name=\"" + approach_name + "\">" + displayed_experiment_name + "</td>";
-    $.each(json_obj, function(basekey) {
-        $.each(json_obj[basekey], function(key) {
-            var new_json_obj = json_obj[basekey][key];
-            var class_name = get_class_name(key);
-            $.each(new_json_obj, function(subkey) {
-                // Include only keys in the table, that are not on the ignore list
-                if (!(ignore_headers.includes(subkey))) {
-                    var value = new_json_obj[subkey];
-                    if (value == null) {
-                        // This means, the category does not apply to the given approach
-                        value = "-";
-                    } else if (Object.keys(value).length > 0) {
-                        // Values that consist not of a single number but of multiple
-                        // key-value pairs are displayed in a single column.
-                        var processed_value = "<div class='" + class_name + " tooltip'>";
-                        var percentage = get_error_percentage(value);
-                        processed_value += percentage + "%";
-                        processed_value += "<span class='tooltiptext'>";
-                        processed_value += value["errors"] + " / " + value["total"];
-                        processed_value += "</span></div>";
-                        value = processed_value;
-                    } else if (percentage_headers.includes(subkey)) {
-                        // Get rounded percentage but only if number is a decimal < 1
-                        processed_value = "<div class='" + class_name + " tooltip'>";
-                        processed_value += (value * 100).toFixed(2) + "%";
-                        // Create tooltip text
-                        processed_value += "<span class='tooltiptext'>" + get_tooltip_text(new_json_obj) + "</span></div>";
-                        value = processed_value;
-                    } else {
-                        Math.round(new_json_obj[subkey] * 100) / 100;
-                    }
-                    var subclass_name = get_class_name(subkey);
-                    var data_string = "data-category='" + class_name + "," + subclass_name + "'";
-                    row += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
-                }
-            });
-        });
-    });
-    row += "</tr>";
-    $('#evaluation_table_wrapper table tbody').append(row);
-}
+    // Add default "All articles" option
+    let option_text_suffix = (["newscrawl", "wiki-ex"].includes(benchmark)) ? " (evaluated span only)" : "";
+    let option_text = "All " + window.benchmark_articles[benchmark].length + " articles" + option_text_suffix;
+    $article_select.append(new Option(option_text, ""));
 
-function get_error_percentage(value) {
-    if (value["total"] == 0) {
-        return 0.00;
-    }
-    return (value["errors"] / value["total"] * 100).toFixed(2);
-}
-
-function get_tooltip_text(json_obj) {
-    tooltip_text = "TP: " + Math.round(json_obj["true_positives"] * 100) / 100 + "<br>";
-    tooltip_text += "FP: " + Math.round(json_obj["false_positives"] * 100) / 100 + "<br>";
-    tooltip_text += "FN: " + Math.round(json_obj["false_negatives"] * 100) / 100 + "<br>";
-    tooltip_text += "GT: " + Math.round(json_obj["ground_truth"] * 100) / 100;
-    return tooltip_text;
-}
-
-function get_header_tooltip_text(key, subkey) {
-    if (key.toLowerCase() in header_descriptions) {
-        key = key.toLowerCase();
-        subkey = subkey.toLowerCase();
-        if (typeof header_descriptions[key] == "string") {
-            return header_descriptions[key];
-        }
-        if (subkey in header_descriptions[key]) {
-            var tooltip_text = header_descriptions[key][subkey];
-            if (!["", "all"].includes(subkey)) {
-                tooltip_text += tooltip_example_html;
-            }
-            return tooltip_text;
+    // Create new options
+    for (let ai in window.benchmark_articles[benchmark]) {
+        let article = window.benchmark_articles[benchmark][ai];
+        // Shorten the article title if it's longer than 40 characters
+        let title;
+        if (article.title) {
+            title = (article.title.length <= 40) ? article.title : article.title.substring(0, 40) + "..."
         } else {
-            var tp_string = "<p>" + header_descriptions[key]["tp"] + "</p>";
-            var fp_string = "<p>" + header_descriptions[key]["fp"] + "</p>";
-            var fn_string = "<p>" + header_descriptions[key]["fn"] + "</p>";
-            var string = "<p>" + header_descriptions[subkey] + "</p>";
-            if (subkey == "precision") {
-                string += tp_string;
-                string += fp_string;
-            } else if (subkey == "recall") {
-                string += tp_string;
-                string += fn_string;
-            } else if (subkey == "f1") {
-                string += tp_string;
-                string += fp_string;
-                string += fn_string;
-            }
-            return string;
+            // On some benchmarks (e.g. AIDA-CoNLL), articles don't have titles.
+            // In that case use the first 40 characters of the article.
+            title = article.text.substring(0, Math.min(40, article.text.length)) + "...";
         }
-    } else if (key.toUpperCase() in whitelist_types || key.toLowerCase() == "other") {
-        key = key.toUpperCase();
-        var type = (key in whitelist_types) ? whitelist_types[key] : "Other";
-        if (subkey) {
-            // Get tooltips for precision, recall and f1
-            var tp_string = "<p><i>TP</i>: True Positives of type " + type + "</p>";
-            var fp_string = "<p><i>FP</i>: False Positives of type " + type + "</p>";
-            var fn_string = "<p><i>FN</i>: False Negatives of type " + type + "</p>";
-            var string = "<p>" + header_descriptions[subkey] + "</p>";
-            if (subkey == "precision") {
-                string += tp_string;
-                string += fp_string;
-            } else if (subkey == "recall") {
-                string += tp_string;
-                string += fn_string;
-            } else if (subkey == "f1") {
-                string += tp_string;
-                string += fp_string;
-                string += fn_string;
-            }
-            return string;
+        $article_select.append(new Option(title, ai));
+    }
+
+    // Set the article according to URL parameter if one with a valid article name exists
+    let article_by_url = $('#article_select option').filter(function () { return $(this).html() === window.url_param_article; });
+    if (window.url_param_article) {
+        if (is_initial_call) {
+            if (article_by_url.length > 0) $(article_by_url).prop('selected', true);
         } else {
-            return "Results for entities of type \"" + type + "\".";
+            // Update current URL without refreshing the site
+            const url = new URL(window.location);
+            url.searchParams.set('article', $("#article_select option:selected").text());
+            window.history.replaceState({}, '', url);
         }
     }
-    return "";
-}
-
-function get_class_name(text) {
-    var name = text.toLowerCase().replace(/[ ,.#:]/g, "_");
-    if (name != text.toLowerCase()) console.log("WARNING! Class name is not identical to key: " + name + " vs. " + text);
-    return name;
-}
-
-function get_checkbox_label(key, subkey) {
-    var lower_key = key.toLowerCase();
-    var lower_subkey = subkey.toLowerCase();
-    if (key == "entity_types" && subkey in whitelist_types) {
-        return whitelist_types[subkey];
-    } else if (lower_key in result_titles && lower_subkey in result_titles[lower_key]) {
-        return result_titles[lower_key][lower_subkey]["checkbox_label"];
-    } else {
-        return to_title_case(subkey.replace(/_/g, " "));
-    }
-}
-
-function get_table_heading(key, subkey) {
-    var lower_key = key.toLowerCase();
-    var lower_subkey = subkey.toLowerCase();
-    if (key == "entity_types" && subkey in whitelist_types) {
-        return "Type: " + whitelist_types[subkey];
-    } else if (lower_key in result_titles && lower_subkey in result_titles[lower_key]) {
-        return result_titles[lower_key][lower_subkey]["table_heading"];
-    } else {
-        return to_title_case(subkey.replace(/_/g, " "));
-    }
-}
-
-function to_title_case(str) {
-    return str.replace(/\w\S*/g, function(txt) {
-        return txt.charAt(0).toUpperCase() + txt.substr(1);
-    });
-}
-
-function read_evaluation_cases(path, approach_name, selected_approaches, timestamp) {
-    /*
-    Retrieve evaluation cases from the given file and show the linked currently selected article.
-    */
-    console.log("read_evaluation_cases() called for", path, approach_name, selected_approaches);
-
-    // Clear evaluation case cache
-    if (Object.keys(evaluation_cases).length >= MAX_CACHED_FILES) {
-        var position = 0;
-        var key = null;
-        while (position < Object.keys(evaluation_cases).length) {
-            key = Object.keys(evaluation_cases)[position];
-            if (key != approach_name && !selected_approach_names.includes(key)) {
-                break;
-            }
-            position++;
-        }
-        delete evaluation_cases[key];
-        console.log("Deleting " + key + " from evaluation_cases cache.");
-    }
-
-    // Read new evaluation cases
-    if (approach_name in evaluation_cases && evaluation_cases[approach_name].length > 0) {
-        show_article(selected_approaches, timestamp)
-    } else {
-        $.get(path, function(data) {
-            evaluation_cases[approach_name] = [];
-            lines = data.split("\n");
-            for (line of lines) {
-                if (line.length > 0) {
-                    cases = JSON.parse(line);
-                    evaluation_cases[approach_name].push(cases);
-                }
-            }
-            show_article(selected_approaches, timestamp);
-        }).fail(function() {
-            $("#evaluation_table_wrapper").html("ERROR: no file with cases found.");
-            console.log("FAIL NOW CALL SHOW ARTICLE");
-            show_article(selected_approaches, timestamp);
-        });
-    }
-}
-
-function read_articles_data(path, approach_name) {
-    /*
-    Read the predictions of the selected approach for all articles.
-    They are needed later to visualise the predictions outside the evaluation span of an article.
-    
-    Arguments:
-    - path: the .linked_articles.jsonl file of the selected approach
-    */
-    // Clear articles data cache
-    if (Object.keys(articles_data).length >= MAX_CACHED_FILES) {
-        var position = 0;
-        var key = null;
-        while (position < Object.keys(articles_data).length) {
-            key = Object.keys(articles_data)[position];
-            if (key != approach_name && !selected_approach_names.includes(key)) {
-                break;
-            }
-            position++;
-        }
-        delete articles_data[key];
-        console.log("Deleting " + key + " from articles_data cache.");
-    }
-
-    if (!(approach_name in articles_data) || articles_data[approach_name].length == 0) {
-        articles_data[approach_name] = [];
-        var promise = $.get(path, function(data) {
-            lines = data.split("\n");
-            for (line of lines) {
-                if (line.length > 0) {
-                    articles_data[approach_name].push(JSON.parse(line));
-                }
-            }
-        });
-        return promise;
-    } else {
-        return Promise.resolve(1);
-    }
-}
-
-function read_evaluation(approach_name, selected_approaches, timestamp) {
-    /*
-    Read the predictions and evaluation cases for the selected approach for all articles.
-    */
-    console.log("read_evaluation() called for ", approach_name, "and ", selected_approaches);
-    var cases_path = result_files[approach_name] + ".eval_cases.jsonl";
-    var articles_path = result_files[approach_name] + ".linked_articles.jsonl";
-
-    reading_promise = read_articles_data(articles_path, approach_name);
-    reading_promise.then(function() {  // wait until the predictions from the file are read, because run_evaluation updates the prediction textfield
-        read_evaluation_cases(cases_path, approach_name, selected_approaches, timestamp);
-    });
-}
-
-function get_experiment_name_from_td(td) {
-    return $(td).data("name");
-}
-
-function get_displayed_experiment_name(exp_name) {
-    var metadata_exp_name = (exp_name in experiments_metadata) ? experiments_metadata[exp_name].experiment_name : null;
-    var displayed_experiment_name = (metadata_exp_name) ? metadata_exp_name : exp_name;
-    return displayed_experiment_name;
-}
-
-function on_row_click(el) {
-    /*
-    This method is called when a table body row was clicked.
-    This marks the row as selected and reads the evaluation cases.
-    */
-    // Get a timestamp for the click to help maintain the order in which evaluation cases are loaded
-    var timestamp = new Date().getTime();
-    last_show_article_request_timestamp = timestamp;
-
-    // Show the loading GIF
-    $("#loading").addClass("show");
-
-    var approach_name = get_experiment_name_from_td($(el).find('td:first'));
-
-    // De-select previously selected rows
-    if (!is_compare_checked() || selected_approach_names.length >= MAX_SELECTED_APPROACHES) {
-        deselect_all_table_rows();
-        selected_approach_names = [];
-    }
-
-    if (!selected_approach_names.includes(approach_name)) {
-        selected_approach_names.push(approach_name);
-        // Select clicked row
-        $(el).addClass("selected");
-        selected_rows.push(el);
-    }
-    var selected_approaches = [...selected_approach_names];
-
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('system', selected_approach_names.join(","));
-    window.history.replaceState({}, '', url);
-
-    read_evaluation(approach_name, selected_approaches, timestamp);
-}
-
-function on_cell_click(el) {
-    /*
-    Highlight error category / type cells on click and un-highlight previously clicked cell.
-    Add or remove error categories and types to/from current selection.
-    */
-    reset_annotation_selection();
-
-    // Determine whether an already selected cell has been clicked
-    var curr_row = $(el).closest("tr").index();
-    var prev_selected_rows = $.map(selected_rows, function(sel_row) { return $(sel_row).index(); });
-    var already_selected_row_clicked = $.inArray(curr_row, prev_selected_rows);
-
-    if (selected_cells.length > 0) {
-        if (!is_compare_checked() || selected_rows.length >= MAX_SELECTED_APPROACHES) {
-            // Remove selected classes for all currently selected cells
-            for (var i=0; i<selected_cells.length; i++) {
-                remove_selected_classes(selected_cells[i]);
-            }
-            selected_cells = [];
-            reset_selected_cell_categories();
-        } else {
-            // Remove selected class for cells in the same row
-            var last_rows = $.map(selected_cells, function(sel_cell) { return $(sel_cell).closest('tr').index(); });
-            var index = $.inArray(curr_row, last_rows);
-            if (index >= 0) {
-                remove_selected_classes(selected_cells[index]);
-                selected_cells.splice(index, 1);
-                selected_cell_categories[index] = null;
-            }
-        }
-    }
-
-    // Make new selection
-    var classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // Experiment column has no class attribute
-    if (is_error_cell(el)) {
-        $(el).addClass("selected");
-        selected_cells.push(el);
-    } else if (classes.length > 0 && (classes[0] in mention_type_headers || is_type_string(classes[0]))) {
-        $(el).closest('tr').find('.' + classes[0]).each(function() {
-            $(this).addClass("selected");
-        });
-        selected_cells.push(el);
-    } else {
-        // Select "all" column
-        var added = false;
-        $(el).closest('tr').find('.all').each(function() {
-            $(this).addClass("selected");
-            if (!added) {
-                // Add a single cell from the "all" column. Which one does not matter.
-                selected_cells.push(this);
-                added = true;
-            }
-        });
-    }
-
-    // Updated selected cell categories
-    // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
-    approach_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : selected_rows.length % MAX_SELECTED_APPROACHES;
-    selected_cell_categories[approach_index] = get_error_category_or_type(el);
-
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('emphasis', selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
-    window.history.replaceState({}, '', url);
-}
-
-function deselect_all_table_rows() {
-    /*
-    Deselect all rows in all evaluation tables
-    */
-    $("#evaluation_table_wrapper tbody tr").each(function() {
-        $(this).removeClass("selected");
-    });
-    selected_rows = [];
-}
-
-function remove_selected_classes(el) {
-    var cls = $(el).attr('class').split(/\s+/)[0];
-    $(el).closest('tr').find('.' + cls).each(function(index) {
-        $(this).removeClass("selected");
-    });
-}
-
-function get_error_category_or_type(el) {
-    /*
-    For a given cell return the error category or type it belongs to, or null otherwise.
-    */
-    if ($(el).attr('class')) {
-        var classes = $(el).attr('class').split(/\s+/);
-        if (is_error_cell(el)) {
-            var keys = classes[1].split("-");
-            return error_category_mapping[keys[0]][keys[1]];
-        } if (is_type_string(classes[0])) {
-            return [get_type_qid(classes[0])];
-        } else if (classes[0] in mention_type_headers) {
-            return mention_type_headers[classes[0]];
-        }
-    }
-    return null;
-}
-
-function is_type_string(class_name) {
-    var match = class_name.match(/[Qq][0-9]+.*/);
-    if (match || class_name == "other") {
-        return true;
-    }
-}
-
-function get_type_qid(string) {
-    return string.replace(/([Qq][0-9]+).*/, "$1");
-}
-
-function show_table_column(table_id, index) {
-    /*
-    Show the column with the given index in the table with the given id.
-    */
-    $("#" + table_id + " th:nth-child(" + (index + 1) + ")").show();
-    $("#" + table_id + " td:nth-child(" + (index + 1) + ")").show();
-}
-
-function hide_table_column(table_id, index) {
-    /*
-    Show the column with the given index in the table with the given id.
-    */
-    $("#" + table_id + " th:nth-child(" + (index + 1) + ")").hide();
-    $("#" + table_id + " td:nth-child(" + (index + 1) + ")").hide();
-}
-
-function toggle_compare() {
-    /*
-    Toggle compare checkbox.
-    */
-    if (!is_compare_checked()) {
-        var timestamp = new Date().getTime();
-        last_show_article_request_timestamp = timestamp;
-
-        if (selected_approach_names.length > 1) {
-            selected_approach_names = [selected_approach_names[1]];
-        }
-
-        // De-select evaluation table row
-        if (selected_rows.length > 1) {
-            deselected_row = selected_rows.shift();  // Remove first element in array
-            $(deselected_row).removeClass("selected");
-            deselected_cell = selected_cells.shift();
-            selected_cell_categories = [selected_cell_categories[1], null];
-            if (deselected_cell) remove_selected_classes(deselected_cell);
-        }
-
-        hide_table_column("prediction_overview", 1);
-
-        show_article(selected_approach_names, timestamp);
-    }
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('compare', $("#checkbox_compare").is(":checked"));
-    url.searchParams.set('system', selected_approach_names.join(","));
-    url.searchParams.set('emphasis', selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
-    window.history.replaceState({}, '', url);
-}
-
-function is_compare_checked() {
-    return $("#checkbox_compare").is(":checked");
-}
-
-function toggle_show_deprecated() {
-    filter_table_rows();
-
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('show_deprecated', $("#checkbox_deprecated").is(":checked"));
-    window.history.replaceState({}, '', url);
+    $("#select_article").css("visibility", "visible");
 }
 
 function on_article_select() {
-    var timestamp = new Date().getTime();
-    last_show_article_request_timestamp = timestamp;
-    show_article(selected_approach_names, timestamp);
+    const timestamp = new Date().getTime();
+    window.last_show_article_request_timestamp = timestamp;
+    show_article(window.selected_experiment_ids, timestamp);
 
     // Update current URL without refreshing the site
     const url = new URL(window.location);
@@ -2495,20 +2356,64 @@ function on_article_select() {
     window.history.replaceState({}, '', url);
 }
 
+
+/**********************************************************************************************************************
+ Functions for EXAMPLE BENCHMARK MODAL
+ *********************************************************************************************************************/
+
+function show_example_benchmark_modal(el) {
+    /*
+     * Open the example benchmark model and show the example article that corresponds
+     * to the error category of the clicked table header tooltip.
+     */
+    // Get example error category of the table tooltip to highlight only corresponding mentions
+    // Hack to get the reference object from the clicked tippy tooltip.
+    let table_header_cell = $(el).parent().parent().parent().parent()[0]._tippy.reference;
+    let selected_category = get_error_category_or_type(table_header_cell);
+
+    // Get table header title
+    let keys = get_table_header_keys(table_header_cell);
+    let error_category_title = keys[0].replace(/_/g, " ") + " - " + keys[1].replace(/_/g, " ");
+
+    // Determine article index of selected example
+    let article_index = 0;
+    for (let i=0; i<window.articles_example_benchmark.length; i++) {
+        let article = window.articles_example_benchmark[i];
+        if (article.title.toLowerCase().includes(error_category_title)) {
+            article_index = i;
+            break;
+        }
+    }
+
+    // Display error explanation extracted from table header tooltip text
+    let error_explanation = HEADER_DESCRIPTIONS[keys[0]][keys[1]];
+    error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*?)<\/p>.*/, "$1");
+    $("#error_explanation").text("Description: " + error_explanation);
+    // Display annotated text
+    let textfield = $("#example_prediction_overview tr td");
+    show_annotated_text("example.error-category-examples", $(textfield[0]), selected_category, 100, article_index);
+    $("#example_prediction_overview tr th").text(window.articles_example_benchmark[article_index].title);
+}
+
+
+/**********************************************************************************************************************
+ Functions for PRODUCING TABLE LATEX
+ *********************************************************************************************************************/
+
 function produce_latex() {
     /*
-    Produce LaTeX source code for the overview table and copy it to the clipboard.
-    */
-    var latex = [];
+     * Produce LaTeX source code for the overview table and copy it to the clipboard.
+     */
+    let latex = [];
 
     // Comment that clarifies the origin of this code.
     latex.push("% Copied from " + window.location.href + " on " + new Date().toLocaleString());
     latex.push("");
 
     // Generate the header row of the table and count columns
-    var num_cols = 0;
-    var row_count = 0;
-    var header_string = "";
+    let num_cols = 0;
+    let row_count = 0;
+    let header_string = "";
     $('#evaluation_table_wrapper table thead tr').each(function(){
         // Tablesorter sticky table duplicates the thead. Don't include the duplicate.
         if ($(this).closest(".tablesorter-sticky-wrapper").length > 0) return;
@@ -2518,13 +2423,13 @@ function produce_latex() {
             if (!$(this).is(":hidden")) {
                 if (row_count > 0) num_cols += 1;
                 // Underscore not within $ yields error
-                var title = $(this).text().replace(/_/g, " ");
+                const title = $(this).text().replace(/_/g, " ");
                 // Get column span of the current header
-                var colspan = parseInt($(this).attr("colspan"), 10);
+                const colspan = parseInt($(this).attr("colspan"), 10);
                 if (colspan) {
                     // First column header is skipped here, so starting with "&" works
                     header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
-                } else if (title && title != "Experiment" && title != copy_latex_text) {
+                } else if (title && title !== "Experiment" && title !== COPY_LATEX_CELL_TEXT) {
                     header_string += "& \\textbf{" + title + "} ";
                 }
             }
@@ -2536,26 +2441,26 @@ function produce_latex() {
     // Begin table.
     latex.push(
         ["\\begin{table*}",
-         "\\centering",
-         "\\begin{tabular}{l" + "c".repeat(num_cols) + "}",
-         "\\hline"].join("\n"));
+            "\\centering",
+            "\\begin{tabular}{l" + "c".repeat(num_cols) + "}",
+            "\\hline"].join("\n"));
 
     latex.push(header_string);
     latex.push("\\hline");
 
     // Generate the rows of the table body
     $("#evaluation_table_wrapper table tbody tr").each(function() {
-        var col_idx = 0;
-        var row_string = "";
+        let col_idx = 0;
+        let row_string = "";
         $(this).find("td").each(function() {
             if (!$(this).is(":hidden")) {
                 // Do not add hidden table columns
-                var text = $(this).html();
+                let text = $(this).html();
                 // Filter out tooltip texts and html
-                var match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
+                const match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
                 if (match) text = match[1];
                 text = text.replace(/%/g, "\\%").replace(/_/g, " ");
-                if (col_idx == 0) {
+                if (col_idx === 0) {
                     row_string += text + " ";
                 } else {
                     row_string += "& $" + text + "$ ";
@@ -2572,23 +2477,247 @@ function produce_latex() {
     // End table
     latex.push(
         ["\\hline",
-         "\\end{tabular}",
-         "\\caption{\\label{results}Fancy caption.}",
-         "\\end{table*}",
-         ""].join("\n"));
+            "\\end{tabular}",
+            "\\caption{\\label{results}Fancy caption.}",
+            "\\end{table*}",
+            ""].join("\n"));
 
     // Join lines, copy to textarea and from there to the clipboard.
-    var latex_text = latex.join("\n");
+    const latex_text = latex.join("\n");
     console.log(latex_text);
-    $("#evaluation_overview .latex").show();
-    $("#evaluation_overview .latex textarea").val(latex_text);
-    $("#evaluation_overview .latex textarea").show();  // Text is not selected or copied if it is hidden
-    $("#evaluation_overview .latex textarea").select();
+    const $latex = $("#evaluation_overview .latex");
+    const $latex_textarea = $("#evaluation_overview .latex textarea");
+    $latex.show();
+    $latex_textarea.val(latex_text);
+    $latex_textarea.show();  // Text is not selected or copied if it is hidden
+    $latex_textarea.select();
     document.execCommand("copy");
-    $("#evaluation_overview .latex textarea").hide();
+    $latex_textarea.hide();
 
     // Show the notification for the specified number of seconds
-    var show_duration_seconds = 5;
-    setTimeout(function() { $("#evaluation_overview .latex").hide(); }, show_duration_seconds * 1000);
+    const show_duration_seconds = 5;
+    setTimeout(function() { $latex.hide(); }, show_duration_seconds * 1000);
 }
 
+
+/**********************************************************************************************************************
+ Functions for MISC
+ *********************************************************************************************************************/
+
+function toggle_compare() {
+    /*
+     * Toggle compare checkbox.
+     */
+    if (!is_compare_checked()) {
+        let timestamp = new Date().getTime();
+        window.last_show_article_request_timestamp = timestamp;
+
+        if (window.selected_experiment_ids.length > 1) {
+            window.selected_experiment_ids = [window.selected_experiment_ids[1]];
+        }
+
+        // De-select evaluation table row
+        if (window.selected_rows.length > 1) {
+            let deselected_row = window.selected_rows.shift();  // Remove first element in array
+            $(deselected_row).removeClass("selected");
+            let deselected_cell = window.selected_cells.shift();
+            window.selected_cell_categories = [window.selected_cell_categories[1], null];
+            if (deselected_cell) remove_selected_classes(deselected_cell);
+        }
+
+        hide_table_column("prediction_overview", 1);
+
+        show_article(window.selected_experiment_ids, timestamp);
+    }
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('compare', $("#checkbox_compare").is(":checked"));
+    url.searchParams.set('experiment', window.selected_experiment_ids.join(","));
+    url.searchParams.set('emphasis', window.selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
+    window.history.replaceState({}, '', url);
+}
+
+function toggle_show_deprecated() {
+    filter_table_rows();
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('show_deprecated', $("#checkbox_deprecated").is(":checked"));
+    window.history.replaceState({}, '', url);
+}
+
+/**********************************************************************************************************************
+ Functions for MINI UTILS
+ *********************************************************************************************************************/
+
+function get_table_header_keys(th_element) {
+    /*
+     * Get keys for table headers.
+     * For the first table header row this is a single key, e.g. "entity_named".
+     * For the second table header row this is two keys, e.g. "entity_named" and "precision".
+     */
+    let keys = ["", ""];
+    const all_classes_string = $(th_element).attr('class');
+    // Experiment column has no attribute 'class'
+    if (all_classes_string) {
+        const all_classes = all_classes_string.split(/\s+/);
+        if (all_classes.length > 1) {
+            // Second table header row
+            const classes = all_classes[1].split("-");
+            keys[0] = classes[0];
+            keys[1] = classes[1]
+        } else if (all_classes.length === 1) {
+            // First table header row
+            keys[0] = all_classes[0];
+        }
+    }
+    return keys;
+}
+
+function show_table_column(table_id, index) {
+    /*
+     * Show the column with the given index in the table with the given id.
+     */
+    $("#" + table_id + " th:nth-child(" + (index + 1) + ")").show();
+    $("#" + table_id + " td:nth-child(" + (index + 1) + ")").show();
+}
+
+function hide_table_column(table_id, index) {
+    /*
+     * Show the column with the given index in the table with the given id.
+     */
+    $("#" + table_id + " th:nth-child(" + (index + 1) + ")").hide();
+    $("#" + table_id + " td:nth-child(" + (index + 1) + ")").hide();
+}
+
+function is_error_cell(el) {
+    /*
+     * Return true if the given cell is a error category td.
+     */
+    if ($(el).attr('class')) {  // Experiment column has no class attribute
+        const classes = $(el).attr('class').split(/\s+/);
+        if (classes.length > 1) {
+            // The second class of a cell is its header and subheader (as class name) connected by "-"
+            const keys = classes[1].split("-");
+            if (keys[0] in ERROR_CATEGORY_MAPPING) {
+                if (keys[1] in ERROR_CATEGORY_MAPPING[keys[0]]) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function get_error_category_or_type(el) {
+    /*
+     * For a given cell return the error category or type it belongs to, or null otherwise.
+     */
+    if ($(el).attr('class')) {
+        const classes = $(el).attr('class').split(/\s+/);
+        if (is_error_cell(el)) {
+            const keys = classes[1].split("-");
+            return ERROR_CATEGORY_MAPPING[keys[0]][keys[1]];
+        } if (is_type_string(classes[0])) {
+            return [get_type_qid(classes[0])];
+        } else if (classes[0] in MENTION_TYPE_HEADERS) {
+            return MENTION_TYPE_HEADERS[classes[0]];
+        }
+    }
+    return null;
+}
+
+function is_type_string(class_name) {
+    const match = class_name.match(/[Qq][0-9]+.*/);
+    if (match || class_name === "other") {
+        return true;
+    }
+}
+
+function get_type_qid(string) {
+    return string.replace(/([Qq][0-9]+).*/, "$1");
+}
+
+function get_type_label(qid) {
+    const qid_upper = qid.replace("q", "Q");
+    if (qid_upper in window.whitelist_types) {
+        return window.whitelist_types[qid_upper];
+    }
+    return qid_upper + " (label missing)";
+}
+
+function get_class_name(text) {
+    const name = text.toLowerCase().replace(/[ ,.#:]/g, "_");
+    if (name !== text.toLowerCase()) console.log("WARNING! Class name is not identical to key: " + name + " vs. " + text);
+    return name;
+}
+
+function to_title_case(str) {
+    return str.replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substring(1);
+    });
+}
+
+function remove_selected_classes(el) {
+    const cls = $(el).attr('class').split(/\s+/)[0];
+    $(el).closest('tr').find('.' + cls).each(function() {
+        $(this).removeClass("selected");
+    });
+}
+
+function reset_selected_cell_categories() {
+    /*
+     * Initialize or reset the selected error categories.
+     * The array contains one entry for each experiment that can be compared.
+     */
+    window.selected_cell_categories = new Array(MAX_SELECTED_APPROACHES).fill(null);
+}
+
+function set_top_scrollbar_width() {
+    /*
+     * Set width of the top scrollbar to the current width of the evaluation table + side scrollbar.
+     */
+    let width = $("#evaluation_table_wrapper table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
+    $("#top_scrollbar").css({"width": width + "px"});
+}
+
+function is_example_benchmark(benchmark) {
+    return benchmark === EXAMPLE_BENCHMARK_PATH.split("/")[1].replace(".benchmark.jsonl", "");
+}
+
+function is_compare_checked() {
+    return $("#checkbox_compare").is(":checked");
+}
+
+function copy(object) {
+    return JSON.parse(JSON.stringify(object));
+}
+
+function get_error_percentage(value) {
+    if (value["total"] === 0) return 0.00;
+    return (value["errors"] / value["total"] * 100).toFixed(2);
+}
+
+function get_evaluation_mode() {
+    return $('input[name=eval_mode]:checked', '#evaluation_modes').val();
+}
+
+function get_benchmark_from_experiment_id(exp_id) {
+    return exp_id.substring(exp_id.lastIndexOf(".") + 1, exp_id.length);
+}
+
+function get_experiment_name_from_experiment_id(exp_id) {
+    return exp_id.substring(0, exp_id.lastIndexOf("."));
+}
+
+function get_experiment_id_from_row(row) {
+    return $(row).find('td:nth-child(1)').data("experiment");
+}
+
+function get_displayed_experiment_name(exp_id) {
+    /*
+     * Get the experiment name that should be displayed in the experiment table column from the experiment ID.
+     */
+    let metadata_exp_name = (exp_id in window.experiments_metadata) ? window.experiments_metadata[exp_id].experiment_name : null;
+    return (metadata_exp_name) ? metadata_exp_name : get_experiment_name_from_experiment_id(exp_id);
+}
