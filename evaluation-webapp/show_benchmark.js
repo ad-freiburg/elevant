@@ -232,6 +232,7 @@ window.url_param_show_columns = null;
 window.url_param_sort_order = null;
 window.url_param_access = null;
 window.url_param_evaluation_mode = null;
+window.url_param_group_by = null;
 
 $("document").ready(function() {
     // JQuery selector variables
@@ -243,14 +244,16 @@ $("document").ready(function() {
     read_url_parameters();
     reset_selected_cell_categories();
 
+    if (window.url_param_group_by) $("input:radio[name=" + window.url_param_group_by + "]").prop("checked", true);
+
+    $("#checkbox_compare").prop('checked', window.url_param_compare);
+
     // Read the necessary data files (config, whitelist types, benchmark articles, evaluation results)
     // and build the evaluation results table.
     $("#table_loading").addClass("show");
     read_initial_data().then(function() {
         build_evaluation_results_table(true);
     });
-
-    $("#checkbox_compare").prop('checked', window.url_param_compare);
 
     // Filter table rows by regex in input field (from SPARQL AC evaluation) on key up
     $experiment_filter.keyup(function() {
@@ -435,6 +438,7 @@ function read_url_parameters() {
     window.url_param_sort_order = get_url_parameter_array(get_url_parameter("sort_order"), true);
     window.url_param_access = get_url_parameter_string(get_url_parameter("access"));
     window.url_param_evaluation_mode = get_url_parameter_string(get_url_parameter("evaluation_mode"));
+    window.url_param_group_by = get_url_parameter_string(get_url_parameter("group_by"));
 }
 
 function get_url_parameter(parameter_name) {
@@ -485,199 +489,6 @@ function get_url_parameter_array(url_parameter, is_integer_array) {
 
 function is_string(object) {
     return typeof object === 'string' || object instanceof String;
-}
-
-
-/**********************************************************************************************************************
- Functions for JUMPING BETWEEN ERROR ANNOTATIONS
- *********************************************************************************************************************/
-
-function scroll_to_next_annotation(only_errors) {
-    /*
-     * Scroll to the next annotation in the list of all annotations on the left and on the right side.
-     */
-    // Get potential next highlighted annotation for left and right side
-    let next_annotation_index = [-1, -1];
-    let next_annotations = [null, null];
-    for (let i=0; i<2; i++) {
-        if (window.all_highlighted_annotations[i].length === 0) continue;
-        if (window.jump_to_annotation_index[i] + 1 < window.all_highlighted_annotations[i].length) {
-            if (only_errors) {
-                next_annotation_index[i] = find_next_annotation_index(i);
-                if (next_annotation_index[i] < window.all_highlighted_annotations[i].length) next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
-            } else {
-                next_annotation_index[i] = window.jump_to_annotation_index[i] + 1;
-                next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
-            }
-        }
-    }
-
-    let next_annotation;
-    if (next_annotations[0] && next_annotations[1]) {
-        if ($(next_annotations[0]).offset().top <= $(next_annotations[1]).offset().top) {
-            next_annotation = next_annotations[0];
-            window.jump_to_annotation_index[0] = next_annotation_index[0];
-            window.last_highlighted_side = 0;
-            if (only_errors && window.all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
-        } else {
-            next_annotation = next_annotations[1];
-            window.jump_to_annotation_index[1] = next_annotation_index[1];
-            window.last_highlighted_side = 1;
-            if (only_errors && window.all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
-        }
-    } else if (next_annotations[0]) {
-        next_annotation = next_annotations[0];
-        window.jump_to_annotation_index[0] = next_annotation_index[0];
-        window.last_highlighted_side = 0;
-        if (only_errors && window.all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
-    } else if (next_annotations[1]) {
-        next_annotation = next_annotations[1];
-        window.jump_to_annotation_index[1] = next_annotation_index[1];
-        window.last_highlighted_side = 1;
-        if (only_errors && window.all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
-    } else if (!only_errors) {
-        window.jump_to_annotation_index[window.last_highlighted_side] = window.all_highlighted_annotations[window.last_highlighted_side].length;
-    }
-
-    if (next_annotation) {
-        scroll_to_annotation(next_annotation);
-    }
-}
-
-function bring_jump_index_to_same_height(next_annotation, side_index) {
-    // Bring the jump index for the other side to the same height
-    if (side_index === 0) {
-        while (window.jump_to_annotation_index[side_index] < 0 || (window.jump_to_annotation_index[side_index] <= window.all_highlighted_annotations[side_index].length &&
-               $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top <= $(next_annotation).offset().top)) {
-            window.jump_to_annotation_index[side_index]++;
-        }
-    } else {
-        while (window.jump_to_annotation_index[side_index] < 0 || (window.jump_to_annotation_index[side_index] <= window.all_highlighted_annotations[side_index].length &&
-               $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top < $(next_annotation).offset().top)) {
-            window.jump_to_annotation_index[side_index]++;
-        }
-    }
-    window.jump_to_annotation_index[side_index]--; // Minus one, because the next annotation should be the one determined above
-}
-
-function scroll_to_previous_annotation(only_errors) {
-    // Get potential next highlighted annotation for left and right side
-    let next_annotation_index = [-1, -1];
-    let next_annotations = [null, null];
-    for (let i=0; i<2; i++) {
-        if (window.all_highlighted_annotations[i].length === 0) continue;
-        if (window.jump_to_annotation_index[i] - 1 >= 0) {
-            if (only_errors) {
-                next_annotation_index[i] = find_previous_annotation_index(i, window.last_highlighted_side);
-                if (next_annotation_index[i] >= 0) next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
-            } else {
-                next_annotation_index[i] = window.jump_to_annotation_index[i] - (window.last_highlighted_side===i);
-                next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
-            }
-        }
-    }
-
-    let next_annotation;
-    if (next_annotations[0] && next_annotations[1]) {
-        if ($(next_annotations[0]).offset().top > $(next_annotations[1]).offset().top) {
-            next_annotation = next_annotations[0];
-            if (!only_errors || window.last_highlighted_side === 0) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
-            else {
-                update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
-                window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
-            }
-            window.last_highlighted_side = 0;
-        } else {
-            next_annotation = next_annotations[1];
-            if (!only_errors || window.last_highlighted_side === 1) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
-            else {
-                update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
-                window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
-            }
-            window.last_highlighted_side = 1;
-        }
-    } else if (next_annotations[0]) {
-        next_annotation = next_annotations[0];
-        if (!only_errors || window.last_highlighted_side === 0) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
-        else {
-            update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
-            window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
-        }
-        window.last_highlighted_side = 0;
-    } else if (next_annotations[1]) {
-        next_annotation = next_annotations[1];
-        if (!only_errors || window.last_highlighted_side === 1) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
-        else {
-            update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
-            window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
-        }
-        window.last_highlighted_side = 1;
-    } else if (!only_errors) {
-        window.jump_to_annotation_index[0] = -1;
-        window.jump_to_annotation_index[1] = -1;
-    }
-
-    if (next_annotation) {
-        scroll_to_annotation(next_annotation);
-    }
-}
-
-function update_index_to_previous_annotation(next_annotation, side_index) {
-    // Bring the jump index for the other side to the same height
-    if (side_index === 0) {
-        while (window.jump_to_annotation_index[side_index] === window.all_highlighted_annotations[side_index].length || (
-               window.jump_to_annotation_index[side_index] >= -1 && $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top > $(next_annotation).offset().top)) {
-            window.jump_to_annotation_index[side_index]--;
-        }
-    } else {
-        while (window.jump_to_annotation_index[side_index] === window.all_highlighted_annotations[side_index].length || (
-               window.jump_to_annotation_index[side_index] >= -1 && $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top >= $(next_annotation).offset().top)) {
-            window.jump_to_annotation_index[side_index]--;
-        }
-    }
-}
-
-function find_next_annotation_index(side_index) {
-    for (let i=window.jump_to_annotation_index[side_index] + 1; i<window.all_highlighted_annotations[side_index].length; i++) {
-        let classes = $(window.all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
-        if (classes.includes("fn") || classes.includes("fp")) {
-            return i;
-        }
-    }
-    return window.all_highlighted_annotations[side_index].length;
-}
-
-function find_previous_annotation_index(side_index, last_highlighted_side) {
-    for (let i=window.jump_to_annotation_index[side_index] - (last_highlighted_side===side_index); i > 0; i--) {
-        let classes = $(window.all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
-        if (classes.includes("fn") || classes.includes("fp")) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-function reset_annotation_selection() {
-    window.jump_to_annotation_index = [-1, -1];
-    window.last_highlighted_side = 0;
-}
-
-function scroll_to_annotation(annotation) {
-    /*
-    Scroll to the given annotation and mark it as selected for a second.
-    */
-    const line_height = parseInt($("#prediction_overview td").css('line-height').replace('px',''));
-    const header_size = $("#prediction_overview thead")[0].getBoundingClientRect().height;
-    $([document.documentElement, document.body]).animate({
-        scrollTop: $(annotation).offset().top - header_size - line_height / 2
-    }, 200);
-    // Get annotation id class such that all spans belonging to one annotation can be marked as selected
-    const classes = $(annotation).attr("class").split(/\s+/);
-    const annotation_id_class = classes.filter(function(el) {return el.startsWith("annotation_id_"); });
-    // Mark spans as selected
-    $("." + annotation_id_class).addClass("selected")
-    // Unmark spans as selected after timeout
-    setTimeout(function() { $("." + annotation_id_class).removeClass("selected"); }, 1000);
 }
 
 
@@ -803,7 +614,7 @@ function read_evaluation_results() {
                     return $.getJSON(url, function (results) {
                         // Add the radio buttons for the different evaluation modes if they haven't been added yet
                         if ($('#evaluation_overview #evaluation_modes').find("input").length === 0) {
-                            add_radio_buttons(results);
+                            add_eval_mode_radio_buttons(results);
                         }
 
                         window.evaluation_result_files[experiment_id] = url.substring(0, url.length - RESULTS_EXTENSION.length);
@@ -929,6 +740,825 @@ function read_linking_results(experiment_id) {
     } else {
         return read_evaluation_cases(experiment_id)
     }
+}
+
+
+/**********************************************************************************************************************
+ Functions for BUILDING THE EVALUATION RESULTS TABLE
+ *********************************************************************************************************************/
+
+function build_evaluation_results_table(initial_call) {
+    /*
+     * Build the overview table from the .eval_results.json files found in the subdirectories of the given path.
+     */
+    const $table_loading = $("#table_loading");
+    $table_loading.addClass("show");
+
+    const $evaluation_table = $("#evaluation_table_wrapper table");
+    $evaluation_table.trigger("update");
+
+    // Remove previous evaluation table content
+    $("#evaluation_table_wrapper table thead").empty();
+    $("#evaluation_table_wrapper table tbody").remove();
+
+    // Hide linking results section
+    $("#prediction_overview").hide();
+
+    let default_selected_experiment_ids;
+    let default_selected_emphasis;
+    if (initial_call) {
+        // If URL parameter is set, select experiment according to URL parameter
+        default_selected_experiment_ids = window.url_param_experiment;
+        default_selected_emphasis = window.url_param_emphasis;
+    } else {
+        default_selected_experiment_ids = copy(window.selected_experiment_ids);
+        default_selected_emphasis = window.selected_cells.map(function(el) {
+            return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null;
+        });
+    }
+
+    // Reset variables indicating user selections within the table (they'll be set automatically again))
+    window.selected_experiment_ids = [];
+    window.selected_rows = [];
+    window.selected_cells = [];
+    reset_selected_cell_categories();
+
+    // Add checkboxes. The evaluation mode does not affect the checkboxes, so just choose one.
+    if (initial_call) add_evaluation_checkboxes(window.evaluation_results[0][1][get_evaluation_mode()]);
+    // Add table header. The evaluation mode does not affect the table headers, so just choose one.
+    add_evaluation_table_header(window.evaluation_results[0][1][get_evaluation_mode()]);
+    // Add table body
+    add_evaluation_table_body(window.evaluation_results);
+    // Add tooltips for the experiment column
+    add_experiment_tooltips();
+
+    // Select default rows and cells
+    if (default_selected_experiment_ids) {
+        for (let i=0; i<default_selected_experiment_ids.length; i++) {
+            let experiment_id = default_selected_experiment_ids[i];
+            let row = $('#evaluation_table_wrapper table tbody tr').filter(function() {
+                return get_experiment_id_from_row(this) === experiment_id;
+            });
+            if (row.length > 0) {
+                if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
+                    let cell = $(row).children("." + default_selected_emphasis[i]);
+                    if (cell.length > 0) {
+                        on_cell_click(cell[0]);
+                    } else {
+                        on_cell_click($(row).children("td:first")[0]);
+                    }
+                } else {
+                    on_cell_click($(row).children("td:first")[0]);
+                }
+                on_row_click(row[0]);
+            }
+        }
+    }
+
+    // Update the tablesorter. The sort order is automatically adapted from the previous table.
+    $evaluation_table.trigger("updateAll")
+
+    // Remove the table loading GIF
+    $table_loading.removeClass("show");
+
+    if (initial_call && window.url_param_sort_order.length > 0) {
+        // Use sort order from URL parameter
+        $.tablesorter.sortOn( $evaluation_table[0].config, [ window.url_param_sort_order ]);
+    }
+
+    // Fix the second table column to make it sticky
+    position_second_column();
+}
+
+function add_evaluation_table_header(json_obj) {
+    /*
+     * Add html for the table header.
+     */
+    let first_row = "<tr><th colspan=2 onclick='produce_latex()' class='produce_latex'>" + COPY_LATEX_CELL_TEXT + "</th>";
+    let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
+    $.each(json_obj, function(key) {
+        $.each(json_obj[key], function(subkey) {
+            let colspan = 0;
+            let class_name = get_class_name(subkey);
+            $.each(json_obj[key][subkey], function(subsubkey) {
+                if (!(IGNORE_HEADERS.includes(subsubkey))) {
+                    let subclass_name = get_class_name(subsubkey);
+                    let sort_order = (subkey in ERROR_CATEGORY_MAPPING) ? " data-sortinitialorder=\"asc\"" : "";
+                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey) + "</th>";
+                    colspan += 1;
+                }
+            });
+            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_table_heading(key, subkey) + "</th>";
+        });
+    });
+    first_row += "</tr>";
+    second_row += "</tr>";
+    $('#evaluation_table_wrapper table thead').html(first_row + second_row);
+
+    // Add table header tooltips
+    $("#evaluation_table_wrapper th").each(function() {
+        let keys = get_table_header_keys(this);
+        let tooltiptext = get_th_tooltip_text(keys[0], keys[1]);
+        if (tooltiptext) {
+            tippy(this, {
+                content: tooltiptext,
+                allowHTML: true,
+                interactive: (tooltiptext.includes("</a>")),
+                appendTo: document.body,
+                theme: 'light-border',
+            });
+        }
+    });
+}
+
+function get_table_heading(key, subkey) {
+    /*
+     * Get the text for the table header cell that is defined via its evaluation results key and subkey.
+     */
+    const lower_key = key.toLowerCase();
+    const lower_subkey = subkey.toLowerCase();
+    if (key === "entity_types" && subkey in window.whitelist_types) {
+        return "Type: " + window.whitelist_types[subkey];
+    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
+        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["table_heading"];
+    } else {
+        return to_title_case(subkey.replace(/_/g, " "));
+    }
+}
+
+function add_evaluation_table_body(result_list) {
+    /*
+     * Add the table bodies.
+     * Show / Hide rows and columns according to checkbox state and filter-result input field.
+     */
+    const group_by = get_group_by();
+
+    // Sort result list by benchmark
+    if (group_by === "benchmark") {
+        result_list.sort((a, b) => (get_benchmark_from_experiment_id(a[0]) > get_benchmark_from_experiment_id(b[0])) ? 1 : -1);
+    } else {
+        result_list.sort((a, b) => (get_experiment_name_from_experiment_id(a[0]) > get_experiment_name_from_experiment_id(b[0])) ? 1 : -1);
+    }
+
+    let last_element = null;
+    let tbody = "";
+    result_list.forEach(function(result_tuple) {
+        let exp_id = result_tuple[0];
+        let new_element = (group_by === "benchmark") ? get_benchmark_from_experiment_id(exp_id) : get_experiment_name_from_experiment_id(exp_id);
+        // Get the results for the currently selected evaluation mode.
+        let results = result_tuple[1][get_evaluation_mode()];
+
+        // Append the last tbody if one exists and start the next one
+        if (last_element !== new_element) {
+            if (tbody.length !== 0) {
+                tbody += "</tbody>";
+                $('#evaluation_table_wrapper table').append(tbody);
+            }
+            tbody = "<tbody id='tbody_" + new_element + "'>";
+        }
+
+        // Add the new row to the current tbody
+        if (results) tbody += get_table_row(exp_id, results);
+
+        last_element = new_element;
+    });
+    // Append last tbody
+    tbody += "</tbody>";
+    $('#evaluation_table_wrapper table').append(tbody);
+
+    // Show / Hide columns according to checkbox state
+    $("input[class^='checkbox_']").each(function() {
+        show_hide_columns(this, false);
+    });
+
+    // Show / Hide rows according to filter-result input field
+    filter_table_rows();
+}
+
+function get_table_row(experiment_id, json_obj) {
+    /*
+     * Get html for the table row with the given experiment id and result values.
+     */
+    let benchmark = get_benchmark_from_experiment_id(experiment_id);
+    let row = "<tr onclick='on_row_click(this)'>";
+    let onclick_str = " onclick='on_cell_click(this)'";
+    let displayed_experiment_name = get_displayed_experiment_name(experiment_id);
+    row += "<td " + onclick_str + " data-experiment=\"" + experiment_id + "\">" + displayed_experiment_name + "</td>";
+    row += "<td " + onclick_str + ">" + benchmark + "</td>";
+    $.each(json_obj, function(basekey) {
+        $.each(json_obj[basekey], function(key) {
+            let new_json_obj = json_obj[basekey][key];
+            let class_name = get_class_name(key);
+            $.each(new_json_obj, function(subkey) {
+                // Include only keys in the table, that are not on the ignore list
+                if (!(IGNORE_HEADERS.includes(subkey))) {
+                    let value = new_json_obj[subkey];
+                    if (value == null) {
+                        // This means, the category does not apply to the given experiment
+                        value = "-";
+                    } else if (Object.keys(value).length > 0) {
+                        // Values that consist not of a single number but of multiple
+                        // key-value pairs are displayed in a single column.
+                        let processed_value = "<div class='" + class_name + " tooltip'>";
+                        let percentage = get_error_percentage(value);
+                        processed_value += percentage + "%";
+                        processed_value += "<span class='tooltiptext'>";
+                        processed_value += value["errors"] + " / " + value["total"];
+                        processed_value += "</span></div>";
+                        value = processed_value;
+                    } else if (PERCENTAGE_HEADERS.includes(subkey)) {
+                        // Get rounded percentage but only if number is a decimal < 1
+                        let processed_value = "<div class='" + class_name + " tooltip'>";
+                        processed_value += (value * 100).toFixed(2) + "%";
+                        // Create tooltip text
+                        processed_value += "<span class='tooltiptext'>" + get_td_tooltip_text(new_json_obj) + "</span></div>";
+                        value = processed_value;
+                    }
+                    let subclass_name = get_class_name(subkey);
+                    let data_string = "data-category='" + class_name + "," + subclass_name + "'";
+                    row += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
+                }
+            });
+        });
+    });
+    row += "</tr>";
+    return row;
+}
+
+function position_second_column() {
+    /*
+     * Fix the position of the second column in the evaluation results table to make it sticky.
+     */
+    // Get the width of any visible cell in the first table column
+    let first_col_width = $("#evaluation_table_wrapper td:nth-child(1):visible").outerWidth();
+    // Position the header cell in the second row, second column
+    $("#evaluation_table_wrapper table thead tr:nth-child(2) th:nth-child(2)").css('left', first_col_width);
+    // Position the normal cells in the second column
+    $("#evaluation_table_wrapper table td:nth-child(2)").css('left', first_col_width);
+}
+
+function filter_table_rows() {
+    /*
+     * Filter table rows according to the experiment and benchmark filters.
+     * Also filter table rows according to whether the show-deprecated checkbox is checked.
+     */
+    let experiment_keywords = $.trim($("input#experiment-filter").val()).split(/\s+/);
+    let benchmark_keywords = $.trim($("input#benchmark-filter").val()).split(/\s+/);
+    $("#evaluation_table_wrapper tbody tr").each(function() {
+        let name = $(this).children("td:nth-child(1)").text();
+        let benchmark = $(this).children("td:nth-child(2)").text();
+        // Filter row according to filter keywords
+        let show_row = experiment_keywords.every(keyword => name.search(keyword) !== -1);
+        show_row &= benchmark_keywords.every(keyword => benchmark.search(keyword) !== -1);
+
+        // Filter row according to show-deprecated checkbox
+        if (!$("#checkbox_deprecated").is(":checked")) {
+            show_row = show_row && !name.includes("deprecated");
+        }
+        if (show_row) $(this).show(); else $(this).hide();
+    });
+
+    // Check if a table body consists only of hidden rows and if so add the class 'all_hidden'
+    const $evaluation_tbody = $('#evaluation_table_wrapper tbody');
+    $.each($evaluation_tbody, function() {
+        if($(this).find("tr:visible").length === 0) {
+            $(this).addClass("all_hidden");
+        } else {
+            $(this).removeClass("all_hidden");
+        }
+    });
+
+    // The table width may have changed due to adding or removing the scrollbar
+    // therefore change the width of the top scrollbar div accordingly and re-position
+    // the sticky second column.
+    set_top_scrollbar_width();
+    position_second_column();
+}
+
+function on_group_by_change(el) {
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('group_by', $(el).val());
+    window.history.replaceState({}, '', url);
+
+    // Re-build the overview table over all .eval_results.json-files from the evaluation-results folder.
+    build_evaluation_results_table(false);
+}
+
+
+/**********************************************************************************************************************
+ Functions for HANDLING TABLE CLICKS
+ *********************************************************************************************************************/
+
+function comparing_different_benchmarks(selected_exp_id) {
+    /*
+     * Return true if the user is trying to compare linking results of different benchmarks.
+     */
+    if (is_compare_checked() && window.selected_experiment_ids.length === 1) {
+        let b1 = get_benchmark_from_experiment_id(window.selected_experiment_ids[0]);
+        let b2 = get_benchmark_from_experiment_id(selected_exp_id);
+        return b1 !== b2;
+    }
+    return false;
+}
+
+function on_row_click(el) {
+    /*
+     * This method is called when a table body row was clicked.
+     * This marks the row as selected and reads the evaluation cases.
+     */
+    // Get a timestamp for the click to help maintain the order in which evaluation cases are loaded
+    let timestamp = new Date().getTime();
+    window.last_show_article_request_timestamp = timestamp;
+
+    let experiment_id = get_experiment_id_from_row(el);
+    let previous_benchmark = (window.selected_experiment_ids.length >= 1) ? get_benchmark_from_experiment_id(window.selected_experiment_ids[0]) : null;
+    let new_benchmark = get_benchmark_from_experiment_id(experiment_id);
+
+    // De-select previously selected rows
+    if (!is_compare_checked() || window.selected_experiment_ids.length >= MAX_SELECTED_APPROACHES) {
+        deselect_all_table_rows();
+        window.selected_experiment_ids = [];
+    }
+
+    // Show alert message if the user tries to compare experiments on different benchmarks
+    if (comparing_different_benchmarks(experiment_id)) {
+        alert("Linking results can only be compared side-by-side if the experiments have been run on " +
+            "the same benchmark. You tried to select the experiments "
+            + window.selected_experiment_ids[0] + " and " + experiment_id);
+        return;
+    }
+
+    // Show the loading GIF
+    $("#loading").addClass("show");
+
+    if (!window.selected_experiment_ids.includes(experiment_id)) {
+        window.selected_experiment_ids.push(experiment_id);
+        // Select clicked row
+        $(el).addClass("selected");
+        window.selected_rows.push(el);
+    }
+    let selected_exp_ids_copy = [...window.selected_experiment_ids];
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('experiment', window.selected_experiment_ids.join(","));
+    window.history.replaceState({}, '', url);
+
+    read_linking_results(experiment_id).then(function() {
+        // Reset article select options only if a different benchmark was previously selected
+        if (previous_benchmark !== new_benchmark) set_article_select_options(new_benchmark, previous_benchmark==null);
+        show_article(selected_exp_ids_copy, timestamp);
+    });
+}
+
+function deselect_all_table_rows() {
+    /*
+     * Deselect all rows in all evaluation tables
+     */
+    $("#evaluation_table_wrapper tbody tr").each(function() {
+        $(this).removeClass("selected");
+    });
+    window.selected_rows = [];
+}
+
+function on_cell_click(el) {
+    /*
+     * Highlight error category / type cells on click and un-highlight previously clicked cell.
+     * Add or remove error categories and types to/from current selection.
+     */
+    // Reject the cell click if the user tries to compare experiments on different benchmarks
+    let experiment_id = get_experiment_id_from_row($(el).closest("tr"));
+    if (comparing_different_benchmarks(experiment_id)) return;
+
+    // Determine whether an already selected cell has been clicked
+    let curr_row = $(el).closest("tr").index();
+    let prev_selected_rows = $.map(window.selected_rows, function(sel_row) { return $(sel_row).index(); });
+    let already_selected_row_clicked = $.inArray(curr_row, prev_selected_rows);
+    if (window.selected_cells.length > 0) {
+        if (!is_compare_checked() || window.selected_rows.length >= MAX_SELECTED_APPROACHES) {
+            // Remove selected classes for all currently selected cells
+            for (let i=0; i<window.selected_cells.length; i++) {
+                remove_selected_classes(window.selected_cells[i]);
+            }
+            window.selected_cells = [];
+            reset_selected_cell_categories();
+        } else {
+            // Remove selected class for cells in the same row
+            let last_rows = $.map(window.selected_cells, function(sel_cell) { return $(sel_cell).closest('tr').index(); });
+            let index = $.inArray(curr_row, last_rows);
+            if (index >= 0) {
+                remove_selected_classes(window.selected_cells[index]);
+                window.selected_cells.splice(index, 1);
+                window.selected_cell_categories[index] = null;
+            }
+        }
+    }
+
+    // Make new selection
+    let classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // Experiment column has no class attribute
+    if (is_error_cell(el)) {
+        $(el).addClass("selected");
+        window.selected_cells.push(el);
+    } else if (classes.length > 0 && (classes[0] in MENTION_TYPE_HEADERS || is_type_string(classes[0]))) {
+        $(el).closest('tr').find('.' + classes[0]).each(function() {
+            $(this).addClass("selected");
+        });
+        window.selected_cells.push(el);
+    } else {
+        // Select "all" column
+        let added = false;
+        $(el).closest('tr').find('.all').each(function() {
+            $(this).addClass("selected");
+            if (!added) {
+                // Add a single cell from the "all" column. Which one does not matter.
+                window.selected_cells.push(this);
+                added = true;
+            }
+        });
+    }
+
+    // Updated selected cell categories
+    // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
+    let exp_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : window.selected_rows.length % MAX_SELECTED_APPROACHES;
+    window.selected_cell_categories[exp_index] = get_error_category_or_type(el);
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('emphasis', window.selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
+    window.history.replaceState({}, '', url);
+}
+
+
+/**********************************************************************************************************************
+ Functions for HANDLING TOOLTIPS
+ *********************************************************************************************************************/
+
+function position_table_tooltip(anchor_el) {
+    const anchor_el_rect = anchor_el.getBoundingClientRect();
+    $(anchor_el).find(".tooltiptext").each(function() {
+        const tooltip_rect = this.getBoundingClientRect();
+        const font_size = $(this).css("font-size").replace("px", "");
+        const top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
+        $(this).css({"left": anchor_el_rect.left + "px", "top": top + "px"});
+    });
+}
+
+function reposition_annotation_tooltip(annotation_el) {
+    /*
+     * Re-position all tooltips of an annotation such that they don't go outside the window.
+     */
+    const annotation_rect = annotation_el.getBoundingClientRect();
+    // Check whether the annotation contains a line break by checking whether its height is bigger than the line height
+    const line_height = parseInt($(annotation_el).css('line-height'));
+    const line_break = (annotation_rect.height > line_height + 5);
+    $(annotation_el).find(".tooltiptext").each(function() {
+        let tooltip_rect = this.getBoundingClientRect();
+
+        // Table could be either prediction_overview or the table in the example modal
+        const table_rect = $(this).closest("table")[0].getBoundingClientRect();
+
+        // If the tooltip width is larger than the table width, enable line-wrapping
+        // in the tooltip
+        if (tooltip_rect.width > table_rect.width) {
+            // Set the new width to the width of the table, minus tooltip padding and
+            // border since those are added on top of css width.
+            const paddings = parseInt($(this).css('paddingLeft')) + parseInt($(this).css('paddingRight'));
+            const borders = parseInt($(this).css('borderLeftWidth')) + parseInt($(this).css('borderRightWidth'));
+            const new_width = table_rect.width - (paddings + borders);
+            $(this).css({"white-space": "normal", "width": new_width + "px"});
+            // Recompute the tooltip rectangle
+            tooltip_rect = this.getBoundingClientRect();
+        }
+
+        // Correct the tooltip position if it overlaps with the right edge of the table
+        // If the annotation contains a line break, position to the right
+        if ((annotation_rect.left + tooltip_rect.width > table_rect.right) || line_break)  {
+            // Align right tooltip edge with right edge of the annotation.
+            // Left needs to be set to auto since it is otherwise still 0.
+            $(this).css({"right": "0px", "left": "auto"});
+
+            // If now the left tooltip edge overlaps with the left edge of the table
+            // translate the table as far right as possible
+            if (annotation_rect.right - tooltip_rect.width < table_rect.left) {
+                const translation = table_rect.right - annotation_rect.right;
+                this.style.transform = "translateX(" + translation + "px)";
+            }
+        }
+    });
+}
+
+function add_experiment_tooltips() {
+    /*
+     * Add tooltips to the experiment column of the table.
+     */
+    $("#evaluation_table_wrapper table tbody tr").each(function(index) {
+        let experiment_id = get_experiment_id_from_row(this);
+        let metadata = window.experiments_metadata[experiment_id];
+        if (metadata) {
+            let tooltiptext = "";
+            if (metadata.experiment_description) tooltiptext += "<p><i>" + metadata.experiment_description + "</i></p>";
+            tooltiptext += "<p>";
+            if (metadata.linking_time) tooltiptext += "Linking took " + metadata.linking_time.toFixed(2) + "s<br>";
+            tooltiptext += metadata.timestamp + "</p>";
+            tippy("#evaluation_table_wrapper table tbody tr:nth-child(" + (index + 1) + ") td:nth-child(1)", {
+                content: tooltiptext,
+                allowHTML: true,
+                interactive: (tooltiptext.includes("</a>")),
+                appendTo: document.body,
+                theme: 'light-border',
+            });
+        }
+    });
+}
+
+function get_td_tooltip_text(json_obj) {
+    /*
+     * Get the tooltip text for the table cell from the given json obj.
+     */
+    let tooltip_text = "TP: " + Math.round(json_obj["true_positives"] * 100) / 100 + "<br>";
+    tooltip_text += "FP: " + Math.round(json_obj["false_positives"] * 100) / 100 + "<br>";
+    tooltip_text += "FN: " + Math.round(json_obj["false_negatives"] * 100) / 100 + "<br>";
+    tooltip_text += "GT: " + Math.round(json_obj["ground_truth"] * 100) / 100;
+    return tooltip_text;
+}
+
+function get_th_tooltip_text(key, subkey) {
+    /*
+     * Get the tooltip text (including html) for the table header cell specified by the
+     * given evaluation results key and subkey.
+     */
+    if (key.toLowerCase() in HEADER_DESCRIPTIONS) {
+        key = key.toLowerCase();
+        subkey = subkey.toLowerCase();
+        if (typeof HEADER_DESCRIPTIONS[key] == "string") {
+            return HEADER_DESCRIPTIONS[key];
+        }
+        if (subkey in HEADER_DESCRIPTIONS[key]) {
+            let tooltip_text = HEADER_DESCRIPTIONS[key][subkey];
+            if (!["", "all"].includes(subkey)) {
+                tooltip_text += TOOLTIP_EXAMPLE_HTML;
+            }
+            return tooltip_text;
+        } else {
+            const tp_string = "<p>" + HEADER_DESCRIPTIONS[key]["tp"] + "</p>";
+            const fp_string = "<p>" + HEADER_DESCRIPTIONS[key]["fp"] + "</p>";
+            const fn_string = "<p>" + HEADER_DESCRIPTIONS[key]["fn"] + "</p>";
+            let string = "<p>" + HEADER_DESCRIPTIONS[subkey] + "</p>";
+            if (subkey === "precision") {
+                string += tp_string;
+                string += fp_string;
+            } else if (subkey === "recall") {
+                string += tp_string;
+                string += fn_string;
+            } else if (subkey === "f1") {
+                string += tp_string;
+                string += fp_string;
+                string += fn_string;
+            }
+            return string;
+        }
+    } else if (key.toUpperCase() in window.whitelist_types || key.toLowerCase() === "other") {
+        key = key.toUpperCase();
+        const type = (key in window.whitelist_types) ? window.whitelist_types[key] : "Other";
+        if (subkey) {
+            // Get tooltips for precision, recall and f1
+            const tp_string = "<p><i>TP</i>: True Positives of type " + type + "</p>";
+            const fp_string = "<p><i>FP</i>: False Positives of type " + type + "</p>";
+            const fn_string = "<p><i>FN</i>: False Negatives of type " + type + "</p>";
+            let string = "<p>" + HEADER_DESCRIPTIONS[subkey] + "</p>";
+            if (subkey === "precision") {
+                string += tp_string;
+                string += fp_string;
+            } else if (subkey === "recall") {
+                string += tp_string;
+                string += fn_string;
+            } else if (subkey === "f1") {
+                string += tp_string;
+                string += fp_string;
+                string += fn_string;
+            }
+            return string;
+        } else {
+            return "Results for entities of type \"" + type + "\".";
+        }
+    }
+    return "";
+}
+
+
+/**********************************************************************************************************************
+ Functions for EVALUATION RESULT CHECKBOXES
+ *********************************************************************************************************************/
+
+function add_evaluation_checkboxes(json_obj) {
+    /*
+     * Add checkboxes for showing / hiding columns.
+     */
+    $.each(json_obj, function(key) {
+        $.each(json_obj[key], function(subkey) {
+            const class_name = get_class_name(subkey);
+            const label = get_checkbox_label(key, subkey);
+            const checked = ((class_name === "all" && window.url_param_show_columns.length === 0) || window.url_param_show_columns.includes(class_name)) ? "checked" : "";
+            let checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
+            checkbox_html += "<label>" + label + "</label></span>\n";
+            let checkbox_div_id = "";
+            if (key === "mention_types") checkbox_div_id = "mention_type_checkboxes";
+            if (key === "error_categories") checkbox_div_id = "error_category_checkboxes";
+            if (key === "entity_types") checkbox_div_id = "entity_type_checkboxes";
+            $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
+
+            // Add tooltip for checkbox
+            tippy("#checkbox_span_" + class_name, {
+                content: get_th_tooltip_text(subkey, ""),
+                allowHTML: true,
+                theme: 'light-border',
+            });
+        });
+    });
+}
+
+function get_checkbox_label(key, subkey) {
+    /*
+     * Get the label for the checkbox specified via the given evaluation results key and subkey.
+     */
+    const lower_key = key.toLowerCase();
+    const lower_subkey = subkey.toLowerCase();
+    if (key === "entity_types" && subkey in window.whitelist_types) {
+        return window.whitelist_types[subkey];
+    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
+        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["checkbox_label"];
+    } else {
+        return to_title_case(subkey.replace(/_/g, " "));
+    }
+}
+
+function on_column_checkbox_change(element, resize) {
+    show_hide_columns(element, resize);
+
+    // Update current URL without refreshing the site
+    let checkbox_classes = [];
+    $("#evaluation_overview .checkboxes input[type=checkbox]:checked").each(function() {
+        checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
+    });
+    const url = new URL(window.location);
+    url.searchParams.set('show_columns', checkbox_classes.join(","));
+    window.history.replaceState({}, '', url);
+}
+
+function show_hide_columns(element, resize) {
+    /*
+     * This function should be called when the state of a checkbox is changed.
+     * This can't be simply added in on document ready, because checkboxes are added dynamically.
+     */
+    let col_class = $(element).attr("class");
+    col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
+    const column = $("#evaluation_table_wrapper table ." + col_class);
+    if($(element).is(":checked")) {
+        column.show();
+    } else {
+        column.hide();
+    }
+
+    if (resize) {
+        // Resizing takes a long time especially on Chrome, therefore do it only when necessary.
+        // The table width has changed therefore change the width of the top scrollbar div accordingly.
+        set_top_scrollbar_width();
+    }
+}
+
+
+/**********************************************************************************************************************
+ Functions for EVALUATION MODE RADIO BUTTONS
+ *********************************************************************************************************************/
+
+function add_eval_mode_radio_buttons(json_obj) {
+    /*
+     * Add radio buttons for the evaluation modes as extracted from the jsonl results file.
+     */
+    $.each(json_obj, function(key) {
+        const class_name = get_class_name(key);
+        const checked = ((class_name === "ignored" && window.url_param_evaluation_mode == null) || window.url_param_evaluation_mode === class_name) ? "checked" : "";
+        let radio_button_html = "<span class=\"radio_button_" + class_name + "\">"
+        radio_button_html += "<input type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_eval_mode_change(this)\" " + checked + ">";
+        radio_button_html += "<label>" + EVALUATION_MODE_LABELS[class_name] + "</label></span>\n";
+        $("#evaluation_modes").append(radio_button_html);
+
+        // Add radio button tooltip
+        tippy('#evaluation_modes .radio_button_' + class_name, {
+            content: HEADER_DESCRIPTIONS["evaluation_mode"][class_name],
+            allowHTML: true,
+            theme: 'light-border',
+        });
+    });
+}
+
+function on_eval_mode_change(el) {
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('evaluation_mode', get_class_name($(el).val()));
+    window.history.replaceState({}, '', url);
+
+    // Re-build the overview table over all .eval_results.json-files from the evaluation-results folder.
+    build_evaluation_results_table(false);
+}
+
+
+/**********************************************************************************************************************
+ Functions for ARTICLE SELECTION
+ *********************************************************************************************************************/
+
+function set_article_select_options(benchmark, is_initial_call) {
+    /*
+     * Set the options for the article selector element to the names of the articles from the list 'articles'.
+     */
+    // Empty previous options
+    const $article_select = $("#article_select");
+    $article_select.empty();
+
+    // Add default "All articles" option
+    let option_text_suffix = (["newscrawl", "wiki-ex"].includes(benchmark)) ? " (evaluated span only)" : "";
+    let option_text = "All " + window.benchmark_articles[benchmark].length + " articles" + option_text_suffix;
+    $article_select.append(new Option(option_text, ""));
+
+    // Create new options
+    for (let ai in window.benchmark_articles[benchmark]) {
+        let article = window.benchmark_articles[benchmark][ai];
+        // Shorten the article title if it's longer than 40 characters
+        let title;
+        if (article.title) {
+            title = (article.title.length <= 40) ? article.title : article.title.substring(0, 40) + "..."
+        } else {
+            // On some benchmarks (e.g. AIDA-CoNLL), articles don't have titles.
+            // In that case use the first 40 characters of the article.
+            title = article.text.substring(0, Math.min(40, article.text.length)) + "...";
+        }
+        $article_select.append(new Option(title, ai));
+    }
+
+    // Set the article according to URL parameter if one with a valid article name exists
+    let article_by_url = $('#article_select option').filter(function () { return $(this).html() === window.url_param_article; });
+    if (window.url_param_article) {
+        if (is_initial_call) {
+            if (article_by_url.length > 0) $(article_by_url).prop('selected', true);
+        } else {
+            // Update current URL without refreshing the site
+            const url = new URL(window.location);
+            url.searchParams.set('article', $("#article_select option:selected").text());
+            window.history.replaceState({}, '', url);
+        }
+    }
+    $("#select_article").css("visibility", "visible");
+}
+
+function on_article_select() {
+    const timestamp = new Date().getTime();
+    window.last_show_article_request_timestamp = timestamp;
+    show_article(window.selected_experiment_ids, timestamp);
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('article', $("#article_select option:selected").text());
+    window.history.replaceState({}, '', url);
+}
+
+
+/**********************************************************************************************************************
+ Functions for EXAMPLE BENCHMARK MODAL
+ *********************************************************************************************************************/
+
+function show_example_benchmark_modal(el) {
+    /*
+     * Open the example benchmark model and show the example article that corresponds
+     * to the error category of the clicked table header tooltip.
+     */
+    // Get example error category of the table tooltip to highlight only corresponding mentions
+    // Hack to get the reference object from the clicked tippy tooltip.
+    let table_header_cell = $(el).parent().parent().parent().parent()[0]._tippy.reference;
+    let selected_category = get_error_category_or_type(table_header_cell);
+
+    // Get table header title
+    let keys = get_table_header_keys(table_header_cell);
+    let error_category_title = keys[0].replace(/_/g, " ") + " - " + keys[1].replace(/_/g, " ");
+
+    // Determine article index of selected example
+    let article_index = 0;
+    for (let i=0; i<window.articles_example_benchmark.length; i++) {
+        let article = window.articles_example_benchmark[i];
+        if (article.title.toLowerCase().includes(error_category_title)) {
+            article_index = i;
+            break;
+        }
+    }
+
+    // Display error explanation extracted from table header tooltip text
+    let error_explanation = HEADER_DESCRIPTIONS[keys[0]][keys[1]];
+    error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*?)<\/p>.*/, "$1");
+    $("#error_explanation").text("Description: " + error_explanation);
+    // Display annotated text
+    let textfield = $("#example_prediction_overview tr td");
+    show_annotated_text("example.error-category-examples", $(textfield[0]), selected_category, 100, article_index);
+    $("#example_prediction_overview tr th").text(window.articles_example_benchmark[article_index].title);
 }
 
 
@@ -1488,7 +2118,7 @@ async function show_article(selected_exp_ids, timestamp) {
 
     let selected_article_index = $("#article_select").val();
 
-    if (selected_article_index === "") {
+    if (selected_article_index === "" || selected_article_index === null) {
         window.is_show_all_articles = true;
         $("#article_link").hide();
     } else {
@@ -1592,808 +2222,199 @@ function get_emphasis_string(selected_cell_category) {
     return " (emphasis: " + emphasis_type + " \"" + emphasis + "\")";
 }
 
+
 /**********************************************************************************************************************
- Functions for BUILDING THE EVALUATION RESULTS TABLE
+ Functions for JUMPING BETWEEN ERROR ANNOTATIONS
  *********************************************************************************************************************/
 
-function build_evaluation_results_table(initial_call) {
+function scroll_to_next_annotation(only_errors) {
     /*
-     * Build the overview table from the .eval_results.json files found in the subdirectories of the given path.
+     * Scroll to the next annotation in the list of all annotations on the left and on the right side.
      */
-    const $table_loading = $("#table_loading");
-    $table_loading.addClass("show");
+    // Get potential next highlighted annotation for left and right side
+    let next_annotation_index = [-1, -1];
+    let next_annotations = [null, null];
+    for (let i=0; i<2; i++) {
+        if (window.all_highlighted_annotations[i].length === 0) continue;
+        if (window.jump_to_annotation_index[i] + 1 < window.all_highlighted_annotations[i].length) {
+            if (only_errors) {
+                next_annotation_index[i] = find_next_annotation_index(i);
+                if (next_annotation_index[i] < window.all_highlighted_annotations[i].length) next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
+            } else {
+                next_annotation_index[i] = window.jump_to_annotation_index[i] + 1;
+                next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
+            }
+        }
+    }
 
-    const $evaluation_table = $("#evaluation_table_wrapper table");
-    $evaluation_table.trigger("update");
+    let next_annotation;
+    if (next_annotations[0] && next_annotations[1]) {
+        if ($(next_annotations[0]).offset().top <= $(next_annotations[1]).offset().top) {
+            next_annotation = next_annotations[0];
+            window.jump_to_annotation_index[0] = next_annotation_index[0];
+            window.last_highlighted_side = 0;
+            if (only_errors && window.all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
+        } else {
+            next_annotation = next_annotations[1];
+            window.jump_to_annotation_index[1] = next_annotation_index[1];
+            window.last_highlighted_side = 1;
+            if (only_errors && window.all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
+        }
+    } else if (next_annotations[0]) {
+        next_annotation = next_annotations[0];
+        window.jump_to_annotation_index[0] = next_annotation_index[0];
+        window.last_highlighted_side = 0;
+        if (only_errors && window.all_highlighted_annotations[1].length > 0) bring_jump_index_to_same_height(next_annotation, 1);
+    } else if (next_annotations[1]) {
+        next_annotation = next_annotations[1];
+        window.jump_to_annotation_index[1] = next_annotation_index[1];
+        window.last_highlighted_side = 1;
+        if (only_errors && window.all_highlighted_annotations[0].length > 0) bring_jump_index_to_same_height(next_annotation, 0);
+    } else if (!only_errors) {
+        window.jump_to_annotation_index[window.last_highlighted_side] = window.all_highlighted_annotations[window.last_highlighted_side].length;
+    }
 
-    // Remove previous evaluation table content
-    $("#evaluation_table_wrapper table thead").empty();
-    $("#evaluation_table_wrapper table tbody").remove();
+    if (next_annotation) {
+        scroll_to_annotation(next_annotation);
+    }
+}
 
-    // Hide linking results section
-    $("#prediction_overview").hide();
-
-    let default_selected_experiment_ids;
-    let default_selected_emphasis;
-    if (initial_call) {
-        // If URL parameter is set, select experiment according to URL parameter
-        default_selected_experiment_ids = window.url_param_experiment;
-        default_selected_emphasis = window.url_param_emphasis;
+function bring_jump_index_to_same_height(next_annotation, side_index) {
+    // Bring the jump index for the other side to the same height
+    if (side_index === 0) {
+        while (window.jump_to_annotation_index[side_index] < 0 || (window.jump_to_annotation_index[side_index] <= window.all_highlighted_annotations[side_index].length &&
+            $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top <= $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]++;
+        }
     } else {
-        default_selected_experiment_ids = copy(window.selected_experiment_ids);
-        default_selected_emphasis = window.selected_cells.map(function(el) {
-            return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : null;
-        });
+        while (window.jump_to_annotation_index[side_index] < 0 || (window.jump_to_annotation_index[side_index] <= window.all_highlighted_annotations[side_index].length &&
+            $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top < $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]++;
+        }
     }
+    window.jump_to_annotation_index[side_index]--; // Minus one, because the next annotation should be the one determined above
+}
 
-    // Reset variables indicating user selections within the table (they'll be set automatically again))
-    window.selected_experiment_ids = [];
-    window.selected_rows = [];
-    window.selected_cells = [];
-    reset_selected_cell_categories();
-
-    // Add checkboxes. The evaluation mode does not affect the checkboxes, so just choose one.
-    if (initial_call) add_evaluation_checkboxes(window.evaluation_results[0][1][get_evaluation_mode()]);
-    // Add table header. The evaluation mode does not affect the table headers, so just choose one.
-    add_evaluation_table_header(window.evaluation_results[0][1][get_evaluation_mode()]);
-    // Add table body
-    add_evaluation_table_body(window.evaluation_results);
-    // Add tooltips for the experiment column
-    add_experiment_tooltips();
-
-    // Select default rows and cells
-    if (default_selected_experiment_ids) {
-        for (let i=0; i<default_selected_experiment_ids.length; i++) {
-            let experiment_id = default_selected_experiment_ids[i];
-            let row = $('#evaluation_table_wrapper table tbody tr').filter(function() {
-                return get_experiment_id_from_row(this) === experiment_id;
-            });
-            if (row.length > 0) {
-                if (i < default_selected_emphasis.length && default_selected_emphasis[i]) {
-                    let cell = $(row).children("." + default_selected_emphasis[i]);
-                    if (cell.length > 0) {
-                        on_cell_click(cell[0]);
-                    } else {
-                        on_cell_click($(row).children("td:first")[0]);
-                    }
-                } else {
-                    on_cell_click($(row).children("td:first")[0]);
-                }
-                on_row_click(row[0]);
+function scroll_to_previous_annotation(only_errors) {
+    // Get potential next highlighted annotation for left and right side
+    let next_annotation_index = [-1, -1];
+    let next_annotations = [null, null];
+    for (let i=0; i<2; i++) {
+        if (window.all_highlighted_annotations[i].length === 0) continue;
+        if (window.jump_to_annotation_index[i] - 1 >= 0) {
+            if (only_errors) {
+                next_annotation_index[i] = find_previous_annotation_index(i, window.last_highlighted_side);
+                if (next_annotation_index[i] >= 0) next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
+            } else {
+                next_annotation_index[i] = window.jump_to_annotation_index[i] - (window.last_highlighted_side===i);
+                next_annotations[i] = window.all_highlighted_annotations[i][next_annotation_index[i]];
             }
         }
     }
 
-    // Update the tablesorter. The sort order is automatically adapted from the previous table.
-    $evaluation_table.trigger("updateAll")
-
-    // Remove the table loading GIF
-    $table_loading.removeClass("show");
-
-    if (initial_call && window.url_param_sort_order.length > 0) {
-        // Use sort order from URL parameter
-        $.tablesorter.sortOn( $evaluation_table[0].config, [ window.url_param_sort_order ]);
+    let next_annotation;
+    if (next_annotations[0] && next_annotations[1]) {
+        if ($(next_annotations[0]).offset().top > $(next_annotations[1]).offset().top) {
+            next_annotation = next_annotations[0];
+            if (!only_errors || window.last_highlighted_side === 0) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+            else {
+                update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+                window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+            }
+            window.last_highlighted_side = 0;
+        } else {
+            next_annotation = next_annotations[1];
+            if (!only_errors || window.last_highlighted_side === 1) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+            else {
+                update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+                window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+            }
+            window.last_highlighted_side = 1;
+        }
+    } else if (next_annotations[0]) {
+        next_annotation = next_annotations[0];
+        if (!only_errors || window.last_highlighted_side === 0) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+        else {
+            update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+            window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+        }
+        window.last_highlighted_side = 0;
+    } else if (next_annotations[1]) {
+        next_annotation = next_annotations[1];
+        if (!only_errors || window.last_highlighted_side === 1) window.jump_to_annotation_index[window.last_highlighted_side] = next_annotation_index[window.last_highlighted_side];
+        else {
+            update_index_to_previous_annotation(next_annotation, window.last_highlighted_side);
+            window.jump_to_annotation_index[Math.abs(window.last_highlighted_side - 1)] = next_annotation_index[Math.abs(window.last_highlighted_side - 1)];
+        }
+        window.last_highlighted_side = 1;
+    } else if (!only_errors) {
+        window.jump_to_annotation_index[0] = -1;
+        window.jump_to_annotation_index[1] = -1;
     }
 
-    // Fix the second table column to make it sticky
-    position_second_column();
+    if (next_annotation) {
+        scroll_to_annotation(next_annotation);
+    }
 }
 
-function add_evaluation_table_header(json_obj) {
-    /*
-     * Add html for the table header.
-     */
-    let first_row = "<tr><th colspan=2 onclick='produce_latex()' class='produce_latex'>" + COPY_LATEX_CELL_TEXT + "</th>";
-    let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
-    $.each(json_obj, function(key) {
-        $.each(json_obj[key], function(subkey) {
-            let colspan = 0;
-            let class_name = get_class_name(subkey);
-            $.each(json_obj[key][subkey], function(subsubkey) {
-                if (!(IGNORE_HEADERS.includes(subsubkey))) {
-                    let subclass_name = get_class_name(subsubkey);
-                    let sort_order = (subkey in ERROR_CATEGORY_MAPPING) ? " data-sortinitialorder=\"asc\"" : "";
-                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey) + "</th>";
-                    colspan += 1;
-                }
-            });
-            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_table_heading(key, subkey) + "</th>";
-        });
-    });
-    first_row += "</tr>";
-    second_row += "</tr>";
-    $('#evaluation_table_wrapper table thead').html(first_row + second_row);
-
-    // Add table header tooltips
-    $("#evaluation_table_wrapper th").each(function() {
-        let keys = get_table_header_keys(this);
-        let tooltiptext = get_th_tooltip_text(keys[0], keys[1]);
-        if (tooltiptext) {
-            tippy(this, {
-                content: tooltiptext,
-                allowHTML: true,
-                interactive: (tooltiptext.includes("</a>")),
-                appendTo: document.body,
-                theme: 'light-border',
-            });
+function update_index_to_previous_annotation(next_annotation, side_index) {
+    // Bring the jump index for the other side to the same height
+    if (side_index === 0) {
+        while (window.jump_to_annotation_index[side_index] === window.all_highlighted_annotations[side_index].length || (
+            window.jump_to_annotation_index[side_index] >= -1 && $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top > $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]--;
         }
-    });
-}
-
-function get_table_heading(key, subkey) {
-    /*
-     * Get the text for the table header cell that is defined via its evaluation results key and subkey.
-     */
-    const lower_key = key.toLowerCase();
-    const lower_subkey = subkey.toLowerCase();
-    if (key === "entity_types" && subkey in window.whitelist_types) {
-        return "Type: " + window.whitelist_types[subkey];
-    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
-        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["table_heading"];
     } else {
-        return to_title_case(subkey.replace(/_/g, " "));
-    }
-}
-
-function add_evaluation_table_body(result_list) {
-    /*
-     * Add the table bodies.
-     * Show / Hide rows and columns according to checkbox state and filter-result input field.
-     */
-    // Sort result list by benchmark
-    result_list.sort((a, b) => (get_benchmark_from_experiment_id(a[0]) > get_benchmark_from_experiment_id(b[0])) ? 1 : -1);
-
-    let last_element = null;
-    let tbody = "";
-    result_list.forEach(function(result_tuple) {
-        let experiment_id = result_tuple[0];
-        let benchmark = get_benchmark_from_experiment_id(experiment_id);
-        // Get the results for the currently selected evaluation mode.
-        let results = result_tuple[1][get_evaluation_mode()];
-
-        // Append the last tbody if one exists and start the next one
-        if (last_element !== benchmark) {
-            if (tbody.length !== 0) {
-                tbody += "</tbody>";
-                $('#evaluation_table_wrapper table').append(tbody);
-            }
-            tbody = "<tbody id='tbody_" + benchmark + "'>";
-        }
-
-        // Add the new row to the current tbody
-        if (results) tbody += get_table_row(experiment_id, results);
-
-        last_element = benchmark;
-    });
-    // Append last tbody
-    tbody += "</tbody>";
-    $('#evaluation_table_wrapper table').append(tbody);
-
-    // Show / Hide columns according to checkbox state
-    $("input[class^='checkbox_']").each(function() {
-        show_hide_columns(this, false);
-    });
-
-    // Show / Hide rows according to filter-result input field
-    filter_table_rows();
-}
-
-function get_table_row(experiment_id, json_obj) {
-    /*
-     * Get html for the table row with the given experiment id and result values.
-     */
-    let benchmark = get_benchmark_from_experiment_id(experiment_id);
-    let row = "<tr onclick='on_row_click(this)'>";
-    let onclick_str = " onclick='on_cell_click(this)'";
-    let displayed_experiment_name = get_displayed_experiment_name(experiment_id);
-    row += "<td " + onclick_str + " data-experiment=\"" + experiment_id + "\">" + displayed_experiment_name + "</td>";
-    row += "<td " + onclick_str + ">" + benchmark + "</td>";
-    $.each(json_obj, function(basekey) {
-        $.each(json_obj[basekey], function(key) {
-            let new_json_obj = json_obj[basekey][key];
-            let class_name = get_class_name(key);
-            $.each(new_json_obj, function(subkey) {
-                // Include only keys in the table, that are not on the ignore list
-                if (!(IGNORE_HEADERS.includes(subkey))) {
-                    let value = new_json_obj[subkey];
-                    if (value == null) {
-                        // This means, the category does not apply to the given experiment
-                        value = "-";
-                    } else if (Object.keys(value).length > 0) {
-                        // Values that consist not of a single number but of multiple
-                        // key-value pairs are displayed in a single column.
-                        let processed_value = "<div class='" + class_name + " tooltip'>";
-                        let percentage = get_error_percentage(value);
-                        processed_value += percentage + "%";
-                        processed_value += "<span class='tooltiptext'>";
-                        processed_value += value["errors"] + " / " + value["total"];
-                        processed_value += "</span></div>";
-                        value = processed_value;
-                    } else if (PERCENTAGE_HEADERS.includes(subkey)) {
-                        // Get rounded percentage but only if number is a decimal < 1
-                        let processed_value = "<div class='" + class_name + " tooltip'>";
-                        processed_value += (value * 100).toFixed(2) + "%";
-                        // Create tooltip text
-                        processed_value += "<span class='tooltiptext'>" + get_td_tooltip_text(new_json_obj) + "</span></div>";
-                        value = processed_value;
-                    }
-                    let subclass_name = get_class_name(subkey);
-                    let data_string = "data-category='" + class_name + "," + subclass_name + "'";
-                    row += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
-                }
-            });
-        });
-    });
-    row += "</tr>";
-    return row;
-}
-
-function position_second_column() {
-    /*
-     * Fix the position of the second column in the evaluation results table to make it sticky.
-     */
-    // Get the width of any visible cell in the first table column
-    let first_col_width = $("#evaluation_table_wrapper td:nth-child(1):visible").outerWidth();
-    // Position the header cell in the second row, second column
-    $("#evaluation_table_wrapper table thead tr:nth-child(2) th:nth-child(2)").css('left', first_col_width);
-    // Position the normal cells in the second column
-    $("#evaluation_table_wrapper table td:nth-child(2)").css('left', first_col_width);
-}
-
-function filter_table_rows() {
-    /*
-     * Filter table rows according to the experiment and benchmark filters.
-     * Also filter table rows according to whether the show-deprecated checkbox is checked.
-     */
-    let experiment_keywords = $.trim($("input#experiment-filter").val()).split(/\s+/);
-    let benchmark_keywords = $.trim($("input#benchmark-filter").val()).split(/\s+/);
-    $("#evaluation_table_wrapper tbody tr").each(function() {
-        let name = $(this).children("td:nth-child(1)").text();
-        let benchmark = $(this).children("td:nth-child(2)").text();
-        // Filter row according to filter keywords
-        let show_row = experiment_keywords.every(keyword => name.search(keyword) !== -1);
-        show_row &= benchmark_keywords.every(keyword => benchmark.search(keyword) !== -1);
-
-        // Filter row according to show-deprecated checkbox
-        if (!$("#checkbox_deprecated").is(":checked")) {
-            show_row = show_row && !name.includes("deprecated");
-        }
-        if (show_row) $(this).show(); else $(this).hide();
-    });
-
-    // Check if a table body consists only of hidden rows and if so add the class 'all_hidden'
-    const $evaluation_tbody = $('#evaluation_table_wrapper tbody');
-    $.each($evaluation_tbody, function() {
-        if($(this).find("tr:visible").length === 0) {
-            $(this).addClass("all_hidden");
-            console.log("Tbody has only hidden rows!", this);
-        } else {
-            $(this).removeClass("all_hidden");
-        }
-    });
-
-    // The table width may have changed due to adding or removing the scrollbar
-    // therefore change the width of the top scrollbar div accordingly and re-position
-    // the sticky second column.
-    set_top_scrollbar_width();
-    position_second_column();
-}
-
-
-/**********************************************************************************************************************
- Functions for HANDLING TABLE CLICKS
- *********************************************************************************************************************/
-
-function comparing_different_benchmarks(selected_exp_id) {
-    /*
-     * Return true if the user is trying to compare linking results of different benchmarks.
-     */
-    if (is_compare_checked() && window.selected_experiment_ids.length === 1) {
-        let b1 = get_benchmark_from_experiment_id(window.selected_experiment_ids[0]);
-        let b2 = get_benchmark_from_experiment_id(selected_exp_id);
-        return b1 !== b2;
-    }
-    return false;
-}
-
-function on_row_click(el) {
-    /*
-     * This method is called when a table body row was clicked.
-     * This marks the row as selected and reads the evaluation cases.
-     */
-    // Get a timestamp for the click to help maintain the order in which evaluation cases are loaded
-    let timestamp = new Date().getTime();
-    window.last_show_article_request_timestamp = timestamp;
-
-    let experiment_id = get_experiment_id_from_row(el);
-    let previous_benchmark = (window.selected_experiment_ids.length >= 1) ? get_benchmark_from_experiment_id(window.selected_experiment_ids[0]) : null;
-    let new_benchmark = get_benchmark_from_experiment_id(experiment_id);
-
-    // De-select previously selected rows
-    if (!is_compare_checked() || window.selected_experiment_ids.length >= MAX_SELECTED_APPROACHES) {
-        deselect_all_table_rows();
-        window.selected_experiment_ids = [];
-    }
-
-    // Show alert message if the user tries to compare experiments on different benchmarks
-    if (comparing_different_benchmarks(experiment_id)) {
-        alert("Linking results can only be compared side-by-side if the experiments have been run on " +
-            "the same benchmark. You tried to select the experiments "
-            + window.selected_experiment_ids[0] + " and " + experiment_id);
-        return;
-    }
-
-    // Show the loading GIF
-    $("#loading").addClass("show");
-
-    if (!window.selected_experiment_ids.includes(experiment_id)) {
-        window.selected_experiment_ids.push(experiment_id);
-        // Select clicked row
-        $(el).addClass("selected");
-        window.selected_rows.push(el);
-    }
-    let selected_exp_ids_copy = [...window.selected_experiment_ids];
-
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('experiment', window.selected_experiment_ids.join(","));
-    window.history.replaceState({}, '', url);
-
-    read_linking_results(experiment_id).then(function() {
-        // Reset article select options only if a different benchmark was previously selected
-        if (previous_benchmark !== new_benchmark) set_article_select_options(new_benchmark, previous_benchmark==null);
-        show_article(selected_exp_ids_copy, timestamp);
-    });
-}
-
-function deselect_all_table_rows() {
-    /*
-     * Deselect all rows in all evaluation tables
-     */
-    $("#evaluation_table_wrapper tbody tr").each(function() {
-        $(this).removeClass("selected");
-    });
-    window.selected_rows = [];
-}
-
-function on_cell_click(el) {
-    /*
-     * Highlight error category / type cells on click and un-highlight previously clicked cell.
-     * Add or remove error categories and types to/from current selection.
-     */
-    // Reject the cell click if the user tries to compare experiments on different benchmarks
-    let experiment_id = get_experiment_id_from_row($(el).closest("tr"));
-    if (comparing_different_benchmarks(experiment_id)) return;
-
-    // Determine whether an already selected cell has been clicked
-    let curr_row = $(el).closest("tr").index();
-    let prev_selected_rows = $.map(window.selected_rows, function(sel_row) { return $(sel_row).index(); });
-    let already_selected_row_clicked = $.inArray(curr_row, prev_selected_rows);
-    if (window.selected_cells.length > 0) {
-        if (!is_compare_checked() || window.selected_rows.length >= MAX_SELECTED_APPROACHES) {
-            // Remove selected classes for all currently selected cells
-            for (let i=0; i<window.selected_cells.length; i++) {
-                remove_selected_classes(window.selected_cells[i]);
-            }
-            window.selected_cells = [];
-            reset_selected_cell_categories();
-        } else {
-            // Remove selected class for cells in the same row
-            let last_rows = $.map(window.selected_cells, function(sel_cell) { return $(sel_cell).closest('tr').index(); });
-            let index = $.inArray(curr_row, last_rows);
-            if (index >= 0) {
-                remove_selected_classes(window.selected_cells[index]);
-                window.selected_cells.splice(index, 1);
-                window.selected_cell_categories[index] = null;
-            }
+        while (window.jump_to_annotation_index[side_index] === window.all_highlighted_annotations[side_index].length || (
+            window.jump_to_annotation_index[side_index] >= -1 && $(window.all_highlighted_annotations[side_index][window.jump_to_annotation_index[side_index]]).offset().top >= $(next_annotation).offset().top)) {
+            window.jump_to_annotation_index[side_index]--;
         }
     }
-
-    // Make new selection
-    let classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // Experiment column has no class attribute
-    if (is_error_cell(el)) {
-        $(el).addClass("selected");
-        window.selected_cells.push(el);
-    } else if (classes.length > 0 && (classes[0] in MENTION_TYPE_HEADERS || is_type_string(classes[0]))) {
-        $(el).closest('tr').find('.' + classes[0]).each(function() {
-            $(this).addClass("selected");
-        });
-        window.selected_cells.push(el);
-    } else {
-        // Select "all" column
-        let added = false;
-        $(el).closest('tr').find('.all').each(function() {
-            $(this).addClass("selected");
-            if (!added) {
-                // Add a single cell from the "all" column. Which one does not matter.
-                window.selected_cells.push(this);
-                added = true;
-            }
-        });
-    }
-
-    // Updated selected cell categories
-    // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
-    let exp_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : window.selected_rows.length % MAX_SELECTED_APPROACHES;
-    window.selected_cell_categories[exp_index] = get_error_category_or_type(el);
-
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('emphasis', window.selected_cells.map(function(el) {return ($(el).attr('class')) ? $(el).attr('class').split(/\s+/)[1] : []}).join(","));
-    window.history.replaceState({}, '', url);
 }
 
-
-/**********************************************************************************************************************
- Functions for HANDLING TOOLTIPS
- *********************************************************************************************************************/
-
-function position_table_tooltip(anchor_el) {
-    const anchor_el_rect = anchor_el.getBoundingClientRect();
-    $(anchor_el).find(".tooltiptext").each(function() {
-        const tooltip_rect = this.getBoundingClientRect();
-        const font_size = $(this).css("font-size").replace("px", "");
-        const top = anchor_el_rect.top - tooltip_rect.height - (font_size / 2);
-        $(this).css({"left": anchor_el_rect.left + "px", "top": top + "px"});
-    });
-}
-
-function reposition_annotation_tooltip(annotation_el) {
-    /*
-     * Re-position all tooltips of an annotation such that they don't go outside the window.
-     */
-    const annotation_rect = annotation_el.getBoundingClientRect();
-    // Check whether the annotation contains a line break by checking whether its height is bigger than the line height
-    const line_height = parseInt($(annotation_el).css('line-height'));
-    const line_break = (annotation_rect.height > line_height + 5);
-    $(annotation_el).find(".tooltiptext").each(function() {
-        let tooltip_rect = this.getBoundingClientRect();
-
-        // Table could be either prediction_overview or the table in the example modal
-        const table_rect = $(this).closest("table")[0].getBoundingClientRect();
-
-        // If the tooltip width is larger than the table width, enable line-wrapping
-        // in the tooltip
-        if (tooltip_rect.width > table_rect.width) {
-            // Set the new width to the width of the table, minus tooltip padding and
-            // border since those are added on top of css width.
-            const paddings = parseInt($(this).css('paddingLeft')) + parseInt($(this).css('paddingRight'));
-            const borders = parseInt($(this).css('borderLeftWidth')) + parseInt($(this).css('borderRightWidth'));
-            const new_width = table_rect.width - (paddings + borders);
-            $(this).css({"white-space": "normal", "width": new_width + "px"});
-            // Recompute the tooltip rectangle
-            tooltip_rect = this.getBoundingClientRect();
-        }
-
-        // Correct the tooltip position if it overlaps with the right edge of the table
-        // If the annotation contains a line break, position to the right
-        if ((annotation_rect.left + tooltip_rect.width > table_rect.right) || line_break)  {
-            // Align right tooltip edge with right edge of the annotation.
-            // Left needs to be set to auto since it is otherwise still 0.
-            $(this).css({"right": "0px", "left": "auto"});
-
-            // If now the left tooltip edge overlaps with the left edge of the table
-            // translate the table as far right as possible
-            if (annotation_rect.right - tooltip_rect.width < table_rect.left) {
-                const translation = table_rect.right - annotation_rect.right;
-                this.style.transform = "translateX(" + translation + "px)";
-            }
-        }
-    });
-}
-
-function add_experiment_tooltips() {
-    /*
-     * Add tooltips to the experiment column of the table.
-     */
-    $("#evaluation_table_wrapper table tbody tr").each(function(index) {
-        let experiment_id = get_experiment_id_from_row(this);
-        let metadata = window.experiments_metadata[experiment_id];
-        if (metadata) {
-            let tooltiptext = "";
-            if (metadata.experiment_description) tooltiptext += "<p><i>" + metadata.experiment_description + "</i></p>";
-            tooltiptext += "<p>";
-            if (metadata.linking_time) tooltiptext += "Linking took " + metadata.linking_time.toFixed(2) + "s<br>";
-            tooltiptext += metadata.timestamp + "</p>";
-            tippy("#evaluation_table_wrapper table tbody tr:nth-child(" + (index + 1) + ") td:nth-child(1)", {
-                content: tooltiptext,
-                allowHTML: true,
-                interactive: (tooltiptext.includes("</a>")),
-                appendTo: document.body,
-                theme: 'light-border',
-            });
-        }
-    });
-}
-
-function get_td_tooltip_text(json_obj) {
-    /*
-     * Get the tooltip text for the table cell from the given json obj.
-     */
-    let tooltip_text = "TP: " + Math.round(json_obj["true_positives"] * 100) / 100 + "<br>";
-    tooltip_text += "FP: " + Math.round(json_obj["false_positives"] * 100) / 100 + "<br>";
-    tooltip_text += "FN: " + Math.round(json_obj["false_negatives"] * 100) / 100 + "<br>";
-    tooltip_text += "GT: " + Math.round(json_obj["ground_truth"] * 100) / 100;
-    return tooltip_text;
-}
-
-function get_th_tooltip_text(key, subkey) {
-    /*
-     * Get the tooltip text (including html) for the table header cell specified by the
-     * given evaluation results key and subkey.
-     */
-    if (key.toLowerCase() in HEADER_DESCRIPTIONS) {
-        key = key.toLowerCase();
-        subkey = subkey.toLowerCase();
-        if (typeof HEADER_DESCRIPTIONS[key] == "string") {
-            return HEADER_DESCRIPTIONS[key];
-        }
-        if (subkey in HEADER_DESCRIPTIONS[key]) {
-            let tooltip_text = HEADER_DESCRIPTIONS[key][subkey];
-            if (!["", "all"].includes(subkey)) {
-                tooltip_text += TOOLTIP_EXAMPLE_HTML;
-            }
-            return tooltip_text;
-        } else {
-            const tp_string = "<p>" + HEADER_DESCRIPTIONS[key]["tp"] + "</p>";
-            const fp_string = "<p>" + HEADER_DESCRIPTIONS[key]["fp"] + "</p>";
-            const fn_string = "<p>" + HEADER_DESCRIPTIONS[key]["fn"] + "</p>";
-            let string = "<p>" + HEADER_DESCRIPTIONS[subkey] + "</p>";
-            if (subkey === "precision") {
-                string += tp_string;
-                string += fp_string;
-            } else if (subkey === "recall") {
-                string += tp_string;
-                string += fn_string;
-            } else if (subkey === "f1") {
-                string += tp_string;
-                string += fp_string;
-                string += fn_string;
-            }
-            return string;
-        }
-    } else if (key.toUpperCase() in window.whitelist_types || key.toLowerCase() === "other") {
-        key = key.toUpperCase();
-        const type = (key in window.whitelist_types) ? window.whitelist_types[key] : "Other";
-        if (subkey) {
-            // Get tooltips for precision, recall and f1
-            const tp_string = "<p><i>TP</i>: True Positives of type " + type + "</p>";
-            const fp_string = "<p><i>FP</i>: False Positives of type " + type + "</p>";
-            const fn_string = "<p><i>FN</i>: False Negatives of type " + type + "</p>";
-            let string = "<p>" + HEADER_DESCRIPTIONS[subkey] + "</p>";
-            if (subkey === "precision") {
-                string += tp_string;
-                string += fp_string;
-            } else if (subkey === "recall") {
-                string += tp_string;
-                string += fn_string;
-            } else if (subkey === "f1") {
-                string += tp_string;
-                string += fp_string;
-                string += fn_string;
-            }
-            return string;
-        } else {
-            return "Results for entities of type \"" + type + "\".";
+function find_next_annotation_index(side_index) {
+    for (let i=window.jump_to_annotation_index[side_index] + 1; i<window.all_highlighted_annotations[side_index].length; i++) {
+        let classes = $(window.all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
+        if (classes.includes("fn") || classes.includes("fp")) {
+            return i;
         }
     }
-    return "";
+    return window.all_highlighted_annotations[side_index].length;
 }
 
-
-/**********************************************************************************************************************
- Functions for EVALUATION RESULT CHECKBOXES
- *********************************************************************************************************************/
-
-function add_evaluation_checkboxes(json_obj) {
-    /*
-     * Add checkboxes for showing / hiding columns.
-     */
-    $.each(json_obj, function(key) {
-        $.each(json_obj[key], function(subkey) {
-            const class_name = get_class_name(subkey);
-            const label = get_checkbox_label(key, subkey);
-            const checked = ((class_name === "all" && window.url_param_show_columns.length === 0) || window.url_param_show_columns.includes(class_name)) ? "checked" : "";
-            let checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
-            checkbox_html += "<label>" + label + "</label></span>\n";
-            let checkbox_div_id = "";
-            if (key === "mention_types") checkbox_div_id = "mention_type_checkboxes";
-            if (key === "error_categories") checkbox_div_id = "error_category_checkboxes";
-            if (key === "entity_types") checkbox_div_id = "entity_type_checkboxes";
-            $("#" + checkbox_div_id + ".checkboxes").append(checkbox_html);
-
-            // Add tooltip for checkbox
-            tippy("#checkbox_span_" + class_name, {
-                content: get_th_tooltip_text(subkey, ""),
-                allowHTML: true,
-                theme: 'light-border',
-            });
-        });
-    });
-}
-
-function get_checkbox_label(key, subkey) {
-    /*
-     * Get the label for the checkbox specified via the given evaluation results key and subkey.
-     */
-    const lower_key = key.toLowerCase();
-    const lower_subkey = subkey.toLowerCase();
-    if (key === "entity_types" && subkey in window.whitelist_types) {
-        return window.whitelist_types[subkey];
-    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
-        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["checkbox_label"];
-    } else {
-        return to_title_case(subkey.replace(/_/g, " "));
-    }
-}
-
-function on_column_checkbox_change(element, resize) {
-    show_hide_columns(element, resize);
-
-    // Update current URL without refreshing the site
-    let checkbox_classes = [];
-    $("#evaluation_overview .checkboxes input[type=checkbox]:checked").each(function() {
-        checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
-    });
-    const url = new URL(window.location);
-    url.searchParams.set('show_columns', checkbox_classes.join(","));
-    window.history.replaceState({}, '', url);
-}
-
-function show_hide_columns(element, resize) {
-    /*
-     * This function should be called when the state of a checkbox is changed.
-     * This can't be simply added in on document ready, because checkboxes are added dynamically.
-     */
-    let col_class = $(element).attr("class");
-    col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
-    const column = $("#evaluation_table_wrapper table ." + col_class);
-    if($(element).is(":checked")) {
-        column.show();
-    } else {
-        column.hide();
-    }
-
-    if (resize) {
-        // Resizing takes a long time especially on Chrome, therefore do it only when necessary.
-        // The table width has changed therefore change the width of the top scrollbar div accordingly.
-        set_top_scrollbar_width();
-    }
-}
-
-
-/**********************************************************************************************************************
- Functions for EVALUATION MODE RADIO BUTTONS
- *********************************************************************************************************************/
-
-function on_radio_button_change(el) {
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('evaluation_mode', get_class_name($(el).val()));
-    window.history.replaceState({}, '', url);
-
-    // Re-build the overview table over all .eval_results.json-files from the evaluation-results folder.
-    build_evaluation_results_table(false);
-}
-
-function add_radio_buttons(json_obj) {
-    /*
-     * Add radio buttons for the evaluation modes as extracted from the jsonl results file.
-     */
-    $.each(json_obj, function(key) {
-        const class_name = get_class_name(key);
-        const checked = ((class_name === "ignored" && window.url_param_evaluation_mode == null) || window.url_param_evaluation_mode === class_name) ? "checked" : "";
-        let radio_button_html = "<span class=\"radio_button_" + class_name + "\">"
-        radio_button_html += "<input type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_radio_button_change(this)\" " + checked + ">";
-        radio_button_html += "<label>" + EVALUATION_MODE_LABELS[class_name] + "</label></span>\n";
-        $("#evaluation_modes").append(radio_button_html);
-
-        // Add radio button tooltip
-        tippy('#evaluation_modes .radio_button_' + class_name, {
-            content: HEADER_DESCRIPTIONS["evaluation_mode"][class_name],
-            allowHTML: true,
-            theme: 'light-border',
-        });
-    });
-}
-
-
-/**********************************************************************************************************************
- Functions for ARTICLE SELECTION
- *********************************************************************************************************************/
-
-function set_article_select_options(benchmark, is_initial_call) {
-    /*
-     * Set the options for the article selector element to the names of the articles from the list 'articles'.
-     */
-    // Empty previous options
-    const $article_select = $("#article_select");
-    $article_select.empty();
-
-    // Add default "All articles" option
-    let option_text_suffix = (["newscrawl", "wiki-ex"].includes(benchmark)) ? " (evaluated span only)" : "";
-    let option_text = "All " + window.benchmark_articles[benchmark].length + " articles" + option_text_suffix;
-    $article_select.append(new Option(option_text, ""));
-
-    // Create new options
-    for (let ai in window.benchmark_articles[benchmark]) {
-        let article = window.benchmark_articles[benchmark][ai];
-        // Shorten the article title if it's longer than 40 characters
-        let title;
-        if (article.title) {
-            title = (article.title.length <= 40) ? article.title : article.title.substring(0, 40) + "..."
-        } else {
-            // On some benchmarks (e.g. AIDA-CoNLL), articles don't have titles.
-            // In that case use the first 40 characters of the article.
-            title = article.text.substring(0, Math.min(40, article.text.length)) + "...";
-        }
-        $article_select.append(new Option(title, ai));
-    }
-
-    // Set the article according to URL parameter if one with a valid article name exists
-    let article_by_url = $('#article_select option').filter(function () { return $(this).html() === window.url_param_article; });
-    if (window.url_param_article) {
-        if (is_initial_call) {
-            if (article_by_url.length > 0) $(article_by_url).prop('selected', true);
-        } else {
-            // Update current URL without refreshing the site
-            const url = new URL(window.location);
-            url.searchParams.set('article', $("#article_select option:selected").text());
-            window.history.replaceState({}, '', url);
+function find_previous_annotation_index(side_index, last_highlighted_side) {
+    for (let i=window.jump_to_annotation_index[side_index] - (last_highlighted_side===side_index); i > 0; i--) {
+        let classes = $(window.all_highlighted_annotations[side_index][i]).attr("class").split(/\s+/);
+        if (classes.includes("fn") || classes.includes("fp")) {
+            return i;
         }
     }
-    $("#select_article").css("visibility", "visible");
+    return -1;
 }
 
-function on_article_select() {
-    const timestamp = new Date().getTime();
-    window.last_show_article_request_timestamp = timestamp;
-    show_article(window.selected_experiment_ids, timestamp);
-
-    // Update current URL without refreshing the site
-    const url = new URL(window.location);
-    url.searchParams.set('article', $("#article_select option:selected").text());
-    window.history.replaceState({}, '', url);
+function reset_annotation_selection() {
+    window.jump_to_annotation_index = [-1, -1];
+    window.last_highlighted_side = 0;
 }
 
-
-/**********************************************************************************************************************
- Functions for EXAMPLE BENCHMARK MODAL
- *********************************************************************************************************************/
-
-function show_example_benchmark_modal(el) {
+function scroll_to_annotation(annotation) {
     /*
-     * Open the example benchmark model and show the example article that corresponds
-     * to the error category of the clicked table header tooltip.
-     */
-    // Get example error category of the table tooltip to highlight only corresponding mentions
-    // Hack to get the reference object from the clicked tippy tooltip.
-    let table_header_cell = $(el).parent().parent().parent().parent()[0]._tippy.reference;
-    let selected_category = get_error_category_or_type(table_header_cell);
-
-    // Get table header title
-    let keys = get_table_header_keys(table_header_cell);
-    let error_category_title = keys[0].replace(/_/g, " ") + " - " + keys[1].replace(/_/g, " ");
-
-    // Determine article index of selected example
-    let article_index = 0;
-    for (let i=0; i<window.articles_example_benchmark.length; i++) {
-        let article = window.articles_example_benchmark[i];
-        if (article.title.toLowerCase().includes(error_category_title)) {
-            article_index = i;
-            break;
-        }
-    }
-
-    // Display error explanation extracted from table header tooltip text
-    let error_explanation = HEADER_DESCRIPTIONS[keys[0]][keys[1]];
-    error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*?)<\/p>.*/, "$1");
-    $("#error_explanation").text("Description: " + error_explanation);
-    // Display annotated text
-    let textfield = $("#example_prediction_overview tr td");
-    show_annotated_text("example.error-category-examples", $(textfield[0]), selected_category, 100, article_index);
-    $("#example_prediction_overview tr th").text(window.articles_example_benchmark[article_index].title);
+    Scroll to the given annotation and mark it as selected for a second.
+    */
+    const line_height = parseInt($("#prediction_overview td").css('line-height').replace('px',''));
+    const header_size = $("#prediction_overview thead")[0].getBoundingClientRect().height;
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $(annotation).offset().top - header_size - line_height / 2
+    }, 200);
+    // Get annotation id class such that all spans belonging to one annotation can be marked as selected
+    const classes = $(annotation).attr("class").split(/\s+/);
+    const annotation_id_class = classes.filter(function(el) {return el.startsWith("annotation_id_"); });
+    // Mark spans as selected
+    $("." + annotation_id_class).addClass("selected")
+    // Unmark spans as selected after timeout
+    setTimeout(function() { $("." + annotation_id_class).removeClass("selected"); }, 1000);
 }
+
 
 
 /**********************************************************************************************************************
@@ -2700,6 +2721,10 @@ function get_error_percentage(value) {
 
 function get_evaluation_mode() {
     return $('input[name=eval_mode]:checked', '#evaluation_modes').val();
+}
+
+function get_group_by() {
+    return $('input[name=group_by]:checked').val();
 }
 
 function get_benchmark_from_experiment_id(exp_id) {

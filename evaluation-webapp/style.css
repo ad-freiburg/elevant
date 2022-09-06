@@ -90,6 +90,10 @@ a {
     margin-bottom: 0;
 }
 
+#checkbox_compare {
+    margin-top: 2em;
+}
+
 /* Class for tooltips in the evaluation results box */
 #evaluation_overview .tooltiptext {
     visibility: hidden;
@@ -128,15 +132,10 @@ a {
     height: 20px;
 }
 
-#top_row_container {
-    display: flex;
-    justify-content: space-between; /* Put left child at the left end and right child at the right end */
-}
-
 /* ----------------------------------------- */
 /* Begin checkboxes for showing / hiding table columns */
 #checkbox_table {
-    margin-top: 2em;
+    margin-top: 0.5em;
 }
 
 #checkbox_table td:first-child {
@@ -404,7 +403,7 @@ div.latex textarea {
     border-spacing: 0;
     border-collapse: separate;
     overflow: hidden;
-    padding-top: 3em;
+    padding-top: 4em;
     padding-bottom: 4em;
 }
 
