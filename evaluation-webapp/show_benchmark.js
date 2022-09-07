@@ -244,6 +244,12 @@ $("document").ready(function() {
     read_url_parameters();
     reset_selected_cell_categories();
 
+    // Initialize tippy tooltips contained in the html file
+    tippy('[data-tippy-content]', {
+        appendTo: document.body,
+        theme: 'light-border'
+    });
+
     if (window.url_param_group_by) $("input:radio[name=" + window.url_param_group_by + "]").prop("checked", true);
 
     $("#checkbox_compare").prop('checked', window.url_param_compare);
@@ -927,7 +933,7 @@ function add_evaluation_table_body(result_list) {
     $('#evaluation_table_wrapper table').append(tbody);
 
     // Show / Hide columns according to checkbox state
-    $("input[class^='checkbox_']").each(function() {
+    $("input[id^='checkbox_']").each(function() {
         show_hide_columns(this, false);
     });
 
@@ -989,8 +995,8 @@ function position_second_column() {
     /*
      * Fix the position of the second column in the evaluation results table to make it sticky.
      */
-    // Get the width of any visible cell in the first table column
-    let first_col_width = $("#evaluation_table_wrapper td:nth-child(1):visible").outerWidth();
+    // Get the width of the first table column (use th and not td, since all td might be hidden)
+    let first_col_width = $("#evaluation_table_wrapper tr:nth-child(2) th:nth-child(1)").outerWidth();
     // Position the header cell in the second row, second column
     $("#evaluation_table_wrapper table thead tr:nth-child(2) th:nth-child(2)").css('left', first_col_width);
     // Position the normal cells in the second column
@@ -1106,8 +1112,9 @@ function on_row_click(el) {
     window.history.replaceState({}, '', url);
 
     read_linking_results(experiment_id).then(function() {
-        // Reset article select options only if a different benchmark was previously selected
-        if (previous_benchmark !== new_benchmark) set_article_select_options(new_benchmark, previous_benchmark==null);
+        // Reset article select options only if a different benchmark was previously selected or if it
+        const article_select_val = $("#article_select").val();
+        if (previous_benchmark !== new_benchmark || article_select_val == null) set_article_select_options(new_benchmark, article_select_val==null);
         show_article(selected_exp_ids_copy, timestamp);
     });
 }
@@ -1360,8 +1367,8 @@ function add_evaluation_checkboxes(json_obj) {
             const class_name = get_class_name(subkey);
             const label = get_checkbox_label(key, subkey);
             const checked = ((class_name === "all" && window.url_param_show_columns.length === 0) || window.url_param_show_columns.includes(class_name)) ? "checked" : "";
-            let checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" class=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
-            checkbox_html += "<label>" + label + "</label></span>\n";
+            let checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" id=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
+            checkbox_html += "<label for='checkbox_" + class_name + "'>" + label + "</label></span>\n";
             let checkbox_div_id = "";
             if (key === "mention_types") checkbox_div_id = "mention_type_checkboxes";
             if (key === "error_categories") checkbox_div_id = "error_category_checkboxes";
@@ -1397,12 +1404,12 @@ function on_column_checkbox_change(element, resize) {
     show_hide_columns(element, resize);
 
     // Update current URL without refreshing the site
-    let checkbox_classes = [];
+    let checkbox_ids = [];
     $("#evaluation_overview .checkboxes input[type=checkbox]:checked").each(function() {
-        checkbox_classes.push($(this).attr("class").split(/\s+/)[0].replace("checkbox_", ""));
+        checkbox_ids.push($(this).attr("id").split(/\s+/)[0].replace("checkbox_", ""));
     });
     const url = new URL(window.location);
-    url.searchParams.set('show_columns', checkbox_classes.join(","));
+    url.searchParams.set('show_columns', checkbox_ids.join(","));
     window.history.replaceState({}, '', url);
 }
 
@@ -1411,7 +1418,7 @@ function show_hide_columns(element, resize) {
      * This function should be called when the state of a checkbox is changed.
      * This can't be simply added in on document ready, because checkboxes are added dynamically.
      */
-    let col_class = $(element).attr("class");
+    let col_class = $(element).attr("id");
     col_class = col_class.substring(col_class.indexOf("_") + 1, col_class.length);
     const column = $("#evaluation_table_wrapper table ." + col_class);
     if($(element).is(":checked")) {
@@ -1439,13 +1446,13 @@ function add_eval_mode_radio_buttons(json_obj) {
     $.each(json_obj, function(key) {
         const class_name = get_class_name(key);
         const checked = ((class_name === "ignored" && window.url_param_evaluation_mode == null) || window.url_param_evaluation_mode === class_name) ? "checked" : "";
-        let radio_button_html = "<span class=\"radio_button_" + class_name + "\">"
-        radio_button_html += "<input type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_eval_mode_change(this)\" " + checked + ">";
-        radio_button_html += "<label>" + EVALUATION_MODE_LABELS[class_name] + "</label></span>\n";
+        let radio_button_html = "<span id=\"span_radio_eval_mode_" + class_name + "\">"
+        radio_button_html += "<input id='radio_eval_mode_" + class_name + "' type=\"radio\" name=\"eval_mode\" value=\"" + key + "\" onchange=\"on_eval_mode_change(this)\" " + checked + ">";
+        radio_button_html += "<label for='radio_eval_mode_" + class_name + "'>" + EVALUATION_MODE_LABELS[class_name] + "</label></span>\n";
         $("#evaluation_modes").append(radio_button_html);
 
         // Add radio button tooltip
-        tippy('#evaluation_modes .radio_button_' + class_name, {
+        tippy('#evaluation_modes #span_radio_eval_mode_' + class_name, {
             content: HEADER_DESCRIPTIONS["evaluation_mode"][class_name],
             allowHTML: true,
             theme: 'light-border',

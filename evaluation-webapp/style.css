@@ -94,6 +94,10 @@ a {
     margin-top: 2em;
 }
 
+input[id$="-filter"] {
+    margin-right: 1em;
+}
+
 /* Class for tooltips in the evaluation results box */
 #evaluation_overview .tooltiptext {
     visibility: hidden;

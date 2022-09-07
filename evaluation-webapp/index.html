@@ -72,7 +72,9 @@
 			<h4 class="with_note">Filter table rows</h4>
 			<label for="benchmark-filter">By benchmark: </label><input id="benchmark-filter">
 			<label for="experiment-filter">By experiment: </label><input id="experiment-filter">
-			<input type="checkbox" id="checkbox_deprecated" onchange="toggle_show_deprecated()"><label for="checkbox_deprecated">Show deprecated</label>
+			<span data-tippy-content="Show experiments whose name contains the word 'deprecated'.">
+				<input type="checkbox" id="checkbox_deprecated" onchange="toggle_show_deprecated()"><label for="checkbox_deprecated">Show deprecated</label>
+			</span>
 
 			<div class="latex">
 				<p><b>The LaTeX code for this table was copied to your CLIPBOARD.</b></p>
@@ -98,8 +100,10 @@
 			<p class="note">Select a cell in the evaluation results table above to see the linking results of the selected experiment here.</p>
 
 			<div>
-				<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
-				<label for="checkbox_compare">Compare two systems</label>
+				<span data-tippy-content="Compare linking results of two systems side by side. Select two rows in the table above to do so.">
+					<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
+					<label for="checkbox_compare">Compare two systems</label>
+				</span>
 			</div>
 
 			<div id="loading"></div>
