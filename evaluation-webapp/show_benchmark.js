@@ -1019,7 +1019,12 @@ function filter_table_rows() {
 
         // Filter row according to show-deprecated checkbox
         if (!$("#checkbox_deprecated").is(":checked")) {
-            show_row = show_row && !name.includes("deprecated");
+            // Filter if either table column text (from metadata file) or experiment ID (from filename)
+            // contains the word deprecated, so that one can simply rename the files for them to be filtered
+            // and does not have to go into the metadata files and change the title.
+            let exp_id = get_experiment_id_from_row(this);
+            show_row &= !name.includes("deprecated");
+            show_row &= !exp_id.includes("deprecated");
         }
         if (show_row) $(this).show(); else $(this).hide();
     });
@@ -1083,7 +1088,8 @@ function on_row_click(el) {
 
     // De-select previously selected rows
     if (!is_compare_checked() || window.selected_experiment_ids.length >= MAX_SELECTED_APPROACHES) {
-        deselect_all_table_rows();
+        $("#evaluation_table_wrapper tbody tr").removeClass("selected");
+        window.selected_rows = [];
         window.selected_experiment_ids = [];
     }
 
@@ -1117,16 +1123,6 @@ function on_row_click(el) {
         if (previous_benchmark !== new_benchmark || article_select_val == null) set_article_select_options(new_benchmark, article_select_val==null);
         show_article(selected_exp_ids_copy, timestamp);
     });
-}
-
-function deselect_all_table_rows() {
-    /*
-     * Deselect all rows in all evaluation tables
-     */
-    $("#evaluation_table_wrapper tbody tr").each(function() {
-        $(this).removeClass("selected");
-    });
-    window.selected_rows = [];
 }
 
 function on_cell_click(el) {
@@ -1259,7 +1255,7 @@ function add_experiment_tooltips() {
     /*
      * Add tooltips to the experiment column of the table.
      */
-    $("#evaluation_table_wrapper table tbody tr").each(function(index) {
+    $("#evaluation_table_wrapper table tbody tr").each(function() {
         let experiment_id = get_experiment_id_from_row(this);
         let metadata = window.experiments_metadata[experiment_id];
         if (metadata) {
@@ -1268,11 +1264,10 @@ function add_experiment_tooltips() {
             tooltiptext += "<p>";
             if (metadata.linking_time) tooltiptext += "Linking took " + metadata.linking_time.toFixed(2) + "s<br>";
             tooltiptext += metadata.timestamp + "</p>";
-            tippy("#evaluation_table_wrapper table tbody tr:nth-child(" + (index + 1) + ") td:nth-child(1)", {
+            tippy("#evaluation_table_wrapper table tbody tr td[data-experiment=\"" + experiment_id + "\"]", {
                 content: tooltiptext,
                 allowHTML: true,
-                interactive: (tooltiptext.includes("</a>")),
-                appendTo: document.body,
+                interactive: false,
                 theme: 'light-border',
             });
         }

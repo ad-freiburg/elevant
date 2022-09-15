@@ -65,13 +65,13 @@
 
 			<h4 class="with_note">Group table rows</h4>
 			<div id="group_by" class="checkboxes">
-				<span><input type="radio" id="radio_group_by_benchmark" name="group_by" value="benchmark" onchange="on_group_by_change(this)" checked><label for="radio_group_by_benchmark">By benchmark</label></span>
 				<span><input type="radio" id="radio_group_by_experiment" name="group_by" value="experiment" onchange="on_group_by_change(this)"><label for="radio_group_by_experiment">By experiment</label></span>
+				<span><input type="radio" id="radio_group_by_benchmark" name="group_by" value="benchmark" onchange="on_group_by_change(this)" checked><label for="radio_group_by_benchmark">By benchmark</label></span>
 			</div>
 
 			<h4 class="with_note">Filter table rows</h4>
-			<label for="benchmark-filter">By benchmark: </label><input id="benchmark-filter">
 			<label for="experiment-filter">By experiment: </label><input id="experiment-filter">
+			<label for="benchmark-filter">By benchmark: </label><input id="benchmark-filter">
 			<span data-tippy-content="Show experiments whose name contains the word 'deprecated'.">
 				<input type="checkbox" id="checkbox_deprecated" onchange="toggle_show_deprecated()"><label for="checkbox_deprecated">Show deprecated</label>
 			</span>
@@ -100,7 +100,7 @@
 			<p class="note">Select a cell in the evaluation results table above to see the linking results of the selected experiment here.</p>
 
 			<div>
-				<span data-tippy-content="Compare linking results of two systems side by side. Select two rows in the table above to do so.">
+				<span data-tippy-content="Compare linking results of two systems side by side. Select two experiments in the table above to compare them.">
 					<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
 					<label for="checkbox_compare">Compare two systems</label>
 				</span>
