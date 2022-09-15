@@ -833,6 +833,8 @@ function build_evaluation_results_table(initial_call) {
 
     // Fix the second table column to make it sticky
     position_second_column();
+
+    set_top_scrollbar_width();
 }
 
 function add_evaluation_table_header(json_obj) {
