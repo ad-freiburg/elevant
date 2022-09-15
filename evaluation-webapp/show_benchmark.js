@@ -362,17 +362,7 @@ $("document").ready(function() {
         }
     });
 
-    $evaluation_table.tablesorter({
-        sortInitialOrder: 'desc',
-        selectorHeaders: '> thead > tr:last-child > th',  // First header row should not be sortable
-        stringTo: "bottom",  // Columns that are numerically sorted should always have strings (e.g. "-") at the bottom
-        widgets: ['stickyHeaders'],
-        widgetOptions: {
-                        stickyHeaders_attachTo: '#evaluation_table_wrapper',  // jQuery selector or object to attach sticky header to
-                        stickyHeaders_zIndex : 20,
-                       },
-        sortRestart: true
-    });
+    initialize_table();
 
     $('table').on('stickyHeadersInit', function() {
         // Add table header tooltips to sticky header
@@ -761,9 +751,12 @@ function build_evaluation_results_table(initial_call) {
     $table_loading.addClass("show");
 
     const $evaluation_table = $("#evaluation_table_wrapper table");
-    $evaluation_table.trigger("update");
+
+    // Get current sort order
+    const current_sort_order = $evaluation_table[0].config.sortList;
 
     // Remove previous evaluation table content
+    $evaluation_table.trigger("destroy", false);
     $("#evaluation_table_wrapper table thead").empty();
     $("#evaluation_table_wrapper table tbody").remove();
 
@@ -821,15 +814,21 @@ function build_evaluation_results_table(initial_call) {
         }
     }
 
-    // Update the tablesorter. The sort order is automatically adapted from the previous table.
-    $evaluation_table.trigger("updateAll")
-
     // Remove the table loading GIF
     $table_loading.removeClass("show");
+
+    // Update the tablesorter. The sort order is automatically adapted from the previous table.
+    initialize_table();  // Since the entire tbody is replaced, triggering a simple update or updateAll is not enough
 
     if (initial_call && window.url_param_sort_order.length > 0) {
         // Use sort order from URL parameter
         $.tablesorter.sortOn( $evaluation_table[0].config, [ window.url_param_sort_order ]);
+    } else if (initial_call) {
+        // Sort on All - F1 column in descending order when loading the page if no sort order is specified in the URL
+        $.tablesorter.sortOn( $evaluation_table[0].config, [[4, 1]]);
+    } else {
+        // Sort on last sort order when the table is rebuilt
+        $.tablesorter.sortOn( $evaluation_table[0].config, current_sort_order);
     }
 
     // Fix the second table column to make it sticky
@@ -1054,6 +1053,20 @@ function on_group_by_change(el) {
 
     // Re-build the overview table over all .eval_results.json-files from the evaluation-results folder.
     build_evaluation_results_table(false);
+}
+
+function initialize_table() {
+    $("#evaluation_table_wrapper table").tablesorter({
+        sortInitialOrder: 'desc',
+        selectorHeaders: '> thead > tr:last-child > th',  // First header row should not be sortable
+        stringTo: "bottom",  // Columns that are numerically sorted should always have strings (e.g. "-") at the bottom
+        widgets: ['stickyHeaders'],
+        widgetOptions: {
+            stickyHeaders_attachTo: '#evaluation_table_wrapper',  // jQuery selector or object to attach sticky header to
+            stickyHeaders_zIndex : 20,
+        },
+        sortRestart: true
+    });
 }
 
 
