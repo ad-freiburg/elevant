@@ -24,3 +24,4 @@ class PredictionFormats(Enum):
     SIMPLE_JSONL = "simple-jsonl"
     AMBIVERSE = "ambiverse"
     WIKIFIER = "wikifier"
+    EPGEL = "epgel"

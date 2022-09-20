@@ -3,6 +3,7 @@ import os
 from typing import Optional, Tuple, Dict, Set, Any
 
 from src.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
+from src.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
 from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
@@ -151,6 +152,8 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.prediction_reader = NifPredictionReader(prediction_file, self.entity_db)
+        elif linker_type == PredictionFormats.EPGEL.value:
+            self.prediction_reader = EPGELPredictionReader(prediction_file)
         elif linker_type == Linkers.DBPEDIA_SPOTLIGHT.value:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
