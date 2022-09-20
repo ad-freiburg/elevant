@@ -201,6 +201,7 @@ window.evaluation_results = [];
 
 window.benchmark_filenames = []
 window.benchmark_articles = {};
+window.benchmarks_metadata = {};
 
 window.evaluation_cases = {};
 window.articles_data = {};
@@ -556,26 +557,37 @@ function read_benchmark_articles() {
      * Read the benchmark articles of all available benchmark files in the benchmarks directory.
      */
     // Get the names of the benchmark files from the benchmarks directory
+    let metadata_filenames = [];
     return $.get("benchmarks", function(folder_data){
         $(folder_data).find("a").each(function() {
             let filename = $(this).attr("href");
-            if (filename.endsWith(".benchmark.jsonl")) window.benchmark_filenames.push(filename);
+            if (filename.endsWith(BENCHMARK_EXTENSION)) window.benchmark_filenames.push(filename);
+            if (filename.endsWith(METADATA_EXTENSION)) metadata_filenames.push(filename);
         });
     }).then(function() {
         // Read all detected benchmark files
-        return $.when.apply($, window.benchmark_filenames.map(function(filename) {
-            if ("obscure_aida_conll" in window.config && window.config["obscure_aida_conll"] && filename.startsWith("aida") && "42" !== window.url_param_access) {
-                // Show obscured AIDA-CoNLL benchmark if specified in config and no access token is provided
-                filename = filename + ".obscured";
-            }
-            return $.get("benchmarks/" + filename, function(data) {
-                let benchmark = filename.replace(BENCHMARK_EXTENSION, "");
-                window.benchmark_articles[benchmark] = [];
-                for (let line of data.split("\n")) {
-                    if (line.length > 0) window.benchmark_articles[benchmark].push(JSON.parse(line));
+        return $.when(
+            $.when.apply($, window.benchmark_filenames.map(function(filename) {
+                if ("obscure_aida_conll" in window.config && window.config["obscure_aida_conll"] && filename.startsWith("aida") && "42" !== window.url_param_access) {
+                    // Show obscured AIDA-CoNLL benchmark if specified in config and no access token is provided
+                    filename = filename + ".obscured";
                 }
-            });
-        }))
+                return $.get("benchmarks/" + filename, function(data) {
+                    let benchmark = filename.replace(BENCHMARK_EXTENSION, "");
+                    window.benchmark_articles[benchmark] = [];
+                    for (let line of data.split("\n")) {
+                        if (line.length > 0) window.benchmark_articles[benchmark].push(JSON.parse(line));
+                    }
+                });
+            })),
+            // Retrieve benchmarks metadata for table tooltips and the second table column text
+            $.when.apply($, metadata_filenames.map(function (filename) {
+                let benchmark = filename.replace(METADATA_EXTENSION, "");
+                return $.getJSON("benchmarks/" + filename, function (metadata) {
+                    window.benchmarks_metadata[benchmark] = metadata;
+                });
+            }))
+        );
     });
 }
 
@@ -788,8 +800,9 @@ function build_evaluation_results_table(initial_call) {
     add_evaluation_table_header(window.evaluation_results[0][1][get_evaluation_mode()]);
     // Add table body
     add_evaluation_table_body(window.evaluation_results);
-    // Add tooltips for the experiment column
+    // Add tooltips for the experiment and benchmark columns
     add_experiment_tooltips();
+    add_benchmark_tooltips();
 
     // Select default rows and cells
     if (default_selected_experiment_ids) {
@@ -950,8 +963,9 @@ function get_table_row(experiment_id, json_obj) {
     let row = "<tr onclick='on_row_click(this)'>";
     let onclick_str = " onclick='on_cell_click(this)'";
     let displayed_experiment_name = get_displayed_experiment_name(experiment_id);
+    let displayed_benchmark_name = get_displayed_benchmark_name(experiment_id);
     row += "<td " + onclick_str + " data-experiment=\"" + experiment_id + "\">" + displayed_experiment_name + "</td>";
-    row += "<td " + onclick_str + ">" + benchmark + "</td>";
+    row += "<td " + onclick_str + " data-benchmark=\"" + benchmark + "\">" + displayed_benchmark_name + "</td>";
     $.each(json_obj, function(basekey) {
         $.each(json_obj[basekey], function(key) {
             let new_json_obj = json_obj[basekey][key];
@@ -1276,17 +1290,42 @@ function add_experiment_tooltips() {
         if (metadata) {
             let tooltiptext = "";
             if (metadata.experiment_description) tooltiptext += "<p><i>" + metadata.experiment_description + "</i></p>";
-            tooltiptext += "<p>";
+            if (metadata.linking_time || metadata.timestamp) tooltiptext += "<p>";
             if (metadata.linking_time) tooltiptext += "Linking took " + metadata.linking_time.toFixed(2) + "s<br>";
-            tooltiptext += metadata.timestamp + "</p>";
-            tippy("#evaluation_table_wrapper table tbody tr td[data-experiment=\"" + experiment_id + "\"]", {
-                content: tooltiptext,
-                allowHTML: true,
-                interactive: false,
-                theme: 'light-border',
-            });
+            if (metadata.timestamp) tooltiptext += metadata.timestamp;
+            if (metadata.linking_time || metadata.timestamp) tooltiptext += "</p>";
+            if (tooltiptext) {
+                tippy("#evaluation_table_wrapper table tbody tr td[data-experiment=\"" + experiment_id + "\"]", {
+                    content: tooltiptext,
+                    allowHTML: true,
+                    interactive: false,
+                    theme: 'light-border',
+                });
+            }
         }
     });
+}
+
+function add_benchmark_tooltips() {
+    /*
+     * Add tooltips to the benchmark column of the table.
+     */
+    for (let benchmark in benchmarks_metadata) {
+        let metadata = window.benchmarks_metadata[benchmark];
+        if (metadata) {
+            let tooltiptext = "";
+            if (metadata.description) tooltiptext += "<p><i>" + metadata.description + "</i></p>";
+            if (metadata.timestamp) tooltiptext += "<p>Added " + metadata.timestamp + "</p>";
+            if (tooltiptext) {
+                tippy("#evaluation_table_wrapper table tbody tr td[data-benchmark=\"" + benchmark + "\"]", {
+                    content: tooltiptext,
+                    allowHTML: true,
+                    interactive: false,
+                    theme: 'light-border',
+                });
+            }
+        }
+    }
 }
 
 function get_td_tooltip_text(json_obj) {
@@ -2186,7 +2225,7 @@ async function show_article(selected_exp_ids, timestamp) {
     // Show first prediction column
     show_annotated_text(selected_exp_ids[0], $(columns[column_idx]), window.selected_cell_categories[0], column_idx, selected_article_index);
     let displayed_exp_name = get_displayed_experiment_name(selected_exp_ids[0]);
-    let benchmark_name = get_benchmark_from_experiment_id(selected_exp_ids[0]);
+    let benchmark_name = get_displayed_benchmark_name(selected_exp_ids[0]);
     let emphasis_str = get_emphasis_string(window.selected_cell_categories[0]);
     $(column_headers[column_idx]).html(displayed_exp_name + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
     show_table_column("prediction_overview", column_idx);
@@ -2762,4 +2801,13 @@ function get_displayed_experiment_name(exp_id) {
      */
     let metadata_exp_name = (exp_id in window.experiments_metadata) ? window.experiments_metadata[exp_id].experiment_name : null;
     return (metadata_exp_name) ? metadata_exp_name : get_experiment_name_from_experiment_id(exp_id);
+}
+
+function get_displayed_benchmark_name(exp_id) {
+    /*
+     * Get the benchmark name that should be displayed in the benchmark table column from the experiment ID.
+     */
+    let benchmark = get_benchmark_from_experiment_id(exp_id);
+    let metadata_benchmark_name = (benchmark in window.benchmarks_metadata) ? window.benchmarks_metadata[benchmark].name : null;
+    return (metadata_benchmark_name) ? metadata_benchmark_name : benchmark;
 }

@@ -29,7 +29,7 @@ In order for the newly configured types to take effect, you need to execute 2 mo
 
 1) Re-annotate all benchmarks you are using with
  
-       python3 add_benchmark.py -name <benchmark_name> -b <benchmark_name>
+       python3 add_benchmark.py <benchmark_name> -b <benchmark_name>
  
     This will take the benchmark `<benchmark_name>`, re-annotate it with the new entity types (and entity labels but
     unless you have updated your `qid_to_labels.tsv` mapping, nothing changes there), and write the re-annotated

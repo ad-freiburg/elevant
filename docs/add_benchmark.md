@@ -8,12 +8,15 @@ You can easily add a benchmark if you have a benchmark file that is in one of th
 
 To add a benchmark, simply run
 
-    python3 add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple-jsonl>
+    python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple-jsonl>
 
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types as given in
  `<data_directory>/wikidata_mappings/entity-types.tsv` and writes the result to the file
- `benchmarks/<benchmark_name>.benchmark.jsonl`.
+ `benchmarks/<benchmark_name>.benchmark.jsonl`. Additionally, a file `benchmarks/<benchmark_name>.metadata.jsonl` is
+ created that contains metadata information such as a benchmark description and the benchmark name that will be
+ displayed in the evaluation webapp. The description and displayed name can be specified using the `-desc` and
+ `-dname` arguments.
 
 If your benchmark is not in one of the supported formats, you can either convert it into one of those formats
  yourself or write your own benchmark reader, as explained in section
@@ -150,4 +153,4 @@ As an alternative to converting your benchmark into one of the formats mentioned
 
 You can now add benchmarks in your format by running
 
-    python3 add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat my_format
+    python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat my_format
