@@ -3,8 +3,18 @@ To link the articles of a benchmark with a single linker configuration, use the 
 
     python3 link_benchmark_entities.py <experiment_name> -l <linker_name> -b <benchmark_name>
 
+The linking results will be written to
+ `evaluation-results/<linker_name>/<adjusted_experiment_name>.<benchmark_name>.linked_articles.jsonl` where
+ `<adjusted_experiment_name>` is `<experiment_name>` in lowercase and characters other than `[a-z0-9-]` replaced by
+ `_`.
+
 Properties specific to the selected linker such as confidence thresholds, model paths, etc. are read from the linker's
  config file at `configs/<linker_name>.config.json`.
+
+Additionally, this will create a file
+`evaluation-results/<linker_name>/<adjusted_experiment_name>.<benchmark_name>.metadata.jsonl` that contains metadata
+ information such as an experiment description and the experiment name that will be displayed in the evaluation
+ webapp. The description can be specified using the `-desc` argument.
 
 For a list of entity linkers included in ELEVANT, see [Included Linkers](included_linkers.md).
 

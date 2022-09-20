@@ -93,8 +93,9 @@ def main(args):
             metadata = {"experiment_name": exp_name,
                         "experiment_description": exp_description,
                         "linker_name": linker_name,
-                        "timestamp": datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
-                        "linking_time": linking_time if args.linker_name else None}
+                        "timestamp": datetime.now().strftime("%Y/%m/%d %H:%M"),
+                        "linking_time": linking_time if args.linker_name else None,
+                        "linker_config": linker_config}
             metadata_file.write(json.dumps(metadata))
 
         logger.info("Wrote metadata to %s" % metadata_filename)
