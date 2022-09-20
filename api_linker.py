@@ -5,7 +5,6 @@ import argparse
 from pynif import NIFCollection
 from urllib.parse import quote
 from src import settings
-from src.evaluation.benchmark import get_available_benchmarks
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.linking_system import LinkingSystem
 from src.models.article import Article, article_from_json
@@ -34,7 +33,10 @@ def nif_api():
             linking_system.link_entities(article, args.uppercase, args.only_pronouns, None)
         if article.entity_mentions:
             for em in sorted(article.entity_mentions.values()):
-                entity_uri = 'http://www.wikidata.org/entity/' + em.entity_id
+                if em.entity_id is None:
+                    entity_uri = 'http://example.org/unknown/some_entity'
+                else:
+                    entity_uri = 'http://www.wikidata.org/entity/' + em.entity_id
                 if not args.wikidata_annotations:
                     wikipedia_title = linking_system.entity_db.id2wikipedia_name(em.entity_id)
                     entity_uri = "https://en.wikipedia.org/wiki/" + quote(wikipedia_title.replace(" ", "_"))
@@ -52,10 +54,6 @@ def nif_api():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
 
-    parser.add_argument("experiment_name", type=str,
-                        help="Name for the resulting file. The linking results will be written to "
-                             "<evaluation_dir>/<linker_name>/<experiment_name>.<benchmark_name>.jsonl")
-
     linker_group = parser.add_mutually_exclusive_group(required=True)
     linker_group.add_argument("-l", "--linker_name", choices=[li.value for li in Linkers],
                               help="Entity linker name.")
@@ -70,20 +68,12 @@ if __name__ == "__main__":
     parser.add_argument("-pname", "--prediction_name", default="Unknown Linker",
                         help="Name of the system that produced the predictions.")
 
-    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True,
-                        help="Benchmark over which to evaluate the linker.")
-    parser.add_argument("-dir", "--evaluation_dir", default=settings.EVALUATION_RESULTS_DIR,
-                        help="Directory to which the evaluation result files are written.")
     parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers],
                         help="Coreference linker to apply after entity linkers.")
     parser.add_argument("--only_pronouns", action="store_true",
                         help="Only link coreferences that are pronouns.")
-    parser.add_argument("--evaluation_span", action="store_true",
-                        help="If specified, let coreference linker refer only to entities within the evaluation span")
     parser.add_argument("-min", "--minimum_score", type=int, default=0,
                         help="Minimum entity score to include entity in database")
-    parser.add_argument("-small", "--small_database", action="store_true",
-                        help="Load a small version of the database")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
