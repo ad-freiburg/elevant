@@ -8,7 +8,7 @@ You can easily add a benchmark if you have a benchmark file that is in one of th
 
 To add a benchmark, simply run
 
-    python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple-jsonl>
+    python3 add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple-jsonl>
 
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types as given in
@@ -21,7 +21,7 @@ If your benchmark is not in one of the supported formats, you can either convert
 
 ## Benchmark Formats
 
-This section describes the three file formats that can be used as input to the `annotate_and_add_benchmark.py` script.
+This section describes the three file formats that can be used as input to the `add_benchmark.py` script.
 
 #### Our JSONL Format
 
@@ -119,7 +119,7 @@ The Simple JSONL benchmark reader is implemented [here](../src/benchmark_readers
 
 ## Writing a Custom Benchmark Reader
 As an alternative to converting your benchmark into one of the formats mentioned above, you can write your own
- benchmark reader, such that you can use your benchmark file with the `annotate_and_add_benchmark.py` script directly.
+ benchmark reader, such that you can use your benchmark file with the `add_benchmark.py` script directly.
  This requires the following steps:
 
 1) Implement a benchmark reader in `src/benchmark_readers/` and implement a method `article_iterator` that takes a
@@ -150,4 +150,4 @@ As an alternative to converting your benchmark into one of the formats mentioned
 
 You can now add benchmarks in your format by running
 
-    python3 annotate_and_add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat my_format
+    python3 add_benchmark.py -name <benchmark_name> -bfile <benchmark_file> -bformat my_format
