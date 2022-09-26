@@ -23,7 +23,7 @@
 		</header>
 
 		<div id="evaluation_overview" class="content_box">
-			<!-- Modal -->
+			<!-- Example Benchmark Modal -->
 			<div class="modal" id="example_benchmark_modal" tabindex="-1" role="dialog">
 				<div id="example_benchmark_modal_dialog" class="modal-dialog modal-dialog-centered" role="document">
 					<div class="modal-content">
@@ -40,6 +40,38 @@
 							<div id="error_explanation"></div>
 						</div>
 						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Copy Table Modal -->
+			<div class="modal" id="copy_table_modal" tabindex="-1" role="dialog">
+				<div id="copy_table_modal_dialog" class="modal-dialog modal-dialog-centered" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<span class="modal-title"><b>Copy evaluation results table</b></span>
+							<button type="button" class="close" data-dismiss="modal">
+								<span>&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<h4 class="with_note">Settings</h4>
+							<div><input type="checkbox" id="checkbox_include_experiment" checked><label for="checkbox_include_experiment">Include experiment column</label></div>
+							<div><input type="checkbox" id="checkbox_include_benchmark"><label for="checkbox_include_benchmark">Include benchmark column</label></div>
+							<h4 class="with_note">Format</h4>
+							<div id="copy_as" class="checkboxes">
+								<span><input type="radio" id="radio_copy_as_tsv" name="copy_as" value="TSV" checked><label for="radio_copy_as_tsv">TSV</label></span>
+								<span><input type="radio" id="radio_copy_as_latex" name="copy_as" value="LATEX"><label for="radio_copy_as_latex">LaTeX</label></span>
+							</div>
+							<div class="copy_table_text">
+								<p><b>The code for the evaluation results table was copied to your CLIPBOARD.</b></p>
+								<textarea></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" onclick="copy_table()">Copy</button>
 							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 						</div>
 					</div>
@@ -75,11 +107,6 @@
 			<span data-tippy-content="Show experiments whose name contains the word 'deprecated'.">
 				<input type="checkbox" id="checkbox_deprecated" onchange="toggle_show_deprecated()"><label for="checkbox_deprecated">Show deprecated</label>
 			</span>
-
-			<div class="latex">
-				<p><b>The LaTeX code for this table was copied to your CLIPBOARD.</b></p>
-				<textarea></textarea>
-			</div>
 
 			<div id="table_loading"></div>
 

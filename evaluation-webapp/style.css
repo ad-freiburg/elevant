@@ -294,27 +294,26 @@ Moreover, the selected border color is not shown, only the background color.
 }
 
 /* ----------------------------------------- */
-/* Begin latex */
+/* Begin copy table */
 
-/* Table cell for copying latex code */
-#evaluation_table_wrapper .produce_latex {
+/* Table cell for copying table code */
+#evaluation_table_wrapper .copy_table {
     cursor: pointer;
     text-align: center;
     color: transparent
 }
-#evaluation_table_wrapper .produce_latex:hover {
+#evaluation_table_wrapper .copy_table:hover {
     color: white;
 }
 
 /* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */
-div.latex {
+div.copy_table_text {
     display: none;
 }
-div.latex p {
-    color: darkred;
-    font-size: 120%;
+div.copy_table_text p {
+    color: var(--cell-header-color);
 }
-div.latex textarea {
+div.copy_table_text textarea {
     display: none;
 }
 
@@ -723,6 +722,60 @@ textarea {
 .btn-default .badge {
     color: #ffffff;
     background-color: #333333;
+}
+
+.btn-primary {
+    color: #ffffff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.btn-primary:focus,
+.btn-primary.focus {
+    color: #ffffff;
+    background-color: #286090;
+    border-color: #122b40;
+}
+.btn-primary:hover {
+    color: #ffffff;
+    background-color: #286090;
+    border-color: #204d74;
+}
+.btn-primary:active,
+.btn-primary.active,
+.open > .dropdown-toggle.btn-primary {
+    color: #ffffff;
+    background-color: #286090;
+    background-image: none;
+    border-color: #204d74;
+}
+.btn-primary:active:hover,
+.btn-primary.active:hover,
+.open > .dropdown-toggle.btn-primary:hover,
+.btn-primary:active:focus,
+.btn-primary.active:focus,
+.open > .dropdown-toggle.btn-primary:focus,
+.btn-primary:active.focus,
+.btn-primary.active.focus,
+.open > .dropdown-toggle.btn-primary.focus {
+    color: #ffffff;
+    background-color: #204d74;
+    border-color: #122b40;
+}
+.btn-primary.disabled:hover,
+.btn-primary[disabled]:hover,
+fieldset[disabled] .btn-primary:hover,
+.btn-primary.disabled:focus,
+.btn-primary[disabled]:focus,
+fieldset[disabled] .btn-primary:focus,
+.btn-primary.disabled.focus,
+.btn-primary[disabled].focus,
+fieldset[disabled] .btn-primary.focus {
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.btn-primary .badge {
+    color: #337ab7;
+    background-color: #ffffff;
 }
 
 /* ----------------------------------------- */

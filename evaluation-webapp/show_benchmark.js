@@ -25,7 +25,10 @@ window.NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", "Unknown"];
 
 window.IGNORE_HEADERS = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 window.PERCENTAGE_HEADERS = ["precision", "recall", "f1"];
-window.COPY_LATEX_CELL_TEXT = "Copy LaTeX code for table";
+window.COPY_TABLE_CELL_TEXT = "Copy table";
+
+window.TABLE_FORMAT_LATEX = "LATEX";
+window.TABLE_FORMAT_TSV = "TSV";
 
 window.TOOLTIP_EXAMPLE_HTML = "<p><a href=\"#example_benchmark_modal\" onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.</p>";
 window.HEADER_DESCRIPTIONS = {
@@ -854,7 +857,7 @@ function add_evaluation_table_header(json_obj) {
     /*
      * Add html for the table header.
      */
-    let first_row = "<tr><th colspan=2 onclick='produce_latex()' class='produce_latex'>" + COPY_LATEX_CELL_TEXT + "</th>";
+    let first_row = "<tr><th colspan=2 onclick=$('#copy_table_modal').modal('show') class='copy_table'>" + COPY_TABLE_CELL_TEXT + "</th>";
     let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
@@ -2474,108 +2477,161 @@ function scroll_to_annotation(annotation) {
 
 
 /**********************************************************************************************************************
- Functions for PRODUCING TABLE LATEX
+ Functions for COPYING TABLE
  *********************************************************************************************************************/
 
-function produce_latex() {
+function copy_table() {
     /*
-     * Produce LaTeX source code for the overview table and copy it to the clipboard.
+     * Copy the evaluation results table to clipboard.
      */
-    let latex = [];
+    // Get selected properties
+    const format = $('input[name=copy_as]:checked').val();
+    const include_experiment = $("#checkbox_include_experiment").is(":checked");
+    const include_benchmark = $("#checkbox_include_benchmark").is(":checked");
 
-    // Comment that clarifies the origin of this code.
-    latex.push("% Copied from " + window.location.href + " on " + new Date().toLocaleString());
-    latex.push("");
-
-    // Generate the header row of the table and count columns
+    // Get the table header contents and count columns
     let num_cols = 0;
-    let row_count = 0;
-    let header_string = "";
-    $('#evaluation_table_wrapper table thead tr').each(function(){
+    let table_contents = [];
+    $('#evaluation_table_wrapper table thead tr').each(function(row_index){
         // Tablesorter sticky table duplicates the thead. Don't include the duplicate.
         if ($(this).closest(".tablesorter-sticky-wrapper").length > 0) return;
 
+        let table_row_contents = [];
         $(this).find('th').each(function() {
+            if (!include_benchmark && $(this).text() === "Benchmark") return;
+            if (!include_experiment && $(this).text() === "Experiment") return;
             // Do not add hidden table columns
             if (!$(this).is(":hidden")) {
-                if (row_count > 0) num_cols += 1;
+                if (row_index > 0) num_cols += 1;
                 // Underscore not within $ yields error
-                const title = $(this).text().replace(/_/g, " ");
-                // Get column span of the current header
-                const colspan = parseInt($(this).attr("colspan"), 10);
-                if (colspan) {
-                    // First column header is skipped here, so starting with "&" works
-                    header_string += "& \\multicolumn{" + colspan + "}{c}{\\textbf{" + title + "}} ";
-                } else if (title && title !== "Experiment" && title !== COPY_LATEX_CELL_TEXT) {
-                    header_string += "& \\textbf{" + title + "} ";
+                let title = $(this).text().replace(/_/g, " ");
+                // Get column span of the current header cell
+                let colspan = parseInt($(this).attr("colspan"), 10);
+                colspan = (colspan) ? colspan : 1;
+                // Copy-Latex-cell should not have a header and colspan depends on whether to include
+                // the experiment and benchmark columns
+                if (title === COPY_TABLE_CELL_TEXT) {
+                    title = "";
+                    colspan = include_benchmark + include_experiment;
+                    if (colspan === 0) return;
                 }
-            }
-        })
-        header_string += "\\\\\n";
-        row_count += 1;
-    })
-
-    // Begin table.
-    latex.push(
-        ["\\begin{table*}",
-            "\\centering",
-            "\\begin{tabular}{l" + "c".repeat(num_cols) + "}",
-            "\\hline"].join("\n"));
-
-    latex.push(header_string);
-    latex.push("\\hline");
-
-    // Generate the rows of the table body
-    $("#evaluation_table_wrapper table tbody tr").each(function() {
-        let col_idx = 0;
-        let row_string = "";
-        $(this).find("td").each(function() {
-            if (!$(this).is(":hidden")) {
-                // Do not add hidden table columns
-                let text = $(this).html();
-                // Filter out tooltip texts and html
-                const match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
-                if (match) text = match[1];
-                text = text.replace(/%/g, "\\%").replace(/_/g, " ");
-                if (col_idx === 0) {
-                    row_string += text + " ";
-                } else {
-                    row_string += "& $" + text + "$ ";
-                }
-                col_idx += 1;
+                // Syntax: [cell_text, cell_span, header_cell?, numerical_cell?]
+                table_row_contents.push([title, colspan, true, false]);
             }
         });
-        if (row_string) {
-            row_string += "\\\\";
-            latex.push(row_string);
+        table_contents.push(table_row_contents);
+    });
+
+    // Get the table body contents
+    $("#evaluation_table_wrapper table tbody tr").each(function() {
+        // Do not add hidden table rows
+        if (!$(this).is(":hidden")) {
+            let table_row_contents = [];
+            let header_cell = false;
+            let col_idx = 0;
+            const num_header_cols = include_benchmark + include_experiment;
+            $(this).find("td").each(function () {
+                if ((!include_experiment && col_idx === 0) || (!include_benchmark && col_idx === 1)) {
+                    col_idx += 1;
+                    return;
+                }
+
+                // Do not add hidden table columns
+                if (!$(this).is(":hidden")) {
+                    let text = $(this).html();
+                    // Filter out tooltip texts and html
+                    const match = text.match(/<div [^<>]*>([^<>]*)<(span|div)/);
+                    if (match) text = match[1];
+                    const numerical_cell = (col_idx > num_header_cols - 1);
+                    table_row_contents.push([text, 1, header_cell, numerical_cell]);
+                    col_idx += 1;
+                }
+            });
+            if (table_row_contents) table_contents.push(table_row_contents);
         }
     });
 
-    // End table
-    latex.push(
-        ["\\hline",
-            "\\end{tabular}",
-            "\\caption{\\label{results}Fancy caption.}",
-            "\\end{table*}",
-            ""].join("\n"));
+    // Get table text in the specified format
+    let table_text;
+    if (format === TABLE_FORMAT_LATEX) {
+        table_text = produce_latex(table_contents, num_cols, include_experiment, include_benchmark);
+    } else {
+        table_text = produce_tsv(table_contents);
+    }
 
-    // Join lines, copy to textarea and from there to the clipboard.
-    const latex_text = latex.join("\n");
-    console.log(latex_text);
-    const $latex = $("#evaluation_overview .latex");
-    const $latex_textarea = $("#evaluation_overview .latex textarea");
-    $latex.show();
-    $latex_textarea.val(latex_text);
-    $latex_textarea.show();  // Text is not selected or copied if it is hidden
-    $latex_textarea.select();
+    // Copy the table text to the clipboard
+    const $copy_table_text_div = $("#evaluation_overview .copy_table_text");
+    const $copy_table_textarea = $("#evaluation_overview .copy_table_text textarea");
+    $copy_table_text_div.show();
+    $copy_table_textarea.val(table_text);
+    $copy_table_textarea.show();  // Text is not selected or copied if it is hidden
+    $copy_table_textarea.select();
     document.execCommand("copy");
-    $latex_textarea.hide();
+    $copy_table_textarea.hide();
 
     // Show the notification for the specified number of seconds
     const show_duration_seconds = 5;
-    setTimeout(function() { $latex.hide(); }, show_duration_seconds * 1000);
+    setTimeout(function() { $copy_table_text_div.hide(); }, show_duration_seconds * 1000);
 }
 
+function produce_latex(table_contents, n_cols, include_experiment, include_benchmark) {
+    /*
+     * Produce LaTeX source code for the given table contents.
+     */
+    // Comment that clarifies the origin of this code.
+    let latex_string = "% Copied from " + window.location.href + " on " + new Date().toLocaleString();
+    latex_string += "\n\n";
+
+    // Begin table
+    let alignment = "";
+    const num_header_cols = include_benchmark + include_experiment;
+    latex_string += "\\begin{table*}\n\\centering\n\\begin{tabular}{" + "l".repeat(num_header_cols) + "c".repeat(n_cols - num_header_cols) + "}\\hline\n";
+
+    // Generate the header row of the table and count columns
+    let last_cell_is_header = true;
+    for (let row of table_contents) {
+        let col_index = 0;
+        for (let cell of row) {
+            if (cell[2]) {
+                // Cell is a header_cell
+                alignment = (["Experiment", "Benchmark"].includes(cell[0])) ? "l" : "c";
+                latex_string += "\\multicolumn{" + cell[1] + "}{" + alignment + "}{\\textbf{" + cell[0] + "}}";
+                last_cell_is_header = true;
+            } else {
+                // Cell is a tbody cell
+                if (last_cell_is_header) {
+                    latex_string += ("\\hline\n");
+                }
+                const cell_text = cell[0].replace(/%/g, "\\%").replace(/_/g, " ");
+                latex_string += (cell[3]) ? "$" + cell_text + "$" : cell_text;
+                last_cell_is_header = false;
+            }
+            if (col_index < row.length - 1) latex_string += " & ";
+            col_index += 1;
+        }
+        latex_string += "\\\\\n";
+    }
+    // End table
+    latex_string += "\\hline\n\\end{tabular}\n\\caption{\\label{results}Fancy caption.}\n\\end{table*}\n";
+    return latex_string;
+}
+
+function produce_tsv(table_contents) {
+    /*
+     * Produce TSV for the given table contents.
+     */
+    let tsv_string = "";
+    for (let row of table_contents) {
+        let col_idx = 0;
+        for (let col of row) {
+            let col_span = (col_idx < row.length - 1) ? col[1] : col[1] - 1;
+            tsv_string += col[0] + "\t".repeat(col_span);
+            col_idx += 1;
+        }
+        tsv_string += "\n";
+    }
+    return tsv_string;
+}
 
 /**********************************************************************************************************************
  Functions for MISC
