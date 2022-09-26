@@ -11,6 +11,7 @@
     --cell-color: var(--uni-blue-tint-0);
     --cell-hover-color: #becbd9;
     --cell-selected-color: #a3b5c9;
+    --sibling-selected-color: var(--uni-blue-tint-1);
     --annotation-tp-color: rgb(125,206,160);
     --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
     --annotation-tp-color-dark: rgb(21,55,35);
@@ -249,6 +250,9 @@ Moreover, the selected border color is not shown, only the background color.
 /* Handle display of hovered and clicked rows and cells */
 #evaluation_table_wrapper tbody tr:hover td {
     background-color: var(--row-hover-color);
+}
+#evaluation_table_wrapper tbody tr.sibling_selected td {
+    background-color: var(--sibling-selected-color);
 }
 #evaluation_table_wrapper tbody tr.selected td {
     background-color: var(--row-selected-color);

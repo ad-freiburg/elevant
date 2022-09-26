@@ -1118,11 +1118,14 @@ function on_row_click(el) {
     let previous_benchmark = (window.selected_experiment_ids.length >= 1) ? get_benchmark_from_experiment_id(window.selected_experiment_ids[0]) : null;
     let new_benchmark = get_benchmark_from_experiment_id(experiment_id);
 
+    let $evaluation_table_rows = $("#evaluation_table_wrapper table tbody tr");
+
     // De-select previously selected rows
     if (!is_compare_checked() || window.selected_experiment_ids.length >= MAX_SELECTED_APPROACHES) {
         $("#evaluation_table_wrapper tbody tr").removeClass("selected");
         window.selected_rows = [];
         window.selected_experiment_ids = [];
+        $evaluation_table_rows.removeClass("sibling_selected");
     }
 
     // Show alert message if the user tries to compare experiments on different benchmarks
@@ -1143,6 +1146,18 @@ function on_row_click(el) {
         window.selected_rows.push(el);
     }
     let selected_exp_ids_copy = [...window.selected_experiment_ids];
+
+    // Highlight table rows with experiments of the same name if grouped by benchmark
+    if (!is_compare_checked()) $evaluation_table_rows.removeClass("sibling_selected");
+    if (get_group_by() === "benchmark") {
+        // Get all rows whose experiment column has the same text
+        let experiment_name = $(el).find("td:nth-child(1)").text();
+        $evaluation_table_rows.each(function() {
+            if (this !== el && $(this).find("td:nth-child(1)").text().toLowerCase() === experiment_name.toLowerCase()) {
+                $(this).addClass("sibling_selected");
+            }
+        });
+    }
 
     // Update current URL without refreshing the site
     const url = new URL(window.location);
