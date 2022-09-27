@@ -1,17 +1,7 @@
-from enum import Enum
 import os
-import re
 
+from enum import Enum
 from src import settings
-
-
-def get_available_benchmarks():
-    benchmark_names = []
-    for filename in sorted(os.listdir(settings.BENCHMARK_DIR)):
-        match = re.match(r"(.*)\.benchmark\.jsonl", filename)
-        if match:
-            benchmark_names.append(match.group(1))
-    return benchmark_names
 
 
 class Benchmark(Enum):
@@ -34,3 +24,12 @@ class BenchmarkFormat(Enum):
     AIDA_CONLL = "aida-conll"
     SIMPLE_JSONL = "simple-jsonl"
     # MSNBC_XML = "msnbc"  # Not yet supported: 2 files are needed: annotation xml file/directory and raw text directory
+
+
+def get_available_benchmarks():
+    benchmark_names = []
+    for filename in sorted(os.listdir(settings.BENCHMARK_DIR)):
+        if filename.endswith(".benchmark.jsonl"):
+            benchmark_name = filename.replace(".benchmark.jsonl", "")
+            benchmark_names.append(benchmark_name)
+    return benchmark_names

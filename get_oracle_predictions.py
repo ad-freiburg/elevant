@@ -3,19 +3,18 @@ import log
 import sys
 
 from src.evaluation.benchmark import get_available_benchmarks
-from src.evaluation.examples_generator import get_example_generator
+from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.models.entity_prediction import EntityPrediction
 
 
 def main(args):
     logger.info("Generating oracle links for %s ..." % args.benchmark)
 
-    example_generator = get_example_generator(args.benchmark,
-                                              benchmark_file=args.benchmark_file)
+    benchmark_iterator = get_benchmark_iterator(args.benchmark, benchmark_file=args.benchmark_file)
 
     output_file = open(args.output_file, 'w', encoding='utf8')
 
-    for i, article in enumerate(example_generator.iterate()):
+    for i, article in enumerate(benchmark_iterator.iterate()):
         predicted_entities = dict()
         for gt_label in article.labels:
             # Only include non-optional (no optionals, quantities or datetimes), root gt labels in the predictions

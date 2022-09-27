@@ -15,8 +15,9 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class SimpleJsonlBenchmarkReader:
-    def __init__(self, entity_db: EntityDatabase):
+    def __init__(self, entity_db: EntityDatabase, benchmark_path: str):
         self.entity_db = entity_db
+        self.benchmark_path = benchmark_path
         self.article_id_counter = 0
 
     def get_articles_from_file(self, filepath: str) -> Iterator[Article]:
@@ -58,23 +59,23 @@ class SimpleJsonlBenchmarkReader:
 
         if no_mapping_count > 0:
             logger.info("%d entity names could not be mapped to any Wikidata QID (includes unknown entities)."
-                           % no_mapping_count)
+                        % no_mapping_count)
 
-    def article_iterator(self, benchmark_path: str) -> Iterator[Article]:
+    def article_iterator(self) -> Iterator[Article]:
         """
-        Yields for each document in the NIF file or directory with NIF files
-        a article with labels.
+        Yields for each document in the simple-jsonl file or directory with simple-jsonl files
+        an article with labels.
         """
         # Reset article ID counter
         self.article_id_counter = 0
 
-        if os.path.isdir(benchmark_path):
-            for filename in sorted(os.listdir(benchmark_path)):
-                file_path = os.path.join(benchmark_path, filename)
+        if os.path.isdir(self.benchmark_path):
+            for filename in sorted(os.listdir(self.benchmark_path)):
+                file_path = os.path.join(self.benchmark_path, filename)
                 articles = self.get_articles_from_file(file_path)
                 for article in articles:
                     yield article
         else:
-            articles = self.get_articles_from_file(benchmark_path)
+            articles = self.get_articles_from_file(self.benchmark_path)
             for article in articles:
                 yield article

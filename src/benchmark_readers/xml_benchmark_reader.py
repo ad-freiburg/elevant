@@ -15,9 +15,11 @@ from src.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class XMLBenchmarkParser:
-    def __init__(self, entity_db: EntityDatabase):
+class XMLBenchmarkReader:
+    def __init__(self, entity_db: EntityDatabase, labels_file_or_dir: str, text_dir: str):
         self.entity_db = entity_db
+        self.labels_file_or_dir = labels_file_or_dir
+        self.text_dir = text_dir
         self.mention_dictionary = dict()
 
     def to_article(self, filename: str, text: str) -> Article:
@@ -113,17 +115,17 @@ class XMLBenchmarkParser:
                     curr_length = int(element.text.strip())
                     curr_span = curr_offset, curr_offset + curr_length
 
-    def article_iterator(self, xml_path: str, raw_text_dir: str) -> Iterator[Article]:
+    def article_iterator(self) -> Iterator[Article]:
         """
         Yields for each document in the XML file and its corresponding
-        document in the raw_text_dir a WikipediaArticle with labels.
+        document in the text_dir a WikipediaArticle with labels.
         """
-        if os.path.isdir(xml_path):
-            self.get_mention_dictionary_from_dir(xml_path)
+        if os.path.isdir(self.labels_file_or_dir):
+            self.get_mention_dictionary_from_dir(self.labels_file_or_dir)
         else:
-            self.get_mention_dictionary_from_file(xml_path)
-        for filename in sorted(os.listdir(raw_text_dir)):
-            file_path = os.path.join(raw_text_dir, filename)
+            self.get_mention_dictionary_from_file(self.labels_file_or_dir)
+        for filename in sorted(os.listdir(self.text_dir)):
+            file_path = os.path.join(self.text_dir, filename)
             text = ''.join(open(file_path, "r", encoding="utf8").readlines())
             article = self.to_article(filename, text)
             yield article

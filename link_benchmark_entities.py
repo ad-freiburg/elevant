@@ -23,9 +23,9 @@ from tqdm import tqdm
 
 from src import settings
 from src.evaluation.benchmark import get_available_benchmarks
+from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.linking_system import LinkingSystem
-from src.evaluation.examples_generator import get_example_generator
 
 
 def convert_to_filename(string: str):
@@ -47,7 +47,7 @@ def main(args):
                                    args.type_mapping)
 
     for benchmark in args.benchmark:
-        example_generator = get_example_generator(benchmark)
+        benchmark_iterator = get_benchmark_iterator(benchmark)
 
         prediction_name_dir = convert_to_filename(args.prediction_name)
         linker_dir = args.linker_name if args.linker_name else prediction_name_dir
@@ -65,7 +65,7 @@ def main(args):
 
         n_articles = 0
         start_time = time.time()
-        for i, article in enumerate(tqdm(example_generator.iterate(), desc="Linking progress", unit=" articles")):
+        for i, article in enumerate(tqdm(benchmark_iterator.iterate(), desc="Linking progress", unit=" articles")):
             evaluation_span = article.evaluation_span if args.evaluation_span else None
             linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
             output_file.write(article.to_json() + '\n')

@@ -6,7 +6,7 @@ from datetime import datetime
 
 from src import settings
 from src.evaluation.benchmark import BenchmarkFormat, Benchmark, get_available_benchmarks
-from src.evaluation.examples_generator import get_example_generator
+from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.entity_database_reader import EntityDatabaseReader
 
@@ -17,13 +17,13 @@ def main(args):
                 % benchmark_info)
 
     from_json_file = args.benchmark in get_available_benchmarks()
-    example_iterator = get_example_generator(args.benchmark,
-                                             from_json_file=from_json_file,
-                                             benchmark_file=args.benchmark_file,
-                                             benchmark_format=args.benchmark_format)
+    benchmark_iterator = get_benchmark_iterator(args.benchmark,
+                                              from_json_file=from_json_file,
+                                              benchmark_file=args.benchmark_file,
+                                              benchmark_format=args.benchmark_format)
 
     label_entity_ids = set()
-    for article in example_iterator.iterate():
+    for article in benchmark_iterator.iterate():
         for label in article.labels:
             label_entity_ids.add(label.entity_id)
 
@@ -31,7 +31,7 @@ def main(args):
     entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids, settings.WHITELIST_TYPE_MAPPING)
 
     lines_to_write = ""
-    for article in example_iterator.iterate():
+    for article in benchmark_iterator.iterate():
         for label in article.labels:
             if label.entity_id.startswith("Unknown"):
                 continue

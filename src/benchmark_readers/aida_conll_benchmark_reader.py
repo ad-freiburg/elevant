@@ -1,7 +1,8 @@
 import logging
 
-from typing import Iterator
+from typing import Iterator, Optional
 
+from src.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
 from src.evaluation.benchmark import Benchmark
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
@@ -12,9 +13,11 @@ from src.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class AidaConllBenchmarkReader:
-    def __init__(self, entity_db: EntityDatabase):
+class AidaConllBenchmarkReader(AbstractBenchmarkReader):
+    def __init__(self, entity_db: EntityDatabase, benchmark_path: str, benchmark: Optional[str] = None):
         self.entity_db = entity_db
+        self.benchmark_path = benchmark_path
+        self.benchmark = benchmark
 
         # Set article variables
         self._reset_article_variables()
@@ -109,17 +112,17 @@ class AidaConllBenchmarkReader:
         if self.curr_text:
             yield self._get_article(article_id_counter)
 
-    def article_iterator(self, benchmark_path: str, benchmark: str) -> Iterator[Article]:
+    def article_iterator(self) -> Iterator[Article]:
         """
-        Yields Article with labels for the given benchmark_path and benchmark name.
+        Yields Article with labels for the benchmark_path and benchmark name.
         """
-        articles = self.get_articles_from_file(benchmark_path)
+        articles = self.get_articles_from_file(self.benchmark_path)
 
-        if benchmark == Benchmark.AIDA_CONLL_TRAIN.value:
+        if self.benchmark == Benchmark.AIDA_CONLL_TRAIN.value:
             split_span = [0, 945]
-        elif benchmark == Benchmark.AIDA_CONLL_DEV.value:
+        elif self.benchmark == Benchmark.AIDA_CONLL_DEV.value:
             split_span = [946, 1161]
-        elif benchmark == Benchmark.AIDA_CONLL_TEST.value:
+        elif self.benchmark == Benchmark.AIDA_CONLL_TEST.value:
             split_span = [1162, 1392]
         else:
             split_span = [0, float('inf')]

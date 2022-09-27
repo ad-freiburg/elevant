@@ -15,7 +15,7 @@ import re
 
 from src import settings
 from src.evaluation.benchmark import get_available_benchmarks
-from src.evaluation.examples_generator import get_example_generator
+from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.models.article import article_from_json
 from src.evaluation.evaluator import Evaluator
 
@@ -41,7 +41,7 @@ def main(args):
                     for gt_label in article.labels:
                         relevant_entity_ids.add(gt_label.entity_id)
     if args.type_mapping and args.benchmark:
-        for article in get_example_generator(args.benchmark).iterate():
+        for article in get_benchmark_iterator(args.benchmark).iterate():
             for gt_label in article.labels:
                 relevant_entity_ids.add(gt_label.entity_id)
 
@@ -67,19 +67,19 @@ def main(args):
         results_file = (args.output_file[:-len(".eval_cases.jsonl")] if args.output_file else input_file_name[:idx]) \
             + ".eval_results.json"
 
-        example_iterator = None
+        benchmark_iterator = None
         if args.benchmark:
             # If a benchmark is given, labels and article texts are retrieved from the benchmark
             # and not from the given jsonl file. The user has to make sure the files match.
             logger.info("Retrieving labels from %s benchmark file instead of %s" % (args.benchmark, input_file_name))
-            example_iterator = get_example_generator(args.benchmark).iterate()
+            benchmark_iterator = get_benchmark_iterator(args.benchmark).iterate()
 
         logger.info("Evaluating linking results ...")
         input_file = open(input_file_name, 'r', encoding='utf8')
         for line in input_file:
             article = article_from_json(line)
-            if example_iterator:
-                benchmark_article = next(example_iterator)
+            if benchmark_iterator:
+                benchmark_article = next(benchmark_iterator)
                 article.labels = benchmark_article.labels
                 article.text = benchmark_article.text
 
@@ -139,10 +139,10 @@ def main(args):
             input_file_lines = input_file.readlines()
             input_file.close()
             with open(input_file_name, 'w', encoding='utf8') as file:
-                example_iterator = get_example_generator(args.benchmark).iterate()
+                benchmark_iterator = get_benchmark_iterator(args.benchmark).iterate()
                 for line in input_file_lines:
                     article = article_from_json(line)
-                    benchmark_article = next(example_iterator)
+                    benchmark_article = next(benchmark_iterator)
                     article.labels = benchmark_article.labels
                     file.write(article.to_json() + "\n")
         else:

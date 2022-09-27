@@ -27,8 +27,8 @@ from typing import Optional
 from enum import Enum
 
 from src.evaluation.benchmark import get_available_benchmarks
+from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.evaluation.examples_generator import get_example_generator
 from src.models.entity_database import EntityDatabase
 from src.models.article import Article, article_from_json
 
@@ -176,7 +176,7 @@ def main(args):
         exit(1)
 
     if args.benchmark:
-        article_text_iterator = get_example_generator(args.benchmark).iterate(args.n_articles)
+        article_text_iterator = get_benchmark_iterator(args.benchmark).iterate(args.n_articles)
     elif args.input_wiki_dump:
         article_text_iterator = WikipediaDumpReader.article_iterator(args.n_articles)
     else:
