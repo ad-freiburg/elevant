@@ -1,1 +1,1 @@
-{"experiment_name": "baseline", "experiment_description": "Using prior probabilities derived from Wikipedia and Wikipedia + Wikidata aliases.", "linker_name": "Unknown Linker", "timestamp": "2022/08/19 11:53:04", "linking_time": 3.137333631515503}
+{"experiment_name": "Baseline", "experiment_description": "Using prior probabilities derived from Wikipedia and Wikipedia + Wikidata aliases.", "linker_name": "Unknown Linker", "timestamp": "2022/08/19 11:53:04", "linking_time": 3.137333631515503}
