@@ -31,11 +31,13 @@ class DbpediaSpotlightLinker(AbstractEntityLinker):
         self.ner_identifier = self.linker_identifier
         self.api_url = config["api_url"] if "api_url" in config else "https://api.dbpedia-spotlight.org/en/annotate"
         self.confidence = config["confidence"] if "confidence" in config else 0.35
+        self.types = config["types"] if "types" in config else []
+        self.support = config["support"] if "support" in config else 0
 
     def predict(self, text: str,
                 doc: Optional[Doc] = None,
                 uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
-        data = {"text": text, "confidence": self.confidence}
+        data = {"text": text, "confidence": self.confidence, "types": ",".join(self.types), "support": self.support}
         r = requests.post(self.api_url, data=data, headers={'Accept': 'text/turtle'})
         result = r.content
 
