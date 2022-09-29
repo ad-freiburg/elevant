@@ -576,7 +576,7 @@ function read_benchmark_articles() {
                     filename = filename + ".obscured";
                 }
                 return $.get("benchmarks/" + filename, function(data) {
-                    let benchmark = filename.replace(BENCHMARK_EXTENSION, "");
+                    let benchmark = filename.replace(BENCHMARK_EXTENSION, "").replace(".obscured", "");
                     window.benchmark_articles[benchmark] = [];
                     for (let line of data.split("\n")) {
                         if (line.length > 0) window.benchmark_articles[benchmark].push(JSON.parse(line));
