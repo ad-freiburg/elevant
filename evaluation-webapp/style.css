@@ -321,6 +321,18 @@ div.copy_table_text textarea {
     display: none;
 }
 
+
+/* ----------------------------------------- */
+/* Begin graphs */
+
+#graph_modal_dialog {
+    width: 50%
+}
+
+#graph_canvas {
+    width: 90%;
+}
+
 /* ----------------------------------------- */
 /* Begin article results */
 

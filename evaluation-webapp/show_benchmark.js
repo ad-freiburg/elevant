@@ -857,7 +857,7 @@ function add_evaluation_table_header(json_obj) {
     /*
      * Add html for the table header.
      */
-    let first_row = "<tr><th colspan=2 onclick=$('#copy_table_modal').modal('show') class='copy_table'>" + COPY_TABLE_CELL_TEXT + "</th>";
+    let first_row = "<tr><th colspan=2 onclick='show_graph()' class='copy_table'>" + COPY_TABLE_CELL_TEXT + "</th>";
     let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
@@ -2505,6 +2505,37 @@ function copy_table() {
     const include_benchmark = $("#checkbox_include_benchmark").is(":checked");
 
     // Get the table header contents and count columns
+    const table_contents = get_table_contents(include_benchmark, include_experiment);
+    const num_cols = table_contents[1].length;
+
+    // Get table text in the specified format
+    let table_text;
+    if (format === TABLE_FORMAT_LATEX) {
+        table_text = produce_latex(table_contents, num_cols, include_experiment, include_benchmark);
+    } else {
+        table_text = produce_tsv(table_contents);
+    }
+
+    // Copy the table text to the clipboard
+    const $copy_table_text_div = $("#evaluation_overview .copy_table_text");
+    const $copy_table_textarea = $("#evaluation_overview .copy_table_text textarea");
+    $copy_table_text_div.show();
+    $copy_table_textarea.val(table_text);
+    $copy_table_textarea.show();  // Text is not selected or copied if it is hidden
+    $copy_table_textarea.select();
+    document.execCommand("copy");
+    $copy_table_textarea.hide();
+
+    // Show the notification for the specified number of seconds
+    const show_duration_seconds = 5;
+    setTimeout(function() { $copy_table_text_div.hide(); }, show_duration_seconds * 1000);
+}
+
+function get_table_contents(include_benchmark, include_experiment) {
+    /*
+     * Get the contents of the currently displayed table in an array.
+     */
+    // Get the table header contents and count columns
     let num_cols = 0;
     let table_contents = [];
     $('#evaluation_table_wrapper table thead tr').each(function(row_index){
@@ -2565,28 +2596,7 @@ function copy_table() {
             if (table_row_contents) table_contents.push(table_row_contents);
         }
     });
-
-    // Get table text in the specified format
-    let table_text;
-    if (format === TABLE_FORMAT_LATEX) {
-        table_text = produce_latex(table_contents, num_cols, include_experiment, include_benchmark);
-    } else {
-        table_text = produce_tsv(table_contents);
-    }
-
-    // Copy the table text to the clipboard
-    const $copy_table_text_div = $("#evaluation_overview .copy_table_text");
-    const $copy_table_textarea = $("#evaluation_overview .copy_table_text textarea");
-    $copy_table_text_div.show();
-    $copy_table_textarea.val(table_text);
-    $copy_table_textarea.show();  // Text is not selected or copied if it is hidden
-    $copy_table_textarea.select();
-    document.execCommand("copy");
-    $copy_table_textarea.hide();
-
-    // Show the notification for the specified number of seconds
-    const show_duration_seconds = 5;
-    setTimeout(function() { $copy_table_text_div.hide(); }, show_duration_seconds * 1000);
+    return table_contents;
 }
 
 function produce_latex(table_contents, n_cols, include_experiment, include_benchmark) {
@@ -2646,6 +2656,187 @@ function produce_tsv(table_contents) {
         tsv_string += "\n";
     }
     return tsv_string;
+}
+
+/**********************************************************************************************************************
+ Functions for CREATING GRAPHS
+ *********************************************************************************************************************/
+
+function show_graph() {
+    /*
+     * Create a graph for the current table and display it in a modal.
+     */
+    create_graph();
+    $('#graph_modal').modal('show');
+}
+
+function create_graph() {
+    /*
+     * Create a graph from the currently displayed table.
+     */
+    const $warning_paragraph = $("#graph_modal .warning");
+    const $canvas = $("#graph_canvas");
+    const $download_button = $("#download_graph");
+
+    // Reset the modal components
+    $canvas.show();
+    $warning_paragraph.hide();
+    $download_button.prop("disabled",false);
+
+    const colors = ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "salmon", "turquoise", "indigo"];
+    let y_column = 4;
+    let x_column = 1;
+    let line_column = 0;
+    let table_contents = get_table_contents(true, true)
+
+    // Get the unique x-values
+    let x_values = $.map(table_contents, function(el) {
+        // Don't add header cell values
+        if (!el[x_column][2]) return el[x_column][0];
+    });
+    x_values = x_values.filter(is_unique);
+
+    // Get unique labels for the individual lines of the graph
+    let line_labels = $.map(table_contents, function(el) {
+        if (!el[line_column][2]) return el[line_column][0];
+    });
+    line_labels = line_labels.filter(is_unique);
+
+    // Show a warning instead of the canvas if more lines are to be drawn than colors exist.
+    // This is mostly to prevent the legend from overlapping with the graph and the graph looking all weird.
+    if (line_labels.length > colors.length) {
+        $warning_paragraph.show();
+        $canvas.hide();
+        $download_button.prop("disabled",true);
+        $warning_paragraph.html("<b>Too many distinct " + table_contents[1][line_column][0] + "s . Adjust your table by filtering out rows.</b>");
+        return;
+    }
+
+    // Get the y-values and other properties for each line of the graph
+    let datasets = []
+    line_labels.forEach(function(val, i) {
+        let dict = {};
+        dict["borderColor"] = colors[i];
+        dict["pointBackgroundColor"] = colors[i];
+        dict["pointBorderWidth"] = 4;
+        dict["borderWidth"] = 4;
+        dict["fill"] = false;
+        dict["lineTension"] = 0;
+        dict["label"] = val;
+        let x_index = 0;
+        // Get y-values
+        let y_values = [];
+        for (let row of table_contents) {
+            if (!row[line_column][2] && row[line_column][0] === val) {
+                // Fill up y_values with zeros if a line_label (e.g. experiment) does not exist
+                // for an y_value (e.g. benchmark)
+                while (row[x_column][0] !== x_values[x_index] && x_index < x_values.length) {
+                    y_values.push(0);
+                    x_index++;
+                }
+                if (x_index >= x_values.length) break;
+                y_values.push(parseFloat(row[y_column][0]));
+                x_index++;
+                if (x_index >= x_values.length) break;
+            }
+        }
+        while (y_values.length < x_values.length) {
+            y_values.push(0);
+        }
+        dict["data"] = y_values;
+        datasets.push(dict);
+    });
+
+    let y_axis_label = table_contents[1][y_column][0];
+    new Chart("graph_canvas", {
+        type: "line",
+        data: {
+            labels: x_values,
+            datasets
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        boxWidth: 10,
+                        generateLabels: function(chart) {
+                            let labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                            for (let key in labels) {
+                                labels[key].fillStyle  = labels[key].strokeStyle;
+                            }
+                            return labels;
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 500
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        autoSkip: false
+                    },
+                    grid: {
+                        display: false,
+                        drawBorder: false,
+                        drawOnChartArea: false,
+                        drawTicks: true,
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: y_axis_label
+                    }
+                }
+            }
+        }
+    });
+}
+
+function download_graph_image() {
+    /*
+     * Download the currently displayed graph as PNG.
+     */
+    const a = document.createElement('a');
+    // Add a background for the chart, otherwise it's transparent when downloaded
+    add_canvas_background()
+    a.href = Chart.getChart('graph_canvas').toBase64Image();
+    a.download = 'elevant_graph.png';
+    // Trigger the download
+    a.click();
+}
+
+function add_canvas_background() {
+    /*
+     * Add a background to the canvas, so the background of the graph is not transparent when downloaded.
+     * See https://stackoverflow.com/questions/50104437/set-background-color-to-save-canvas-chart
+     */
+    // Get the 2D drawing context from the provided canvas.
+    const canvas = document.getElementById('graph_canvas');
+    const context = canvas.getContext('2d');
+
+    // We're going to modify the context state, so it's good practice to save the current state first.
+    context.save();
+    context.globalCompositeOperation = 'destination-over';
+
+    // Fill in the background. We do this by drawing a rectangle filling the entire canvas with white.
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Restore the original context state from `context.save()`
+    context.restore();
+}
+
+function destroy_graph() {
+    /*
+     * Destroy the current graph.
+     * This is necessary to prevent the graph from switching to a previous version due
+     * to hover effects.
+     */
+    Chart.getChart('graph_canvas').destroy();
 }
 
 /**********************************************************************************************************************
@@ -2881,4 +3072,12 @@ function get_displayed_benchmark_name(exp_id) {
     let benchmark = get_benchmark_from_experiment_id(exp_id);
     let metadata_benchmark_name = (benchmark in window.benchmarks_metadata) ? window.benchmarks_metadata[benchmark].name : null;
     return (metadata_benchmark_name) ? metadata_benchmark_name : benchmark;
+}
+
+function is_unique(value, index, self) {
+    /*
+     * Function to use with filter() to get only unique values in an array.
+     * See: https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
+     */
+    return self.indexOf(value) === index;
 }
