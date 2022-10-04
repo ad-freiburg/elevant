@@ -23,6 +23,12 @@
 			<div class="documentation">A demo video can be found on <b><a href="https://youtu.be/iK5UwrEoMwY">YouTube</a></b>.</div>
 		</header>
 
+		<div id="overlay"></div>
+		<div id="overlay_footer">
+			<p id="graph_mode_note">Select a column from the evaluation results table to use its contents as y-values of the graph.</p>
+			<button class="btn btn-default" onclick="graph_mode_off()">Cancel</button>
+		</div>
+
 		<div id="evaluation_overview" class="content_box">
 			<!-- Example Benchmark Modal -->
 			<div class="modal" id="example_benchmark_modal" tabindex="-1" role="dialog">
@@ -84,7 +90,7 @@
 				<div id="graph_modal_dialog" class="modal-dialog modal-dialog-centered" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
-							<span class="modal-title"><b></b></span>
+							<span class="modal-title"></span>
 							<button type="button" class="close" data-dismiss="modal">
 								<span>&times;</span>
 							</button>
@@ -95,7 +101,7 @@
 						</div>
 						<div class="modal-footer">
 							<button id="download_graph" type="button" class="btn btn-primary" onclick="download_graph_image()">Download</button>
-							<button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="destroy_graph()">Close</button>
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 						</div>
 					</div>
 				</div>
@@ -142,6 +148,9 @@
 					<thead></thead>
 					<tbody></tbody>
 				</table>
+			</div>
+			<div>
+				<button class="btn btn-default" onclick="graph_mode_on()">Create graph from table</button>
 			</div>
 		</div>
 

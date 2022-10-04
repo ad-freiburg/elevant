@@ -186,9 +186,9 @@ window.EVALUATION_CATEGORY_TITLES = {
         "coref_nominal": {"checkbox_label": "Coref: Nominal", "table_heading": "Coref: Nominal"},
     },
     "error_categories": {
-        "NER": {"checkbox_label": "NER: All", "table_heading": "NER: All"},
-        "undetected": {"checkbox_label": "NER: False Negatives", "table_heading": "NER: False Negatives"},
-        "false_detection": {"checkbox_label": "NER: False Positives", "table_heading": "NER: False Positives"},
+        "ner": {"checkbox_label": "NER", "table_heading": "NER"},
+        "ner_fn": {"checkbox_label": "NER: False Negatives", "table_heading": "NER: False Negatives"},
+        "ner_fp": {"checkbox_label": "NER: False Positives", "table_heading": "NER: False Positives"},
         "wrong_disambiguation": {"checkbox_label": "Disambiguation Errors", "table_heading": "Disambiguation Errors"},
         "other_errors": {"checkbox_label": "Other Errors", "table_heading": "Other Errors"},
         "wrong_coreference": {"checkbox_label": "Coreference Errors", "table_heading": "Coreference Errors"},
@@ -418,6 +418,13 @@ $("document").ready(function() {
                 scroll_to_previous_annotation(false);
             }
         }
+    });
+
+    $('#graph_modal').on('hidden.bs.modal', function () {
+        // Destroy the current graph when the modal is closed.
+        // This is necessary to prevent the graph from switching to a previous version due
+        // to hover effects.
+        Chart.getChart('graph_canvas').destroy();
     });
 });
 
@@ -857,7 +864,7 @@ function add_evaluation_table_header(json_obj) {
     /*
      * Add html for the table header.
      */
-    let first_row = "<tr><th colspan=2 onclick='show_graph()' class='copy_table'>" + COPY_TABLE_CELL_TEXT + "</th>";
+    let first_row = "<tr><th colspan=2 onclick=$('#copy_table_modal').modal('show') class='copy_table'>" + COPY_TABLE_CELL_TEXT + "</th>";
     let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
@@ -867,11 +874,11 @@ function add_evaluation_table_header(json_obj) {
                 if (!(IGNORE_HEADERS.includes(subsubkey))) {
                     let subclass_name = get_class_name(subsubkey);
                     let sort_order = (subkey in ERROR_CATEGORY_MAPPING) ? " data-sortinitialorder=\"asc\"" : "";
-                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_table_heading(subkey, subsubkey) + "</th>";
+                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_checkbox_or_column_title(subkey, subsubkey, false) + "</th>";
                     colspan += 1;
                 }
             });
-            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_table_heading(key, subkey) + "</th>";
+            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_checkbox_or_column_title(key, subkey, false) + "</th>";
         });
     });
     first_row += "</tr>";
@@ -892,21 +899,6 @@ function add_evaluation_table_header(json_obj) {
             });
         }
     });
-}
-
-function get_table_heading(key, subkey) {
-    /*
-     * Get the text for the table header cell that is defined via its evaluation results key and subkey.
-     */
-    const lower_key = key.toLowerCase();
-    const lower_subkey = subkey.toLowerCase();
-    if (key === "entity_types" && subkey in window.whitelist_types) {
-        return "Type: " + window.whitelist_types[subkey];
-    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
-        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["table_heading"];
-    } else {
-        return to_title_case(subkey.replace(/_/g, " "));
-    }
 }
 
 function add_evaluation_table_body(result_list) {
@@ -1432,7 +1424,7 @@ function add_evaluation_checkboxes(json_obj) {
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
             const class_name = get_class_name(subkey);
-            const label = get_checkbox_label(key, subkey);
+            const label = get_checkbox_or_column_title(key, subkey, true);
             const checked = ((class_name === "all" && window.url_param_show_columns.length === 0) || window.url_param_show_columns.includes(class_name)) ? "checked" : "";
             let checkbox_html = "<span id=\"checkbox_span_" + class_name + "\"><input type=\"checkbox\" id=\"checkbox_" + class_name + "\" onchange=\"on_column_checkbox_change(this, true)\" " + checked + ">";
             checkbox_html += "<label for='checkbox_" + class_name + "'>" + label + "</label></span>\n";
@@ -1450,21 +1442,6 @@ function add_evaluation_checkboxes(json_obj) {
             });
         });
     });
-}
-
-function get_checkbox_label(key, subkey) {
-    /*
-     * Get the label for the checkbox specified via the given evaluation results key and subkey.
-     */
-    const lower_key = key.toLowerCase();
-    const lower_subkey = subkey.toLowerCase();
-    if (key === "entity_types" && subkey in window.whitelist_types) {
-        return window.whitelist_types[subkey];
-    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
-        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey]["checkbox_label"];
-    } else {
-        return to_title_case(subkey.replace(/_/g, " "));
-    }
 }
 
 function on_column_checkbox_change(element, resize) {
@@ -2275,25 +2252,20 @@ function get_emphasis_string(selected_cell_category) {
     /*
      * Create an emphasis string for the given selected category.
      */
-    let emphasis = "all";
-    let emphasis_type = "mention type";
-    const mention_types = $.map( MENTION_TYPE_HEADERS, function(key){ return MENTION_TYPE_HEADERS[key]; });
+    let emphasis = "All";
     if (selected_cell_category) {
         let emphasis_strs = [];
         for (const selected_category of selected_cell_category) {
             if (is_type_string(selected_category)) {
-                 emphasis_strs.push(get_type_label(selected_category));
-                 emphasis_type = "entity type";
-            } else if (mention_types.includes(selected_category)) {
-                emphasis_strs.push(selected_category.replace(/_/g, " ").toLowerCase());
+                emphasis_strs.push("Entity Type: " + get_type_label(selected_category));
             } else {
-                emphasis_strs.push(selected_category.replace(/_/g, " ").toLowerCase());
-                emphasis_type = "error category";
+                console.log(selected_category.toLowerCase().replace(/_/g, " "));
+                emphasis_strs.push(to_title_case(selected_category.toLowerCase().replace(/_/g, " ")));
             }
         }
         emphasis = emphasis_strs.join(", ");
     }
-    return " (emphasis: " + emphasis_type + " \"" + emphasis + "\")";
+    return " (emphasis: \"" + emphasis + "\")";
 }
 
 
@@ -2662,17 +2634,70 @@ function produce_tsv(table_contents) {
  Functions for CREATING GRAPHS
  *********************************************************************************************************************/
 
-function show_graph() {
+function show_graph(el) {
     /*
      * Create a graph for the current table and display it in a modal.
      */
-    create_graph();
+    // Remove the overlay and the fake table header
+    graph_mode_off();
+    // Create the graph for the selected column
+    const col_index = $($(el).parent().children(":not([style*=\"display: none\"])")).index(el);
+    create_graph(col_index);
+    // Get graph title
+    let graph_title = get_full_category_title_for_column(el);
+    $('#graph_modal .modal-title').html("<b>" + graph_title + "</b>");
+    // Display the graph modal
     $('#graph_modal').modal('show');
 }
 
-function create_graph() {
+function graph_mode_on() {
     /*
-     * Create a graph from the currently displayed table.
+     * Enter the graph mode. Add an overlay to the webapp and guide the user towards selecting
+     * a table column..
+     */
+    const $evaluation_table_wrapper = $("#evaluation_table_wrapper");
+
+    $("#overlay").show();
+    $("#overlay_footer").show();
+
+    // Scroll to the table header
+    $([document.documentElement, document.body]).animate({
+        scrollTop: $evaluation_table_wrapper.offset().top - 40
+    }, 400);
+
+    // Clone the sticky table header and adjust it
+    const $table_header_clone = $("#evaluation_table_wrapper .tablesorter-sticky-wrapper").clone();
+    $table_header_clone.attr("id", "table_header_clone");
+    $table_header_clone.attr("class", "");
+    $table_header_clone.css({"z-index": 101, "visibility": "visible"});
+    $evaluation_table_wrapper.append($table_header_clone);
+
+    // Disable scrolling, otherwise the clone can be scrolled out of view
+    $evaluation_table_wrapper.css({"overflow-y": "hidden"});
+
+    // Add appropriate classes to selectable columns
+    const $selectable_th = $table_header_clone.find("table tr:nth-child(2) th:not(:eq(0),:eq(1))");
+    $selectable_th.addClass("graph_selectable_col");
+    $selectable_th.on("mouseenter", function() { $(this).addClass("graph_selectable_col-hovered"); });
+    $selectable_th.on("mouseleave", function() { $(this).removeClass("graph_selectable_col-hovered"); });
+
+    // Trigger open graph modal on click
+    $selectable_th.on("click", function() { show_graph(this); })
+}
+
+function graph_mode_off() {
+    /*
+     * Terminate the graph mode. Hide the overlay and remove the fake table header.
+     */
+    $("#overlay").hide();
+    $("#overlay_footer").hide();
+    $("#table_header_clone").remove();
+    $("#evaluation_table_wrapper").css({"overflow-y": "auto"});
+}
+
+function create_graph(y_column) {
+    /*
+     * Create a graph from the currently displayed table with values from the given table column.
      */
     const $warning_paragraph = $("#graph_modal .warning");
     const $canvas = $("#graph_canvas");
@@ -2684,7 +2709,6 @@ function create_graph() {
     $download_button.prop("disabled",false);
 
     const colors = ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "salmon", "turquoise", "indigo"];
-    let y_column = 4;
     let x_column = 1;
     let line_column = 0;
     let table_contents = get_table_contents(true, true)
@@ -2747,7 +2771,7 @@ function create_graph() {
         datasets.push(dict);
     });
 
-    let y_axis_label = table_contents[1][y_column][0];
+    const y_axis_label = (table_contents[2][y_column][0].includes("%")) ? "in %" : "";
     new Chart("graph_canvas", {
         type: "line",
         data: {
@@ -2828,15 +2852,6 @@ function add_canvas_background() {
 
     // Restore the original context state from `context.save()`
     context.restore();
-}
-
-function destroy_graph() {
-    /*
-     * Destroy the current graph.
-     * This is necessary to prevent the graph from switching to a previous version due
-     * to hover effects.
-     */
-    Chart.getChart('graph_canvas').destroy();
 }
 
 /**********************************************************************************************************************
@@ -2981,6 +2996,8 @@ function get_type_label(qid) {
     const qid_upper = qid.replace("q", "Q");
     if (qid_upper in window.whitelist_types) {
         return window.whitelist_types[qid_upper];
+    } else if (qid.toLowerCase() === "other") {
+        return "Other";
     }
     return qid_upper + " (label missing)";
 }
@@ -2995,6 +3012,50 @@ function to_title_case(str) {
     return str.replace(/\w\S*/g, function(txt) {
         return txt.charAt(0).toUpperCase() + txt.substring(1);
     });
+}
+
+function get_checkbox_or_column_title(key, subkey, is_checkbox) {
+    /*
+     * Get the text for the table header cell that is defined via its evaluation results key and subkey.
+     */
+    const lower_key = key.toLowerCase();
+    const lower_subkey = subkey.toLowerCase();
+    if (key === "entity_types" && is_type_string(lower_subkey)) {
+        return (is_checkbox) ? get_type_label(lower_subkey) : "Type: " + get_type_label(lower_subkey);
+    } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
+        const last_key = (is_checkbox) ? "checkbox_label" : "table_heading";
+        return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey][last_key];
+    } else {
+        return to_title_case(subkey.replace(/_/g, " "));
+    }
+}
+
+function get_full_category_title_for_column(el) {
+    /*
+     * For a given table cell (not from the first table header row) get the
+     * full category title, e.g. "NER: Precision" or "NER FP: Lowercased"
+     */
+    const keys = get_table_header_keys(el);
+    return get_full_category_title_for_keys(keys[0], keys[1]);
+}
+
+function get_full_category_title_for_keys(key, subkey) {
+    /*
+     * For a given key and subkey of a table cell (not from the first table header row) get the
+     * full category title, e.g. "NER: Precision" or "NER FP: Lowercased"
+     */
+    let title = "";
+    if (key in window.EVALUATION_CATEGORY_TITLES["mention_types"]) {
+        title += window.EVALUATION_CATEGORY_TITLES["mention_types"][key]["table_heading"];
+    } else if (key in window.EVALUATION_CATEGORY_TITLES["error_categories"]) {
+        title += window.EVALUATION_CATEGORY_TITLES["error_categories"][key]["table_heading"];
+    } else if (is_type_string(key)) {
+        title += "Type: " + get_type_label(key);
+    } else {
+        title += to_title_case(key.replace(/_/g, " "));
+    }
+    title += " - " + to_title_case(subkey.replace(/_/g, " "));
+    return title;
 }
 
 function remove_selected_classes(el) {

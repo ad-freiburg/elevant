@@ -179,9 +179,9 @@ input[id$="-filter"] {
     max-height: 80vh;
     overflow-y: auto;
     display: inline-block;
-    margin: 0;
     padding: 0;
     position: relative;
+    margin: 0 0 1em;
 }
 
 /* The goal is to visually set different tbodys apart.
@@ -325,8 +325,47 @@ div.copy_table_text textarea {
 /* ----------------------------------------- */
 /* Begin graphs */
 
+#graph_mode_note {
+    color: white;
+    font-weight: bold;
+}
+
+#overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: none;
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.7); /* Black background with opacity */
+    z-index: 100;
+}
+
+#overlay_footer {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    z-index: 102;
+    text-align: center;
+}
+
+#table_header_clone th {
+    background: var(--cell-header-color);
+}
+
+#table_header_clone .graph_selectable_col {
+    cursor: pointer;
+}
+
+#table_header_clone .graph_selectable_col-hovered {
+    background-color: var(--cell-hover-color);
+}
+
 #graph_modal_dialog {
-    width: 50%
+    width: 50%;
 }
 
 #graph_canvas {
