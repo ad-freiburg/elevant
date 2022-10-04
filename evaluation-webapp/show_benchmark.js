@@ -32,7 +32,7 @@ window.TABLE_FORMAT_TSV = "TSV";
 
 window.TOOLTIP_EXAMPLE_HTML = "<p><a href=\"#example_benchmark_modal\" onclick=\"show_example_benchmark_modal(this)\" data-toggle=\"modal\" data-target=\"#example_benchmark_modal\">For an example click here</a>.</p>";
 window.HEADER_DESCRIPTIONS = {
-    "undetected": {
+    "ner_fn": {
         "": "Errors involving undetected mentions.",
         "all": "<p><i>Numerator:</i> A ground truth mention span is not linked to an entity.</p><p><i>Denominator:</i> All ground truth entity mentions.</p>",
         "lowercased": "<p><i>Numerator:</i> Undetected lowercased ground truth mention.</p><p><i>Denominator:</i> All lowercased ground truth mentions.</p>",
@@ -40,7 +40,7 @@ window.HEADER_DESCRIPTIONS = {
         "partial_overlap": "<p><i>Numerator:</i> Undetected mention that overlaps with a predicted mention.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>",
         "other": "<p><i>Numerator:</i> Undetected mention that does not fall into any of the other categories.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>"
     },
-    "false_detection": {
+    "ner_fp": {
         "": "Errors involving false detections.",
         "all": "A mention is predicted whose span is not linked in the ground truth.",
         "lowercased": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
@@ -128,12 +128,12 @@ window.HEADER_DESCRIPTIONS = {
 };
 
 window.ERROR_CATEGORY_MAPPING = {
-    "undetected": {
-        "all": ["UNDETECTED"],
-        "lowercased": ["UNDETECTED_LOWERCASED"],
-        "partially_included": ["UNDETECTED_PARTIALLY_INCLUDED"],
-        "partial_overlap": ["UNDETECTED_PARTIAL_OVERLAP"],
-        "other": ["UNDETECTED_OTHER"]
+    "ner_fn": {
+        "all": ["NER_FN"],
+        "lowercased": ["NER_FN_LOWERCASED"],
+        "partially_included": ["NER_FN_PARTIALLY_INCLUDED"],
+        "partial_overlap": ["NER_FN_PARTIAL_OVERLAP"],
+        "other": ["NER_FN_OTHER"]
     },
     "wrong_disambiguation": {
         "all": ["DISAMBIGUATION_WRONG"],
@@ -145,12 +145,12 @@ window.ERROR_CATEGORY_MAPPING = {
         "wrong_candidates": ["DISAMBIGUATION_WRONG_CANDIDATES"],
         "multiple_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
     },
-    "false_detection": {
-        "all": ["FALSE_DETECTION"],
-        "lowercased": ["FALSE_DETECTION_LOWERCASED"],
-        "groundtruth_unknown": ["FALSE_DETECTION_GROUNDTRUTH_UNKNOWN"],
-        "other": ["FALSE_DETECTION_OTHER"],
-        "wrong_span": ["FALSE_DETECTION_WRONG_SPAN"]
+    "ner_fp": {
+        "all": ["NER_FP"],
+        "lowercased": ["NER_FP_LOWERCASED"],
+        "groundtruth_unknown": ["NER_FP_GROUNDTRUTH_UNKNOWN"],
+        "other": ["NER_FP_OTHER"],
+        "wrong_span": ["NER_FP_WRONG_SPAN"]
     },
     "other_errors": {
         "hyperlink": ["HYPERLINK_WRONG"]

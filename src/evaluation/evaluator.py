@@ -68,7 +68,7 @@ def get_type_ids(types: str) -> List[str]:
     return type_ids
 
 
-EVALUATION_CATEGORIES = ("all", "NER", "entity", "entity_named", "entity_other", "coref", "coref_nominal", "coref_pronominal")
+EVALUATION_CATEGORIES = ("all", "ner", "entity", "entity_named", "entity_other", "coref", "coref_nominal", "coref_pronominal")
 
 
 class Evaluator:
@@ -126,15 +126,15 @@ class Evaluator:
     def count_ner_case(self, case: Case, eval_mode: EvaluationMode):
         if not case.is_coreference():
             if case.is_ner_tp(eval_mode) and case.true_entity.parent is None:
-                self.counts[eval_mode]["NER"]["tp"] += 1
+                self.counts[eval_mode]["ner"]["tp"] += 1
                 if not is_named_entity(case.text):
                     self.n_entity_lowercase[eval_mode] += 1
             if case.is_ner_fn(eval_mode) and case.true_entity.parent is None:
-                self.counts[eval_mode]["NER"]["fn"] += 1
+                self.counts[eval_mode]["ner"]["fn"] += 1
                 if not is_named_entity(case.text):
                     self.n_entity_lowercase[eval_mode] += 1
             if case.is_ner_fp(eval_mode) and case.factor != 0:
-                self.counts[eval_mode]["NER"]["fp"] += 1
+                self.counts[eval_mode]["ner"]["fp"] += 1
 
     def count_mention_type_case(self, case: Case, eval_mode: EvaluationMode):
         key = case.mention_type.value.lower()
@@ -192,40 +192,40 @@ class Evaluator:
             results_dict[mode.value]["error_categories"] = {}
 
             # Move NER results to error categories
-            results_dict[mode.value]["error_categories"]["NER"] = results_dict[mode.value]["mention_types"]["NER"]
-            del results_dict[mode.value]["mention_types"]["NER"]
+            results_dict[mode.value]["error_categories"]["ner"] = results_dict[mode.value]["mention_types"]["ner"]
+            del results_dict[mode.value]["mention_types"]["ner"]
 
-            results_dict[mode.value]["error_categories"]["undetected"] = {
+            results_dict[mode.value]["error_categories"]["ner_fn"] = {
                 # Undetected
                 "all": {
-                    "errors": self.error_counts[mode][ErrorLabel.UNDETECTED],
-                    "total": results_dict[mode.value]["error_categories"]["NER"]["ground_truth"]
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FN],
+                    "total": results_dict[mode.value]["error_categories"]["ner"]["ground_truth"]
                 },
                 "lowercased": {
-                    "errors": self.error_counts[mode][ErrorLabel.UNDETECTED_LOWERCASED],
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FN_LOWERCASED],
                     "total": self.n_entity_lowercase[mode]
                 },
                 "partially_included": {
-                    "errors": self.error_counts[mode][ErrorLabel.UNDETECTED_PARTIALLY_INCLUDED],
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FN_PARTIALLY_INCLUDED],
                     "total": self.n_entity_contains_space[mode]
                 },
                 "partial_overlap": {
-                    "errors": self.error_counts[mode][ErrorLabel.UNDETECTED_PARTIAL_OVERLAP],
-                    "total": results_dict[mode.value]["error_categories"]["NER"]["ground_truth"] - self.n_entity_lowercase[mode]
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FN_PARTIAL_OVERLAP],
+                    "total": results_dict[mode.value]["error_categories"]["ner"]["ground_truth"] - self.n_entity_lowercase[mode]
                 },
                 "other": {
-                    "errors": self.error_counts[mode][ErrorLabel.UNDETECTED_OTHER],
-                    "total": results_dict[mode.value]["error_categories"]["NER"]["ground_truth"] - self.n_entity_lowercase[mode]
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FN_OTHER],
+                    "total": results_dict[mode.value]["error_categories"]["ner"]["ground_truth"] - self.n_entity_lowercase[mode]
                 }
             }
-            results_dict[mode.value]["error_categories"]["false_detection"] = {
+            results_dict[mode.value]["error_categories"]["ner_fp"] = {
                 # False detection
-                "all": self.error_counts[mode][ErrorLabel.FALSE_DETECTION],
-                "lowercased": self.error_counts[mode][ErrorLabel.FALSE_DETECTION_LOWERCASED],
-                "groundtruth_unknown": self.error_counts[mode][ErrorLabel.FALSE_DETECTION_GROUNDTRUTH_UNKNOWN],
-                "other": self.error_counts[mode][ErrorLabel.FALSE_DETECTION_OTHER],
+                "all": self.error_counts[mode][ErrorLabel.NER_FP],
+                "lowercased": self.error_counts[mode][ErrorLabel.NER_FP_LOWERCASED],
+                "groundtruth_unknown": self.error_counts[mode][ErrorLabel.NER_FP_GROUNDTRUTH_UNKNOWN],
+                "other": self.error_counts[mode][ErrorLabel.NER_FP_OTHER],
                 "wrong_span": {
-                    "errors": self.error_counts[mode][ErrorLabel.FALSE_DETECTION_WRONG_SPAN],
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FP_WRONG_SPAN],
                     "total": self.counts[mode]["all"]["fp"] + self.counts[mode]["all"]["tp"]  # TODO: This should be only entities, because for undetected errors, only entities are considered, too. Also, coreference errors are handled separately.
                 }
             }
@@ -233,7 +233,7 @@ class Evaluator:
                 # Disambiguation errors
                 "all": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG],
-                    "total": self.counts[mode]["NER"]["tp"]
+                    "total": self.counts[mode]["ner"]["tp"]
                 },
                 "demonym": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG],
@@ -258,7 +258,7 @@ class Evaluator:
                 "other": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG_OTHER],
                 "wrong_candidates": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG_CANDIDATES],
-                    "total": self.counts[mode]["NER"]["tp"]
+                    "total": self.counts[mode]["ner"]["tp"]
                 } if self.has_candidates else None,
                 "multiple_candidates": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG],

@@ -54,15 +54,15 @@ def label_undetected_errors(cases: List[Case], eval_mode: EvaluationMode):
     false_positive_spans = [case.span for case in cases if case.is_ner_fp(eval_mode)]
     for case in cases:
         if not case.is_coreference() and case.is_ner_fn(eval_mode):
-            case.add_error_label(ErrorLabel.UNDETECTED, eval_mode)
+            case.add_error_label(ErrorLabel.NER_FN, eval_mode)
             if not is_named_entity(case.text):
-                case.add_error_label(ErrorLabel.UNDETECTED_LOWERCASED, eval_mode)
+                case.add_error_label(ErrorLabel.NER_FN_LOWERCASED, eval_mode)
             elif is_partially_included_error(case, false_positive_spans):
-                case.add_error_label(ErrorLabel.UNDETECTED_PARTIALLY_INCLUDED, eval_mode)
+                case.add_error_label(ErrorLabel.NER_FN_PARTIALLY_INCLUDED, eval_mode)
             elif overlaps_any(case.span, false_positive_spans):
-                case.add_error_label(ErrorLabel.UNDETECTED_PARTIAL_OVERLAP, eval_mode)
+                case.add_error_label(ErrorLabel.NER_FN_PARTIAL_OVERLAP, eval_mode)
             else:
-                case.add_error_label(ErrorLabel.UNDETECTED_OTHER, eval_mode)
+                case.add_error_label(ErrorLabel.NER_FN_OTHER, eval_mode)
 
 
 DEMONYM_TYPES = {"Q27096213", "Q41710", "Q17376908"}
@@ -260,7 +260,7 @@ def label_false_detections(cases: List[Case],
 
     for case in cases:
         if not case.is_coreference() and case.is_ner_fp(eval_mode):
-            case.add_error_label(ErrorLabel.FALSE_DETECTION, eval_mode)
+            case.add_error_label(ErrorLabel.NER_FP, eval_mode)
             overlap = False
             for gt_span in ground_truth_spans:
                 if overlaps(case.span, gt_span):
@@ -268,13 +268,13 @@ def label_false_detections(cases: List[Case],
                     break
             contains_upper = contains_uppercase_word(case.text)
             if not overlap and not contains_upper:
-                case.add_error_label(ErrorLabel.FALSE_DETECTION_LOWERCASED, eval_mode)
+                case.add_error_label(ErrorLabel.NER_FP_LOWERCASED, eval_mode)
             elif contains_upper and \
                     ((not overlap and not contains_unknowns) or (case.has_ground_truth() and
                                                                  not case.ground_truth_is_known())):
-                case.add_error_label(ErrorLabel.FALSE_DETECTION_GROUNDTRUTH_UNKNOWN, eval_mode)
+                case.add_error_label(ErrorLabel.NER_FP_GROUNDTRUTH_UNKNOWN, eval_mode)
             else:
-                case.add_error_label(ErrorLabel.FALSE_DETECTION_OTHER, eval_mode)
+                case.add_error_label(ErrorLabel.NER_FP_OTHER, eval_mode)
 
 
 def label_hyperlink_errors(article: Article, cases: List[Case], eval_mode: EvaluationMode):
@@ -332,7 +332,7 @@ def label_span_errors(cases: List[Case], eval_mode: EvaluationMode):
                 if overlaps(case.span, gt_span) and (case.predicted_entity.entity_id == gt_label.entity_id or
                                                      is_true_quantity_or_datetime(case.predicted_entity, gt_label)):
                     # Span is wrong and entity id is correct or it's a true quantity or datetime.
-                    case.add_error_label(ErrorLabel.FALSE_DETECTION_WRONG_SPAN, eval_mode)
+                    case.add_error_label(ErrorLabel.NER_FP_WRONG_SPAN, eval_mode)
                     break
 
 
