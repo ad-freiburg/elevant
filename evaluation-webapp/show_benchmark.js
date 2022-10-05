@@ -25,7 +25,6 @@ window.NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", "Unknown"];
 
 window.IGNORE_HEADERS = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 window.PERCENTAGE_HEADERS = ["precision", "recall", "f1"];
-window.COPY_TABLE_CELL_TEXT = "Copy table";
 
 window.TABLE_FORMAT_LATEX = "LATEX";
 window.TABLE_FORMAT_TSV = "TSV";
@@ -864,7 +863,7 @@ function add_evaluation_table_header(json_obj) {
     /*
      * Add html for the table header.
      */
-    let first_row = "<tr><th colspan=2 onclick=$('#copy_table_modal').modal('show') class='copy_table'>" + COPY_TABLE_CELL_TEXT + "</th>";
+    let first_row = "<tr><th colspan=2></th>";
     let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
@@ -2259,7 +2258,6 @@ function get_emphasis_string(selected_cell_category) {
             if (is_type_string(selected_category)) {
                 emphasis_strs.push("Entity Type: " + get_type_label(selected_category));
             } else {
-                console.log(selected_category.toLowerCase().replace(/_/g, " "));
                 emphasis_strs.push(to_title_case(selected_category.toLowerCase().replace(/_/g, " ")));
             }
         }
@@ -2467,6 +2465,10 @@ function scroll_to_annotation(annotation) {
  Functions for COPYING TABLE
  *********************************************************************************************************************/
 
+function show_copy_table_modal() {
+    $('#copy_table_modal').modal('show');
+}
+
 function copy_table() {
     /*
      * Copy the evaluation results table to clipboard.
@@ -2528,8 +2530,7 @@ function get_table_contents(include_benchmark, include_experiment) {
                 colspan = (colspan) ? colspan : 1;
                 // Copy-Latex-cell should not have a header and colspan depends on whether to include
                 // the experiment and benchmark columns
-                if (title === COPY_TABLE_CELL_TEXT) {
-                    title = "";
+                if (title === "") {
                     colspan = include_benchmark + include_experiment;
                     if (colspan === 0) return;
                 }

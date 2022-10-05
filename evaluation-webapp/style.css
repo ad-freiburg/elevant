@@ -300,16 +300,6 @@ Moreover, the selected border color is not shown, only the background color.
 /* ----------------------------------------- */
 /* Begin copy table */
 
-/* Table cell for copying table code */
-#evaluation_table_wrapper .copy_table {
-    cursor: pointer;
-    text-align: center;
-    color: transparent
-}
-#evaluation_table_wrapper .copy_table:hover {
-    color: white;
-}
-
 /* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */
 div.copy_table_text {
     display: none;
