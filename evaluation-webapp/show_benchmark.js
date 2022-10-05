@@ -2828,7 +2828,9 @@ function download_graph_image() {
     // Add a background for the chart, otherwise it's transparent when downloaded
     add_canvas_background()
     a.href = Chart.getChart('graph_canvas').toBase64Image();
-    a.download = 'elevant_graph.png';
+    let suffix = $('#graph_modal .modal-title').text();
+    suffix = suffix.toLowerCase().replace(/[^A-Za-z0-9]/g, "_").replace(/_+/g, "_");
+    a.download = "elevant_graph_" + suffix + ".png";
     // Trigger the download
     a.click();
 }
