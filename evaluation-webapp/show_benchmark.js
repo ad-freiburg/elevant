@@ -2703,11 +2703,13 @@ function create_graph(y_column) {
     const $warning_paragraph = $("#graph_modal .warning");
     const $canvas = $("#graph_canvas");
     const $download_button = $("#download_graph");
+    const $download_tsv_button = $("#download_graph_tsv");
 
     // Reset the modal components
     $canvas.show();
     $warning_paragraph.hide();
     $download_button.prop("disabled",false);
+    $download_tsv_button.prop("disabled",false);
 
     const colors = ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "salmon", "turquoise", "indigo"];
     let x_column = 1;
@@ -2733,6 +2735,7 @@ function create_graph(y_column) {
         $warning_paragraph.show();
         $canvas.hide();
         $download_button.prop("disabled",true);
+        $download_tsv_button.prop("disabled",true);
         $warning_paragraph.html("<b>Too many distinct " + table_contents[1][line_column][0] + "s . Adjust your table by filtering out rows.</b>");
         return;
     }
@@ -2833,6 +2836,42 @@ function download_graph_image() {
     suffix = suffix.toLowerCase().replace(/[^A-Za-z0-9]/g, "_").replace(/_+/g, "_");
     a.download = "elevant_graph_" + suffix + ".png";
     // Trigger the download
+    a.click();
+}
+
+function download_graph_tsv() {
+    /*
+     * Download the currently displayed graph data as TSV file.
+     */
+    const chart = Chart.getChart('graph_canvas');
+    let tsv = "";
+
+    // Create the header row
+    const x_labels = chart.data.labels;
+    for (let x_label of x_labels) {
+        // This works because first column is empty
+        tsv += "\t" + x_label;
+    }
+    tsv += "\n";
+
+    // Create the remaining rows
+    const datasets = chart.data.datasets;
+    for (let ds of datasets) {
+        let y_label = ds.label;
+        tsv += y_label + "\t";
+        for (let i in ds.data) {
+            tsv += ds.data[i];
+            if (i < ds.data.length - 1) tsv += "\t";
+        }
+        tsv += "\n";
+    }
+
+    // Download the TSV
+    const a = document.createElement('a');
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(tsv);
+    let suffix = $('#graph_modal .modal-title').text();
+    suffix = suffix.toLowerCase().replace(/[^A-Za-z0-9]/g, "_").replace(/_+/g, "_");
+    a.download = "elevant_graph_" + suffix + ".tsv";
     a.click();
 }
 
