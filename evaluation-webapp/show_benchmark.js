@@ -2639,7 +2639,7 @@ function show_graph(el) {
 function graph_mode_on() {
     /*
      * Enter the graph mode. Add an overlay to the webapp and guide the user towards selecting
-     * a table column..
+     * a table column.
      */
     const $evaluation_table_wrapper = $("#evaluation_table_wrapper");
 
@@ -2759,6 +2759,11 @@ function create_graph(y_column) {
         dict["data"] = y_values;
         datasets.push(dict);
     });
+
+    // Set the default font size for labels within the graph. This can still be changed
+    // for individual items such as the legend or specific scales, see
+    // https://www.chartjs.org/docs/latest/general/fonts.html
+    if ("graph_font_size" in window.config) Chart.defaults.font.size = window.config["graph_font_size"];
 
     const y_axis_label = (table_contents[2][y_column][0].includes("%")) ? "in %" : "";
     new Chart("graph_canvas", {
