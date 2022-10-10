@@ -2696,7 +2696,9 @@ function create_graph(y_column) {
     $download_button.prop("disabled",false);
     $download_tsv_button.prop("disabled",false);
 
-    const colors = ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "salmon", "turquoise", "indigo"];
+    let colors = ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "fuchsia", "turquoise", "indigo"];
+    if ("graph_colors" in config) colors = config["graph_colors"];
+
     let x_column = 1;
     let line_column = 0;
     let table_contents = get_table_contents(true, true)
