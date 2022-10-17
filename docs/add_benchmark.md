@@ -150,6 +150,10 @@ As an alternative to converting your benchmark into one of the formats mentioned
             logger.info("-> Mappings loaded.")
             benchmark_iterator = MyFormatBenchmarkReader(entity_db, benchmark_file, custom_args)
 
+    where `custom_args` are any custom arguments your benchmark reader's `__init__` method might take. You can omit
+    this if your benchmark reader takes no custom arguments. Make sure to import `MyFormatBenchmarkReader` in
+    `src.evaluation.benchmark_iterator`.
+
 You can now add benchmarks in your format by running
 
     python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat my_format
