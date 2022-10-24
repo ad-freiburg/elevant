@@ -142,7 +142,8 @@ The Ambiverse prediction reader is implemented [here](../src/prediction_readers/
 ### Writing a Custom Prediction Reader
 As an alternative to converting your predictions into one of the formats mentioned above, you can write your own
  prediction reader, such that you can use your prediction files with the `link_benchmark_entities.py` script directly.
- This requires three steps:
+ This requires three steps. **Note: Make sure you perform the following steps outside of the docker container,
+ otherwise your changes will be lost when exiting the container.**:
 
 1) Implement a prediction reader in `src/prediction_readers/` that inherits from
  `src.prediction_readers.abstract_prediction_reader.AbstractPredictionReader`. You must either implement the

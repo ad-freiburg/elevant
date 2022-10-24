@@ -123,7 +123,8 @@ The Simple JSONL benchmark reader is implemented [here](../src/benchmark_readers
 ## Writing a Custom Benchmark Reader
 As an alternative to converting your benchmark into one of the formats mentioned above, you can write your own
  benchmark reader, such that you can use your benchmark file with the `add_benchmark.py` script directly.
- This requires the following steps:
+ This requires the following steps. **Note: Make sure you perform the following steps outside of the docker container,
+ otherwise your changes will be lost when exiting the container.**:
 
 1) Implement a benchmark reader in `src/benchmark_readers/`, e.g. `MyFormatBenchmarkReader`, that inherits from
  `src.benchmark_readers.abstract_benchmark_reader.AbstractBenchmarkReader` and implement the abstract method
