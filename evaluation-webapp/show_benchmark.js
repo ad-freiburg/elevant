@@ -239,6 +239,8 @@ window.url_param_sort_order = null;
 window.url_param_access = null;
 window.url_param_evaluation_mode = null;
 window.url_param_group_by = null;
+window.url_param_internal_experiment_filter = null;
+window.url_param_internal_benchmark_filter = null;
 
 $("document").ready(function() {
     // JQuery selector variables
@@ -259,6 +261,8 @@ $("document").ready(function() {
     // Set the table filter strings and show-deprecated checkbox according to the URL parameters
     if (window.url_param_experiment_filter) $experiment_filter.val(window.url_param_experiment_filter);
     if (window.url_param_benchmark_filter) $benchmark_filter.val(window.url_param_benchmark_filter);
+    if (window.url_param_internal_experiment_filter) window.internal_experiment_filter = new RegExp(window.url_param_internal_experiment_filter, "i");
+    if (window.url_param_internal_benchmark_filter) window.internal_benchmark_filter = new RegExp(window.url_param_internal_benchmark_filter, "i");
     $("#checkbox_deprecated").prop('checked', window.url_param_show_deprecated);
 
     if (window.url_param_group_by) $("input:radio[name=" + window.url_param_group_by + "]").prop("checked", true);
@@ -457,6 +461,8 @@ function read_url_parameters() {
     window.url_param_access = get_url_parameter_string(get_url_parameter("access"));
     window.url_param_evaluation_mode = get_url_parameter_string(get_url_parameter("evaluation_mode"));
     window.url_param_group_by = get_url_parameter_string(get_url_parameter("group_by"));
+    window.url_param_internal_experiment_filter = get_url_parameter_string(get_url_parameter("internal_experiment_filter"));
+    window.url_param_internal_benchmark_filter = get_url_parameter_string(get_url_parameter("internal_benchmark_filter"));
 }
 
 function get_url_parameter(parameter_name) {
@@ -2966,11 +2972,13 @@ function set_up_table_filter_multiselects() {
     benchmark_names = Array.from(benchmark_names).sort();
 
     for (let experiment_name of experiment_names) {
-        const option = "<li><label><input type=\"checkbox\" value='" + experiment_name + "' checked>" + experiment_name + "</label></li>";
+        const checked = (experiment_name.search(window.internal_experiment_filter) !== -1) ? "checked" : "";
+        const option = "<li><label><input type=\"checkbox\" value='" + experiment_name + "' " + checked + ">" + experiment_name + "</label></li>";
         $("#experiment_select").append(option);
     }
     for (let benchmark_name of benchmark_names) {
-        const option = "<li><label><input type=\"checkbox\" value='" + benchmark_name + "' checked>" + benchmark_name + "</label></li>";
+        const checked = (benchmark_name.search(window.internal_benchmark_filter) !== -1) ? "checked" : "";
+        const option = "<li><label><input type=\"checkbox\" value='" + benchmark_name + "' " + checked + ">" + benchmark_name + "</label></li>";
         $("#benchmark_select").append(option);
     }
 }
@@ -2982,7 +2990,7 @@ function toggle_dropdown_multi_select(el) {
      * If all checkboxes are deselected, select all, in any other case deselect
      * all checkboxes.
      */
-    $closest_ul = $(el).closest("ul");
+    const $closest_ul = $(el).closest("ul");
     const $all_checkboxes = $closest_ul.find("input[type='checkbox']");
     const checked = $all_checkboxes.filter(":checked").length === 0;
     $all_checkboxes.prop('checked', checked);
@@ -2995,7 +3003,7 @@ function update_multi_select_checkboxes(el) {
      * given filter text input field. That is, select exactly those checkboxes
      * whose values match the filter regex in the text input field.
      */
-    $closest_ul = $(el).closest("ul");
+    const $closest_ul = $(el).closest("ul");
 
     let regex = $(el).val();
     regex = new RegExp(regex, "i");
@@ -3039,6 +3047,18 @@ function update_experiment_filter(regex) {
      */
     window.internal_experiment_filter = new RegExp(regex, "i");
     filter_table_rows();
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    if ($("#experiment_select input[type='checkbox']").filter(":not(:checked)").length === 0 ) {
+        // If all checkboxes are checked, the URL parameter is not necessary,
+        // since this is the default anyway. Therefore, delete it to avoid an
+        // endless long URL.
+        url.searchParams.delete('internal_experiment_filter');
+    } else {
+        url.searchParams.set('internal_experiment_filter', regex);
+    }
+    window.history.replaceState({}, '', url);
 }
 
 function update_benchmark_filter(regex) {
@@ -3048,6 +3068,18 @@ function update_benchmark_filter(regex) {
      */
     window.internal_benchmark_filter = new RegExp(regex, "i");
     filter_table_rows();
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    if ($("#benchmark_select input[type='checkbox']").filter(":not(:checked)").length === 0 ) {
+        // If all checkboxes are checked, the URL parameter is not necessary,
+        // since this is the default anyway. Therefore, delete it to avoid an
+        // endless long URL.
+        url.searchParams.delete('internal_benchmark_filter');
+    } else {
+        url.searchParams.set('internal_benchmark_filter', regex);
+    }
+    window.history.replaceState({}, '', url);
 }
 
 /**********************************************************************************************************************
