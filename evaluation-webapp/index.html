@@ -132,8 +132,30 @@
 			</div>
 
 			<h4 class="with_note">Filter table rows</h4>
-			<label for="experiment-filter">By experiment: </label><input id="experiment-filter">
-			<label for="benchmark-filter">By benchmark: </label><input id="benchmark-filter">
+			<span class="checkbox_menu">
+				<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Select Experiments <span class="caret"></span></button>
+				<ul id="experiment_select" class="dropdown-menu allow-focus">
+					<li>
+						<input type='text' id="experiment-filter" placeholder="Filter with regular expression">
+					</li>
+					<li >
+						<button class="btn btn-default" type="button" onclick="toggle_dropdown_multi_select(this)">Toggle All</button>
+				  </li>
+				</ul>
+			</span>
+
+			<span class="checkbox_menu">
+				<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Select Benchmarks <span class="caret"></span></button>
+				<ul id="benchmark_select" class="dropdown-menu allow-focus">
+					<li>
+						<input type='text' id="benchmark-filter" placeholder="Filter with regular expression">
+					</li>
+					<li >
+						<button class="btn btn-default" type="button" onclick="toggle_dropdown_multi_select(this)">Toggle All</button>
+				  </li>
+				</ul>
+			</span>
+
 			<span data-tippy-content="Show experiments whose name contains the word 'deprecated'.">
 				<input type="checkbox" id="checkbox_deprecated" onchange="toggle_show_deprecated()"><label for="checkbox_deprecated">Show deprecated</label>
 			</span>

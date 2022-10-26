@@ -224,6 +224,9 @@ window.all_highlighted_annotations = [[], []];
 window.jump_to_annotation_index = [-1, -1];
 window.last_highlighted_side = 0;
 
+window.internal_experiment_filter = "";
+window.internal_benchmark_filter = "";
+
 window.url_param_experiment_filter = null;
 window.url_param_benchmark_filter = null;
 window.url_param_show_deprecated = null;
@@ -253,6 +256,11 @@ $("document").ready(function() {
         theme: 'light-border'
     });
 
+    // Set the table filter strings and show-deprecated checkbox according to the URL parameters
+    if (window.url_param_experiment_filter) $experiment_filter.val(window.url_param_experiment_filter);
+    if (window.url_param_benchmark_filter) $benchmark_filter.val(window.url_param_benchmark_filter);
+    $("#checkbox_deprecated").prop('checked', window.url_param_show_deprecated);
+
     if (window.url_param_group_by) $("input:radio[name=" + window.url_param_group_by + "]").prop("checked", true);
 
     $("#checkbox_compare").prop('checked', window.url_param_compare);
@@ -261,12 +269,14 @@ $("document").ready(function() {
     // and build the evaluation results table.
     $("#table_loading").addClass("show");
     read_initial_data().then(function() {
+        set_up_table_filter_multiselects();
         build_evaluation_results_table(true);
     });
 
     // Filter table rows by regex in input field (from SPARQL AC evaluation) on key up
     $experiment_filter.keyup(function() {
-        filter_table_rows();
+        update_multi_select_checkboxes(this);
+        update_experiment_filter($experiment_filter.val())
 
         // Update current URL without refreshing the site
         const url = new URL(window.location);
@@ -276,7 +286,8 @@ $("document").ready(function() {
 
     // Filter results by regex in input field #result-regex on key up
     $benchmark_filter.keyup(function() {
-        filter_table_rows();
+        update_multi_select_checkboxes(this);
+        update_benchmark_filter($benchmark_filter.val())
 
         // Update current URL without refreshing the site
         const url = new URL(window.location);
@@ -338,12 +349,6 @@ $("document").ready(function() {
             }
         });
     });
-
-    // Set the table filter strings and show-deprecated checkbox according to the URL parameters
-    if (window.url_param_experiment_filter) $experiment_filter.val(window.url_param_experiment_filter);
-    if (window.url_param_benchmark_filter) $benchmark_filter.val(window.url_param_benchmark_filter);
-    $("#checkbox_deprecated").prop('checked', window.url_param_show_deprecated);
-    if (window.url_param_experiment_filter || window.url_param_benchmark_filter || !window.url_param_show_deprecated) filter_table_rows();
 
     // Synchronize the top and bottom scrollbar of the evaluation table
     // Prevent double calls to .scroll() by using a flag
@@ -424,6 +429,13 @@ $("document").ready(function() {
         // This is necessary to prevent the graph from switching to a previous version due
         // to hover effects.
         Chart.getChart('graph_canvas').destroy();
+    });
+
+    $(".checkbox_menu").on("change", "input[type='checkbox']", function() {
+        update_filter_regex_from_checkboxes($(this).closest("ul"));
+    });
+    $(document).on('click', '.allow-focus', function (e) {
+        e.stopPropagation();
     });
 });
 
@@ -1017,14 +1029,12 @@ function filter_table_rows() {
      * Filter table rows according to the experiment and benchmark filters.
      * Also filter table rows according to whether the show-deprecated checkbox is checked.
      */
-    let experiment_keywords = $.trim($("input#experiment-filter").val()).split(/\s+/);
-    let benchmark_keywords = $.trim($("input#benchmark-filter").val()).split(/\s+/);
     $("#evaluation_table_wrapper tbody tr").each(function() {
         let name = $(this).children("td:nth-child(1)").text();
         let benchmark = $(this).children("td:nth-child(2)").text();
         // Filter row according to filter keywords
-        let show_row = experiment_keywords.every(keyword => name.search(keyword) !== -1);
-        show_row &= benchmark_keywords.every(keyword => benchmark.search(keyword) !== -1);
+        let show_row = name.search(window.internal_experiment_filter) !== -1;
+        show_row &= benchmark.search(window.internal_benchmark_filter) !== -1;
 
         // Filter row according to show-deprecated checkbox
         if (!$("#checkbox_deprecated").is(":checked")) {
@@ -2935,6 +2945,112 @@ function toggle_show_deprecated() {
 }
 
 /**********************************************************************************************************************
+ Functions for MULTISELECT DROPDOWN
+ *********************************************************************************************************************/
+
+function set_up_table_filter_multiselects() {
+    /*
+     * Add experiment and benchmark checkboxes to the experiment and benchmark
+     * dropdown multi-select.
+     */
+    let experiment_names = new Set();
+    let benchmark_names = new Set();
+    for (let result of window.evaluation_results) {
+        const experiment_id = result[0];
+        const experiment_name = get_displayed_experiment_name(experiment_id);
+        experiment_names.add(experiment_name);
+        const benchmark_name = get_displayed_benchmark_name(experiment_id);
+        benchmark_names.add(benchmark_name);
+    }
+    experiment_names = Array.from(experiment_names).sort();
+    benchmark_names = Array.from(benchmark_names).sort();
+
+    for (let experiment_name of experiment_names) {
+        const option = "<li><label><input type=\"checkbox\" value='" + experiment_name + "' checked>" + experiment_name + "</label></li>";
+        $("#experiment_select").append(option);
+    }
+    for (let benchmark_name of benchmark_names) {
+        const option = "<li><label><input type=\"checkbox\" value='" + benchmark_name + "' checked>" + benchmark_name + "</label></li>";
+        $("#benchmark_select").append(option);
+    }
+}
+
+function toggle_dropdown_multi_select(el) {
+    /*
+     * Toggle all checkboxes in the dropdown menu in which the toggle button
+     * (el) was pressed.
+     * If all checkboxes are deselected, select all, in any other case deselect
+     * all checkboxes.
+     */
+    $closest_ul = $(el).closest("ul");
+    const $all_checkboxes = $closest_ul.find("input[type='checkbox']");
+    const checked = $all_checkboxes.filter(":checked").length === 0;
+    $all_checkboxes.prop('checked', checked);
+    update_filter_regex_from_checkboxes($closest_ul);
+}
+
+function update_multi_select_checkboxes(el) {
+    /*
+     * Update the checkboxes in the multi-select dropdown menu according to the
+     * given filter text input field. That is, select exactly those checkboxes
+     * whose values match the filter regex in the text input field.
+     */
+    $closest_ul = $(el).closest("ul");
+
+    let regex = $(el).val();
+    regex = new RegExp(regex, "i");
+
+    $closest_ul.find("input[type='checkbox']").each(function() {
+        // Set the checkbox to check if it matches the regex
+        $(this).prop('checked', $(this).val().search(regex) !== -1);
+    });
+}
+
+function update_filter_regex_from_checkboxes(el) {
+    /*
+     * Update the internal filter regex according to the checkboxes checked in
+     * the given multi-select dropdown menu.
+     */
+    const select_id = $(el).prop("id");
+    let keywords = [];
+    $("#" + select_id + " input[type='checkbox']:checked").each(function() {
+        const regex = "^" + escape_regex($(this).val()) + "$";
+        keywords.push(regex);
+    });
+    let filter_regex = keywords.join("|");
+    // If all checkboxes are deselected, filter_regex is the empty string and
+    // when converted to a regular expression, matches everything. Make sure
+    // the regex in that case matches only the empty string.
+    if (filter_regex === "") filter_regex = "^$";
+
+    if (select_id === "experiment_select") {
+        // $("#experiment-filter").val(filter_regex);
+        update_experiment_filter(filter_regex);
+    } else {
+        // $("#benchmark-filter").val(filter_regex);
+        update_benchmark_filter(filter_regex);
+    }
+}
+
+function update_experiment_filter(regex) {
+    /*
+     * Update the internal experiment filter regex and filter the table rows
+     * accordingly.
+     */
+    window.internal_experiment_filter = new RegExp(regex, "i");
+    filter_table_rows();
+}
+
+function update_benchmark_filter(regex) {
+    /*
+     * Update the internal benchmark filter regex and filter the table rows
+     * accordingly.
+     */
+    window.internal_benchmark_filter = new RegExp(regex, "i");
+    filter_table_rows();
+}
+
+/**********************************************************************************************************************
  Functions for MINI UTILS
  *********************************************************************************************************************/
 
@@ -3175,4 +3291,12 @@ function is_unique(value, index, self) {
      * See: https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
      */
     return self.indexOf(value) === index;
+}
+
+function escape_regex(string) {
+    /*
+     * Escape a given plain string such that a regex created from the escaped string will match the given string.
+     * See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711
+     */
+    return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
