@@ -882,7 +882,7 @@ function add_evaluation_table_header(json_obj) {
      * Add html for the table header.
      */
     let first_row = "<tr><th colspan=2></th>";
-    let second_row = "<tr><th>Experiment</th><th>Benchmark</th>";
+    let second_row = "<tr><th>System</th><th>Benchmark</th>";
     $.each(json_obj, function(key) {
         $.each(json_obj[key], function(subkey) {
             let colspan = 0;
@@ -1198,7 +1198,7 @@ function on_cell_click(el) {
     }
 
     // Make new selection
-    let classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // Experiment column has no class attribute
+    let classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // System column has no class attribute
     if (is_error_cell(el)) {
         $(el).addClass("selected");
         window.selected_cells.push(el);
@@ -2520,7 +2520,7 @@ function get_table_contents(include_benchmark, include_experiment) {
         let table_row_contents = [];
         $(this).find('th').each(function() {
             if (!include_benchmark && $(this).text() === "Benchmark") return;
-            if (!include_experiment && $(this).text() === "Experiment") return;
+            if (!include_experiment && $(this).text() === "System") return;
             // Do not add hidden table columns
             if (!$(this).is(":hidden")) {
                 if (row_index > 0) num_cols += 1;
@@ -2593,7 +2593,7 @@ function produce_latex(table_contents, n_cols, include_experiment, include_bench
         for (let cell of row) {
             if (cell[2]) {
                 // Cell is a header_cell
-                alignment = (["Experiment", "Benchmark"].includes(cell[0])) ? "l" : "c";
+                alignment = (["System", "Benchmark"].includes(cell[0])) ? "l" : "c";
                 latex_string += "\\multicolumn{" + cell[1] + "}{" + alignment + "}{\\textbf{" + cell[0] + "}}";
                 last_cell_is_header = true;
             } else {
@@ -3094,7 +3094,7 @@ function get_table_header_keys(th_element) {
      */
     let keys = ["", ""];
     const all_classes_string = $(th_element).attr('class');
-    // Experiment column has no attribute 'class'
+    // System column has no attribute 'class'
     if (all_classes_string) {
         const all_classes = all_classes_string.split(/\s+/);
         if (all_classes.length > 1) {
@@ -3130,7 +3130,7 @@ function is_error_cell(el) {
     /*
      * Return true if the given cell is a error category td.
      */
-    if ($(el).attr('class')) {  // Experiment column has no class attribute
+    if ($(el).attr('class')) {  // System column has no class attribute
         const classes = $(el).attr('class').split(/\s+/);
         if (classes.length > 1) {
             // The second class of a cell is its header and subheader (as class name) connected by "-"
