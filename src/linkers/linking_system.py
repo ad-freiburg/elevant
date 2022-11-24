@@ -160,9 +160,7 @@ class LinkingSystem:
                                         MappingName.REDIRECTS})
             self.linker = DbpediaSpotlightLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.REFINED.value:
-            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
-                                        MappingName.REDIRECTS})
-            self.linker = RefinedLinker(self.entity_db, self.linker_config)
+            self.linker = RefinedLinker(self.linker_config)
         else:
             linker_exists = False
 
