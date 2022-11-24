@@ -3,6 +3,7 @@ import os
 from typing import Optional, Tuple, Dict, Set, Any
 
 from src.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
+from src.linkers.refined_linker import RefinedLinker
 from src.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
 from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
@@ -158,6 +159,10 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = DbpediaSpotlightLinker(self.entity_db, self.linker_config)
+        elif linker_type == Linkers.REFINED.value:
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = RefinedLinker(self.entity_db, self.linker_config)
         else:
             linker_exists = False
 

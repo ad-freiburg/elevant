@@ -9,6 +9,7 @@ class Linkers(Enum):
     POPULAR_ENTITIES = "popular-entities"
     POS_PRIOR = "pos-prior"
     DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
+    REFINED = "refined"
     NONE = "none"
 
 
