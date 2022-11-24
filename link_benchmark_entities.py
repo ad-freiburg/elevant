@@ -84,12 +84,12 @@ def main(args):
             elif "experiment_description" in linker_config:
                 exp_description = linker_config["experiment_description"]
             linker_name = None
-            if args.prediction_name:
-                linker_name = args.prediction_name
-            elif "linker_name" in linker_config:
+            if "linker_name" in linker_config:
                 linker_name = linker_config["linker_name"]
             elif args.linker_name:
                 linker_name = args.linker_name
+            elif args.prediction_name:
+                linker_name = args.prediction_name
             metadata = {"experiment_name": exp_name,
                         "experiment_description": exp_description,
                         "linker_name": linker_name,
