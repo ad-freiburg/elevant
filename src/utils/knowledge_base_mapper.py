@@ -51,6 +51,9 @@ class KnowledgeBaseMapper:
         QID of the referenced entity.
         Returns None if the entity can't be mapped to a Wikidata QID
         """
+        if not entity_reference:
+            return None
+
         # The last part of a URI is the entity name / identifier.
         # This still works if the entity_reference is not a URI and does not contain a "/" (result of rfind is -1)
         entity_name = entity_reference[entity_reference.rfind("/") + 1:]
