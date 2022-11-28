@@ -27,7 +27,6 @@ class RelLinker(AbstractEntityLinker):
                 text: str,
                 doc=None,
                 uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
-        self.url = "http://localhost:5555/api"
         annotations = requests.post(self.url, json={"text": text, "spans": []}).json()
         predictions = {}
         for ann in annotations:
