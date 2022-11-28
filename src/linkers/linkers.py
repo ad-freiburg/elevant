@@ -2,14 +2,14 @@ from enum import Enum
 
 
 class Linkers(Enum):
+    REFINED = "refined"
+    TAGME = "tagme"
+    DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
+    REL = "rel"
     BASELINE = "baseline"
     SPACY = "spacy"
-    TAGME = "tagme"
     POPULAR_ENTITIES = "popular-entities"
     POS_PRIOR = "pos-prior"
-    DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
-    REFINED = "refined"
-    REL = "rel"
     NONE = "none"
 
 
