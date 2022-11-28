@@ -10,6 +10,7 @@ class Linkers(Enum):
     POS_PRIOR = "pos-prior"
     DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
     REFINED = "refined"
+    REL = "rel"
     NONE = "none"
 
 
