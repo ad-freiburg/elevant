@@ -54,7 +54,10 @@ class LinkingSystem:
 
     def _initialize_entity_db(self, linker_name: str, coref_linker: str, min_score: int):
         # Linkers for which not to load entities into the entity database
-        no_db_linkers = (Linkers.TAGME.value, Linkers.DBPEDIA_SPOTLIGHT.value, Linkers.NONE.value)
+        # The Wikipedia2Wikidata mapping that might be loaded in _initialize_linker()
+        # remains unaffected by this.
+        no_db_linkers = (Linkers.TAGME.value, Linkers.DBPEDIA_SPOTLIGHT.value, Linkers.NONE.value,
+                         Linkers.REFINED.value, Linkers.REL.value)
 
         self.entity_db = EntityDatabase()
 
