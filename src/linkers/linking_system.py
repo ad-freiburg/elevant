@@ -11,7 +11,6 @@ from src.prediction_readers.nif_prediction_reader import NifPredictionReader
 from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
 from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
 from src.linkers.baseline_linker import BaselineLinker
-from src.linkers.bert_linker import BertLinker
 from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.popular_entities_linker import PopularEntitiesLinker
@@ -127,8 +126,6 @@ class LinkingSystem:
                                             MappingName.NAME_ALIASES,
                                             MappingName.WIKIDATA_ALIASES})
             self.linker = BaselineLinker(self.entity_db, self.linker_config)
-        elif linker_type == Linkers.BERT_MODEL.value:
-            self.linker = BertLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
             min_score = self.linker_config["min_score"]
             self.load_missing_mappings({MappingName.NAME_ALIASES,

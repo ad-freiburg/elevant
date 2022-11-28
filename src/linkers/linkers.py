@@ -5,7 +5,6 @@ class Linkers(Enum):
     BASELINE = "baseline"
     SPACY = "spacy"
     TAGME = "tagme"
-    BERT_MODEL = "bert-model"
     POPULAR_ENTITIES = "popular-entities"
     POS_PRIOR = "pos-prior"
     DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
