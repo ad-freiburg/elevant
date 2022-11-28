@@ -53,16 +53,11 @@ To start the evaluation web app, run
 
 You can then access the webapp at <http://0.0.0.0:8000/>.
 
-In the benchmark dropdown menu, you can select any benchmark for which a benchmark file in the correct format exists at
- `benchmarks/<benchmark_name>.benchmark.jsonl`. See [Included Benchmarks](docs/included_benchmarks.md) for
- details on benchmarks that are already included in ELEVANT. The section [Add a Benchmark](#add-a-benchmark) explains
- how you can add more benchmarks yourself.
-
-A benchmark's evaluation results table contains one row for each experiment. In ELEVANT, an experiment is a run of a
+The evaluation results table contains one row for each experiment. In ELEVANT, an experiment is a run of a
  particular entity linker with particular linker settings on a particular benchmark. We already added a few experiments,
  including oracle predictions (perfect linking results generated from the ground truth), so you can start exploring
- the web app right away. The section [Add an Experiment](#add-an-experiment) explains how you can add more
- experiments yourself.
+ the web app right away. The section [Add a Benchmark](#add-a-benchmark) explains how you can add more benchmarks
+ and the section [Add an Experiment](#add-an-experiment) explains how you can add more experiments yourself.
 
 See [Evaluation Web App](docs/evaluation_webapp.md) for a detailed overview of the web app's features.
 
@@ -80,8 +75,6 @@ To add a benchmark, simply run
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types and writes the result to the file
  `benchmarks/<benchmark_name>.benchmark.jsonl`.
-
-In the web app, reload the page and the benchmark will show up in the benchmark dropdown menu.
 
 The benchmark can now be linked with a linker of your choice using the `link_benchmark_entities.py` script with the
  parameter `-b <benchmark_name>`. See section [Add an Experiment](#add-an-experiment) for details on how to link a
