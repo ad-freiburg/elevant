@@ -3,12 +3,14 @@ We distinguish between three classes of linkers in Elevant:
 1. Some linkers can be incorporated into our framework without writing much code, e.g. by accessing an external
  linker API. These linkers can be used directly with Elevant's `link_benchmark_entities.py` script to generate linking
  results. The following linkers belong to this class:
+    - ReFinED
+    - REL
     - TagMe (requires an access token that can easily be obtained)
     - DBPedia Spotlight
     - Spacy (needs to be trained before usage)
     - Our baselines
 
-    All of these linkers are described further down in this document.
+    All of these linkers are described in this document.
 
 2. For some linkers, an entire code base is needed to produce linking results and this code base does not run
  out of the box or does not produce output in a format that can be mapped to Elevant's internal format, e.g. because
@@ -24,6 +26,40 @@ We distinguish between three classes of linkers in Elevant:
  `src/prediction_readers/`. The following linkers are examples for this class:
     - Ambiverse
 
+
+#### ReFinED
+ReFinED is a fast end-to-end entity linker based on Transformers that is capable of generalizing to entities not seen
+ during training. It was developed by Ayoola et al. and described in the 2022 paper
+[ReFinED: An Efficient Zero-shot-capable Approach to End-to-End Entity Linking](https://arxiv.org/pdf/2207.04108v1.pdf).
+
+In ELEVANT, you can use the ReFinED linker with the `link_benchmark_entities.py` script and the linker name `refined`.
+ In the corresponding config file `configs/refined.config.json` you can set the model name (e.g. `aida_model` for the
+ fine-tuned model or `wikipedia_model` for the model trained on Wikipedia only) as well as the candidate set
+ (`wikipedia` to restrict the candidate set to 6 million Wikidata entities that also have a Wikipedia page, or
+ `wikidata` for a set of 33 million Wikidata entities).
+
+    python3 link_benchmark_entities.py <experiment_name> -l refined -b <benchmark_name>
+
+#### REL
+REL (Radboud Entity Linker) is a modular linking system developed by van Hulst et al. and described in the 2020 paper 
+ [REL: An Entity Linker Standing on the Shoulders of Giants](https://arxiv.org/pdf/2006.01969v1.pdf). The motivation
+ behind REL is to provide a fast, modular state-of-the-art linking system where mention detection and disambiguation
+ components can be easily exchanged and the underlying knowledge base (Wikipedia) can easily be updated.
+
+Per default, REL uses Flair (Akbik et al., 2018) as NER component which is based on contextualized word embeddings.
+ For the candidate selection, up to 4 candidate entities are selected based on their prior probability and up to 3
+ candidate entities are selected based on the similarity between the candidate entity's Wikipedia2Vec embedding and
+ the embeddings of the words in the mention's context. For the disambiguation step, they combine local compatibility,
+ which includes prior probability and context similarity, with coherence with other linking decisions in the document.
+ They use a feed forward neural network to optimize the disambiguation step and train it on the AIDA-CoNLL training
+ dataset.
+ 
+In ELEVANT, you can use the REL linker with the `link_benchmark_entities.py` script and the linker name `rel`.
+ In the corresponding config file `configs/rel.config.json` you can set the API URL - the official REL API URL per
+ default, but you can also run the system yourself, e.g. using Docker as described in the
+ [GitHub repo](https://github.com/informagi/REL), and provide a custom API URL.
+
+    python3 link_benchmark_entities.py <experiment_name> -l rel -b <benchmark_name>
 
 #### TagMe
 TagMe was introduced by Ferragina & Scaiella in the 2010 paper [TAGME: On-the-fly Annotation of Short Text Fragments
