@@ -127,7 +127,7 @@ will create the files `evaluation-results/baseline/baseline.kore50.eval_cases.js
  each true positive, false positive and false negative case. The `eval_results` file contains the scores that are shown
  in the web app's evaluation results table.
 
-In the web app, simply reload the page and the experiment will show up as a row in the evaluation results table of
+In the web app, simply reload the page and the experiment will show up as a row in the evaluation results table for
  the corresponding benchmark.
 
 See [Evaluate Linking Results](docs/evaluate_linking_results.md) for instructions on how to evaluate multiple linking
