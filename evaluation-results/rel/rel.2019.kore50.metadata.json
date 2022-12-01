@@ -1,0 +1,1 @@
+{"experiment_name": "REL (2019)", "experiment_description": "Using the Wiki 2019 version and Flair for NER.", "linker_name": "REL", "timestamp": "2022/11/28 11:21", "linking_time": 7.4434614181518555, "linker_config": {"linker_name": "REL", "api_url": "http://wolga.informatik.privat:5555/api", "experiment_description": "Using the Wiki 2019 version and Flair for NER."}}
