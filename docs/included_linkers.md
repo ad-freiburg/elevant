@@ -55,9 +55,12 @@ Per default, REL uses Flair (Akbik et al., 2018) as NER component which is based
  dataset.
  
 In ELEVANT, you can use the REL linker with the `link_benchmark_entities.py` script and the linker name `rel`.
- In the corresponding config file `configs/rel.config.json` you can set the API URL - the official REL API URL per
- default, but you can also run the system yourself, e.g. using Docker as described in the
- [GitHub repo](https://github.com/informagi/REL), and provide a custom API URL.
+ In the corresponding config file `configs/rel.config.json`, you can set the Wikipedia version and NER model name
+  (consult the REL GitHub page for information on the available options:
+  [GitHub repo](https://github.com/informagi/REL)). When you first use the corresponding model, the necessary data
+  will be automatically downloaded. Alternatively you can set `use_api` to `true` and set the `api_url` config
+  parameter (the official REL API URL per default), to query an API for REL linking results. Note that in this case,
+  the config parameters `wiki_version` and `ner_model` have no effect.
 
     python3 link_benchmark_entities.py <experiment_name> -l rel -b <benchmark_name>
 

@@ -74,7 +74,8 @@ VECTORS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/vectors
 VECTORS_ABSTRACTS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/vectors/vectors_abstracts/"
 
 # Linker files
-SPACY_MODEL_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/models/"
+LINKER_FILES = DATA_DIRECTORY + "linker_files/"
+SPACY_MODEL_DIRECTORY = LINKER_FILES + "spacy/models/"
 
 # Benchmark files
 AIDA_CONLL_BENCHMARK_FILE = DATA_DIRECTORY + "benchmarks/aida/AIDA-YAGO2-dataset.tsv"

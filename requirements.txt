@@ -11,3 +11,4 @@ pynif==0.2.0
 protobuf==3.19.4
 numpy==1.21.6
 https://github.com/amazon-science/ReFinED/archive/refs/tags/V1.zip
+git+https://github.com/informagi/REL
