@@ -1,0 +1,7 @@
+{
+  "linker_name": "WAT",
+  "rho_threshold": 0.266,
+  "api_url": "https://wat.d4science.org/wat/tag/tag",
+  "token": "replace with your own access token",
+  "experiment_description": "Using the WAT API hosted by d4science and a rho threshold of 0.266."
+}

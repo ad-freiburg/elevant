@@ -3,9 +3,10 @@ from enum import Enum
 
 class Linkers(Enum):
     REFINED = "refined"
-    TAGME = "tagme"
-    DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
     REL = "rel"
+    TAGME = "tagme"
+    WAT = "wat"
+    DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
     BASELINE = "baseline"
     SPACY = "spacy"
     POPULAR_ENTITIES = "popular-entities"

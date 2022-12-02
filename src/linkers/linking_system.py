@@ -5,6 +5,7 @@ from typing import Optional, Tuple, Dict, Set, Any
 from src.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
 from src.linkers.refined_linker import RefinedLinker
 from src.linkers.rel_linker import RelLinker
+from src.linkers.wat_linker import WatLinker
 from src.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
 from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
 from src.prediction_readers.nif_prediction_reader import NifPredictionReader
@@ -57,7 +58,7 @@ class LinkingSystem:
         # The Wikipedia2Wikidata mapping that might be loaded in _initialize_linker()
         # remains unaffected by this.
         no_db_linkers = (Linkers.TAGME.value, Linkers.DBPEDIA_SPOTLIGHT.value, Linkers.NONE.value,
-                         Linkers.REFINED.value, Linkers.REL.value)
+                         Linkers.REFINED.value, Linkers.REL.value, Linkers.WAT.value)
 
         self.entity_db = EntityDatabase()
 
@@ -166,6 +167,10 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = RelLinker(self.entity_db, self.linker_config)
+        elif linker_type == Linkers.WAT.value:
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = WatLinker(self.entity_db, self.linker_config)
         else:
             linker_exists = False
 
