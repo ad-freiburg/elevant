@@ -6,6 +6,7 @@ We distinguish between three classes of linkers in Elevant:
     - ReFinED
     - REL
     - TagMe (requires an access token that can easily be obtained)
+    - WAT (requires an access token that can easily be obtained)
     - DBPedia Spotlight
     - Spacy (needs to be trained before usage)
     - Our baselines
@@ -40,6 +41,8 @@ In ELEVANT, you can use the ReFinED linker with the `link_benchmark_entities.py`
 
     python3 link_benchmark_entities.py <experiment_name> -l refined -b <benchmark_name>
 
+The ReFinED linker class is implemented [here](../src/linkers/refined_linker.py).
+ 
 #### REL
 REL (Radboud Entity Linker) is a modular linking system developed by van Hulst et al. and described in the 2020 paper 
  [REL: An Entity Linker Standing on the Shoulders of Giants](https://arxiv.org/pdf/2006.01969v1.pdf). The motivation
@@ -64,6 +67,9 @@ In ELEVANT, you can use the REL linker with the `link_benchmark_entities.py` scr
 
     python3 link_benchmark_entities.py <experiment_name> -l rel -b <benchmark_name>
 
+The REL linker class is implemented [here](../src/linkers/rel_linker.py). REL predicts Wikipedia entity links.
+ We map the predicted Wikipedia entities to Wikidata using our mappings.
+
 #### TagMe
 TagMe was introduced by Ferragina & Scaiella in the 2010 paper [TAGME: On-the-fly Annotation of Short Text Fragments
  (by Wikipedia Entities)](https://dl.acm.org/doi/pdf/10.1145/1871437.1871689). TagMe particularly aims at linking
@@ -80,6 +86,23 @@ In ELEVANT, you can use the TagMe linker with the `link_benchmark_entities.py` s
     python3 link_benchmark_entities.py <experiment_name> -l tagme -b <benchmark_name>
 
 The TagMe linker class is implemented [here](../src/linkers/tagme_linker.py). TagMe predicts Wikipedia entity links.
+ We map the predicted Wikipedia entities to Wikidata using our mappings.
+
+#### WAT
+WAT is an entity linker based on the TagMe linker introduced by Piccinno & Ferragina in the 2014 paper
+ [From TagME to WAT: a new Entity Annotator](https://dl.acm.org/doi/pdf/10.1145/2633211.2634350). A WAT API is
+ hosted at [d4science](https://sobigdata.d4science.org/web/tagme/wat-api).
+ 
+In ELEVANT, you can use the WAT linker with the `link_benchmark_entities.py` script and the linker name `wat`. In
+ the corresponding config file `configs/wat.config.json` you can additionally specify a score threshold. The
+ threshold is a value between 0 and 1. Predicted entities with a score lower than the threshold will be discarded.
+ Per default, the threshold is 0.266. NOTE: You need a personal access token to access the WAT API which ELEVANT
+ uses. The process is easy and is described at <https://github.com/marcocor/tagme-python>. Once you have your token,
+ specify it in the config file under the key word `token`.
+ 
+    python3 link_benchmark_entities.py <experiment_name> -l wat -b <benchmark_name>
+
+The WAT linker class is implemented [here](../src/linkers/wat_linker.py). WAT predicts Wikipedia entity links.
  We map the predicted Wikipedia entities to Wikidata using our mappings.
 
 #### DBpedia Spotlight
