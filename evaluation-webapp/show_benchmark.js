@@ -1608,7 +1608,7 @@ function show_example_benchmark_modal(el) {
     $("#error_explanation").text("Description: " + error_explanation);
     // Display annotated text
     let textfield = $("#example_prediction_overview tr td");
-    show_annotated_text("example.error-category-examples", $(textfield[0]), selected_category, 100, article_index);
+    show_annotated_text("example.error-category-examples", $(textfield[0]), selected_category, 100, article_index, true);
     $("#example_prediction_overview tr th").text(window.articles_example_benchmark[article_index].title);
 }
 
@@ -1617,19 +1617,18 @@ function show_example_benchmark_modal(el) {
  Functions for DISPLAYING ANNOTATED ARTICLES
  *********************************************************************************************************************/
 
-function show_annotated_text(experiment_id, textfield, selected_cell_category, column_idx, article_index) {
+function show_annotated_text(experiment_id, textfield, selected_cell_category, column_idx, article_index, example_modal) {
     /*
      * Generate annotations and tooltips for predicted and ground truth mentions of the selected experiment
      * and article and show them in the textfield.
      */
     let benchmark = get_benchmark_from_experiment_id(experiment_id);
-    let example_benchmark = is_example_benchmark(benchmark);
-    let articles = (example_benchmark) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
+    let articles = (example_modal) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
     let annotated_text = "";
-    if (window.is_show_all_articles && !example_benchmark) {
+    if (window.is_show_all_articles && !example_modal) {
         let annotated_texts = [];
         for (let i=0; i < articles.length; i++) {
-            let annotations = get_annotations(i, experiment_id, benchmark, column_idx);
+            let annotations = get_annotations(i, experiment_id, benchmark, column_idx, example_modal);
             annotated_texts.push(annotate_text(articles[i].text,
                                                annotations,
                                                articles[i].hyperlinks,
@@ -1644,13 +1643,13 @@ function show_annotated_text(experiment_id, textfield, selected_cell_category, c
         }
     } else {
         let curr_article = articles[article_index];
-        let annotations = get_annotations(article_index, experiment_id, benchmark, column_idx);
+        let annotations = get_annotations(article_index, experiment_id, benchmark, column_idx, example_modal);
         annotated_text = annotate_text(curr_article.text, annotations, curr_article.hyperlinks, [0, curr_article.text.length], selected_cell_category);
     }
     textfield.html(annotated_text);
 }
 
-function get_annotations(article_index, experiment_id, benchmark, column_idx) {
+function get_annotations(article_index, experiment_id, benchmark, column_idx, example_modal) {
     /*
      * Generate annotations for the predicted entities of the selected experiment and article.
      *
@@ -1659,10 +1658,9 @@ function get_annotations(article_index, experiment_id, benchmark, column_idx) {
      * and then generates annotations for all of them.
      */
     let eval_mode;
-    let example_benchmark = is_example_benchmark(benchmark);
     let article_cases;
     let article_data;
-    if (example_benchmark) {
+    if (example_modal) {
         eval_mode = "IGNORED";
         article_cases = window.evaluation_cases_example_benchmark[article_index];
     } else {
@@ -1795,7 +1793,7 @@ function get_annotations(article_index, experiment_id, benchmark, column_idx) {
                 // Get text of parent span
                 if (curr_label_id !== mention.true_entity.id) {
                     let parent_span = label_id_to_label[curr_label_id].span;
-                    const articles = (example_benchmark) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
+                    const articles = (example_modal) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
                     gt_annotation.parent_text = articles[article_index].text.substring(parent_span[0], parent_span[1]);
                 }
                 gt_annotation.gt_entity_id = mention.true_entity.entity_id;
@@ -2218,7 +2216,7 @@ async function show_article(selected_exp_ids, timestamp) {
 
     // Show columns
     // Show first prediction column
-    show_annotated_text(selected_exp_ids[0], $(columns[column_idx]), window.selected_cell_categories[0], column_idx, selected_article_index);
+    show_annotated_text(selected_exp_ids[0], $(columns[column_idx]), window.selected_cell_categories[0], column_idx, selected_article_index, false);
     let displayed_exp_name = get_displayed_experiment_name(selected_exp_ids[0]);
     let benchmark_name = get_displayed_benchmark_name(selected_exp_ids[0]);
     let emphasis_str = get_emphasis_string(window.selected_cell_categories[0]);
@@ -2227,7 +2225,7 @@ async function show_article(selected_exp_ids, timestamp) {
     column_idx++;
     if(is_compare_checked() && selected_exp_ids.length > 1) {
         // Show second prediction column
-        show_annotated_text(selected_exp_ids[1], $(columns[column_idx]), window.selected_cell_categories[1], column_idx, selected_article_index);
+        show_annotated_text(selected_exp_ids[1], $(columns[column_idx]), window.selected_cell_categories[1], column_idx, selected_article_index, false);
         displayed_exp_name = get_displayed_experiment_name(selected_exp_ids[1]);
         emphasis_str = get_emphasis_string(window.selected_cell_categories[1])
         $(column_headers[column_idx]).html(displayed_exp_name + "<span class='nonbold'> on " + benchmark_name + emphasis_str + "</span>");
@@ -3261,10 +3259,6 @@ function set_top_scrollbar_width() {
      */
     let width = $("#evaluation_table_wrapper table")[0].getBoundingClientRect().width + 20;  // + width of the side scrollbar
     $("#top_scrollbar").css({"width": width + "px"});
-}
-
-function is_example_benchmark(benchmark) {
-    return benchmark === EXAMPLE_BENCHMARK_PATH.split("/")[1].replace(".benchmark.jsonl", "");
 }
 
 function is_compare_checked() {
