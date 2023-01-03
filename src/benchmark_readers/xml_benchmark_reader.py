@@ -3,6 +3,7 @@ import logging
 
 from typing import Iterator
 
+from src.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.entity_database import EntityDatabase
 from src.models.article import Article
@@ -15,12 +16,13 @@ from src.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class XMLBenchmarkReader:
+class XMLBenchmarkReader(AbstractBenchmarkReader):
     def __init__(self, entity_db: EntityDatabase, labels_file_or_dir: str, text_dir: str):
         self.entity_db = entity_db
         self.labels_file_or_dir = labels_file_or_dir
         self.text_dir = text_dir
         self.mention_dictionary = dict()
+        self.article_counter = 0
 
     def to_article(self, filename: str, text: str) -> Article:
         """
@@ -47,7 +49,7 @@ class XMLBenchmarkReader:
                 if entity_id is None:
                     # This is the case for 3 ACE mentions one of which does not (anymore?) exist in Wikipedia either.
                     # The other two are spelling errors: "Seattke" and "USS COLE (DDG-67)" (uppercase error)
-                    # For MSNBC this is the case for 87 mentions.
+                    # For MSNBC this is the case for 87 mentions, for AQUAINT for 2.
                     no_mapping_count += 1
                     entity_id = "Unknown"
                     entity_name = "UnknownNoMapping"
@@ -68,7 +70,7 @@ class XMLBenchmarkReader:
             logger.info("%d entity names could not be matched to any Wikidata ID (includes unknown entities)."
                         % no_mapping_count)
 
-        return Article(id=-1, title="", text=stripped_text, labels=labels)
+        return Article(id=self.article_counter, title=filename, text=stripped_text, labels=labels)
 
     def get_mention_dictionary_from_file(self, xml_file: str):
         """
@@ -120,6 +122,7 @@ class XMLBenchmarkReader:
         Yields for each document in the XML file and its corresponding
         document in the text_dir a WikipediaArticle with labels.
         """
+        self.article_counter = 0
         if os.path.isdir(self.labels_file_or_dir):
             self.get_mention_dictionary_from_dir(self.labels_file_or_dir)
         else:
@@ -129,3 +132,4 @@ class XMLBenchmarkReader:
             text = ''.join(open(file_path, "r", encoding="utf8").readlines())
             article = self.to_article(filename, text)
             yield article
+            self.article_counter += 1
