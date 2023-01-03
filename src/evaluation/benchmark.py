@@ -23,7 +23,8 @@ class BenchmarkFormat(Enum):
     NIF = "nif"
     AIDA_CONLL = "aida-conll"
     SIMPLE_JSONL = "simple-jsonl"
-    # MSNBC_XML = "msnbc"  # Not yet supported: 2 files are needed: annotation xml file/directory and raw text directory
+    XML = "xml"
+    TAGME = "tagme"
 
 
 def get_available_benchmarks():

@@ -80,18 +80,6 @@ SPACY_MODEL_DIRECTORY = LINKER_FILES + "spacy/models/"
 # Benchmark files
 AIDA_CONLL_BENCHMARK_FILE = DATA_DIRECTORY + "benchmarks/aida/AIDA-YAGO2-dataset.tsv"
 
-ACE04_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/ace2004/RawText/"
-ACE04_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/ace2004/ace2004.xml"
-
-ACE04_ORIGINAL_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/ace2004.original/RawTextsNoTranscripts/"
-ACE04_ORIGINAL_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/ace2004.original/ProblemsNoTranscripts/"
-
-MSNBC_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc-updated/RawText/"
-MSNBC_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc-updated/msnbc.xml"
-
-MSNBC_ORIGINAL_BENCHMARK_TEXTS = DATA_DIRECTORY + "benchmarks/msnbc/RawTextsSimpleChars_utf8/"
-MSNBC_ORIGINAL_BENCHMARK_LABELS = DATA_DIRECTORY + "benchmarks/msnbc/Problems/"
-
 BENCHMARK_DIR = "benchmarks/"
 WIKI_EX_BENCHMARK_FILE = BENCHMARK_DIR + "wiki-ex.benchmark.jsonl"
 

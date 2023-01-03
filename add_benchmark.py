@@ -18,9 +18,9 @@ def main(args):
 
     from_json_file = args.benchmark in get_available_benchmarks()
     benchmark_iterator = get_benchmark_iterator(args.benchmark,
-                                              from_json_file=from_json_file,
-                                              benchmark_file=args.benchmark_file,
-                                              benchmark_format=args.benchmark_format)
+                                                from_json_file=from_json_file,
+                                                benchmark_files=args.benchmark_file,
+                                                benchmark_format=args.benchmark_format)
 
     label_entity_ids = set()
     for article in benchmark_iterator.iterate():
@@ -79,8 +79,10 @@ if __name__ == "__main__":
     group_benchmark.add_argument("-b", "--benchmark",
                                  choices=set([b.value for b in Benchmark] + get_available_benchmarks()),
                                  help="Benchmark to annotate / create labels for.")
-    group_benchmark.add_argument("-bfile", "--benchmark_file", type=str,
-                                 help="File that contains text and information about groundtruth labels")
+    group_benchmark.add_argument("-bfile", "--benchmark_file", type=str, nargs='+',
+                                 help="File that contains text and information about groundtruth labels."
+                                      "For certain benchmark readers, e.g. the XML benchmark readers, several"
+                                      "benchmark files are needed as input.")
 
     parser.add_argument("-bformat", "--benchmark_format", choices=[f.value for f in BenchmarkFormat],
                         default=BenchmarkFormat.OURS_JSONL.value,

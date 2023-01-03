@@ -10,7 +10,7 @@ from src.models.entity_prediction import EntityPrediction
 def main(args):
     logger.info("Generating oracle links for %s ..." % args.benchmark)
 
-    benchmark_iterator = get_benchmark_iterator(args.benchmark, benchmark_file=args.benchmark_file)
+    benchmark_iterator = get_benchmark_iterator(args.benchmark, benchmark_files=args.benchmark_file)
 
     output_file = open(args.output_file, 'w', encoding='utf8')
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     group_benchmark = parser.add_mutually_exclusive_group(required=True)
     group_benchmark.add_argument("-b", "--benchmark", choices=get_available_benchmarks(),
                                  help="Name of the benchmark over which to evaluate the linked entities.")
-    group_benchmark.add_argument("-bfile", "--benchmark_file", type=str,
+    group_benchmark.add_argument("-bfile", "--benchmark_file", type=str, nargs="+",
                                  help="Benchmark file over which to evaluate the linked entities.")
 
     logger = log.setup_logger(sys.argv[0])
