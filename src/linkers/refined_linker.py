@@ -16,7 +16,7 @@ class RefinedLinker(AbstractEntityLinker):
         # Get config variables
         self.linker_identifier = config["linker_name"] if "linker_name" in config else "Refined"
         self.ner_identifier = self.linker_identifier
-        model_name = config["model_name"] if "model_name" in config else "wikipedia_model"
+        model_name = config["model_name"] if "model_name" in config else "aida_model"
         entity_set = config["entity_set"] if "entity_set" in config else "wikipedia"
 
         self.refined = Refined.from_pretrained(model_name=model_name, entity_set=entity_set)
