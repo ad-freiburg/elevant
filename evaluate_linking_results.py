@@ -157,7 +157,7 @@ if __name__ == "__main__":
                                      description=__doc__)
 
     parser.add_argument("input_files", type=str, nargs='+',
-                        help="Input file. Linked articles with ground truth labels.")
+                        help="Input file(s). Linked articles with ground truth labels.")
     parser.add_argument("-o", "--output_file", type=str,
                         help="Output file for the evaluation results."
                              " The input file with .eval_cases.jsonl extension if none is specified.")
