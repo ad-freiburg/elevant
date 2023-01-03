@@ -1,5 +1,6 @@
 from typing import Iterator
 
+from src.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.article import Article
 from src.models.entity_database import EntityDatabase
@@ -14,7 +15,7 @@ from src.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-class SimpleJsonlBenchmarkReader:
+class SimpleJsonlBenchmarkReader(AbstractBenchmarkReader):
     def __init__(self, entity_db: EntityDatabase, benchmark_path: str):
         self.entity_db = entity_db
         self.benchmark_path = benchmark_path
