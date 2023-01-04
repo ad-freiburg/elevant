@@ -54,6 +54,11 @@ class KnowledgeBaseMapper:
         if not entity_reference:
             return None
 
+        if entity_reference == "NIL":
+            # In the Derczynski dataset, NIL is used as entity reference to indicate NIL entities
+            logger.info("\"NIL\" entity reference is interpreted as NIL entity.")
+            return None
+
         # The last part of a URI is the entity name / identifier.
         # This still works if the entity_reference is not a URI and does not contain a "/" (result of rfind is -1)
         entity_name = entity_reference[entity_reference.rfind("/") + 1:]
@@ -80,6 +85,14 @@ class KnowledgeBaseMapper:
                 # Unquote entity name only if it was part of a URI
                 entity_name = unquote(entity_name)
             entity_name = entity_name.replace('_', ' ')
+
+            # The Derczynski dataset contains invisible characters which leads to entities not being mapped.
+            new_entity_name = ''.join(c for c in entity_name if c.isprintable())
+            if new_entity_name != entity_name:
+                logger.info("Unprintable characters found in entity name \"%s\"."
+                            "These characters are removed to find a mapping to Wikidata." % entity_name)
+                entity_name = new_entity_name
+
             # This should work for both Wikipedia and DBpedia entity names
             # This site contains info about the (very minor) differences between Wikipedia and DBpedia names:
             # http://nl.dbpedia.org/web/infra/uri-encoding
