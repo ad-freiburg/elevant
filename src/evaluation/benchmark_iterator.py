@@ -8,6 +8,7 @@ from src.benchmark_readers.nif_benchmark_reader import NifBenchmarkReader
 from src.benchmark_readers.our_jsonl_benchmark_reader import OurJsonlBenchmarkReader
 from src.benchmark_readers.simple_jsonl_benchmark_reader import SimpleJsonlBenchmarkReader
 from src.benchmark_readers.tagme_benchmark_reader import TagmeBenchmarkReader
+from src.benchmark_readers.tsv_benchmark_reader import TsvBenchmarkReader
 from src.benchmark_readers.xml_benchmark_reader import XMLBenchmarkReader
 from src.evaluation.benchmark import BenchmarkFormat, Benchmark
 from src.models.entity_database import EntityDatabase
@@ -43,6 +44,13 @@ def get_benchmark_iterator(benchmark_name: str,
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
             benchmark_iterator = SimpleJsonlBenchmarkReader(entity_db, benchmark_files[0])
+        elif benchmark_format == BenchmarkFormat.TSV.value:
+            logger.info("Load mappings for TSV benchmark reader...")
+            entity_db = EntityDatabase()
+            entity_db.load_wikipedia_wikidata_mapping()
+            entity_db.load_redirects()
+            logger.info("-> Mappings loaded.")
+            benchmark_iterator = TsvBenchmarkReader(entity_db, benchmark_files[0])
         elif benchmark_format == BenchmarkFormat.XML.value:
             if len(benchmark_files) == 1:
                 raise IndexError("The XML benchmark reader needs the XML file and the directory with raw texts "

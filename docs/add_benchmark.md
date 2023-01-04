@@ -3,12 +3,14 @@ You can easily add a benchmark if you have a benchmark file that is in one of th
 
 - our JSONL format
 - NLP Interchange Format (NIF)
-- IOB-based format used by Hoffart et al. for their AIDA/CoNLL benchmark
-- a very simple JSONL format
+- IOB-based format used by Hoffart et al. for their AIDA-CoNLL benchmark
+- XML format used for example for the MSNBC benchmarks
+- a simple TSV format with IOB tags
+- a simple JSONL format
 
 To add a benchmark, simply run
 
-    python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|simple-jsonl>
+    python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|xml|tsv|simple-jsonl>
 
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types as given in
@@ -61,7 +63,7 @@ Note that in ELEVANT
  
 The NIF benchmark reader is implemented [here](../src/benchmark_readers/nif_benchmark_reader.py).
 
-#### AIDA/CoNLL IOB Format
+#### AIDA-CoNLL IOB Format
 The format should be as follows:
 - Each document starts with a line that starts with the string `-DOCSTART-`
 - Each following line represents a single token, sentences are separated by an empty line
@@ -94,6 +96,98 @@ Your benchmark file should look something like this:
     Blackburn	I	Peter Blackburn	--NME--
 
 The AIDA-CoNLL benchmark reader is implemented [here](../src/benchmark_readers/aida_conll_benchmark_reader.py).
+
+
+#### XML (MSNBC) Format
+The benchmark reader for the XML format takes two paths as input. The first one is the path to an XML file containing
+ the ground truth labels. This file should look something like this:
+
+    ?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <msnbc.entityAnnotation>
+            <document docName="3683270">
+                    <annotation>
+                            <mention>NEW YORK</mention>
+                            <wikiName>New York City</wikiName>
+                            <offset>46</offset>
+                            <length>8</length>
+                    </annotation>
+                    <annotation>
+                            <mention>New York Stock Exchange</mention>
+                            <wikiName>NIL</wikiName>
+                            <offset>311</offset>
+                            <length>23</length>
+                    </annotation>
+
+                    ...
+        </document>
+    </msnbc.entityAnnotation>
+
+Alternatively, the first path may be a path to a directory containing one file per article with annotations in a
+ format like this:
+
+    <ReferenceProblem>
+    <ReferenceFileName>
+    Bus16451112.txt
+    </ReferenceFileName>
+    <ReferenceInstance>
+    <SurfaceForm>
+    Home Depot
+    </SurfaceForm>
+    <Offset>
+    0
+    </Offset>
+    <Length>
+    10
+    </Length>
+    <ChosenAnnotation>
+    http://en.wikipedia.org/wiki/Home_Depot
+    </ChosenAnnotation>
+    <NumAnnotators>
+    1
+    </NumAnnotators>
+    <AnnotatorId>
+    Silviu Cucerzan
+    </AnnotatorId>
+    <Annotation>
+    Home Depot
+    </Annotation>
+
+
+The second path is the path to a directory containing txt files with the raw article texts (one article per file).
+ The filename of an article text must be the same as the `docName` (or the `ReferenceFileName`) in the XML file for
+ that article.
+
+In order to add a benchmark in this format, call the `add_benchmark.py` with the following arguments:
+
+    python3 add_benchmark.py <benchmark_name> -bfile <path_to_xml_file(s)> <path_to_raw_text_dir> -bformat xml
+
+The XML benchmark reader is implemented [here](../src/benchmark_readers/xml_benchmark_reader.py).
+
+#### TSV IOB Format
+The benchmark file should contain one line per token. Each line contains at least three tab-separated columns, where
+- column 1 is the token
+- column 2 is the entity reference or empty if the token does not belong to an entity or the entity is NIL. The
+ entity reference can be from Wikidata, Wikipedia or DBpedia.
+- column 3 is either "B" (beginning of a mention), "I" (continuation of a mention) or "O" (outside of a mention).
+ Only the first character of this column is considered, the rest is ignored. Therefore, this column may also
+ contain something like `B-person`.
+Any additional columns are ignored. Documents are separated by an empty line.
+
+Your benchmark file could for example look something like this:
+
+    Off             O
+    camping         O
+    to              O
+    Robinhoods      http://dbpedia.org/resource/Robin_Hood_Bay      B
+    bay     http://dbpedia.org/resource/Robin_Hood_Bay      I
+    In              O
+    Jasmin       B
+    .               O
+    Good            O
+    weekend         O
+
+The TSV benchmark reader is implemented [here](../src/benchmark_readers/tsv_benchmark_reader.py).
+
 
 #### Simple JSONL Format
 The benchmark file should contain one line per benchmark article, where each line is a json object with the

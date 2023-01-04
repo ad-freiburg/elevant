@@ -25,6 +25,7 @@ class BenchmarkFormat(Enum):
     SIMPLE_JSONL = "simple-jsonl"
     XML = "xml"
     TAGME = "tagme"
+    TSV = "tsv"
 
 
 def get_available_benchmarks():
