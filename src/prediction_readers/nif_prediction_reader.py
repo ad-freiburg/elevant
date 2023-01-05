@@ -27,14 +27,16 @@ class NifPredictionReader(AbstractPredictionReader):
             file_content = file.readlines()
             nif_content = "".join(file_content)
             nif_doc = NIFCollection.loads(nif_content)
-            for context in nif_doc.contexts:
+            # NIF contexts have random order by default. Make sure results are reproducible by sorting by URI
+            for context in sorted(nif_doc.contexts, key=lambda c: c.uri):
                 text = context.mention
                 if not text:
                     # This happens e.g. in KORE50 for the parent context
                     # <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv>
                     continue
                 predictions = {}
-                for phrase in context.phrases:
+                # Make sure predictions are sorted by start index
+                for phrase in sorted(context.phrases, key=lambda p: p.beginIndex):
                     entity_uri = phrase.taIdentRef
                     entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
                     span = phrase.beginIndex, phrase.endIndex

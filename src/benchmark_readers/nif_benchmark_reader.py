@@ -39,7 +39,8 @@ class NifBenchmarkReader(AbstractBenchmarkReader):
                 continue
             title = context.uri
             labels = []
-            for phrase in context.phrases:
+            # Make sure annotations are sorted by start index
+            for phrase in sorted(context.phrases, key=lambda p: p.beginIndex):
                 span = phrase.beginIndex, phrase.endIndex
                 entity_uri = phrase.taIdentRef
                 entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
