@@ -112,12 +112,30 @@ The following benchmarks are included in ELEVANT and can be used out of the box 
 TODO: Write more
 
 
+### Derczynski
+*Derczynski et al., 2015*
+
+**Paper:** [Analysis of named entity recognition and linking for tweets](https://www.sciencedirect.com/science/article/pii/S0306457314001034)
+
+**ELEVANT benchmark name:** `derczynski`
+
+**Volume:** 183 Tweets.
+
+**Method:** Derczynski et al. asked 10 volunteer NLP experts to annotate tweets. The annotators could choose from a
+ set of entity candidates as well as select "none of the above", "not an entity" or "cannot decide". Each entity
+ mention was annotated by 3 volunteers. If an annotation decision was unclear, a fourth expert adjudicated on the
+ annotation decision.
+
+**GERBIL Download:** <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
+
+
 ### OKE-2015
 TODO: Write something
 
 
 ### OKE-2016
 TODO: Write something
+
 
 
 ## Excluded Benchmarks
@@ -174,7 +192,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
  selected, but the selection was limited to short articles (250 - 300 words). No information is given in the original
  paper about the annotation process.
 
-**Inofficial Download e.g.:**
+**Inofficial Download, e.g.:**
 <https://github.com/kermitt2/entity-fishing/tree/6364840573e7766feaa93458b386d5ba6aec9cdc/data/corpus/corpus-long/aquaint>
 
 **Notes:**
