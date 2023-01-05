@@ -119,6 +119,13 @@ The following benchmarks are included in ELEVANT and can be used out of the box 
 
 **Official Download:** <https://github.com/dice-group/n3-collection/blob/master/Reuters-128.ttl>
 
+**Notes:**
+- Demonyms are not annotated, e.g. in "2,600 Iraqis had been killed", "Iraqis" is not annotated.
+- Adjectival modifiers and compounds are not annotated, e.g. in "Reagans decision was based on inaccurate data.",
+ "Reagans" is not annotated and in "there are no plans to try to reduce the U.S. budget deficit", "U.S." is not
+ annotated.
+- Annotations are missing, e.g. in "Edelman was unsuccessful last year", "Edelman" is not annotated, even though it
+ is annotated in previous sentences.
 
 ### Derczynski
 *Derczynski et al., 2015*
