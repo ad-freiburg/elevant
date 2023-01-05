@@ -18,7 +18,7 @@ This converts the `<benchmark_file>` into our JSONL format (if it is not in this
  `benchmarks/<benchmark_name>.benchmark.jsonl`. Additionally, a file `benchmarks/<benchmark_name>.metadata.jsonl` is
  created that contains metadata information such as a benchmark description and the benchmark name that will be
  displayed in the evaluation webapp. The description and displayed name can be specified using the `-desc` and
- `-dname` arguments.
+ `-dname` arguments. You can also simply adjust the description and experiment name in the metadata file at any time.
 
 If your benchmark is not in one of the supported formats, you can either convert it into one of those formats
  yourself or write your own benchmark reader, as explained in section

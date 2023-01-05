@@ -14,7 +14,8 @@ Properties specific to the selected linker such as confidence thresholds, model 
 Additionally, this will create a file
 `evaluation-results/<linker_name>/<adjusted_experiment_name>.<benchmark_name>.metadata.jsonl` that contains metadata
  information such as an experiment description and the experiment name that will be displayed in the evaluation
- webapp. The description can be specified using the `-desc` argument.
+ webapp. The description can be specified using the `-desc` argument. Per default, the description from the linker's
+ config file is used. You can also simply adjust the description and experiment name in the metadata file at any time.
 
 For a list of entity linkers included in ELEVANT, see [Included Linkers](included_linkers.md).
 
