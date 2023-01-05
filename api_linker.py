@@ -36,10 +36,11 @@ def nif_api():
                 if em.entity_id is None:
                     entity_uri = 'http://example.org/unknown/some_entity'
                 else:
-                    entity_uri = 'http://www.wikidata.org/entity/' + em.entity_id
-                if not args.wikidata_annotations:
-                    wikipedia_title = linking_system.entity_db.id2wikipedia_name(em.entity_id)
-                    entity_uri = "https://en.wikipedia.org/wiki/" + quote(wikipedia_title.replace(" ", "_"))
+                    if args.wikidata_annotations:
+                        entity_uri = 'http://www.wikidata.org/entity/' + em.entity_id
+                    else:
+                        wikipedia_title = linking_system.entity_db.id2wikipedia_name(em.entity_id)
+                        entity_uri = "https://en.wikipedia.org/wiki/" + quote(wikipedia_title.replace(" ", "_"))
                 context.add_phrase(beginIndex=em.span[0], endIndex=em.span[1], taIdentRef=entity_uri)
 
     resp = Response()
