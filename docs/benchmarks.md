@@ -109,7 +109,15 @@ The following benchmarks are included in ELEVANT and can be used out of the box 
 
 **ELEVANT benchmark name:** `reuters-128`
 
-TODO: Write more
+**Volume:** 128 articles from the Reuters-21578 corpus which contains economic news articles. Each article contains
+ at least one named entity. The benchmark contains 880 entity mentions, 650 of which are non-NIL mentions. 27 originally
+ non-NIL mentions could not be mapped to a Wikidata QID and are thus additional NIL-mentions in ELEVANT, such that in
+ ELEVANT, the Reuters-128 benchmark has 623 non-NIL ground truth mentions.
+
+**Method:** In a first step, entities were recognized using FOX (Ngomo et al., 2011). Domain experts then
+ manually corrected recognition mistakes and two scientists annotated the named entities with a corresponding URI.
+
+**Official Download:** <https://github.com/dice-group/n3-collection/blob/master/Reuters-128.ttl>
 
 
 ### Derczynski
@@ -127,14 +135,6 @@ TODO: Write more
  annotation decision.
 
 **GERBIL Download:** <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
-
-
-### OKE-2015
-TODO: Write something
-
-
-### OKE-2016
-TODO: Write something
 
 
 
@@ -215,9 +215,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
 **Volume:** 500 random sentences from a set of RSS feeds including all major worldwide newspapers. From the paper:
  "These sentences were a subset of those which contained a natural language representation of a formal relation, like
  “... , who was born in ... ” for dpo:birthPlace [...]. The relations had to occur more than 5 times in the 1% corpus."
- The dataset contains 1000 mentions, of which 524 are non-NIL mentions and 476 are NIL-mentions. 6 originally non-NIL
- mentions could not be mapped to a Wikidata QID and are thus additional NIL-mentions in ELEVANT, such that in ELEVANT,
- the RSS-500 benchmark has 518 ground truth mentions.
+ The dataset contains 1000 mentions, of which 524 are non-NIL mentions and 476 are NIL-mentions.
 
 *Wikidata version:*
  Delpeuch converted the DBpedia annotations from the original RSS-500 dataset to Wikidata as described in the paper
@@ -316,3 +314,23 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
  contributors are encouraged to omit hyperlinks if entities are very well known and only the first occurrence of an
  entity is linked in an article. The dataset can therefore not be used to reasonably compute precision or F1 score
  unless ground truth mention spans are given.
+
+
+### OKE-2015
+TODO: Write something
+
+**Download:**\
+**Official Download:** <https://github.com/anuzzolese/oke-challenge/>
+
+**GERBIL Download (identical to the official version):** <https://github.com/dice-group/gerbil/releases/download/v1.2.6
+/gerbil_data.zip>
+
+
+### OKE-2016
+TODO: Write something
+
+**Download:**\
+**Official Download:** <https://github.com/anuzzolese/oke-challenge-2016/>
+
+**GERBIL Download (identical to the official version):** <https://github.com/dice-group/gerbil/releases/download/v1.2.6
+/gerbil_data.zip>
