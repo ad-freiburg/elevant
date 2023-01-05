@@ -2,25 +2,7 @@ import json
 import os
 from typing import Optional, Tuple, Dict, Set, Any
 
-from src.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
-from src.linkers.refined_linker import RefinedLinker
-from src.linkers.rel_linker import RelLinker
-from src.linkers.wat_linker import WatLinker
-from src.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
-from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
-from src.prediction_readers.nif_prediction_reader import NifPredictionReader
-from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
-from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
-from src.linkers.baseline_linker import BaselineLinker
-from src.linkers.entity_coref_linker import EntityCorefLinker
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
-from src.linkers.popular_entities_linker import PopularEntitiesLinker
-from src.linkers.prior_linker import PriorLinker
-from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
-from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
-from src.linkers.tagme_linker import TagMeLinker
-from src.linkers.spacy_linker import SpacyLinker
-from src.linkers.xrenner_coref_linker import XrennerCorefLinker
 from src.models.article import Article
 from src.models.entity_database import EntityDatabase, MappingName
 
@@ -102,20 +84,25 @@ class LinkingSystem:
         linker_exists = True
 
         if linker_type == Linkers.SPACY.value:
+            from src.linkers.spacy_linker import SpacyLinker
             self.linker = SpacyLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.AMBIVERSE.value:
+            from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.prediction_reader = AmbiversePredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.TAGME.value:
+            from src.linkers.tagme_linker import TagMeLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = TagMeLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.SIMPLE_JSONL.value:
+            from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.prediction_reader = SimpleJsonlPredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.BASELINE.value:
+            from src.linkers.baseline_linker import BaselineLinker
             if self.linker_config["strategy"] == "wikidata":
                 self.load_missing_mappings({MappingName.WIKIDATA_ALIASES,
                                             MappingName.NAME_ALIASES,
@@ -131,6 +118,7 @@ class LinkingSystem:
                                             MappingName.WIKIDATA_ALIASES})
             self.linker = BaselineLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
+            from src.linkers.popular_entities_linker import PopularEntitiesLinker
             min_score = self.linker_config["min_score"]
             self.load_missing_mappings({MappingName.NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES,
@@ -140,11 +128,13 @@ class LinkingSystem:
             self.linker = PopularEntitiesLinker(self.entity_db, self.linker_config)
             self.globally = True
         elif linker_type == PredictionFormats.WIKIFIER.value:
+            from src.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS,
                                         MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE})
             self.prediction_reader = WikifierPredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.POS_PRIOR.value:
+            from src.linkers.prior_linker import PriorLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS,
                                         MappingName.LINK_FREQUENCIES,
@@ -152,22 +142,28 @@ class LinkingSystem:
                                         MappingName.WIKIDATA_ALIASES})
             self.linker = PriorLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.NIF.value:
+            from src.prediction_readers.nif_prediction_reader import NifPredictionReader
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.prediction_reader = NifPredictionReader(prediction_file, self.entity_db)
         elif linker_type == PredictionFormats.EPGEL.value:
+            from src.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
             self.prediction_reader = EPGELPredictionReader(prediction_file)
         elif linker_type == Linkers.DBPEDIA_SPOTLIGHT.value:
+            from src.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = DbpediaSpotlightLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.REFINED.value:
+            from src.linkers.refined_linker import RefinedLinker
             self.linker = RefinedLinker(self.linker_config)
         elif linker_type == Linkers.REL.value:
+            from src.linkers.rel_linker import RelLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = RelLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.WAT.value:
+            from src.linkers.wat_linker import WatLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = WatLinker(self.entity_db, self.linker_config)
@@ -187,14 +183,18 @@ class LinkingSystem:
         logger.info("Initializing coref linker %s ..." % linker_type)
         linker_exists = True
         if linker_type == CoreferenceLinkers.NEURALCOREF.value:
+            from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
             self.coref_linker = NeuralcorefCorefLinker()
         elif linker_type == CoreferenceLinkers.ENTITY.value:
+            from src.linkers.entity_coref_linker import EntityCorefLinker
             self.load_missing_mappings({MappingName.GENDER,
                                         MappingName.COREFERENCE_TYPES})
             self.coref_linker = EntityCorefLinker(self.entity_db)
         elif linker_type == CoreferenceLinkers.STANFORD.value:
+            from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
             self.coref_linker = StanfordCoreNLPCorefLinker()
         elif linker_type == CoreferenceLinkers.XRENNER.value:
+            from src.linkers.xrenner_coref_linker import XrennerCorefLinker
             self.coref_linker = XrennerCorefLinker()
         else:
             linker_exists = False
