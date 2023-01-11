@@ -34,7 +34,8 @@ Our JSONL format supports the following keys:
      the ground truth label has no children.
     - `optional`: Boolean indicating whether the detection of the ground truth label is optional.
     - `type`: The whitelist Wikidata type(s) of the ground truth entity
-- `evaluation_span` (*optional*): The span of the article text for which linking results should be evaluated. If
+- `evaluation_span`: The span of the article text for which linking results should be evaluated. Typically, this is
+ the span of the entire article text.
 
 The following is an example for a file that contains two articles (both consisting of a single sentence) with predicted
  entity mentions and ground truth labels:
