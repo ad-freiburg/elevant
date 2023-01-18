@@ -2490,8 +2490,8 @@ function copy_table() {
     }
 
     // Copy the table text to the clipboard
-    const $copy_table_text_div = $("#evaluation_overview .copy_table_text");
-    const $copy_table_textarea = $("#evaluation_overview .copy_table_text textarea");
+    const $copy_table_text_div = $("#copy_table_text");
+    const $copy_table_textarea = $("#copy_table_text textarea");
     $copy_table_text_div.show();
     $copy_table_textarea.val(table_text);
     $copy_table_textarea.show();  // Text is not selected or copied if it is hidden

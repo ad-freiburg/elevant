@@ -293,13 +293,13 @@ Moreover, the selected border color is not shown, only the background color.
 /* Begin copy table */
 
 /* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */
-div.copy_table_text {
+#copy_table_text {
     display: none;
 }
-div.copy_table_text p {
+#copy_table_text p {
     color: var(--cell-header-color);
 }
-div.copy_table_text textarea {
+#copy_table_text textarea {
     display: none;
 }
 
