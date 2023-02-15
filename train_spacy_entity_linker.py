@@ -53,7 +53,7 @@ def main(args):
     optimizer = nlp.begin_training()
 
     # initialize label generator:
-    mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
+    mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_db()
     generator = LabelGenerator(nlp, kb, mapping)
 
     # iterate over training examples (batch size 1):

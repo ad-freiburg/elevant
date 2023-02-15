@@ -40,7 +40,7 @@ class LinkingSystem:
         # The Wikipedia2Wikidata mapping that might be loaded in _initialize_linker()
         # remains unaffected by this.
         no_db_linkers = (Linkers.TAGME.value, Linkers.DBPEDIA_SPOTLIGHT.value, Linkers.NONE.value,
-                         Linkers.REFINED.value, Linkers.REL.value, Linkers.WAT.value)
+                         Linkers.REFINED.value, Linkers.REL.value, Linkers.WAT.value, Linkers.SPACY.value)
 
         self.entity_db = EntityDatabase()
 
@@ -85,7 +85,7 @@ class LinkingSystem:
 
         if linker_type == Linkers.SPACY.value:
             from src.linkers.spacy_linker import SpacyLinker
-            self.linker = SpacyLinker(self.entity_db, self.linker_config)
+            self.linker = SpacyLinker(self.linker_config)
         elif linker_type == PredictionFormats.AMBIVERSE.value:
             from src.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
@@ -119,12 +119,12 @@ class LinkingSystem:
             self.linker = BaselineLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
             from src.linkers.popular_entities_linker import PopularEntitiesLinker
-            min_score = self.linker_config["min_score"]
             self.load_missing_mappings({MappingName.NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES,
                                         MappingName.LANGUAGES,
                                         MappingName.DEMONYMS,
-                                        MappingName.SITELINKS}, min_score)
+                                        MappingName.SITELINKS,
+                                        MappingName.NAME_TO_ENTITY_ID})
             self.linker = PopularEntitiesLinker(self.entity_db, self.linker_config)
             self.globally = True
         elif linker_type == PredictionFormats.WIKIFIER.value:
@@ -228,9 +228,9 @@ class LinkingSystem:
             predicted_coref_entities = next(self.coref_prediction_iterator)
             article.link_entities(predicted_coref_entities, "PREDICTION_READER_COREF", "PREDICTION_READER_COREF")
 
-    def load_missing_mappings(self, mappings: Set[MappingName], min_count: Optional[int] = 1):
-        if MappingName.WIKIPEDIA_WIKIDATA in mappings and not self.entity_db.is_wikipedia_wikidata_mapping_loaded():
-            self.entity_db.load_wikipedia_wikidata_mapping()
+    def load_missing_mappings(self, mappings: Set[MappingName]):
+        if MappingName.WIKIPEDIA_WIKIDATA in mappings and not self.entity_db.is_wikipedia_to_wikidata_mapping_loaded():
+            self.entity_db.load_wikipedia_to_wikidata_db()
         if MappingName.REDIRECTS in mappings and not self.entity_db.is_redirects_loaded():
             self.entity_db.load_redirects()
         if MappingName.LINK_FREQUENCIES in mappings and not self.entity_db.is_link_frequencies_loaded():
@@ -255,9 +255,11 @@ class LinkingSystem:
         if MappingName.DEMONYMS in mappings and not self.entity_db.has_demonyms_loaded():
             self.entity_db.load_demonyms()
         if MappingName.SITELINKS in mappings and not self.entity_db.has_sitelink_counts_loaded():
-            self.entity_db.load_sitelink_counts(min_count=min_count)
+            self.entity_db.load_sitelink_counts()
         if MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE in mappings and not self.entity_db.has_wikipedia_id2wikipedia_title_loaded():
             self.entity_db.load_wikipedia_id2wikipedia_title()
+        if MappingName.NAME_TO_ENTITY_ID in mappings and not self.entity_db.loaded_info.get(MappingName.NAME_TO_ENTITY_ID):
+            self.entity_db.load_label_to_entity_id()
 
         if MappingName.GENDER in mappings and not self.entity_db.is_gender_loaded():
             self.entity_db.load_gender()

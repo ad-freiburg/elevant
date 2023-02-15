@@ -4,6 +4,7 @@ from typing import Dict, Set, Tuple, Iterator, Optional, List, Any
 import logging
 
 from src import settings
+from src.models.database import Database
 from src.models.gender import Gender
 from src.models.wikidata_entity import WikidataEntity
 from src.helpers.entity_database_reader import EntityDatabaseReader
@@ -28,6 +29,7 @@ class MappingName(Enum):
     DEMONYMS = "demonyms"
     NAMES = "names"
     WIKIPEDIA_ID_WIKIPEDIA_TITLE = "wikipedia_id_wikipedia_title"
+    NAME_TO_ENTITY_ID = "name_to_entity_id"
 
 
 class LoadingType(Enum):
@@ -46,16 +48,16 @@ class EntityDatabase:
     def __init__(self):
         self.entities = {}
         self.entities: Dict[str, WikidataEntity]
-        self.entities_by_name = {}
-        self.entities_by_name: Dict[str, Set[str]]
+        self.entities_by_label = {}
+        self.entities_by_label: Dict[str, Set[str]]
         self.aliases = {}
         self.aliases: Dict[str, Set[str]]
         self.wikipedia2wikidata = {}
-        self.wikipedia2wikidata: Dict[str, str]
+        self.wikipedia2wikidata: Database
         self.wikidata2wikipedia = {}
         self.wikidata2wikipedia: Dict[str, str]
         self.redirects = {}
-        self.redirects: Dict[str, str]
+        self.redirects: Database
         self.title_synonyms = {}
         self.title_synonyms: Dict[str, Set[str]]
         self.akronyms = {}
@@ -81,50 +83,67 @@ class EntityDatabase:
         self.wikipedia_id2wikipedia_title = dict()
         self.loaded_info = {}
 
-    def add_entity(self, entity: WikidataEntity):
-        self.entities[entity.entity_id] = entity
-        if entity.name not in self.entities_by_name:
-            self.entities_by_name[entity.name] = {entity.entity_id}
-        else:
-            self.entities_by_name[entity.name].add(entity.entity_id)
-
     def contains_entity(self, entity_id: str) -> bool:
         return entity_id in self.entities
-
-    def contains_entity_name(self, entity_name: str) -> bool:
-        return entity_name in self.entities_by_name
-
-    def get_entities_by_name(self, entity_name: str) -> Set[str]:
-        return self.entities_by_name[entity_name]
 
     def get_entity(self, entity_id: str) -> WikidataEntity:
         return self.entities[entity_id]
 
     def load_all_entities_in_wikipedia(self, minimum_sitelink_count: Optional[int] = 0,
-                                       type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
+                                       type_mapping: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB):
         logger.info("Loading entities from Wikipedia to Wikidata mapping into entity database ...")
-        mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
-        entity_ids = set(mapping.values())
+        db = EntityDatabaseReader.get_wikipedia_to_wikidata_db()
+        entity_ids = set(db.values())
         self.load_entities(entity_ids, minimum_sitelink_count, type_mapping)
 
     def load_entities(self, entity_ids: Set[str], minimum_sitelink_count: Optional[int] = 0,
-                      type_mapping: Optional[str] = settings.WHITELIST_TYPE_MAPPING):
+                      type_mapping: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB):
         self.loaded_info[MappingName.ENTITIES] = LoadedInfo(LoadingType.RELEVANT_ENTITIES,
                                                             minimum_sitelink_count)
         logger.info("Loading %d relevant entities with sitelink count >= %d into entity database ..."
                     % (len(entity_ids), minimum_sitelink_count))
         entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, type_mapping)
-        if minimum_sitelink_count > 0:
+        if minimum_sitelink_count == 0:
+            self.entities = entities
+        else:
             # If a minimum sitelink count is given, load sitelink mapping to check
             # entity sitelink counts against the given minimum sitelink count
-            self.load_sitelink_counts(minimum_sitelink_count)
-        for entity in entities.values():
-            if minimum_sitelink_count == 0 or minimum_sitelink_count <= self.get_sitelink_count(entity.entity_id):
-                self.add_entity(entity)
+            self.load_sitelink_counts()
+            for entity in entities.values():
+                if minimum_sitelink_count <= self.get_sitelink_count(entity.entity_id):
+                    self.entities[entity.entity_id] = entity
         logger.info("-> Entity database contains %d entities." % self.size_entities())
 
     def size_entities(self) -> int:
         return len(self.entities)
+
+    def load_label_to_entity_id(self, entity_ids: Optional[Set[str]] = None,
+                                minimum_sitelink_count: Optional[int] = 0,
+                                type_mapping: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB):
+        self.loaded_info[MappingName.NAME_TO_ENTITY_ID] = LoadedInfo(LoadingType.RELEVANT_ENTITIES,
+                                                                     minimum_sitelink_count)
+        if self.loaded_info.get(MappingName.ENTITIES) == LoadedInfo(LoadingType.RELEVANT_ENTITIES, minimum_sitelink_count) \
+                and entity_ids is None:
+            entities = self.entities
+        else:
+            if entity_ids is None:
+                entity_ids = set(self.entities.keys())
+            entities = EntityDatabaseReader.get_wikidata_entities_with_types(entity_ids, type_mapping)
+        if minimum_sitelink_count > 0:
+            self.load_sitelink_counts()
+        for entity in entities.values():
+            if minimum_sitelink_count == 0 or minimum_sitelink_count <= self.get_sitelink_count(entity.entity_id):
+                self.entities[entity.entity_id] = entity
+                if entity.name not in self.entities_by_label:
+                    self.entities_by_label[entity.name] = {entity.entity_id}
+                else:
+                    self.entities_by_label[entity.name].add(entity.entity_id)
+
+    def contains_entity_name(self, entity_name: str) -> bool:
+        return entity_name in self.entities_by_label
+
+    def get_entities_by_name(self, entity_name: str) -> Set[str]:
+        return self.entities_by_label[entity_name]
 
     def add_alias(self, alias: str, entity_id: str):
         if alias not in self.aliases:
@@ -159,22 +178,27 @@ class EntityDatabase:
     def contains_alias(self, alias: str) -> bool:
         return alias in self.aliases
 
-    def load_wikipedia_wikidata_mapping(self):
+    def load_wikipedia_to_wikidata_db(self):
         logger.info("Loading Wikipedia to Wikidata mapping into entity database ...")
-        mapping = EntityDatabaseReader.get_wikipedia_to_wikidata_mapping()
-        for entity_name in mapping:
-            entity_id = mapping[entity_name]
-            self.wikipedia2wikidata[entity_name] = entity_id
-            self.wikidata2wikipedia[entity_id] = entity_name
-        logger.info("-> Entity database contains %d mappings from Wikipedia to Wikidata and %d mappings from Wikidata"
-                    "to Wikipedia" % (len(self.wikipedia2wikidata), len(self.wikidata2wikipedia)))
+        self.wikipedia2wikidata = EntityDatabaseReader.get_wikipedia_to_wikidata_db()
+        logger.info(f"-> Entity database contains {len(self.wikipedia2wikidata)} mappings from Wikipedia to Wikidata.")
 
-    def is_wikipedia_wikidata_mapping_loaded(self) -> bool:
-        return len(self.wikidata2wikipedia) > 0 and len(self.wikipedia2wikidata) > 0
+    def load_wikidata_to_wikipedia_mapping(self):
+        logger.info("Loading Wikipedia to Wikidata mapping into entity database ...")
+        self.wikipedia2wikidata = EntityDatabaseReader.get_wikipedia_to_wikidata_db()
+        for wikipedia_name, entity_id in self.wikipedia2wikidata.items():
+            self.wikidata2wikipedia[entity_id] = wikipedia_name
+        logger.info(f"-> Entity database contains {len(self.wikidata2wikipedia)} mappings from Wikidata to Wikipedia.")
+
+    def is_wikipedia_to_wikidata_mapping_loaded(self) -> bool:
+        return len(self.wikipedia2wikidata) > 0
+
+    def is_wikidata_to_wikipedia_mapping_loaded(self) -> bool:
+        return len(self.wikidata2wikipedia) > 0
 
     def load_redirects(self):
         logger.info("Loading redirects into entity database ...")
-        self.redirects = EntityDatabaseReader.get_link_redirects()
+        self.redirects = EntityDatabaseReader.get_redirects_db()
         logger.info("-> Redirects loaded into entity database.")
 
     def is_redirects_loaded(self) -> bool:
@@ -356,11 +380,10 @@ class EntityDatabase:
             return 0
         return self.unigram_counts[token]
 
-    def load_sitelink_counts(self, min_count: Optional[int] = 1):
-        logger.info("Loading sitelink counts >= %d into entity database ..." % min_count)
-        loading_type = LoadingType.RESTRICTED if min_count > 0 else LoadingType.FULL
-        self.loaded_info[MappingName.SITELINKS] = LoadedInfo(loading_type, min_count)
-        self.sitelink_counts = EntityDatabaseReader.get_sitelink_counts(min_count)
+    def load_sitelink_counts(self):
+        logger.info("Loading sitelink counts into entity database ...")
+        self.loaded_info[MappingName.SITELINKS] = LoadedInfo(LoadingType.FULL)
+        self.sitelink_counts = EntityDatabaseReader.get_sitelink_db()
         logger.info("-> Sitelink counts loaded into entity database.")
 
     def has_sitelink_counts_loaded(self) -> bool:

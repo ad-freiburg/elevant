@@ -10,7 +10,7 @@ from src.models.entity_database import EntityDatabase
 def main(args):
     logger.info("Loading entity database...")
     entity_db = EntityDatabase()
-    entity_db.load_wikipedia_wikidata_mapping()
+    entity_db.load_wikipedia_to_wikidata_db()
     entity_db.load_redirects()
 
     mapping_errors = 0

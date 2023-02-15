@@ -9,7 +9,6 @@ from src.models.entity_prediction import EntityPrediction
 from src.ner.maximum_matching_ner import MaximumMatchingNER
 from src.settings import NER_IGNORE_TAGS
 from src.models.entity_database import EntityDatabase
-from src.ner.ner_postprocessing import NERPostprocessor
 from src.utils.dates import is_date
 from src import settings
 from src.utils.offset_converter import OffsetConverter
@@ -60,8 +59,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
             self.ner = MaximumMatchingNER(self.entity_db)
 
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
-        ner_postprocessor = NERPostprocessor(self.entity_db)
-        self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
+        self.model.add_pipe("ner_postprocessor", after="ner")
 
     def entity_spans(self, text: str, doc: Optional[Doc]) -> List[Tuple[Tuple[int, int], bool]]:
         """

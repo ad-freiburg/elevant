@@ -77,7 +77,7 @@ if __name__ == "__main__":
                         help="Minimum entity score to include entity in database")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
-    parser.add_argument("--type_mapping", type=str, default=settings.WHITELIST_TYPE_MAPPING,
+    parser.add_argument("--type_mapping", type=str, default=settings.QID_TO_WHITELIST_TYPES_DB,
                         help="For pure prior linker: Map predicted entities to types using the given mapping.")
 
     parser.add_argument("-wd", "--wikidata_annotations", action="store_true",
@@ -112,7 +112,7 @@ if __name__ == "__main__":
                                    args.minimum_score,
                                    args.type_mapping)
 
-    if not args.wikidata_annotations and not linking_system.entity_db.is_wikipedia_wikidata_mapping_loaded():
-        linking_system.entity_db.load_wikipedia_wikidata_mapping()
+    if not args.wikidata_annotations and not linking_system.entity_db.is_wikidata_to_wikipedia_mapping_loaded():
+        linking_system.entity_db.load_wikidata_to_wikipedia_mapping()
 
     app.run(host="::", port=args.port, threaded=True)

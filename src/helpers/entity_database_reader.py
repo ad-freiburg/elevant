@@ -1,16 +1,15 @@
 from typing import List, Iterator, Tuple, Dict, Set, Optional
 
-from urllib.parse import unquote
 import pickle
 import logging
+import dbm
 
 from src import settings
 from src.evaluation.groundtruth_label import GroundtruthLabel
+from src.models.database import Database
 from src.models.gender import Gender
 from src.models.wikidata_entity import WikidataEntity
 
-
-WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -24,15 +23,6 @@ class EntityDatabaseReader:
             link_frequencies = pickle.load(f)
         logger.info("-> %d link texts with link frequencies loaded." % len(link_frequencies))
         return link_frequencies
-
-    @staticmethod
-    def get_link_redirects() -> Dict[str, str]:
-        filename = settings.REDIRECTS_FILE
-        logger.info("Loading redirects from %s ..." % filename)
-        with open(filename, "rb") as f:
-            redirects = pickle.load(f)
-        logger.info("-> %d redirects loaded." % len(redirects))
-        return redirects
 
     @staticmethod
     def get_title_synonyms() -> Dict[str, Set[str]]:
@@ -53,80 +43,48 @@ class EntityDatabaseReader:
         return akronyms
 
     @staticmethod
-    def get_wikipedia_to_wikidata_mapping(mappings_file: str = settings.QID_TO_WIKIPEDIA_URL_FILE):
-        logger.info("Loading Wikipedia title to Wikidata ID mapping from %s ..." % mappings_file)
-        mapping = {}
-        for i, line in enumerate(open(mappings_file)):
-            entity_id, link_url = line.strip('\n').split('\t')
-            link_url = unquote(link_url)
-            entity_name = link_url[len(WIKI_URL_PREFIX):].replace('_', ' ')
-            mapping[entity_name] = entity_id
-        logger.info("-> %d Wikipedia-Wikidata mappings loaded." % len(mapping))
-        return mapping
-
-    @staticmethod
     def get_wikidata_entities_with_types(relevant_entities: Set[str],
-                                         type_mapping_file: str) -> Dict[str, WikidataEntity]:
+                                         type_mapping_file: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB) \
+            -> Dict[str, WikidataEntity]:
         logger.info("Loading Wikidata entity info (types and label) ...")
+        label_db = EntityDatabaseReader.get_label_db()
+        type_db = EntityDatabaseReader.get_whitelist_types_db(type_mapping_file)
         entities = dict()
-        id_to_type = dict()
         adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
         adj_replace = adjustments["REPLACE_WITH"]
         adj_minus = adjustments["MINUS"]
-        for entity_id, whitelist_type in EntityDatabaseReader.entity_to_whitelist_type_iterator(type_mapping_file):
-            if entity_id in relevant_entities:
-                if entity_id not in id_to_type:  # An entity can have multiple types from the whitelist
-                    id_to_type[entity_id] = []
-
-                # Perform type adjustments
-                adjusted_type = adj_replace[whitelist_type] if whitelist_type in adj_replace else whitelist_type
-                if adjusted_type in adj_minus and adj_minus[adjusted_type] in id_to_type[entity_id]:
-                    # Type is left element of minus-rule and right element is already in the entity's type list.
-                    # Don't add type.
-                    continue
-                for t in id_to_type[entity_id]:
-                    if t in adj_minus and adjusted_type == adj_minus[t]:
-                        # Type is right element of minus-rule and left element is already in the entity's type list.
-                        # Remove previously added type.
-                        id_to_type[entity_id].remove(t)
-
-                if adjusted_type not in id_to_type[entity_id]:
-                    # Due to the adjustment, the same type might be added twice without this check
-                    id_to_type[entity_id].append(adjusted_type)
-
-        id_to_name = dict()
-        for entity_id, name in EntityDatabaseReader.entity_to_label_iterator():
-            if entity_id in relevant_entities:
-                id_to_name[entity_id] = name
 
         for entity_id in relevant_entities:
             types = GroundtruthLabel.OTHER
             name = "Unknown"
-            if entity_id in id_to_type:
-                types = "|".join(id_to_type[entity_id])
-            if entity_id in id_to_name:
-                name = id_to_name[entity_id]
+            if entity_id in type_db:
+                whitelist_types = type_db[entity_id]
+                adjusted_types = []
+                for wt in whitelist_types:
+                    # Perform type adjustments
+                    adjusted_type = adj_replace[wt] if wt in adj_replace else wt
+                    if adjusted_type in adj_minus and adj_minus[adjusted_type] in adjusted_types:
+                        # Type is left element of minus-rule and right element is already in the entity's type list.
+                        # Don't add type.
+                        continue
+                    for t in adjusted_types:
+                        if t in adj_minus and adjusted_type == adj_minus[t]:
+                            # Type is right element of minus-rule and left element is already in the entity's type list.
+                            # Remove previously added type.
+                            adjusted_types.remove(t)
+
+                    if adjusted_type not in adjusted_types:
+                        # Due to the adjustment, the same type might be added twice without this check
+                        adjusted_types.append(adjusted_type)
+
+                types = "|".join(adjusted_types)
+            if entity_id in label_db:
+                name = label_db[entity_id]
             entity = WikidataEntity(name, 0, entity_id, type=types)
             entities[entity_id] = entity
+
         logger.info("-> %d entities loaded." % len(entities))
         return entities
-
-    @staticmethod
-    def entity_to_label_iterator() -> Iterator[Tuple[str, str]]:
-        filename = settings.QID_TO_LABEL_FILE
-        logger.info("Yielding label mapping from %s ..." % filename)
-        with open(filename, "r", encoding="utf8") as file:
-            for line in file:
-                entity_id, label = line.strip('\n').split('\t')
-                yield entity_id, label
-
-    @staticmethod
-    def entity_to_whitelist_type_iterator(type_mapping_file: str) -> Iterator[Tuple[str, str]]:
-        logger.info("Yielding type mapping from %s ..." % type_mapping_file)
-        with open(type_mapping_file, "r", encoding="utf8") as file:
-            for line in file:
-                entity_id, whitelist_type = line.strip('\n').split('\t')
-                yield entity_id, whitelist_type
 
     @staticmethod
     def read_whitelist_types(whitelist_file: Optional[str] = settings.WHITELIST_FILE,
@@ -234,6 +192,10 @@ class EntityDatabaseReader:
 
     @staticmethod
     def get_sitelink_counts(min_count: Optional[int] = 1) -> Dict[str, int]:
+        """
+        This assumes that the sitelink file is sorted descendingly by order of
+        sitelinks so we can stop when the first sitelink count < min_count is reached.
+        """
         filename = settings.QID_TO_SITELINK_FILE
         logger.info("Loading sitelink counts >= %d from %s ..." % (min_count, filename))
         counts = {}
@@ -241,8 +203,9 @@ class EntityDatabaseReader:
             for line in f:
                 entity_id, count = line.strip('\n').split('\t')
                 count = int(count)
-                if count >= min_count:
-                    counts[entity_id] = count
+                if count < min_count:
+                    break
+                counts[entity_id] = count
         logger.info("-> %d sitelink counts loaded." % len(counts))
         return counts
 
@@ -347,10 +310,55 @@ class EntityDatabaseReader:
         return mapping
 
     @staticmethod
-    def read_into_set(file):
+    def read_into_set(file: str):
         new_set = set()
         with open(file) as f:
             for line in f:
                 item = line.strip('\n')
                 new_set.add(item)
         return new_set
+
+    @staticmethod
+    def read_from_dbm(db_file: str, value_type: Optional[type] = str) -> Database:
+        dbm_db = dbm.open(db_file, "r")
+        db = Database(dbm_db, value_type)
+        return db
+
+    @staticmethod
+    def get_redirects_db() -> Database:
+        filename = settings.REDIRECTS_DB
+        logger.info(f"Loading redirects database from {filename} ...")
+        redirects_db = EntityDatabaseReader.read_from_dbm(filename)
+        logger.info(f"-> {len(redirects_db)} redirects loaded.")
+        return redirects_db
+
+    @staticmethod
+    def get_wikipedia_to_wikidata_db() -> Database:
+        filename = settings.QID_TO_WIKIPEDIA_URL_DB
+        logger.info(f"Loading Wikipedia to Wikidata database from {filename} ...")
+        wikipedia_to_wikidata_db = EntityDatabaseReader.read_from_dbm(filename)
+        logger.info(f"-> {len(wikipedia_to_wikidata_db)} Wikipedia-Wikidata mappings loaded.")
+        return wikipedia_to_wikidata_db
+
+    @staticmethod
+    def get_label_db() -> Database:
+        filename = settings.QID_TO_LABEL_DB
+        logger.info(f"Loading entity ID to label database from {filename} ...")
+        label_db = EntityDatabaseReader.read_from_dbm(filename)
+        logger.info(f"-> {len(label_db)} entity ID to label mappings loaded.")
+        return label_db
+
+    @staticmethod
+    def get_whitelist_types_db(filename: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB) -> Database:
+        logger.info(f"Loading entity ID to whitelist types database from {filename} ...")
+        whitelist_type_db = EntityDatabaseReader.read_from_dbm(filename, value_type=list)
+        logger.info(f"-> {len(whitelist_type_db)} entity ID to whitelist types mappings loaded.")
+        return whitelist_type_db
+
+    @staticmethod
+    def get_sitelink_db() -> Database:
+        filename = settings.QID_TO_SITELINKS_DB
+        logger.info(f"Loading entity ID to sitelink count database from {filename} ...")
+        sitelinks_db = EntityDatabaseReader.read_from_dbm(filename, value_type=int)
+        logger.info(f"-> {len(sitelinks_db)} entity ID to sitelink count mappings loaded.")
+        return sitelinks_db

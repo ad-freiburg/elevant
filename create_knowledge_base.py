@@ -13,10 +13,10 @@ def main(args):
     entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=args.min_score)
     entity_db.add_name_aliases()
     entity_db.add_wikidata_aliases()
-    entity_db.load_wikipedia_wikidata_mapping()
+    entity_db.load_wikipedia_to_wikidata_db()
     entity_db.load_redirects()
     entity_db.load_link_frequencies()
-    entity_db.load_sitelink_counts(args.min_score)
+    entity_db.load_sitelink_counts()
 
     logger.info("Creating knowledge base...")
     kb = KnowledgeBaseCreator.create_kb(entity_db=entity_db)

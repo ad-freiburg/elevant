@@ -56,7 +56,7 @@ def main(args):
                     whitelist_types.add(typ)
 
     whitelist_file = args.type_whitelist if args.type_whitelist else settings.WHITELIST_FILE
-    type_mapping_file = args.type_mapping if args.type_mapping else settings.WHITELIST_TYPE_MAPPING
+    type_mapping_file = args.type_mapping if args.type_mapping else settings.QID_TO_WHITELIST_TYPES_DB
     evaluator = Evaluator(relevant_entity_ids, type_mapping_file, whitelist_file=whitelist_file,
                           contains_unknowns=not args.no_unknowns)
 

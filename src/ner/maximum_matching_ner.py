@@ -42,8 +42,8 @@ class MaximumMatchingNER(AbstractEntityLinker):
             entity_db.add_name_aliases()
         if not entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
             entity_db.add_wikidata_aliases()
-        if not entity_db.is_wikipedia_wikidata_mapping_loaded():
-            entity_db.load_wikipedia_wikidata_mapping()
+        if not entity_db.is_wikipedia_to_wikidata_mapping_loaded():
+            entity_db.load_wikipedia_to_wikidata_db()
         if not entity_db.is_redirects_loaded():
             entity_db.load_redirects()
         if not entity_db.is_link_frequencies_loaded():

@@ -28,7 +28,7 @@ def main(args):
             label_entity_ids.add(label.entity_id)
 
     logger.info("Loading entity information..")
-    entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids, settings.WHITELIST_TYPE_MAPPING)
+    entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids)
 
     lines_to_write = ""
     for article in benchmark_iterator.iterate():

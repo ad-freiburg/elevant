@@ -1,11 +1,18 @@
 from spacy.tokens import Span, Doc
+from spacy.language import Language
 
 from src.models.entity_database import EntityDatabase
 
 
+@Language.factory("ner_postprocessor")
+def ner_postprocessor(nlp, name):
+    return NERPostprocessor()
+
+
 class NERPostprocessor:
-    def __init__(self, entity_db: EntityDatabase):
-        self.entity_db = entity_db
+    def __init__(self):
+        self.entity_db = EntityDatabase()
+        self.entity_db.load_label_to_entity_id()
 
     def __call__(self, doc: Doc) -> Doc:
         entities = list(doc.ents)

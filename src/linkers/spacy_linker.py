@@ -7,12 +7,11 @@ from src.helpers.entity_linker_loader import EntityLinkerLoader
 from src.models.entity_prediction import EntityPrediction
 from src.settings import NER_IGNORE_TAGS
 from src.models.entity_database import EntityDatabase
-from src.ner.ner_postprocessing import NERPostprocessor
 from src.utils.dates import is_date
 
 
 class SpacyLinker(AbstractEntityLinker):
-    def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]):
 
         # Get config variables
         self.linker_identifier = config["linker_name"] if "linker_name" in config else "Spacy"
@@ -22,8 +21,7 @@ class SpacyLinker(AbstractEntityLinker):
 
         self.model = EntityLinkerLoader.load_trained_linker(model_name, kb_name=kb_name)
         if not self.model.has_pipe("ner_postprocessor"):
-            ner_postprocessor = NERPostprocessor(entity_db)
-            self.model.add_pipe(ner_postprocessor, name="ner_postprocessor", after="ner")
+            self.model.add_pipe("ner_postprocessor", after="ner")
 
         self.kb = self.model.get_pipe("entity_linker").kb
         self.known_entities = set(self.kb.get_entity_strings())
