@@ -17,7 +17,7 @@ WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata_mappings/
 WIKIDATA_SPARQL_ENDPOINT = https://qlever.cs.uni-freiburg.de/api/wikidata
 # Note that the query names are also used for generating the file name by
 # casting the query name to lowercase and appending .tsv
-DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_NAME QID_TO_SITELINK QID_TO_ALIASES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
+DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_NAME QID_TO_SITELINKS QID_TO_ALIASES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 
 # Variables for generating wikipedia mappings
 WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
@@ -328,11 +328,12 @@ SELECT DISTINCT ?s ?sl WHERE {
 }
 endef
 
-define QID_TO_SITELINK_QUERY
+define QID_TO_SITELINKS_QUERY
 SELECT ?s ?o WHERE {
   ?sn schema:about ?s .
   ?sn wikibase:sitelinks ?o
-}
+  FILTER(?o > 0)
+} ORDER BY DESC(?o)
 endef
 
 define QID_TO_ALIASES_QUERY
