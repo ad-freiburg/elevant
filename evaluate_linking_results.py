@@ -86,9 +86,8 @@ def main(args):
             if args.type_mapping:
                 # Map benchmark label entities to types in the mapping
                 for gt_label in article.labels:
-                    entity = evaluator.entity_db.get_entity(gt_label.entity_id)
-                    if entity:  # Should be None only if label is a Unknown, but for some reason it doesn't happen
-                        gt_label.type = entity.type
+                    types = evaluator.entity_db.get_entity_types(gt_label.entity_id)
+                    gt_label.type = types.join("|")
 
             if whitelist_types:
                 # Ignore groundtruth labels that do not have a type that is included in the whitelist
@@ -114,7 +113,7 @@ def main(args):
                 filtered_entity_mentions = {}
                 if args.type_filter_predictions:
                     for span, em in article.entity_mentions.items():
-                        types = evaluator.entity_db.get_entity(em.entity_id).get_types()
+                        types = evaluator.entity_db.get_entity_types(em.entity_id)
                         for typ in types:
                             if typ in whitelist_types:
                                 filtered_entity_mentions[span] = em

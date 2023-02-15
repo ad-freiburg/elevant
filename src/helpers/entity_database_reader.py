@@ -5,10 +5,8 @@ import logging
 import dbm
 
 from src import settings
-from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.database import Database
 from src.models.gender import Gender
-from src.models.wikidata_entity import WikidataEntity
 
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -41,50 +39,6 @@ class EntityDatabaseReader:
             akronyms = pickle.load(f)
         logger.info("-> %d akronyms loaded." % len(akronyms))
         return akronyms
-
-    @staticmethod
-    def get_wikidata_entities_with_types(relevant_entities: Set[str],
-                                         type_mapping_file: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB) \
-            -> Dict[str, WikidataEntity]:
-        logger.info("Loading Wikidata entity info (types and label) ...")
-        label_db = EntityDatabaseReader.get_label_db()
-        type_db = EntityDatabaseReader.get_whitelist_types_db(type_mapping_file)
-        entities = dict()
-        adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
-        adj_replace = adjustments["REPLACE_WITH"]
-        adj_minus = adjustments["MINUS"]
-
-        for entity_id in relevant_entities:
-            types = GroundtruthLabel.OTHER
-            name = "Unknown"
-            if entity_id in type_db:
-                whitelist_types = type_db[entity_id]
-                adjusted_types = []
-                for wt in whitelist_types:
-                    # Perform type adjustments
-                    adjusted_type = adj_replace[wt] if wt in adj_replace else wt
-                    if adjusted_type in adj_minus and adj_minus[adjusted_type] in adjusted_types:
-                        # Type is left element of minus-rule and right element is already in the entity's type list.
-                        # Don't add type.
-                        continue
-                    for t in adjusted_types:
-                        if t in adj_minus and adjusted_type == adj_minus[t]:
-                            # Type is right element of minus-rule and left element is already in the entity's type list.
-                            # Remove previously added type.
-                            adjusted_types.remove(t)
-
-                    if adjusted_type not in adjusted_types:
-                        # Due to the adjustment, the same type might be added twice without this check
-                        adjusted_types.append(adjusted_type)
-
-                types = "|".join(adjusted_types)
-            if entity_id in label_db:
-                name = label_db[entity_id]
-            entity = WikidataEntity(name, 0, entity_id, type=types)
-            entities[entity_id] = entity
-
-        logger.info("-> %d entities loaded." % len(entities))
-        return entities
 
     @staticmethod
     def read_whitelist_types(whitelist_file: Optional[str] = settings.WHITELIST_FILE,
@@ -341,7 +295,7 @@ class EntityDatabaseReader:
         return wikipedia_to_wikidata_db
 
     @staticmethod
-    def get_label_db() -> Database:
+    def get_entity_name_db() -> Database:
         filename = settings.QID_TO_LABEL_DB
         logger.info(f"Loading entity ID to label database from {filename} ...")
         label_db = EntityDatabaseReader.read_from_dbm(filename)

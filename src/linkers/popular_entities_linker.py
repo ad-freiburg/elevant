@@ -12,6 +12,7 @@ from src.models.entity_database import EntityDatabase
 from src.utils.dates import is_date
 from src import settings
 from src.utils.offset_converter import OffsetConverter
+import src.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 
 
 def get_non_overlapping_span(span: Tuple[int, int],

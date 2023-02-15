@@ -10,6 +10,7 @@ from src import settings
 from src.settings import NER_IGNORE_TAGS
 from src.ner.maximum_matching_ner import MaximumMatchingNER
 from src.utils.dates import is_date
+import src.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 
 
 class BaselineLinker(AbstractEntityLinker):

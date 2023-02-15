@@ -67,6 +67,12 @@ def read_from_tsv(filename, storage_format=StorageFormat.SINGLE_VAL, processing_
                     d[lst[0]] = prev_val + separator + curr_val
                 else:
                     d[lst[0]] = curr_val
+            elif storage_format == StorageFormat.MULTI_VALS_SS:
+                val = separator.join(lst[1].split(";"))
+                d[lst[0]] = val
+            elif storage_format == StorageFormat.MULTI_VALS_TS:
+                val = separator.join(lst[1].split("\t"))
+                d[lst[0]] = val
     logger.info(f"Done. Took {time.time() - start} s")
     return d
 

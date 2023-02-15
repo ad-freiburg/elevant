@@ -74,7 +74,7 @@ def is_demonym(case: Case, entity_db: EntityDatabase) -> bool:
     """
     if not entity_db.is_demonym(case.text):
         return False
-    types = set(case.true_entity.get_types())
+    types = set(entity_db.get_entity_types(case.true_entity.entity_id))
     return bool(types.intersection(DEMONYM_TYPES))
 
 
@@ -146,9 +146,8 @@ def is_location_alias(text: str, entity_db: EntityDatabase) -> bool:
     most_popular_candidate = get_most_popular_candidate(entity_db, text)
     if not most_popular_candidate:
         return False
-    most_popular_entity = entity_db.get_entity(most_popular_candidate)
-    types = most_popular_entity.get_types()
-    return LOCATION_TYPE_ID in types
+    most_popular_entity_types = entity_db.get_entity_types(most_popular_candidate)
+    return LOCATION_TYPE_ID in most_popular_entity_types
 
 
 def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
@@ -158,15 +157,14 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     if not case.ground_truth_is_known():
         # Cases with unknown groundtruth are not considered as metonymy errors
         return False
-    true_types = case.true_entity.get_types()
+    true_types = entity_db.get_entity_types(case.true_entity.entity_id)
     if LOCATION_TYPE_ID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_ID in true_types:
         return False
     most_popular_candidate = get_most_popular_candidate(entity_db, case.text)
     if not most_popular_candidate:
         return False
-    most_popular_entity = entity_db.get_entity(most_popular_candidate)
-    most_popular_types = most_popular_entity.get_types()
-    return LOCATION_TYPE_ID in most_popular_types
+    most_popular_entity_types = entity_db.get_entity_types(most_popular_candidate)
+    return LOCATION_TYPE_ID in most_popular_entity_types
 
 
 def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
@@ -175,7 +173,7 @@ def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
     """
     if not is_metonymy(case, entity_db):
         return False
-    predicted_types = case.predicted_entity.get_types()
+    predicted_types = entity_db.get_entity_types(case.predicted_entity.entity_id)
     return LOCATION_TYPE_ID in predicted_types
 
 

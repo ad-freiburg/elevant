@@ -12,7 +12,7 @@ def ner_postprocessor(nlp, name):
 class NERPostprocessor:
     def __init__(self):
         self.entity_db = EntityDatabase()
-        self.entity_db.load_label_to_entity_id()
+        self.entity_db.load_name_to_entity_id()
 
     def __call__(self, doc: Doc) -> Doc:
         entities = list(doc.ents)

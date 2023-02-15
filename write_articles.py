@@ -78,7 +78,7 @@ def get_labeled_entity_text(article, text, offset, entity_db):
         begin -= offset
         end -= offset
         entity_text_snippet = text[begin:end]
-        entity_name = entity_db.get_entity(entity_id).name if entity_db.contains_entity(entity_id) else ""
+        entity_name = entity_db.get_entity_name(entity_id)
         entity_string = "[%s:%s|%s]" % (entity_id, entity_name, entity_text_snippet)
         text = text[:begin] + entity_string + text[end:]
         label_entities.add(entity_id)
@@ -116,7 +116,7 @@ def get_linked_entity_text(article, text, offset, entity_db):
         # Do not print entities that were recognized but not linked
         if entity_mention.is_linked():
             entity_id = entity_mention.entity_id
-            entity_name = entity_db.get_entity(entity_id).name if entity_db.contains_entity(entity_id) else ""
+            entity_name = entity_db.get_entity_name(entity_id)
             entity_string = "[%s:%s|%s]" % (entity_id, entity_name, entity_text_snippet)
             text = text[:begin] + entity_string + text[end:]
             if entity_id not in linked_entities:
@@ -196,7 +196,7 @@ def main(args):
     if annotation is not None:
         logger.info("Loading entities...")
         entity_db = EntityDatabase()
-        entity_db.load_all_entities_in_wikipedia()
+        entity_db.load_entity_names()
 
     article_num = 0
     for article in article_text_iterator:

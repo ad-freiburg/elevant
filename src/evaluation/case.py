@@ -391,14 +391,13 @@ def case_from_dict(data) -> Case:
     # eval_types are freshly computed.
     true_entity = None
     if "true_entity" in data:
-        true_entity = WikidataEntity(data["true_entity"]["name"], 0, data["true_entity"]["entity_id"])
+        true_entity = WikidataEntity(data["true_entity"]["entity_id"], data["true_entity"]["name"])
     pred_entity = None
     if "predicted_entity" in data:
-        pred_entity = WikidataEntity(data["predicted_entity"]["name"], 0, data["predicted_entity"]["entity_id"])
+        pred_entity = WikidataEntity(data["predicted_entity"]["entity_id"], data["predicted_entity"]["name"])
     candidates = set()
     if "candidates" in data:
-        candidates = set([WikidataEntity(cand["name"], 0, cand["entity_id"])
-                          for cand in data["candidates"]])
+        candidates = set([WikidataEntity(cand["entity_id"], cand["name"]) for cand in data["candidates"]])
     child_linking_eval_types = None
     if "child_linking_eval_types" in data:
         child_linking_eval_types = {EvaluationMode(m): set([EvaluationType(t)

@@ -6,8 +6,9 @@ from src.linkers.abstract_entity_linker import AbstractEntityLinker
 from src.helpers.entity_linker_loader import EntityLinkerLoader
 from src.models.entity_prediction import EntityPrediction
 from src.settings import NER_IGNORE_TAGS
-from src.models.entity_database import EntityDatabase
 from src.utils.dates import is_date
+
+import src.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 
 
 class SpacyLinker(AbstractEntityLinker):

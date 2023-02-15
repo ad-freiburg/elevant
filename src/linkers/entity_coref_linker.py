@@ -236,12 +236,11 @@ class EntityCorefLinker(AbstractCorefLinker):
                     types = set()
                     if self.entity_db.has_coreference_types(entity_id):
                         for type_id in self.entity_db.get_coreference_types(entity_id):
-                            if self.entity_db.contains_entity(type_id):
-                                type_entity = self.entity_db.get_entity(type_id)
-                                names = type_entity.synonyms | {type_entity.name}
-                                for name in names:
-                                    name_list = name.lower().split("/")
-                                    types.update(name_list)
+                            type_entity_aliases = self.entity_db.get_entity_aliases(type_id) | \
+                                                  {self.entity_db.get_entity_name(type_id)}
+                            for alias in type_entity_aliases:
+                                alias_list = alias.lower().split("/")
+                                types.update(alias_list)
                         seen_types.update(types)
                     referenced_entity = ReferencedEntity(span, entity_id, gender, types, deps, direct_speech)
                     recent_ents_per_sent[-1][(tok_idx, end_idx)] = referenced_entity

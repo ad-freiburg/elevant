@@ -55,9 +55,10 @@ class CaseGenerator:
             entity_type = GroundtruthLabel.QUANTITY
         elif self.entity_db.is_datetime(entity_id):
             entity_type = GroundtruthLabel.DATETIME
-        elif self.entity_db.contains_entity(entity_id):
-            type_ids = self.entity_db.get_entity(entity_id).get_types()
-            entity_type = "|".join(type_ids)
+        else:
+            type_ids = self.entity_db.get_entity_types(entity_id)
+            if type_ids:
+                entity_type = "|".join(type_ids)
         return entity_type
 
     def get_evaluation_cases(self, article: Article) -> List[Case]:
@@ -104,18 +105,13 @@ class CaseGenerator:
                     self.all_predictions[expanded_span]
                 candidates = set()
                 for cand_id in predicted_mention.candidates:
-                    if self.entity_db.contains_entity(cand_id):
-                        candidates.add(WikidataEntity(self.entity_db.get_entity(cand_id).name, 0, cand_id))
+                    candidates.add(WikidataEntity(cand_id, self.entity_db.get_entity_name(cand_id)))
                 predicted_by = predicted_mention.linked_by
                 predicted_entity_id = predicted_mention.entity_id
-                predicted_entity_name = self.entity_db.get_entity(predicted_entity_id).name \
-                    if self.entity_db.contains_entity(predicted_entity_id) else "Unknown"
-
+                predicted_entity_name = self.entity_db.get_entity_name(predicted_entity_id)
                 predicted_entity_type = self.determine_entity_type(predicted_entity_id)
-
-                predicted_entity = WikidataEntity(predicted_entity_name,
-                                                  0,
-                                                  predicted_mention.entity_id,
+                predicted_entity = WikidataEntity(predicted_mention.entity_id,
+                                                  predicted_entity_name,
                                                   type=predicted_entity_type)
             else:
                 predicted_by = None
@@ -140,14 +136,12 @@ class CaseGenerator:
 
             candidates = set()
             for cand_id in predicted_mention.candidates:
-                if self.entity_db.contains_entity(cand_id):
-                    candidates.add(WikidataEntity(self.entity_db.get_entity(cand_id).name, 0, cand_id))
+                candidates.add(WikidataEntity(cand_id, self.entity_db.get_entity_name(cand_id)))
 
             predicted_entity_id = predicted_mention.entity_id
-            predicted_entity_name = self.entity_db.get_entity(predicted_entity_id).name \
-                if self.entity_db.contains_entity(predicted_entity_id) else "Unknown"
+            predicted_entity_name = self.entity_db.get_entity_name(predicted_entity_id)
             predicted_entity_type = self.determine_entity_type(predicted_entity_id)
-            predicted_entity = WikidataEntity(predicted_entity_name, 0, predicted_mention.entity_id,
+            predicted_entity = WikidataEntity(predicted_mention.entity_id, predicted_entity_name,
                                               type=predicted_entity_type)
 
             if (span not in ground_truth_spans and expanded_span not in ground_truth_spans) and \

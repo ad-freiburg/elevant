@@ -46,8 +46,9 @@ class LinkingSystem:
 
         # When a prediction_file is given linker_name is None
         if coref_linker or (linker_name is not None and linker_name not in no_db_linkers):
-            self.entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=min_score,
-                                                          type_mapping=self.type_mapping_file)
+            self.entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=min_score)
+            self.entity_db.load_entity_types(self.type_mapping_file)
+            self.entity_db.load_entity_names()
 
     @staticmethod
     def read_linker_config(linker_name: str, config_path: Optional[str] = None) -> Dict[str, Any]:
@@ -259,7 +260,7 @@ class LinkingSystem:
         if MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE in mappings and not self.entity_db.has_wikipedia_id2wikipedia_title_loaded():
             self.entity_db.load_wikipedia_id2wikipedia_title()
         if MappingName.NAME_TO_ENTITY_ID in mappings and not self.entity_db.loaded_info.get(MappingName.NAME_TO_ENTITY_ID):
-            self.entity_db.load_label_to_entity_id()
+            self.entity_db.load_name_to_entity_id()
 
         if MappingName.GENDER in mappings and not self.entity_db.is_gender_loaded():
             self.entity_db.load_gender()

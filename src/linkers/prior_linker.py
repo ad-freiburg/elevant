@@ -126,15 +126,14 @@ class PriorLinker(AbstractEntityLinker):
         starting with a lower case letter is a synonym.
         """
         lower_mention_text = mention_text[0].lower() + mention_text[1:]
-        return mention_text in self.entity_db.get_entity(entity_id).synonyms or \
-               (is_sent_start and lower_mention_text in self.entity_db.get_entity(entity_id).synonyms)
+        return mention_text in self.entity_db.get_entity_aliases(entity_id) or \
+               (is_sent_start and lower_mention_text in self.entity_db.get_entity_aliases(entity_id))
 
     def has_whitelist_type(self, entity_id: str) -> bool:
-        if self.entity_db.contains_entity(entity_id):
-            types = self.entity_db.get_entity(entity_id).get_types()
-            for typ in types:
-                if typ in self.whitelist_types:
-                    return True
+        types = self.entity_db.get_entity_types(entity_id)
+        for typ in types:
+            if typ in self.whitelist_types:
+                return True
         return False
 
     def predict(self,

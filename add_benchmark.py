@@ -9,6 +9,7 @@ from src.evaluation.benchmark import BenchmarkFormat, Benchmark, get_available_b
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.helpers.entity_database_reader import EntityDatabaseReader
+from src.models.entity_database import EntityDatabase
 
 
 def main(args):
@@ -22,13 +23,9 @@ def main(args):
                                                 benchmark_files=args.benchmark_file,
                                                 benchmark_format=args.benchmark_format)
 
-    label_entity_ids = set()
-    for article in benchmark_iterator.iterate():
-        for label in article.labels:
-            label_entity_ids.add(label.entity_id)
-
-    logger.info("Loading entity information..")
-    entities = EntityDatabaseReader.get_wikidata_entities_with_types(label_entity_ids)
+    entity_db = EntityDatabase()
+    entity_db.load_entity_names()
+    entity_db.load_entity_types()
 
     lines_to_write = ""
     for article in benchmark_iterator.iterate():
@@ -38,12 +35,8 @@ def main(args):
             if label.type in (GroundtruthLabel.QUANTITY, GroundtruthLabel.DATETIME):
                 continue
 
-            if label.entity_id in entities:
-                label.type = entities[label.entity_id].type
-            else:
-                logger.warning("Entity %s:%s was not found in entity-type mapping." % (label.entity_id, label.name))
-
-            label.name = entities[label.entity_id].name if label.entity_id in entities else "Unknown"
+            label.type = "|".join(entity_db.get_entity_types(label.entity_id))
+            label.name = entity_db.get_entity_name(label.entity_id)
 
         lines_to_write += article.to_json() + '\n'
 

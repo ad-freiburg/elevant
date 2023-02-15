@@ -38,6 +38,7 @@ QID_TO_LABEL_DB = DATA_DIRECTORY + "wikidata_mappings/qid_to_label.db"
 QID_TO_WHITELIST_TYPES_DB = DATA_DIRECTORY + "wikidata_mappings/qid_to_whitelist_types.db"
 QID_TO_WIKIPEDIA_URL_DB = DATA_DIRECTORY + "wikidata_mappings/qid_to_wikipedia_url.db"
 QID_TO_SITELINKS_DB = DATA_DIRECTORY + "wikidata_mappings/qid_to_sitelinks.db"
+QID_TO_ALIASES_DB = DATA_DIRECTORY + "wikidata_mappings/qid_to_aliases.db"
 REDIRECTS_DB = DATA_DIRECTORY + "wikipedia_mappings/redirects.db"
 
 # Wikidata mappings
