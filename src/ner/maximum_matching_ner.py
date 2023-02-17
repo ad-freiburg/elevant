@@ -38,10 +38,10 @@ class MaximumMatchingNER(AbstractEntityLinker):
 
     def __init__(self, entity_db: EntityDatabase):
         logger.info("Loading necessary mappings for NER ...")
-        if not entity_db.loaded_info.get(MappingName.NAME_ALIASES):
-            entity_db.add_name_aliases()
+        if not entity_db.loaded_info.get(MappingName.FAMILY_NAME_ALIASES):
+            entity_db.load_family_name_aliases()
         if not entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
-            entity_db.add_wikidata_aliases()
+            entity_db.load_alias_to_entities()
         if not entity_db.is_wikipedia_to_wikidata_mapping_loaded():
             entity_db.load_wikipedia_to_wikidata_db()
         if not entity_db.is_redirects_loaded():

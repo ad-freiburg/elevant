@@ -83,21 +83,6 @@ class EntityDatabaseReader:
         return adjustments
 
     @staticmethod
-    def read_wikidata_aliases() -> Dict[str, Set[str]]:
-        filename = settings.QID_TO_ALIASES_FILE
-        logger.info("Loading Wikidata aliases from %s ..." % filename)
-        mapping = {}
-        for i, line in enumerate(open(filename)):
-            values = line.strip('\n').split('\t')
-            entity_id = values[0]
-            name = values[1]
-            synonyms = {synonym for synonym in values[2].split(";") if len(synonym) > 0}
-            synonyms.add(name)
-            mapping[entity_id] = synonyms
-        logger.info("-> %d Wikidata aliases loaded." % len(mapping))
-        return mapping
-
-    @staticmethod
     def get_gender_mapping(mappings_file: str = settings.QID_TO_GENDER_FILE) -> Dict[str, Gender]:
         logger.info("Loading gender mapping from %s ..." % mappings_file)
         mapping = {}
@@ -316,3 +301,25 @@ class EntityDatabaseReader:
         sitelinks_db = EntityDatabaseReader.read_from_dbm(filename, value_type=int)
         logger.info(f"-> {len(sitelinks_db)} entity ID to sitelink count mappings loaded.")
         return sitelinks_db
+
+    @staticmethod
+    def get_entity_to_aliases_db(filename: Optional[str] = settings.QID_TO_ALIASES_DB) -> Database:
+        logger.info(f"Loading entity ID to aliases database from {filename} ...")
+        aliases_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
+        logger.info(f"-> {len(aliases_db)} entity ID to aliases mappings loaded.")
+        return aliases_db
+
+    @staticmethod
+    def get_alias_to_entities_db(filename: Optional[str] = settings.ALIAS_TO_QIDS_DB) -> Database:
+        logger.info(f"Loading entity ID to aliases database from {filename} ...")
+        aliases_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
+        logger.info(f"-> {len(aliases_db)} entity ID to aliases mappings loaded.")
+        return aliases_db
+
+    @staticmethod
+    def get_name_to_entities_db() -> Database:
+        filename = settings.LABEL_TO_QIDS_DB
+        logger.info(f"Loading label to entity ID database from {filename} ...")
+        label_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
+        logger.info(f"-> {len(label_db)} label to entity ID mappings loaded.")
+        return label_db

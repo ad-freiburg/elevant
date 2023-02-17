@@ -106,7 +106,7 @@ class LinkingSystem:
             from src.linkers.baseline_linker import BaselineLinker
             if self.linker_config["strategy"] == "wikidata":
                 self.load_missing_mappings({MappingName.WIKIDATA_ALIASES,
-                                            MappingName.NAME_ALIASES,
+                                            MappingName.FAMILY_NAME_ALIASES,
                                             MappingName.SITELINKS})
             else:
                 if self.linker_config["strategy"] != "wikipedia":
@@ -115,12 +115,12 @@ class LinkingSystem:
                                             MappingName.REDIRECTS,
                                             MappingName.LINK_ALIASES,
                                             MappingName.LINK_FREQUENCIES,
-                                            MappingName.NAME_ALIASES,
+                                            MappingName.FAMILY_NAME_ALIASES,
                                             MappingName.WIKIDATA_ALIASES})
             self.linker = BaselineLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
             from src.linkers.popular_entities_linker import PopularEntitiesLinker
-            self.load_missing_mappings({MappingName.NAME_ALIASES,
+            self.load_missing_mappings({MappingName.FAMILY_NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES,
                                         MappingName.LANGUAGES,
                                         MappingName.DEMONYMS,
@@ -139,8 +139,8 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS,
                                         MappingName.LINK_FREQUENCIES,
-                                        MappingName.NAME_ALIASES,
-                                        MappingName.WIKIDATA_ALIASES})
+                                        MappingName.ENTITY_ID_TO_ALIAS,
+                                        MappingName.ENTITY_ID_TO_FAMILY_NAME})
             self.linker = PriorLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.NIF.value:
             from src.prediction_readers.nif_prediction_reader import NifPredictionReader
@@ -189,7 +189,8 @@ class LinkingSystem:
         elif linker_type == CoreferenceLinkers.ENTITY.value:
             from src.linkers.entity_coref_linker import EntityCorefLinker
             self.load_missing_mappings({MappingName.GENDER,
-                                        MappingName.COREFERENCE_TYPES})
+                                        MappingName.COREFERENCE_TYPES,
+                                        MappingName.ENTITY_ID_TO_ALIAS})
             self.coref_linker = EntityCorefLinker(self.entity_db)
         elif linker_type == CoreferenceLinkers.STANFORD.value:
             from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
@@ -238,18 +239,26 @@ class LinkingSystem:
             self.entity_db.load_link_frequencies()
 
         # Alias mappings
-        if MappingName.NAME_ALIASES in mappings and not self.entity_db.loaded_info.get(MappingName.NAME_ALIASES):
-            self.entity_db.add_name_aliases()
         if MappingName.WIKIDATA_ALIASES in mappings and not self.entity_db.loaded_info.get(MappingName.WIKIDATA_ALIASES):
-            self.entity_db.add_wikidata_aliases()
+            self.entity_db.load_alias_to_entities()
+        if MappingName.FAMILY_NAME_ALIASES in mappings and not self.entity_db.loaded_info.get(MappingName.FAMILY_NAME_ALIASES):
+            self.entity_db.load_family_name_aliases()
         if MappingName.LINK_ALIASES in mappings and not self.entity_db.loaded_info.get(MappingName.LINK_ALIASES):
-            self.entity_db.add_link_aliases()
+            self.entity_db.load_link_aliases()
         if MappingName.NAMES in mappings and not self.entity_db.is_names_loaded():
             self.entity_db.load_names()
         if MappingName.TITLE_SYNONYMS in mappings and not self.entity_db.is_title_synonyms_loaded():
             self.entity_db.load_title_synonyms()
         if MappingName.AKRONYMS in mappings and not self.entity_db.is_akronyms_loaded():
             self.entity_db.load_akronyms()
+
+        # Inverse alias mappings
+        if MappingName.ENTITY_ID_TO_ALIAS in mappings and not self.entity_db.loaded_info.get(MappingName.ENTITY_ID_TO_ALIAS):
+            self.entity_db.load_entity_to_aliases()
+        if MappingName.ENTITY_ID_TO_FAMILY_NAME in mappings and not self.entity_db.loaded_info.get(MappingName.ENTITY_ID_TO_FAMILY_NAME):
+            self.entity_db.load_entity_to_family_name()
+        if MappingName.ENTITY_ID_TO_LINK_ALIAS in mappings and not self.entity_db.loaded_info.get(MappingName.ENTITY_ID_TO_LINK_ALIAS):
+            self.entity_db.load_entity_to_link_aliases()
 
         if MappingName.LANGUAGES in mappings and not self.entity_db.has_languages_loaded():
             self.entity_db.load_languages()
@@ -260,7 +269,7 @@ class LinkingSystem:
         if MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE in mappings and not self.entity_db.has_wikipedia_id2wikipedia_title_loaded():
             self.entity_db.load_wikipedia_id2wikipedia_title()
         if MappingName.NAME_TO_ENTITY_ID in mappings and not self.entity_db.loaded_info.get(MappingName.NAME_TO_ENTITY_ID):
-            self.entity_db.load_name_to_entity_id()
+            self.entity_db.load_name_to_entities()
 
         if MappingName.GENDER in mappings and not self.entity_db.is_gender_loaded():
             self.entity_db.load_gender()

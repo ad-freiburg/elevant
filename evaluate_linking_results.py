@@ -23,28 +23,6 @@ from src.evaluation.evaluator import Evaluator
 def main(args):
     logger.info("Evaluating linking results from %s ..." % args.input_files)
 
-    # Get a set of entity ids of all predicted entities and candidate entities
-    # to load their information into the entity_db
-    # (all necessary information about ground truth labels is already contained in the benchmark jsonl file)
-    logger.info("Extracting relevant entities (predicted entities, candidates and "
-                "groundtruth entities if a type mapping is given) ...")
-    relevant_entity_ids = set()
-    for input_file in args.input_files:
-        with open(input_file, 'r', encoding='utf8') as file:
-            for line in file:
-                article = article_from_json(line)
-                for em in article.entity_mentions.values():
-                    relevant_entity_ids.add(em.entity_id)
-                    relevant_entity_ids.update(em.candidates)
-                if args.type_mapping and not args.benchmark:
-                    # If a type mapping other than the default mapping is used, ground truth labels must be re-annotated
-                    for gt_label in article.labels:
-                        relevant_entity_ids.add(gt_label.entity_id)
-    if args.type_mapping and args.benchmark:
-        for article in get_benchmark_iterator(args.benchmark).iterate():
-            for gt_label in article.labels:
-                relevant_entity_ids.add(gt_label.entity_id)
-
     # Read whitelist types
     whitelist_types = set()
     if args.type_whitelist:
@@ -57,8 +35,7 @@ def main(args):
 
     whitelist_file = args.type_whitelist if args.type_whitelist else settings.WHITELIST_FILE
     type_mapping_file = args.type_mapping if args.type_mapping else settings.QID_TO_WHITELIST_TYPES_DB
-    evaluator = Evaluator(relevant_entity_ids, type_mapping_file, whitelist_file=whitelist_file,
-                          contains_unknowns=not args.no_unknowns)
+    evaluator = Evaluator(type_mapping_file, whitelist_file=whitelist_file, contains_unknowns=not args.no_unknowns)
 
     for input_file_name in args.input_files:
         idx = input_file_name.rfind('.linked_articles.jsonl')

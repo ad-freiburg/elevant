@@ -15,7 +15,6 @@ WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"
 
 class StorageFormat(Enum):
     SINGLE_VAL = "single_value"
-    SINGLE_VAL_INV = "single_value_inverse"
     MULTI_VALS = "multiple_values"
     MULTI_VALS_TS = "multiple_values_tab_separated"
     MULTI_VALS_SS = "multiple_values_semicolon_separated"
@@ -48,7 +47,8 @@ def read_from_pkl(filename, separator=","):
     return d
 
 
-def read_from_tsv(filename, storage_format=StorageFormat.SINGLE_VAL, processing_method=None, separator=","):
+def read_from_tsv(filename, storage_format=StorageFormat.SINGLE_VAL, processing_method=None, inverse=False,
+                  separator=","):
     logger.info(f"Reading from file {filename} ...")
     start = time.time()
     d = {}
@@ -56,23 +56,44 @@ def read_from_tsv(filename, storage_format=StorageFormat.SINGLE_VAL, processing_
         for line in f:
             lst = line.strip("\n").split("\t")
             if storage_format == StorageFormat.SINGLE_VAL:
-                d[lst[0]] = process(lst[1], processing_method)
-            elif storage_format == StorageFormat.SINGLE_VAL_INV:
-                key = process(lst[1], processing_method)
-                d[key] = lst[0]
-            elif storage_format == StorageFormat.MULTI_VALS:
-                curr_val = process(d[lst[1]], processing_method)
-                if lst[0] in d:
-                    prev_val = d[lst[0]]
-                    d[lst[0]] = prev_val + separator + curr_val
+                if inverse:
+                    key = process(lst[1], processing_method)
+                    d[key] = lst[0]
                 else:
-                    d[lst[0]] = curr_val
-            elif storage_format == StorageFormat.MULTI_VALS_SS:
-                val = separator.join(lst[1].split(";"))
-                d[lst[0]] = val
-            elif storage_format == StorageFormat.MULTI_VALS_TS:
-                val = separator.join(lst[1].split("\t"))
-                d[lst[0]] = val
+                    d[lst[0]] = process(lst[1], processing_method)
+            elif storage_format == StorageFormat.MULTI_VALS:
+                if inverse:
+                    curr_key = process(lst[1], processing_method)
+                    curr_val = lst[0]
+                    if curr_key in d:
+                        prev_val = d[curr_key]
+                        d[curr_key] = prev_val + separator + curr_val
+                    else:
+                        d[curr_key] = curr_val
+                else:
+                    curr_key = lst[0]
+                    curr_val = process(lst[1], processing_method)
+                    if curr_key in d:
+                        prev_val = d[curr_key]
+                        d[curr_key] = prev_val + separator + curr_val
+                    else:
+                        d[curr_key] = curr_val
+            elif storage_format in [StorageFormat.MULTI_VALS_SS, StorageFormat.MULTI_VALS_TS]:
+                value_separator = ";" if storage_format == StorageFormat.MULTI_VALS_SS else "\t"
+                if inverse:
+                    keys = lst[1].split(value_separator)
+                    for key in keys:
+                        key = process(key, processing_method)
+                        if key in d:
+                            prev_val = d[key]
+                            d[key] = prev_val + separator + lst[0]
+                        else:
+                            d[key] = lst[0]
+                else:
+                    vals = [process(v, processing_method) for v in lst[1].split(value_separator)]
+                    val = separator.join(vals)
+                    d[lst[0]] = val
+
     logger.info(f"Done. Took {time.time() - start} s")
     return d
 
@@ -118,7 +139,7 @@ def main(args):
     if args.input_file.endswith(".pkl"):
         dictionary = read_from_pkl(args.input_file)
     else:
-        dictionary = read_from_tsv(args.input_file, storage_format, processing_method)
+        dictionary = read_from_tsv(args.input_file, storage_format, processing_method, inverse=args.inverse)
 
     write_to_dbm(dictionary, output_file)
 
@@ -134,6 +155,8 @@ if __name__ == "__main__":
                         default=StorageFormat.SINGLE_VAL, help="Storage format of the input file")
     parser.add_argument("-m", "--processing_method", type=str, choices=[m.value for m in ValueProcessingMethod],
                         default=None, help="Processing method that will be applied to each value in the database.")
+    parser.add_argument("-i", "--inverse", action="store_true",
+                        help="Use the original keys (left-most element) as values, and the values as keys.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))

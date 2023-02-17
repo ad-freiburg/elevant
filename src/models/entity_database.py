@@ -14,9 +14,9 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class MappingName(Enum):
-    NAME_ALIASES = "name_aliases"
-    LINK_ALIASES = "link_aliases"
     WIKIDATA_ALIASES = "wikidata_aliases"
+    FAMILY_NAME_ALIASES = "family_name_aliases"
+    LINK_ALIASES = "link_aliases"
     TITLE_SYNONYMS = "title_synonyms"
     AKRONYMS = "akronyms"
     SITELINKS = "sitelinks"
@@ -31,6 +31,9 @@ class MappingName(Enum):
     NAMES = "names"
     WIKIPEDIA_ID_WIKIPEDIA_TITLE = "wikipedia_id_wikipedia_title"
     NAME_TO_ENTITY_ID = "name_to_entity_id"
+    ENTITY_ID_TO_ALIAS = "entity_id_to_alias"
+    ENTITY_ID_TO_FAMILY_NAME = "entity_id_to_family_name"
+    ENTITY_ID_TO_LINK_ALIAS = "entity_id_to_link_alias"
 
 
 class LoadingType(Enum):
@@ -49,16 +52,24 @@ class EntityDatabase:
     def __init__(self):
         self.entities = {}
         self.entities: Dict[str, WikidataEntity]
-        self.entities_by_name = {}
-        self.entities_by_name: Dict[str, Set[str]]
+        self.name_to_entities_db = {}
+        self.name_to_entities_db: Dict[str, Set[str]]
         self.entity_type_db = {}
         self.entity_type_db: Database
         self.entity_name_db = {}
         self.entity_name_db: Database
-        self.entity_aliases_db = {}
-        self.entity_aliases_db: Database
-        self.entity_aliases = {}
-        self.entity_aliases: Dict[str, Set[str]]
+        self.alias_to_entities_db = {}
+        self.alias_to_entities_db: Database
+        self.family_name_aliases = {}
+        self.family_name_aliases: Dict[str, Set[str]]
+        self.link_aliases = {}
+        self.link_aliases: Dict[str, Set[str]]
+        self.entity_to_aliases_db = {}
+        self.entity_to_aliases_db: Database
+        self.entity_to_family_name = {}
+        self.entity_to_family_name: Dict[str, str]
+        self.entity_to_link_alias = {}
+        self.entity_to_link_alias: Dict[str, str]
         self.aliases = {}
         self.aliases: Dict[str, Set[str]]
         self.wikipedia2wikidata = {}
@@ -170,62 +181,113 @@ class EntityDatabase:
             return None
         return self.entity_name_db[entity_id] if entity_id in self.entity_name_db else "Unknown"
 
-    def get_entity_aliases(self, entity_id: str) -> Optional[Set[str]]:
-        if len(self.entity_aliases) == 0:
-            logger.warning("Tried to access entity alias mapping, but entity alias mapping was not loaded.")
-            return None
-        return self.entity_aliases[entity_id] if entity_id in self.entity_aliases else set()
-
-    def load_name_to_entity_id(self):
-        logger.info("Loading entity name to entity IDs mapping into entity database ...")
+    def load_name_to_entities(self):
         self.loaded_info[MappingName.NAME_TO_ENTITY_ID] = LoadedInfo(LoadingType.FULL)
-        self.load_entity_names()
-        for entity_id, name in self.entity_name_db.items():
-            if name not in self.entities_by_name:
-                self.entities_by_name[name] = {entity_id}
-            else:
-                self.entities_by_name[name].add(entity_id)
-        logger.info(f"-> {len(self.entities_by_name)} entity name to entity IDs mappings loaded.")
+        if not self.name_to_entities_db:
+            logger.info("Loading entity name to entity IDs database into entity database ...")
+            self.name_to_entities_db = EntityDatabaseReader.get_name_to_entities_db()
+            logger.info("-> Entity name to entity IDs database loaded into entity database.")
+        else:
+            logger.info("Entity name to entity IDs database already loaded.")
 
     def contains_entity_name(self, entity_name: str) -> bool:
-        return entity_name in self.entities_by_name
+        return entity_name in self.name_to_entities_db
 
     def get_entities_by_name(self, entity_name: str) -> Set[str]:
-        return self.entities_by_name[entity_name]
+        return self.name_to_entities_db[entity_name]
 
-    def add_alias(self, alias: str, entity_id: str):
-        if alias not in self.aliases:
-            self.aliases[alias] = {entity_id}
-        else:
-            self.aliases[alias].add(entity_id)
-        if entity_id not in self.entity_aliases:
-            self.entity_aliases[entity_id] = {alias}
-        else:
-            self.entity_aliases[entity_id].add(alias)
-
-    def add_wikidata_aliases(self):
-        logger.info("Loading Wikidata aliases into entity database ...")
+    def load_alias_to_entities(self):
         self.loaded_info[MappingName.WIKIDATA_ALIASES] = LoadedInfo(LoadingType.FULL)
-        alias_mapping = EntityDatabaseReader.read_wikidata_aliases()
-        for entity_id, aliases in alias_mapping.items():
-            for alias in aliases:
-                self.add_alias(alias, entity_id)
-        logger.info("-> Entity database contains %d aliases." % self.size_aliases())
+        if not self.alias_to_entities_db:
+            logger.info("Loading entity aliases into entity database ...")
+            self.alias_to_entities_db = EntityDatabaseReader.get_alias_to_entities_db()
+            logger.info(f"-> Entity aliases loaded into entity database.")
+        else:
+            logger.info("Entity aliases database already loaded.")
+        # The entity name is also an alias, so load it too.
+        self.load_name_to_entities()
 
-    def add_name_aliases(self):
+    def load_family_name_aliases(self):
         logger.info("Loading family name aliases into entity database ...")
-        self.loaded_info[MappingName.NAME_ALIASES] = LoadedInfo(LoadingType.FULL)
+        self.loaded_info[MappingName.FAMILY_NAME_ALIASES] = LoadedInfo(LoadingType.FULL)
         for entity_id, name in EntityDatabaseReader.read_names():
             if " " in name:
                 family_name = name.split()[-1]
-                self.add_alias(family_name, entity_id)
-        logger.info("-> Entity database contains %d aliases" % self.size_aliases())
+                if family_name in self.family_name_aliases:
+                    self.family_name_aliases[family_name].add(entity_id)
+                else:
+                    self.family_name_aliases[family_name] = {entity_id}
+        logger.info(f"-> {len(self.family_name_aliases)} family name aliases loaded into entity database.")
 
-    def size_aliases(self) -> int:
-        return len(self.aliases)
+    def load_link_aliases(self):
+        logger.info("Loading link aliases into entity database ...")
+        self.loaded_info[MappingName.LINK_ALIASES] = LoadedInfo(LoadingType.FULL)
+        for link_text, entity_id, frequency in self._iterate_link_frequencies():
+            if link_text in self.link_aliases:
+                self.link_aliases[link_text].add(entity_id)
+            else:
+                self.link_aliases[link_text] = {entity_id}
+        logger.info(f"-> {len(self.link_aliases)} link aliases loaded into entity database.")
+
+    def get_candidates(self, alias: str) -> Set[str]:
+        entity_ids = set()
+        if alias in self.name_to_entities_db:
+            entity_ids = entity_ids.union(self.name_to_entities_db[alias])
+        if alias in self.alias_to_entities_db:
+            entity_ids = entity_ids.union(self.alias_to_entities_db[alias])
+        if alias in self.family_name_aliases:
+            entity_ids = entity_ids.union(self.family_name_aliases[alias])
+        if alias in self.link_aliases:
+            entity_ids = entity_ids.union(self.link_aliases[alias])
+        return entity_ids
 
     def contains_alias(self, alias: str) -> bool:
-        return alias in self.aliases
+        return alias in self.name_to_entities_db or \
+               alias in self.alias_to_entities_db or \
+               alias in self.family_name_aliases or \
+               alias in self.link_aliases
+
+    def load_entity_to_aliases(self):
+        self.loaded_info[MappingName.ENTITY_ID_TO_ALIAS] = LoadedInfo(LoadingType.FULL)
+        if not self.entity_to_aliases_db:
+            logger.info("Loading entity ID to aliases database into entity database ...")
+            self.entity_to_aliases_db = EntityDatabaseReader.get_entity_to_aliases_db()
+            logger.info(f"-> Entity ID to aliases database loaded into entity database.")
+        else:
+            logger.info("Entity ID to aliases database already loaded.")
+        # The entity name is also an alias, so load it too.
+        self.load_entity_names()
+
+    def load_entity_to_family_name(self):
+        logger.info("Loading entity ID to family name aliases into entity database ...")
+        self.loaded_info[MappingName.ENTITY_ID_TO_FAMILY_NAME] = LoadedInfo(LoadingType.FULL)
+        for entity_id, name in EntityDatabaseReader.read_names():
+            if " " in name:
+                family_name = name.split()[-1]
+                self.entity_to_family_name[entity_id] = family_name
+        logger.info(f"-> {len(self.entity_to_family_name)} entity ID to family name aliases loaded into entity database.")
+
+    def load_entity_to_link_aliases(self):
+        logger.info("Loading entity ID to link aliases into entity database ...")
+        self.loaded_info[MappingName.ENTITY_ID_TO_LINK_ALIAS] = LoadedInfo(LoadingType.FULL)
+        for link_text, entity_id, frequency in self._iterate_link_frequencies():
+            if link_text in self.link_aliases:
+                self.entity_to_link_alias[entity_id].add(link_text)
+            else:
+                self.entity_to_link_alias[entity_id] = {link_text}
+        logger.info(f"-> {len(self.link_aliases)} entity ID to link alias mappings loaded into entity database.")
+
+    def get_entity_aliases(self, entity_id: str) -> Optional[Set[str]]:
+        aliases = set()
+        if entity_id in self.entity_name_db:
+            aliases = aliases.union(self.entity_name_db[entity_id])
+        if entity_id in self.entity_to_aliases_db:
+            aliases = aliases.union(self.entity_to_aliases_db[entity_id])
+        if entity_id in self.entity_to_family_name:
+            aliases = aliases.union(self.entity_to_family_name[entity_id])
+        if entity_id in self.entity_to_link_alias:
+            aliases = aliases.union(self.entity_to_link_alias[entity_id])
+        return aliases
 
     def load_wikipedia_to_wikidata_db(self):
         logger.info("Loading Wikipedia to Wikidata mapping into entity database ...")
@@ -295,13 +357,6 @@ class EntityDatabase:
                     frequency = link_frequencies[link_text][link_target]
                     yield link_text, entity_id, frequency
 
-    def add_link_aliases(self):
-        logger.info("Loading link aliases into entity database ...")
-        self.loaded_info[MappingName.LINK_ALIASES] = LoadedInfo(LoadingType.FULL)
-        for link_text, entity_id, frequency in self._iterate_link_frequencies():
-            self.add_alias(link_text, entity_id)
-        logger.info("-> Entity database contains %d aliases." % self.size_aliases())
-
     def load_link_frequencies(self):
         logger.info("Loading link frequencies into entity database ...")
         for link_text, entity_id, frequency in self._iterate_link_frequencies():
@@ -319,12 +374,6 @@ class EntityDatabase:
 
     def is_link_frequencies_loaded(self) -> bool:
         return len(self.link_frequencies) > 0
-
-    def get_candidates(self, alias: str) -> Set[str]:
-        if alias not in self.aliases:
-            return set()
-        else:
-            return self.aliases[alias]
 
     def get_link_frequency(self, alias: str, entity_id: str) -> int:
         if alias not in self.link_frequencies or entity_id not in self.link_frequencies[alias]:

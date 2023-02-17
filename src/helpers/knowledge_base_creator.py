@@ -17,7 +17,7 @@ class KnowledgeBaseCreator:
         entity_db.load_wikipedia_to_wikidata_db()
         entity_db.load_redirects()
         entity_db.load_link_frequencies()
-        entity_db.add_link_aliases()
+        entity_db.load_link_aliases()
         logger.info("-> Entity database loaded.")
 
         logger.info("Load Spacy model...")

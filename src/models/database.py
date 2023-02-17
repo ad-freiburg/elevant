@@ -1,5 +1,5 @@
 import dbm
-from typing import Optional, Union, List, Iterator, Tuple
+from typing import Optional, Union, List, Iterator, Tuple, Set
 
 
 class Database:
@@ -8,7 +8,7 @@ class Database:
         self.value_type = value_type
         self.separator = separator
 
-    def __getitem__(self, key: str) -> Union[str, List[str], int]:
+    def __getitem__(self, key: str) -> Union[str, List[str], Set[str], int]:
         """
         If the database values are multi-values, i.e. the value is actually a list,
         return a list, otherwise a string.
@@ -16,6 +16,8 @@ class Database:
         val = self.db[key].decode("utf8")
         if self.value_type is list:
             return val.split(self.separator)
+        elif self.value_type is set:
+            return set(val.split(self.separator))
         elif self.value_type is int:
             return int(val)
         else:

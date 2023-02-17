@@ -1,5 +1,5 @@
 import logging
-from typing import Set, Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List
 
 from src import settings
 from src.evaluation.case import Case, ErrorLabel, EvaluationMode
@@ -13,12 +13,9 @@ from src.evaluation.errors import label_errors
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: str) -> EntityDatabase:
+def load_evaluation_entities(type_mapping_file: str) -> EntityDatabase:
     logger.info("Initializing entity database for evaluation ...")
     entity_db = EntityDatabase()
-    wikipedia2wikidata_db = EntityDatabaseReader.get_wikipedia_to_wikidata_db()
-    mapping_entity_ids = set(wikipedia2wikidata_db.values())
-    relevant_entity_ids.update(mapping_entity_ids)
     entity_db.load_sitelink_counts()
     entity_db.load_entity_names()
     entity_db.load_entity_types(type_mapping_file)
@@ -27,9 +24,9 @@ def load_evaluation_entities(relevant_entity_ids: Set[str], type_mapping_file: s
     entity_db.load_demonyms()
     entity_db.load_quantities()
     entity_db.load_datetimes()
-    entity_db.add_name_aliases()
-    entity_db.add_wikidata_aliases()
-    entity_db.add_link_aliases()
+    entity_db.load_family_name_aliases()
+    entity_db.load_alias_to_entities()
+    entity_db.load_link_aliases()
     logger.info("-> Entity database initialized.")
     return entity_db
 
@@ -74,12 +71,11 @@ EVALUATION_CATEGORIES = ("all", "ner", "entity", "entity_named", "entity_other",
 
 class Evaluator:
     def __init__(self,
-                 relevant_entity_ids: Set[str],
                  type_mapping_file: Optional[str],
                  whitelist_file: Optional[str] = settings.WHITELIST_FILE,
                  contains_unknowns: bool = True):
         self.whitelist_types = EntityDatabaseReader.read_whitelist_types(whitelist_file, with_adjustments=True)
-        self.entity_db = load_evaluation_entities(relevant_entity_ids, type_mapping_file)
+        self.entity_db = load_evaluation_entities(type_mapping_file)
         self.case_generator = CaseGenerator(self.entity_db)
         self.contains_unknowns = contains_unknowns
         self.has_candidates = False

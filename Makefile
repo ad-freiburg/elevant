@@ -337,13 +337,10 @@ SELECT ?s ?o WHERE {
 endef
 
 define QID_TO_ALIASES_QUERY
-SELECT ?wikidata_id ?name (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) WHERE {
-   ?wikipedia_url schema:about ?wikidata_id .
-   ?wikipedia_url schema:isPartOf <https://en.wikipedia.org/> .
-   ?wikidata_id @en@rdfs:label ?name .
-   OPTIONAL { ?wikidata_id @en@skos:altLabel ?synonym }
+SELECT ?wikidata_id (GROUP_CONCAT(?synonym; SEPARATOR=";") AS ?synonyms) WHERE {
+   ?wikidata_id @en@skos:altLabel ?synonym
 }
-GROUP BY ?name ?wikipedia_url ?wikidata_id
+GROUP BY ?wikidata_id
 ORDER BY ASC(?wikidata_id)
 endef
 
