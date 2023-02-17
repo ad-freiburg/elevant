@@ -20,8 +20,10 @@ To generate the Wikidata mappings run
     make generate_wikidata_mappings
     
 This will use the Wikidata SPARQL endpoint defined in the Makefile variable `WIKIDATA_SPARQL_ENDPOINT` and download
- the Wikidata mappings. It will then create two additional files from the downloaded Wikidata mappings using Python
- scripts. These two files are only needed if you want to use coreference resolution in addition to entity linking.
+ the Wikidata mappings. It will then generate Python dbm databases from the Wikidata mappings for fast
+ loading and reduced RAM usage. The database generation will take several hours. Finally, it will create two additional
+ files from the downloaded Wikidata mappings which are only needed if you want to use coreference resolution in
+ addition to entity linking.
 
 See [Wikidata Mappings](mapping_files.md#wikidata-mappings) for a description of files generated in this step.
 
@@ -40,7 +42,7 @@ See [Wikipedia Mappings](mapping_files.md#wikipedia-mappings) for a description 
 
 ## Generate Entity-Type Mapping
 
-To generate the entity-type mapping, outside the docker container run
+To generate the entity-type mapping, **outside the docker container** run
 
     make generate_entity_types_mapping
 
@@ -48,7 +50,8 @@ This will run the steps described in detail in `wikidata-types/README.md`. Rough
  Github and builds the QLever docker image if no such image exists on the machine already. It then builds a QLever
  index with corrections from `wikidata-types/corrections.txt` and issues a query for all Wikidata entities and all
  their types from a given whitelist of types (`wikidata-types/types.txt`). The resulting file is moved to
- `<data_directory>/wikidata-mappings/entity-types.tsv` .
+ `<data_directory>/wikidata-mappings/entity-types.tsv` . The file is then transformed to a Python dbm database which
+ can take several hours.
 
 Building the entity-types mapping requires about 25 GB of RAM and 100 GB of disk space and assumes that there is a
  running QLever instance for Wikidata under the URL specified by the variable `API_WIKIDATA` in
@@ -56,3 +59,12 @@ Building the entity-types mapping requires about 25 GB of RAM and 100 GB of disk
 
 See [Entity-Type Mapping](mapping_files.md#entity-type-mapping) for a description of the file generated in this
  step.
+
+## Cleanup
+
+You can free up some disk space after running the steps mentioned above by running
+
+    make cleanup
+
+This will remove the `entity-types.tsv` as well as those Wikidata mappings, that have been transformed to database
+ files.

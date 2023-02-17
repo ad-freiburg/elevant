@@ -27,7 +27,6 @@ class ValueProcessingMethod(Enum):
 def read_from_pkl(filename, separator=","):
     logger.info(f"Reading from file {filename} ...")
     start = time.time()
-    d = {}
     with open(filename, "rb") as f:
         d = pickle.load(f)
         if StorageFormat.MULTI_VALS:

@@ -112,25 +112,6 @@ class EntityDatabaseReader:
         return counts
 
     @staticmethod
-    def get_sitelink_counts(min_count: Optional[int] = 1) -> Dict[str, int]:
-        """
-        This assumes that the sitelink file is sorted descendingly by order of
-        sitelinks so we can stop when the first sitelink count < min_count is reached.
-        """
-        filename = settings.QID_TO_SITELINK_FILE
-        logger.info("Loading sitelink counts >= %d from %s ..." % (min_count, filename))
-        counts = {}
-        with open(filename) as f:
-            for line in f:
-                entity_id, count = line.strip('\n').split('\t')
-                count = int(count)
-                if count < min_count:
-                    break
-                counts[entity_id] = count
-        logger.info("-> %d sitelink counts loaded." % len(counts))
-        return counts
-
-    @staticmethod
     def get_demonyms() -> Dict[str, List[str]]:
         filename = settings.QID_TO_DEMONYM_FILE
         logger.info("Loading demonyms from %s ..." % filename)
@@ -255,7 +236,7 @@ class EntityDatabaseReader:
 
     @staticmethod
     def get_wikipedia_to_wikidata_db() -> Database:
-        filename = settings.QID_TO_WIKIPEDIA_URL_DB
+        filename = settings.WIKIPEDIA_NAME_TO_QID_DB
         logger.info(f"Loading Wikipedia to Wikidata database from {filename} ...")
         wikipedia_to_wikidata_db = EntityDatabaseReader.read_from_dbm(filename)
         logger.info(f"-> {len(wikipedia_to_wikidata_db)} Wikipedia-Wikidata mappings loaded.")

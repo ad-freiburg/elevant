@@ -49,7 +49,11 @@ class AllTypesMappingCreator:
 
 def main(args):
     logger.info("Read sitelink counts. Ignore entities with sitelink count < %d" % args.min_count)
-    relevant_entities = set(EntityDatabaseReader.get_sitelink_counts(args.min_count).keys())
+    sitelink_db = EntityDatabaseReader.get_sitelink_db()
+    relevant_entities = set()
+    for entity_id, sitelink_count in sitelink_db:
+        if sitelink_count >= args.min_count:
+            relevant_entities.add(entity_id)
     logger.info("Number of entities with sitelink count >= %d: %d" % (args.min_count, len(relevant_entities)))
 
     logger.info("Loading instance-of mapping for relevant entities...")

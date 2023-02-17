@@ -155,6 +155,7 @@ generate_entity_types_mapping:
 	cd wikidata-types; chmod 777 index; $(MAKE) -sB DOCKER_CMD=${DOCKER_CMD} WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
 
 download_wikidata_mappings:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
@@ -217,8 +218,10 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	python3 get_wikipedia_id_to_title_mapping.py
 	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.tsv
 
+generate_wikidata_mappings: get_qlever_mappings generate_databases generate_coreference_type_mappings
+
 # Get data for queries from $(DATA_QUERY_VARABLES) via $(WIKIDATA_SPARQL_ENDPOINT) and write to tsv files.
-generate_wikidata_mappings:
+get_qlever_mappings:
 	@echo
 	@echo "[get_wikidata_mappings] Get data for given queries in batches."
 	@echo
@@ -229,12 +232,33 @@ generate_wikidata_mappings:
 	  LOWER_QUERY_NAME=$$(echo $${QUERY_NAME} | tr '[:upper:]' '[:lower:]'); \
 	  $(MAKE) -sB API=$${WIKIDATA_SPARQL_ENDPOINT} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query; done
 	@echo
+
+generate_coreference_type_mappings:
 	@echo
 	@echo "Get mapping from QID to coreference types needed only for our own coref resolver."
 	@echo "Takes ca. 1h. If the coref resolver is not needed you can skip this step."
 	@echo
 	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
 	python3 create_coreference_types_mapping.py
+	@echo
+
+generate_databases:
+	@echo
+	@echo "[generate_databases] Build databases from large Wikidata mappings."
+	@echo
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -i -p name_from_url -o ${WIKIDATA_MAPPINGS_DIR}wikipedia_url_to_qid.db
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv -i -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -i -f multiple_values_semicolon_separated -o ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -f multiple_values_semicolon_separated
+
+cleanup:
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv
+	rm ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv
 
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)
 #

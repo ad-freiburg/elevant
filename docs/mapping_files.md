@@ -19,9 +19,16 @@ The following files are generated in `<data_directory>/wikidata_mappings/` when 
 
       Q100594618
 
-* **`qid_to_label.tsv`**: QID and English label for all entities in Wikidata. Example entry:
+* **`qid_to_label.tsv`**: QID and English label for all entities in Wikidata. *This file will be removed if you run the
+ `make cleanup` command, since it has been transformed into a database for faster retrieval.*
+ Example entry:
 
       Q1	universe
+
+* **`qid_to_label.db`**: Same as `qid_to_label.tsv` but stored as a Python dbm database where the QIDs are the keys
+ and the labels are the values.
+
+* **`label_to_qids.db`**: Same as `qid_to_label.db` but the labels are the database keys and the QIDs the values.
 
 * **`qid_to_gender.tsv`**: QID and 'sex or gender' property label for all entities in Wikidata. Example entry:
 
@@ -31,19 +38,32 @@ The following files are generated in `<data_directory>/wikidata_mappings/` when 
 
       Q10000001	Tatyana Kolotilshchikova
 
-* **`qid_to_sitelink.tsv`**: QID and sitelink count for all entities in Wikidata. Example entry:
+* **`qid_to_sitelink.tsv`**: QID and sitelink count for all entities in Wikidata. *This file will be removed if you run
+ the `make cleanup` command, since it has been transformed into a database for faster retrieval.* Example entry:
 
       Q1	203
 
-* **`qid_to_aliases.tsv`**: QID, label and synonyms (if existing) for all entities in Wikidata that exist
- in Wikipedia. Example entry:
+* **`qid_to_sitelink.db`**:  Same as `qid_to_sitelink.tsv` but stored as a Python dbm database where the QIDs are the
+ keys and the sitelink counts are the values.
 
-      Q1	universe	all;cosmos;creation;existence;Heaven and earth;macrocosm;metagalaxy;Our Universe;outer space;space;system;The Cosmos;The Universe;Universe;world;Yin and Yang
+* **`qid_to_aliases.tsv`**: QID and synonyms for all entities in Wikidata. *This file will be removed if you run
+ the `make cleanup` command, since it has been transformed into a database for faster retrieval.* Example entry:
 
-* **`qid_to_wikipedia_url.tsv`**: QID and Wikipedia URL for all entities in Wikidata that exist in Wikipedia. Example
- entry:
+      Q1	all;cosmos;creation;existence;Heaven and earth;macrocosm;metagalaxy;Our Universe;outer space;space;system;The Cosmos;The Universe;Universe;world;Yin and Yang
+
+* **`qid_to_aliases.db`**: Same as `qid_to_aliases.tsv` but stored as a Python dbm database where the QIDs are the
+ keys and the aliases are the values.
+
+ * **`alias_to_qids.db`**: Same as `qid_to_aliases.db` but the aliases are the database keys and the QIDs the values.
+
+* **`qid_to_wikipedia_url.tsv`**: QID and Wikipedia URL for all entities in Wikidata that exist in Wikipedia. *This
+ file will be removed if you run the `make cleanup` command, since it has been transformed into a database for faster
+ retrieval.* Example entry:
 
       Q1	https://en.wikipedia.org/wiki/Universe
+
+* **`wikipedia_name_to_qid.db`**: Same as `qid_to_wikipedia_url.tsv` but stored as a Python dbm database where the
+ Wikipedia names (extracted from the Wikipedia URLs) are the database keys and the QIDs are the values.
 
 *  **`qid_to_p31.tsv`**: QID and 'instance of' property for all entities in Wikidata. Example entry:
 
@@ -110,11 +130,11 @@ The following files are generated in `<data_directory>/wikipedia_mappings/` when
       >>> link_frequencies["Gandalf"]
       {'Gandalf': 321, 'Gandalf (musician)': 2, 'Gandalf Alfgeirsson': 2, 'Gandalf (American band)': 5, 'Gandalf (Norse mythology)': 1, 'Gandalf (Finnish band)': 4, 'Gandalf (mythology)': 1, 'Gandalf (new age)': 1, 'Gandalf the Grey': 1}
 
-* **`link_redirects.pkl`**: Pickled Python dictionary that maps redirect page titles to their corresponding redirect
- target. Redirects are extracted from the entire Wikipedia dump.  Example dictionary entry:
+* **`redirects.db`**: Python database that maps redirect page titles to their corresponding redirect
+ target. Redirects are extracted from the entire Wikipedia dump. Example database entry:
 
       >>> redirects["Barack H. Obama"]
-      'Barack Obama'
+      b'Barack Obama'
 
 * **`title_synonyms.pkl`**: Pickled Python dictionary that maps title synonyms to sets of corresponding Wikipedia
  titles. Title synonyms refer to the synonyms of a Wikipedia article title that appear in bold in the first paragraph
@@ -151,9 +171,12 @@ In total, the Wikipedia mapping files require about 7GB of disk space (this can 
 
 The following file is generated in `<data_directory>/wikidata-mappings/` when running `make
  generate_entity_types_mapping` or downloaded when running `make download_entity_types_mapping`:
-* **`entity-types.tsv`**: QID and corresponding whitelist type for all entities in Wikidata. Example entry:
+* **`entity-types.tsv`**: QID and corresponding whitelist type for all entities in Wikidata. *This file will be
+ removed if you run the `make cleanup` command, since it has been transformed into a database for faster retrieval.*
+ Example entry:
 
       Q100	Q27096213
-      
-The entity-type mapping file requires about 1.4GB of disk space (this can vary depending on the Wikidata version used
- to generate the mapping).
+
+
+* **`qid_to_whitelist_types.db`**: Same as `entity-types.tsv` but stored as a Python dbm database where the QIDs are the
+ database keys and the whitelist types are the values.
