@@ -17,8 +17,6 @@ class MappingName(Enum):
     WIKIDATA_ALIASES = "wikidata_aliases"
     FAMILY_NAME_ALIASES = "family_name_aliases"
     LINK_ALIASES = "link_aliases"
-    TITLE_SYNONYMS = "title_synonyms"
-    AKRONYMS = "akronyms"
     SITELINKS = "sitelinks"
     ENTITIES = "entities"
     WIKIPEDIA_WIKIDATA = "wikipedia_wikidata"
@@ -28,7 +26,6 @@ class MappingName(Enum):
     COREFERENCE_TYPES = "coreference_types"
     LANGUAGES = "languages"
     DEMONYMS = "demonyms"
-    NAMES = "names"
     WIKIPEDIA_ID_WIKIPEDIA_TITLE = "wikipedia_id_wikipedia_title"
     NAME_TO_ENTITY_ID = "name_to_entity_id"
     ENTITY_ID_TO_ALIAS = "entity_id_to_alias"
@@ -78,20 +75,12 @@ class EntityDatabase:
         self.wikidata2wikipedia: Dict[str, str]
         self.redirects = {}
         self.redirects: Database
-        self.title_synonyms = {}
-        self.title_synonyms: Dict[str, Set[str]]
-        self.akronyms = {}
-        self.akronyms: Dict[str, Set[str]]
         self.link_frequencies = {}
         self.link_frequencies: Dict[str, Tuple[str, int]]
         self.entity_frequencies = {}
         self.entity_frequencies: Dict[str, int]
         self.entity2gender = {}
         self.entity2gender: Dict[str, Gender]
-        self.given_names = {}
-        self.given_names: Dict[str, str]
-        self.family_names = {}
-        self.family_names: Dict[str, str]
         self.entity2coreference_types = {}
         self.entity2coreference_types: Dict[str, List[str]]
         self.unigram_counts = {}
@@ -265,7 +254,8 @@ class EntityDatabase:
             if " " in name:
                 family_name = name.split()[-1]
                 self.entity_to_family_name[entity_id] = family_name
-        logger.info(f"-> {len(self.entity_to_family_name)} entity ID to family name aliases loaded into entity database.")
+        logger.info(f"-> {len(self.entity_to_family_name)} entity ID to family name aliases "
+                    f"loaded into entity database.")
 
     def load_entity_to_link_aliases(self):
         logger.info("Loading entity ID to link aliases into entity database ...")
@@ -314,22 +304,6 @@ class EntityDatabase:
 
     def is_redirects_loaded(self) -> bool:
         return len(self.redirects) > 0
-
-    def load_title_synonyms(self):
-        logger.info("Loading title synonyms into entity database ...")
-        self.title_synonyms = EntityDatabaseReader.get_title_synonyms()
-        logger.info("-> Title synonyms loaded into entity database.")
-
-    def is_title_synonyms_loaded(self) -> bool:
-        return len(self.title_synonyms) > 0
-
-    def load_akronyms(self):
-        logger.info("Loading akronyms into entity database ...")
-        self.akronyms = EntityDatabaseReader.get_akronyms()
-        logger.info("-> Akronyms loaded into entity database.")
-
-    def is_akronyms_loaded(self) -> bool:
-        return len(self.akronyms) > 0
 
     def link2id(self, link_target: str) -> Optional[str]:
         link_target_variants = [link_target]
@@ -404,41 +378,6 @@ class EntityDatabase:
             return self.entity2gender[entity_id]
         else:
             return Gender.NEUTRAL
-
-    def load_names(self):
-        logger.info("Loading family and given names into entity database ...")
-        for entity_id, name in EntityDatabaseReader.read_names():
-            if " " in name:
-                given_name = name.split()[0]
-                family_name = name.split()[-1]
-                if len(given_name) > 1:
-                    self.given_names[entity_id] = given_name
-                if len(family_name) > 1:
-                    self.family_names[entity_id] = family_name
-        logger.info("-> Family and given names loaded.")
-
-    def is_names_loaded(self) -> bool:
-        return len(self.given_names) > 0 and len(self.family_names) > 0
-
-    def has_given_name(self, entity_id: str) -> bool:
-        if len(self.given_names) == 0:
-            logger.warning("Tried to access first names mapping but first name mapping was not loaded.")
-        if entity_id in self.given_names:
-            return True
-        return False
-
-    def get_given_name(self, entity_id: str) -> str:
-        return self.given_names[entity_id]
-
-    def has_family_name(self, entity_id: str) -> bool:
-        if len(self.family_names) == 0:
-            logger.warning("Tried to access family names mapping but family name mapping was not loaded.")
-        if entity_id in self.family_names:
-            return True
-        return False
-
-    def get_family_name(self, entity_id: str) -> str:
-        return self.family_names[entity_id]
 
     def load_coreference_types(self):
         logger.info("Loading coreference types into entity database...")

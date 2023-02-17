@@ -245,12 +245,6 @@ class LinkingSystem:
             self.entity_db.load_family_name_aliases()
         if MappingName.LINK_ALIASES in mappings and not self.entity_db.loaded_info.get(MappingName.LINK_ALIASES):
             self.entity_db.load_link_aliases()
-        if MappingName.NAMES in mappings and not self.entity_db.is_names_loaded():
-            self.entity_db.load_names()
-        if MappingName.TITLE_SYNONYMS in mappings and not self.entity_db.is_title_synonyms_loaded():
-            self.entity_db.load_title_synonyms()
-        if MappingName.AKRONYMS in mappings and not self.entity_db.is_akronyms_loaded():
-            self.entity_db.load_akronyms()
 
         # Inverse alias mappings
         if MappingName.ENTITY_ID_TO_ALIAS in mappings and not self.entity_db.loaded_info.get(MappingName.ENTITY_ID_TO_ALIAS):

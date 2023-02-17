@@ -23,24 +23,6 @@ class EntityDatabaseReader:
         return link_frequencies
 
     @staticmethod
-    def get_title_synonyms() -> Dict[str, Set[str]]:
-        filename = settings.TITLE_SYNONYMS_FILE
-        logger.info("Loading title synonyms from %s ..." % filename)
-        with open(filename, "rb") as f:
-            title_synonyms = pickle.load(f)
-        logger.info("-> %d title synonyms loaded." % len(title_synonyms))
-        return title_synonyms
-
-    @staticmethod
-    def get_akronyms() -> Dict[str, Set[str]]:
-        filename = settings.AKRONYMS_FILE
-        logger.info("Loading akronyms from %s ..." % filename)
-        with open(filename, "rb") as f:
-            akronyms = pickle.load(f)
-        logger.info("-> %d akronyms loaded." % len(akronyms))
-        return akronyms
-
-    @staticmethod
     def read_whitelist_types(whitelist_file: Optional[str] = settings.WHITELIST_FILE,
                              with_adjustments: Optional[bool] = False) -> Dict[str, str]:
         logger.info("Loading whitelist types from %s ..." % whitelist_file)
