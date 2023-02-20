@@ -38,12 +38,12 @@ The following files are generated in `<data_directory>/wikidata_mappings/` when 
 
       Q10000001	Tatyana Kolotilshchikova
 
-* **`qid_to_sitelink.tsv`**: QID and sitelink count for all entities in Wikidata. *This file will be removed if you run
+* **`qid_to_sitelinks.tsv`**: QID and sitelink count for all entities in Wikidata. *This file will be removed if you run
  the `make cleanup` command, since it has been transformed into a database for faster retrieval.* Example entry:
 
       Q1	203
 
-* **`qid_to_sitelink.db`**:  Same as `qid_to_sitelink.tsv` but stored as a Python dbm database where the QIDs are the
+* **`qid_to_sitelinks.db`**:  Same as `qid_to_sitelink.tsv` but stored as a Python dbm database where the QIDs are the
  keys and the sitelink counts are the values.
 
 * **`qid_to_aliases.tsv`**: QID and synonyms for all entities in Wikidata. *This file will be removed if you run
