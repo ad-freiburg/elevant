@@ -130,11 +130,15 @@ The following files are generated in `<data_directory>/wikipedia_mappings/` when
       >>> link_frequencies["Gandalf"]
       {'Gandalf': 321, 'Gandalf (musician)': 2, 'Gandalf Alfgeirsson': 2, 'Gandalf (American band)': 5, 'Gandalf (Norse mythology)': 1, 'Gandalf (Finnish band)': 4, 'Gandalf (mythology)': 1, 'Gandalf (new age)': 1, 'Gandalf the Grey': 1}
 
-* **`redirects.db`**: Python database that maps redirect page titles to their corresponding redirect
- target. Redirects are extracted from the entire Wikipedia dump. Example database entry:
+* **`redirects.pkl`**: Pickled Python dictionary that maps redirect page titles to their corresponding redirect
+ target. *This file will be removed if you run the `make cleanup` command, since it has been transformed into a
+ database for faster retrieval.* Redirects are extracted from the entire Wikipedia dump. Example dictionary entry:
 
       >>> redirects["Barack H. Obama"]
-      b'Barack Obama'
+      'Barack Obama'
+
+* **`redirects.db`**: Same as `redirects.pkl` but stored as a Python dbm database where the redirect page titles are the
+ keys and the redirect targets are the values.
 
 * **`title_synonyms.pkl`**: Pickled Python dictionary that maps title synonyms to sets of corresponding Wikipedia
  titles. Title synonyms refer to the synonyms of a Wikipedia article title that appear in bold in the first paragraph

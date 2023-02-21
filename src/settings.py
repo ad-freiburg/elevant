@@ -53,6 +53,7 @@ WHITELIST_TYPE_ADJUSTMENTS_FILE = "small-data-files/type_adjustments.txt"
 
 # Wikipedia mappings
 LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "wikipedia_mappings/link_frequencies.pkl"
+REDIRECTS_FILE = DATA_DIRECTORY + "wikipedia_mappings/redirects.pkl"
 TITLE_SYNONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/title_synonyms.pkl"
 AKRONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/akronyms.pkl"
 WIKIPEDIA_ID_TO_TITLE_FILE = DATA_DIRECTORY + "wikipedia_mappings/wikipedia_id_to_title.tsv"

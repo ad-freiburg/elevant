@@ -213,6 +213,7 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	python3 extract_abstracts.py
 	python3 get_link_frequencies.py
 	python3 extract_redirects.py ${WIKI_DUMP}
+	python3 create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
 	python3 extract_title_synonyms.py
 	python3 count_unigrams.py
 	python3 get_wikipedia_id_to_title_mapping.py
@@ -259,6 +260,7 @@ cleanup:
 	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
 	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv
 	rm ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv
+	rm ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
 
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)
 #
