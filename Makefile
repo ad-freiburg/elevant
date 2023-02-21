@@ -247,7 +247,7 @@ generate_databases:
 	@echo
 	@echo "[generate_databases] Build databases from large Wikidata mappings."
 	@echo
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -i -m name_from_url -o ${WIKIDATA_MAPPINGS_DIR}wikipedia_url_to_qid.db
+	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -i -m name_from_url -o ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db
 	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv
 	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
 	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv -i -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db
