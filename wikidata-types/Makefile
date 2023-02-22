@@ -144,23 +144,8 @@ getdata:
 	@echo
 	@echo "DATA_QUERY_NAMES = $(DATA_QUERY_NAMES)"
 	for QUERY_NAME in $(DATA_QUERY_NAMES); do echo; \
-	  $(MAKE) -sB API=$$API_WIKIDATA QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${QUERY_NAME}.ttl query.batched; done
+	  $(MAKE) -sB API=$$API_WIKIDATA QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${QUERY_NAME}.ttl query; done
 	@echo
-
-# Get result for $(QUERY) in batches of size $(BATCH_SIZE), using query: target
-query.batched:
-	echo "API = $(API)"
-	$(info $(PREFIXES))
-	$(info $($(QUERY_VARIABLE)))
-	@true > $(OUTFILE)
-	@RESULT_SIZE=$$($(MAKE) -s QUERY="$(shell echo ${$(QUERY_VARIABLE)})" count); \
-	echo "Result size = $$(echo $$RESULT_SIZE | numfmt --grouping)"; \
-	for OFFSET in `seq 0 $$BATCH_SIZE $$RESULT_SIZE`; do \
-	  echo "LIMIT $$BATCH_SIZE OFFSET $$OFFSET"; \
-	  $(MAKE) -s QUERY="$(shell echo ${$(QUERY_VARIABLE)}) LIMIT $$BATCH_SIZE OFFSET $$OFFSET" query; \
-	done
-	@echo "First line and last line of $(OUTFILE) are:"
-	@head -1 $(OUTFILE) && tail -1 $(OUTFILE)
 
 # Get results for $(QUERY), convert to ttl (without prefixes), and append to $(OUTFILE)
 #
@@ -177,8 +162,12 @@ query.batched:
 # Currently not removing types (^^<...>) and language tags (@en) after literals,
 # here are the required sed substitutions: s/\^\^<.*>\t/\t/; s/"@[a-z]\+/"/g
 query:
+	@echo "API = ${API}"
+	@echo "OUTFILE = ${OUTFILE}"
+	@echo $$PREFIXES
+	@echo $${${QUERY_VARIABLE}}
 	@curl -Gs $(API) \
-	    --data-urlencode "query=$$PREFIXES $(QUERY)" \
+	    --data-urlencode "query=$$PREFIXES $${${QUERY_VARIABLE}}" \
 	    --data-urlencode "action=tsv_export" \
 	    | sed -r '/^[?]/d' \
 	    | sed 's/$$/\t./; s/\^\^<\([^>]\+\)>\t/\t^^<\1>\t/g; s/"\(@[a-z]\+\)\t/"\t\1\t/g' \
@@ -186,7 +175,10 @@ query:
 	    | sed '$(SED_PREFIX_SUBSTITUTIONS)' \
 	    | sed 's/\\/\\\\/g; s/\t"/\t\x01/g; s/"\t/\x01\t/g; s/"/\\"/g; s/\x01/"/g' \
 	    | sed 's/>\t/\t/g; s/\t\([\^@]\)/\1/g; s/\t/ /g' \
-	    >> $(OUTFILE)
+	    > ${OUTFILE}
+	@echo "First line and last line of ${OUTFILE} are:"
+	@head -1 ${OUTFILE} && tail -1 ${OUTFILE}
+	@echo
 
 # Get result size for $(QUERY), without downloading anything of the result yet
 count:
@@ -249,9 +241,9 @@ warmup.single-query:
 # Get the types for all entities as TTL
 gettypes:
 	@echo
-	@echo "[gettypes] Get entity types via batched query to $(API_WIKIDATA_TYPES)"
+	@echo "[gettypes] Get entity types via query to $(API_WIKIDATA_TYPES)"
 	@echo
-	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$(ENTITY_TYPES_FILE) query.batched
+	$(MAKE) -s API=$$API_WIKIDATA_TYPES QUERY_VARIABLE=ENTITY_TYPES_QUERY OUTFILE=$(ENTITY_TYPES_FILE) query
 	@sed -i '/wd:[^Q]/d' $(ENTITY_TYPES_FILE)
 	@sed -i -r 's|wd:([^ ]*) wd:([^ ]*) .|\1	\2|' $(ENTITY_TYPES_FILE)
 	@wc -l $(ENTITY_TYPES_FILE) | numfmt --grouping
