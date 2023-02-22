@@ -42,7 +42,8 @@ See [Wikipedia Mappings](mapping_files.md#wikipedia-mappings) for a description 
 
 ## Generate Entity-Type Mapping
 
-To generate the entity-type mapping, **outside the docker container** run
+To generate the entity-type mapping, do the following **outside the docker container**: First make sure the `DATA_DIR`
+ variable in your `Makefile` points to your `<data_directory>`. Then run
 
     make generate_entity_types_mapping
 
@@ -50,8 +51,10 @@ This will run the steps described in detail in `wikidata-types/README.md`. Rough
  Github and builds the QLever docker image if no such image exists on the machine already. It then builds a QLever
  index with corrections from `wikidata-types/corrections.txt` and issues a query for all Wikidata entities and all
  their types from a given whitelist of types (`wikidata-types/types.txt`). The resulting file is moved to
- `<data_directory>/wikidata-mappings/entity-types.tsv` . The file is then transformed to a Python dbm database which
- can take several hours.
+ `<data_directory>/wikidata-mappings/entity-types.tsv` . The file is then transformed to a Python dbm database
+ `<data_directory>/wikidata-mappings/qid_to_whitelist_types.db` which can take several hours (Note: if the
+ tranformation to a dbm database yields errors when running it outside the docker container due to missing
+ dependencies, you can also run this particular step inside the docker container).
 
 Building the entity-types mapping requires about 25 GB of RAM and 100 GB of disk space and assumes that there is a
  running QLever instance for Wikidata under the URL specified by the variable `API_WIKIDATA` in

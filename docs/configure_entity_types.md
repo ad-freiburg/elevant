@@ -2,8 +2,9 @@
 
 For the per-type evaluation, we categorize entities into a set of Wikidata whitelist types. An entity can potentially
  have more than one whitelist type. These whitelist types are defined in `small-data-files/whitelist_types.tsv`. The
- file `<data_directory>/wikidata_mappings/entity-types.tsv` contains a mapping from Wikidata entity QIDs to their
- whitelist type QID. Since the Wikidata type hierarchy contains many inconsistencies, and instance-of and subclass-of
+ file `<data_directory>/wikidata_mappings/qid_to_whitelist_types.db` contains a database that maps Wikidata entity
+ QIDs to their whitelist type QID.
+ Since the Wikidata type hierarchy contains many inconsistencies, and instance-of and subclass-of
  relations are subject to constant change, we build our type mapping from a corrected version of Wikidata. For these
  corrections, we add and remove certain instance-of and subclass-of relations. These corrections are defined in
  `small-data-files/type_corrections.txt`. We provide a download link for the entity-types mapping with our default
