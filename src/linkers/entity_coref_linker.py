@@ -6,9 +6,9 @@ import spacy
 import re
 from collections import defaultdict
 
+import src.utils.custom_sentencizer  # import is needed so Python finds the custom component
 from src.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.models.coref_cluster import CorefCluster
-from src.utils.custom_sentencizer import CustomSentencizer
 from src.utils.dependency_conll_extractor import DependencyConllExtractor
 from src.models.dependency_graph import EnhancedDependencyGraph
 from src.models.entity_database import EntityDatabase
@@ -138,7 +138,7 @@ class EntityCorefLinker(AbstractCorefLinker):
     def __init__(self, entity_db: EntityDatabase, model: Optional[Language] = None):
         if model is None:
             self.model = spacy.load(settings.LARGE_MODEL_NAME)
-            self.model.add_pipe(CustomSentencizer.set_custom_boundaries, before="parser")
+            self.model.add_pipe("custom_sentencizer", before="parser")
         else:
             self.model = model
         self.entity_db = entity_db

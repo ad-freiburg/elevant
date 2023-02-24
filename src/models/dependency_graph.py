@@ -185,7 +185,7 @@ class EnhancedDependencyGraph(DependencyGraph):
 
     def is_problematic_it(self, address):
         node = self.get_by_address(address)
-        if node["word"].lower() == "it" and node["rel"].startswith("nsubj"):
+        if node and node["word"].lower() == "it" and node["rel"].startswith("nsubj"):
             head = self.get_by_address(node["head"])
             if head["tag"].startswith("VB"):
                 head_deps = head['deps']
