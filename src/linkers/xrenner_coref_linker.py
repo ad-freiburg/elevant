@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore", category=VisibleDeprecationWarning)
 
 class XrennerCorefLinker(AbstractCorefLinker):
     def __init__(self):
-        self.model = init_parser("spacy", "en", parser_opts={}, include_headers=True)
+        self.model = init_parser("en_core_web_lg", "spacy", parser_opts={}, include_headers=True)
         self.xrenner = Xrenner()
 
     def get_clusters(self, article: Article, doc: Optional[Doc] = None) -> List[CorefCluster]:
