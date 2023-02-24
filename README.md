@@ -36,7 +36,7 @@ To download the files, simply run
 
 This will automatically run `make download_wikidata_mappings`, `make download_wikipedia_mappings` and
  `make download_entity_types_mapping` which will download the compressed files, extract them and move them to the
- correct location. See [Mapping Files](docs/mapping_files.md) for a description of files generated in these steps.
+ correct location. See [Mapping Files](docs/mapping_files.md) for a description of files downloaded in this steps.
 
 NOTE: This will overwrite existing Wikidata and Wikipedia mappings in your `<data_directory>` so make sure this is what 
  you want to do.
