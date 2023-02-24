@@ -19,9 +19,9 @@ The following files are generated in `<data_directory>/wikidata_mappings/` when 
 
       Q100594618
 
-* **`qid_to_label.tsv`**: QID and English label for all entities in Wikidata. *This file will be removed if you run the
- `make cleanup` command, since it has been transformed into a database for faster retrieval.*
- Example entry:
+* **`qid_to_label.tsv`**: QID and English label for all entities in Wikidata. *This file is an intermediate file used
+ only to generate a Python database and is therefore not contained in the downloaded files. If you generate the Wikidata
+ mappings yourself, this file will be removed if you run the `make cleanup` command.* Example entry:
 
       Q1	universe
 
@@ -38,16 +38,18 @@ The following files are generated in `<data_directory>/wikidata_mappings/` when 
 
       Q10000001	Tatyana Kolotilshchikova
 
-* **`qid_to_sitelinks.tsv`**: QID and sitelink count for all entities in Wikidata. *This file will be removed if you run
- the `make cleanup` command, since it has been transformed into a database for faster retrieval.* Example entry:
+* **`qid_to_sitelinks.tsv`**: QID and sitelink count for all entities in Wikidata. *This file is an intermediate file
+ used only to generate a Python database and is therefore not contained in the downloaded files. If you generate the
+ Wikidata mappings yourself, this file will be removed if you run the `make cleanup` command.* Example entry:
 
       Q1	203
 
 * **`qid_to_sitelinks.db`**:  Same as `qid_to_sitelink.tsv` but stored as a Python dbm database where the QIDs are the
  keys and the sitelink counts are the values.
 
-* **`qid_to_aliases.tsv`**: QID and synonyms for all entities in Wikidata. *This file will be removed if you run
- the `make cleanup` command, since it has been transformed into a database for faster retrieval.* Example entry:
+* **`qid_to_aliases.tsv`**: QID and synonyms for all entities in Wikidata. *This file is an intermediate file used
+ only to generate a Python database and is therefore not contained in the downloaded files. If you generate the Wikidata
+ mappings yourself, this file will be removed if you run the `make cleanup` command.* Example entry:
 
       Q1	all;cosmos;creation;existence;Heaven and earth;macrocosm;metagalaxy;Our Universe;outer space;space;system;The Cosmos;The Universe;Universe;world;Yin and Yang
 
@@ -57,25 +59,37 @@ The following files are generated in `<data_directory>/wikidata_mappings/` when 
  * **`alias_to_qids.db`**: Same as `qid_to_aliases.db` but the aliases are the database keys and the QIDs the values.
 
 * **`qid_to_wikipedia_url.tsv`**: QID and Wikipedia URL for all entities in Wikidata that exist in Wikipedia. *This
- file will be removed if you run the `make cleanup` command, since it has been transformed into a database for faster
- retrieval.* Example entry:
+ file is an intermediate file used only to generate a Python database and is therefore not contained in the
+ downloaded files. If you generate the Wikidata mappings yourself, this file will be removed if you run the
+ `make cleanup` command.* Example entry:
 
       Q1	https://en.wikipedia.org/wiki/Universe
 
 * **`wikipedia_name_to_qid.db`**: Same as `qid_to_wikipedia_url.tsv` but stored as a Python dbm database where the
  Wikipedia names (extracted from the Wikipedia URLs) are the database keys and the QIDs are the values.
 
-*  **`qid_to_p31.tsv`**: QID and 'instance of' property for all entities in Wikidata. Example entry:
+
+The following files are only needed if you want to use coreference resolution in addition to entity linking:
+
+*  **`qid_to_p31.tsv`**: QID and 'instance of' property for all entities in Wikidata. *This file is an intermediate
+ file used only to generate the `qid_to_coreference_types.tsv` file and is therefore not contained in the downloaded
+ files. If you generate the Wikidata mappings yourself, this file will be removed if you run the `make cleanup`
+ command.* Example entry:
 
        Q1	Q36906466
 
-* **`qid_to_p279.tsv`**: QID and 'subclass of' property for all entities in Wikidata. Example entry:
+* **`qid_to_p279.tsv`**: QID and 'subclass of' property for all entities in Wikidata. *This file is an intermediate
+ file used only to generate the `qid_to_coreference_types.tsv` file and is therefore not contained in the downloaded
+ files. If you generate the Wikidata mappings yourself, this file will be removed if you run the `make cleanup`
+ command.* Example entry:
 
       Q105	Q573
 
-The following two files are only needed if you want to use coreference resolution in addition to entity linking:
 * **`qid_to_all_types.tsv`**: QID and all corresponding types and their level in the type hierarchy for all entities
- in Wikidata with a sitelink count >= 2. Example entry:
+ in Wikidata with a sitelink count >= 2. *This file is an intermediate file used
+ only to generate the `qid_to_coreference_types.tsv` file and is therefore not contained in the downloaded files. If you
+ generate the Wikidata mappings yourself, this file will be removed if you run the `make cleanup` command.* Example
+ entry:
 
       Q1	0:Q36906466	1:Q1454986	1:Q16686022	2:Q223557	2:Q29651224	2:Q58778	3:Q35459920	3:Q4406616	3:Q488383	3:Q6671777	4:Q35120
 
@@ -85,7 +99,7 @@ The following two files are only needed if you want to use coreference resolutio
       Q1	Q36906466;Q1454986;Q16686022;Q223557;Q29651224;Q58778;Q35459920;Q4406616;Q488383;Q6671777
  
  
-In total, the Wikidata mapping files require about 14GB of disk space (this can vary depending on the Wikidata
+In total, the Wikidata mapping files require about 30GB of disk space (this can vary depending on the Wikidata
  version used to generate the mappings).
  
  
@@ -118,11 +132,6 @@ The following files are generated in `<data_directory>/wikipedia_mappings/` when
       >>> akronyms["CIAM"]
       {"Congres Internationaux d'Architecture Moderne", 'Central Institute of Aviation Motors', "Congrès Internationaux d'Architecture Moderne", "Congrès International d'Architecture Moderne#Influence", "Congrès International d'Architecture Moderne"}
 
-* **`article_abstracts.tsv`**: Article ID, title, url and abstract for all articles in the Wikipedia dump. Abstracts
- are defined as the text in the article up to the first `\n\n`. Example entry:
-
-      12	Anarchism	https://en.wikipedia.org/wiki?curid=12	Anarchism is a political philosophy and movement that is sceptical of authority [...]
-
 * **`link_frequencies.pkl`**: Pickled Python dictionary that maps link anchor texts to a dictionary of link targets
  and their corresponding link frequencies. Link frequencies are computed over the Wikipedia training split. Example
  dictionary entry:
@@ -131,8 +140,9 @@ The following files are generated in `<data_directory>/wikipedia_mappings/` when
       {'Gandalf': 321, 'Gandalf (musician)': 2, 'Gandalf Alfgeirsson': 2, 'Gandalf (American band)': 5, 'Gandalf (Norse mythology)': 1, 'Gandalf (Finnish band)': 4, 'Gandalf (mythology)': 1, 'Gandalf (new age)': 1, 'Gandalf the Grey': 1}
 
 * **`redirects.pkl`**: Pickled Python dictionary that maps redirect page titles to their corresponding redirect
- target. *This file will be removed if you run the `make cleanup` command, since it has been transformed into a
- database for faster retrieval.* Redirects are extracted from the entire Wikipedia dump. Example dictionary entry:
+ target. *This file is an intermediate file used only to generate a Python database and is therefore not contained in
+ the downloaded files. If you generate the Wikipedia mappings yourself, this file will be removed if you run the
+ `make cleanup` command.* Redirects are extracted from the entire Wikipedia dump. Example dictionary entry:
 
       >>> redirects["Barack H. Obama"]
       'Barack Obama'
@@ -168,7 +178,7 @@ The following files are generated in `<data_directory>/wikipedia_mappings/` when
 
       Q6199	Anarchism	Anarchism is a political philosophy and movement that is sceptical of authority [...]
 
-In total, the Wikipedia mapping files require about 7GB of disk space (this can vary depending on the Wikipedia
+In total, the Wikipedia mapping files require about 5GB of disk space (this can vary depending on the Wikipedia
  version used to generate the mappings).
 
 ## Entity-Type Mapping

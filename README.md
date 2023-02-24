@@ -30,23 +30,19 @@ For linking entities in text or evaluating the output of a linker, our system ne
  are too large to upload them on GitHub, you can either download them from our servers (fast) or build them yourself
  (slow, RAM intensive, but the resulting files might be based on a more recent Wikidata/Wikipedia dump).
 
-To download the files, run the following commands:
+To download the files, simply run
 
-    make download_wikidata_mappings
-    make download_wikipedia_mappings
-    make download_entity_types_mapping
-    make cleanup
+    make download_all
 
-This will download the compressed files, extract them and move them to the correct location. See
- [Mapping Files](docs/mapping_files.md) for a description of files generated in these steps.
-
-The `make cleanup` step is optional, but will free some disk space by removing mappings that exist once as tsv and
- once as database file.
+This will automatically run `make download_wikidata_mappings`, `make download_wikipedia_mappings` and
+ `make download_entity_types_mapping` which will download the compressed files, extract them and move them to the
+ correct location. See [Mapping Files](docs/mapping_files.md) for a description of files generated in these steps.
 
 NOTE: This will overwrite existing Wikidata and Wikipedia mappings in your `<data_directory>` so make sure this is what 
  you want to do.
 
-If you rather want to build the mappings yourself, you can replace each *download* command by a *generate* command. See
+If you rather want to build the mappings yourself, you can replace each *download* command (except `download_all`) by a
+ *generate* command. See
  [Data Generation](docs/data_generation.md) for more details.
 
 ## Start the Web App

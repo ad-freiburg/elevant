@@ -157,6 +157,8 @@ generate_entity_types_mapping:
 	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
 	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
 
+download_all: download_wikidata_mappings download_wikipedia_mappings download_entity_types_mapping
+
 download_wikidata_mappings:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/wikidata_mappings.tar.gz
@@ -171,9 +173,9 @@ download_wikipedia_mappings:
 
 download_entity_types_mapping:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
-	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/entity-types.tar.gz
-	tar -xvzf entity-types.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
-	rm entity-types.tar.gz
+	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/qid_to_whitelist_types.tar.gz
+	tar -xvzf qid_to_whitelist_types.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
+	rm qid_to_whitelist_types.tar.gz
 
 download_spacy_linking_files:
 	@[ -d ${DATA_DIR}linker_files ] || mkdir ${DATA_DIR}linker_files
@@ -210,7 +212,6 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	@echo
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
 	python3 extract_akronyms.py
-	python3 extract_abstracts.py
 	python3 get_link_frequencies.py
 	python3 extract_redirects.py ${WIKI_DUMP}
 	python3 create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
@@ -260,6 +261,9 @@ cleanup:
 	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
 	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv
 	rm ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_p279.tsv
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_p31.tsv
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_all_types.tsv
 	rm ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
 
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)

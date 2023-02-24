@@ -58,7 +58,6 @@ TITLE_SYNONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/title_synonyms.pkl"
 AKRONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/akronyms.pkl"
 WIKIPEDIA_ID_TO_TITLE_FILE = DATA_DIRECTORY + "wikipedia_mappings/wikipedia_id_to_title.tsv"
 UNIGRAMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/unigrams.txt"
-WIKIPEDIA_ABSTRACTS_FILE = DATA_DIRECTORY + "wikipedia_mappings/article_abstracts.tsv"
 
 # Database files
 QID_TO_SITELINKS_DB = DATA_DIRECTORY + "wikidata_mappings/qid_to_sitelinks.db"
