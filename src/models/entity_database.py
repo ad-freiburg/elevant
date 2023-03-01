@@ -191,7 +191,7 @@ class EntityDatabase:
     def load_family_name_aliases(self):
         logger.info("Loading family name aliases into entity database ...")
         self.loaded_info[MappingName.FAMILY_NAME_ALIASES] = LoadedInfo(LoadingType.FULL)
-        for entity_id, name in EntityDatabaseReader.read_names():
+        for entity_id, name in EntityDatabaseReader.read_human_names():
             if " " in name:
                 family_name = name.split()[-1]
                 if family_name in self.family_name_aliases:
@@ -240,7 +240,7 @@ class EntityDatabase:
     def load_entity_to_family_name(self):
         logger.info("Loading entity ID to family name aliases into entity database ...")
         self.loaded_info[MappingName.ENTITY_ID_TO_FAMILY_NAME] = LoadedInfo(LoadingType.FULL)
-        for entity_id, name in EntityDatabaseReader.read_names():
+        for entity_id, name in EntityDatabaseReader.read_human_names():
             if " " in name:
                 family_name = name.split()[-1]
                 self.entity_to_family_name[entity_id] = family_name
