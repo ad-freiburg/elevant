@@ -1953,8 +1953,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     let tooltip_body_text = "";
     let tooltip_footer_html = "";
     if (annotation.class === ANNOTATION_CLASS_TP && annotation.pred_entity_id) {
-        const wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-        const entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+        const entity_link = get_entity_link(annotation.pred_entity_id);
         let entity_name;
         if (annotation.pred_entity_name != null) {
             entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
@@ -1969,8 +1968,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
         if ("pred_entity_id" in annotation) {
             if (annotation.pred_entity_id) {
                 let entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
-                const wikidata_url = "https://www.wikidata.org/wiki/" + annotation.pred_entity_id;
-                const entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.pred_entity_id + "</a>";
+                const entity_link = get_entity_link(annotation.pred_entity_id);
                 tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
             } else {
                 // NIL prediction
@@ -1991,8 +1989,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
                 tooltip_header_text += "Groundtruth: [" + entity_name + "]";
             } else {
                 let entity_name = (annotation.gt_entity_name === "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
-                const wikidata_url = "https://www.wikidata.org/wiki/" + annotation.gt_entity_id;
-                const entity_link = "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + annotation.gt_entity_id + "</a>";
+                const entity_link = get_entity_link(annotation.gt_entity_id);
                 tooltip_header_text += "Groundtruth: " + entity_name + " (" + entity_link + ")";
             }
             if (annotation.class === ANNOTATION_CLASS_OPTIONAL) tooltip_body_text += "Note: Detection is optional<br>";
@@ -2077,6 +2074,20 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     replacement += "</span>";
 
     return replacement;
+}
+
+function get_entity_link(entity_id) {
+    /*
+     * Retrieve the http link of an entity given its ID depending on whether it's a Wikidata QID or
+     * an ID from a custom ontology.
+     */
+    if (entity_id.match(/[Qq][0-9]+/)) {
+        // Add Wikidata web prefix only if entity ID is a QID (could also be a custom ontology ID)
+        const wikidata_url = "https://www.wikidata.org/wiki/" + entity_id;
+        return "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + entity_id + "</a>";
+    } else {
+        return "<a href=\"" + entity_id + "\" target=\"_blank\">" + entity_id + "</a>";
+    }
 }
 
 function combine_overlapping_annotations(list1, list2) {
