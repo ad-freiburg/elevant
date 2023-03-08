@@ -20,7 +20,8 @@ class LinkingSystem:
                  prediction_name: Optional[str] = None,
                  coref_linker: Optional[str] = None,
                  min_score: Optional[int] = None,
-                 type_mapping_file: Optional[str] = None):
+                 type_mapping_file: Optional[str] = None,
+                 custom_mappings: Optional[bool] = False):
         self.linker = None
         self.prediction_reader = None
         self.prediction_name = prediction_name
@@ -30,6 +31,12 @@ class LinkingSystem:
         self.globally = False
         self.type_mapping_file = type_mapping_file  # Only needed for pure prior linker
         self.linker_config = self.read_linker_config(linker_name, config_path) if linker_name else {}
+        self.custom_mappings = custom_mappings
+
+        if custom_mappings and prediction_format not in {PredictionFormats.NIF.value,
+                                                         PredictionFormats.SIMPLE_JSONL.value}:
+            logger.warning(f"Using a custom ontology is not supported for linking result format {prediction_format}. "
+                           f"Please choose a different format.")
 
         self._initialize_entity_db(linker_name, coref_linker, min_score)
         self._initialize_linker(linker_name, prediction_file, prediction_format)
@@ -99,9 +106,10 @@ class LinkingSystem:
             self.linker = TagMeLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.SIMPLE_JSONL.value:
             from src.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
-            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
-                                        MappingName.REDIRECTS})
-            self.prediction_reader = SimpleJsonlPredictionReader(prediction_file, self.entity_db)
+            if not self.custom_mappings:
+                self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                            MappingName.REDIRECTS})
+            self.prediction_reader = SimpleJsonlPredictionReader(prediction_file, self.entity_db, self.custom_mappings)
         elif linker_type == Linkers.BASELINE.value:
             from src.linkers.baseline_linker import BaselineLinker
             if self.linker_config["strategy"] == "wikidata":
@@ -144,9 +152,10 @@ class LinkingSystem:
             self.linker = PriorLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.NIF.value:
             from src.prediction_readers.nif_prediction_reader import NifPredictionReader
-            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
-                                        MappingName.REDIRECTS})
-            self.prediction_reader = NifPredictionReader(prediction_file, self.entity_db)
+            if not self.custom_mappings:
+                self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                            MappingName.REDIRECTS})
+            self.prediction_reader = NifPredictionReader(prediction_file, self.entity_db, self.custom_mappings)
         elif linker_type == PredictionFormats.EPGEL.value:
             from src.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
             self.prediction_reader = EPGELPredictionReader(prediction_file)

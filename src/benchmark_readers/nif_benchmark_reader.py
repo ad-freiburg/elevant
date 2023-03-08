@@ -1,7 +1,7 @@
 import os
 import logging
 
-from typing import Iterator
+from typing import Iterator, Optional
 
 from pynif import NIFCollection
 
@@ -16,10 +16,11 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class NifBenchmarkReader(AbstractBenchmarkReader):
-    def __init__(self, entity_db: EntityDatabase, benchmark_path: str):
+    def __init__(self, entity_db: EntityDatabase, benchmark_path: str, custom_mappings: Optional[bool]):
         self.entity_db = entity_db
         self.benchmark_path = benchmark_path
         self.article_id_counter = 0
+        self.custom_mappings = custom_mappings
 
     def get_articles_from_nif(self, nif_content: str) -> Iterator[Article]:
         """
@@ -43,7 +44,10 @@ class NifBenchmarkReader(AbstractBenchmarkReader):
             for phrase in sorted(context.phrases, key=lambda p: p.beginIndex):
                 span = phrase.beginIndex, phrase.endIndex
                 entity_uri = phrase.taIdentRef
-                entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
+                if self.custom_mappings:
+                    entity_id = entity_uri
+                else:
+                    entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
                 if not entity_id:
                     no_mapping_count += 1
                     entity_id = "Unknown"

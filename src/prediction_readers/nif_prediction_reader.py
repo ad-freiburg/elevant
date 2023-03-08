@@ -1,5 +1,5 @@
 import logging
-from typing import Iterator, Tuple, Dict
+from typing import Iterator, Tuple, Dict, Optional
 
 from pynif import NIFCollection
 
@@ -12,8 +12,9 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class NifPredictionReader(AbstractPredictionReader):
-    def __init__(self, input_filepath: str, entity_db: EntityDatabase):
+    def __init__(self, input_filepath: str, entity_db: EntityDatabase, custom_mappings: Optional[bool] = False):
         self.entity_db = entity_db
+        self.custom_mappings = custom_mappings
         super().__init__(input_filepath, predictions_iterator_implemented=False)
 
     def get_predictions_with_text_from_file(self, filepath: str) -> Iterator[Tuple[Dict[Tuple[int, int],
@@ -38,7 +39,10 @@ class NifPredictionReader(AbstractPredictionReader):
                 # Make sure predictions are sorted by start index
                 for phrase in sorted(context.phrases, key=lambda p: p.beginIndex):
                     entity_uri = phrase.taIdentRef
-                    entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
+                    if self.custom_mappings:
+                        entity_id = entity_uri
+                    else:
+                        entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
                     span = phrase.beginIndex, phrase.endIndex
                     predictions[span] = EntityPrediction(span, entity_id, {entity_id})
                 # Add article text and predictions to mappings

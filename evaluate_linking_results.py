@@ -33,9 +33,15 @@ def main(args):
                     typ = type_match.group(0)
                     whitelist_types.add(typ)
 
-    whitelist_file = args.type_whitelist if args.type_whitelist else settings.WHITELIST_FILE
+    whitelist_file = settings.WHITELIST_FILE
+    if args.type_whitelist:
+        whitelist_file = args.type_whitelist
+    elif args.custom_mappings:
+        whitelist_file = settings.CUSTOM_WHITELIST_TYPES_FILE
+
     type_mapping_file = args.type_mapping if args.type_mapping else settings.QID_TO_WHITELIST_TYPES_DB
-    evaluator = Evaluator(type_mapping_file, whitelist_file=whitelist_file, contains_unknowns=not args.no_unknowns)
+    evaluator = Evaluator(type_mapping_file, whitelist_file=whitelist_file, contains_unknowns=not args.no_unknowns,
+                          custom_mappings=args.custom_mappings)
 
     for input_file_name in args.input_files:
         idx = input_file_name.rfind('.linked_articles.jsonl')
@@ -155,6 +161,8 @@ if __name__ == "__main__":
     parser.add_argument("--type_filter_predictions", action="store_true",
                         help="Ignore predicted links that do not have a type from the type whitelist."
                              "This has no effect if the type_whitelist argument is not provided.")
+    parser.add_argument("-c", "--custom_mappings", action="store_true",
+                        help="Use custom entity to name and entity to type mappings instead of Wikidata.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))

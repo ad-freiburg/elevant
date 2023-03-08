@@ -3183,7 +3183,7 @@ function get_type_label(qid) {
 }
 
 function get_class_name(text) {
-    const name = text.toLowerCase().replace(/[ ,.#:]/g, "_");
+    const name = text.toLowerCase().replace(/[ ,.#:\/]/g, "_");
     if (name !== text.toLowerCase()) console.log("WARNING! Class name is not identical to key: " + name + " vs. " + text);
     return name;
 }

@@ -8,7 +8,6 @@ from src import settings
 from src.evaluation.benchmark import BenchmarkFormat, Benchmark, get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.entity_database import EntityDatabase
 
 
@@ -21,11 +20,16 @@ def main(args):
     benchmark_iterator = get_benchmark_iterator(args.benchmark,
                                                 from_json_file=from_json_file,
                                                 benchmark_files=args.benchmark_file,
-                                                benchmark_format=args.benchmark_format)
+                                                benchmark_format=args.benchmark_format,
+                                                custom_mappings=args.custom_mappings)
 
     entity_db = EntityDatabase()
-    entity_db.load_entity_names()
-    entity_db.load_entity_types()
+    if args.custom_mappings:
+        entity_db.load_custom_entity_names(settings.CUSTOM_ENTITY_TO_NAME_FILE)
+        entity_db.load_custom_entity_types(settings.CUSTOM_ENTITY_TO_TYPES_FILE)
+    else:
+        entity_db.load_entity_names()
+        entity_db.load_entity_types()
 
     lines_to_write = ""
     for article in benchmark_iterator.iterate():
@@ -86,6 +90,9 @@ if __name__ == "__main__":
                              "in the webapp.")
     parser.add_argument("--displayed_name", "-dname", type=str,
                         help="The benchmark name that will be stored in the metadata file and displayed in the webapp.")
+
+    parser.add_argument("-c", "--custom_mappings", action="store_true",
+                        help="Use custom entity to name and entity to type mappings instead of Wikidata.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))

@@ -21,32 +21,38 @@ random.seed(42)
 def get_benchmark_iterator(benchmark_name: str,
                            from_json_file: Optional[bool] = True,
                            benchmark_files: Optional[List[str]] = None,
-                           benchmark_format: Optional[BenchmarkFormat] = None):
+                           benchmark_format: Optional[BenchmarkFormat] = None,
+                           custom_mappings: Optional[bool] = False):
+    if custom_mappings and benchmark_format not in {BenchmarkFormat.NIF.value, BenchmarkFormat.SIMPLE_JSONL.value}:
+        logger.warning(f"Using a custom ontology is not supported for benchmark format {benchmark_format}. "
+                       f"Please choose a different format.")
     if benchmark_files:
         if benchmark_format == BenchmarkFormat.NIF.value:
-            logger.info("Load mappings for NIF benchmark reader...")
             entity_db = EntityDatabase()
-            entity_db.load_wikipedia_to_wikidata_db()
-            entity_db.load_redirects()
-            logger.info("-> Mappings loaded.")
-            benchmark_iterator = NifBenchmarkReader(entity_db, benchmark_files[0])
+            if not custom_mappings:
+                logger.info("Load mappings for NIF benchmark reader...")
+                entity_db.load_wikipedia_to_wikidata_db()
+                entity_db.load_redirects()
+                logger.info("-> Mappings loaded.")
+            benchmark_iterator = NifBenchmarkReader(entity_db, benchmark_files[0], custom_mappings)
         elif benchmark_format == BenchmarkFormat.AIDA_CONLL.value:
-            logger.info("Load mappings for AIDA CoNLL benchmark reader...")
             entity_db = EntityDatabase()
+            logger.info("Load mappings for AIDA CoNLL benchmark reader...")
             entity_db.load_wikipedia_to_wikidata_db()
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
             benchmark_iterator = AidaConllBenchmarkReader(entity_db, benchmark_files[0])
         elif benchmark_format == BenchmarkFormat.SIMPLE_JSONL.value:
-            logger.info("Load mappings for Simple JSONL benchmark reader...")
             entity_db = EntityDatabase()
-            entity_db.load_wikipedia_to_wikidata_db()
-            entity_db.load_redirects()
-            logger.info("-> Mappings loaded.")
-            benchmark_iterator = SimpleJsonlBenchmarkReader(entity_db, benchmark_files[0])
+            if not custom_mappings:
+                logger.info("Load mappings for Simple JSONL benchmark reader...")
+                entity_db.load_wikipedia_to_wikidata_db()
+                entity_db.load_redirects()
+                logger.info("-> Mappings loaded.")
+            benchmark_iterator = SimpleJsonlBenchmarkReader(entity_db, benchmark_files[0], custom_mappings)
         elif benchmark_format == BenchmarkFormat.TSV.value:
-            logger.info("Load mappings for TSV benchmark reader...")
             entity_db = EntityDatabase()
+            logger.info("Load mappings for TSV benchmark reader...")
             entity_db.load_wikipedia_to_wikidata_db()
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
@@ -55,8 +61,8 @@ def get_benchmark_iterator(benchmark_name: str,
             if len(benchmark_files) == 1:
                 raise IndexError("The XML benchmark reader needs the XML file and the directory with raw texts "
                                  "as input, but only one file was provided.")
-            logger.info("Load mappings for XML benchmark reader...")
             entity_db = EntityDatabase()
+            logger.info("Load mappings for XML benchmark reader...")
             entity_db.load_wikipedia_to_wikidata_db()
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
@@ -65,8 +71,8 @@ def get_benchmark_iterator(benchmark_name: str,
             if len(benchmark_files) == 1:
                 raise IndexError("The TagMe benchmark reader needs the annotation file and the text snippet file "
                                  "as input, but only one file was provided.")
-            logger.info("Load mappings for TagMe benchmark reader...")
             entity_db = EntityDatabase()
+            logger.info("Load mappings for TagMe benchmark reader...")
             entity_db.load_wikipedia_to_wikidata_db()
             entity_db.load_redirects()
             entity_db.load_wikipedia_id2wikipedia_title()
@@ -80,8 +86,8 @@ def get_benchmark_iterator(benchmark_name: str,
         benchmark_iterator = OurJsonlBenchmarkReader(benchmark_filename)
     elif benchmark_name in [Benchmark.AIDA_CONLL.value, Benchmark.AIDA_CONLL_TRAIN.value,
                             Benchmark.AIDA_CONLL_DEV.value, Benchmark.AIDA_CONLL_TEST.value]:
-        logger.info("Load mappings for benchmark reader...")
         entity_db = EntityDatabase()
+        logger.info("Load mappings for benchmark reader...")
         entity_db.load_wikipedia_to_wikidata_db()
         entity_db.load_redirects()
         logger.info("-> Mappings loaded.")

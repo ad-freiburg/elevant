@@ -133,7 +133,7 @@ class EntityDatabaseReader:
         filename = settings.QID_TO_LANGUAGE_FILE
         logger.info("Loading languages from %s ..." % filename)
         languages = {}
-        with open(filename) as f:
+        with open(filename, "r", encoding="utf8") as f:
             for line in f:
                 entity_id, language = line.strip('\n').split('\t')
                 languages[language] = entity_id
@@ -245,10 +245,10 @@ class EntityDatabaseReader:
     @staticmethod
     def get_entity_name_db() -> Database:
         filename = settings.QID_TO_LABEL_DB
-        logger.info(f"Loading entity ID to label database from {filename} ...")
-        label_db = EntityDatabaseReader.read_from_dbm(filename)
-        logger.info(f"-> {len(label_db)} entity ID to label mappings loaded.")
-        return label_db
+        logger.info(f"Loading entity ID to name database from {filename} ...")
+        name_db = EntityDatabaseReader.read_from_dbm(filename)
+        logger.info(f"-> {len(name_db)} entity ID to name mappings loaded.")
+        return name_db
 
     @staticmethod
     def get_whitelist_types_db(filename: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB) -> Database:
@@ -282,7 +282,28 @@ class EntityDatabaseReader:
     @staticmethod
     def get_name_to_entities_db() -> Database:
         filename = settings.LABEL_TO_QIDS_DB
-        logger.info(f"Loading label to entity ID database from {filename} ...")
-        label_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
-        logger.info(f"-> {len(label_db)} label to entity ID mappings loaded.")
-        return label_db
+        logger.info(f"Loading name to entity ID database from {filename} ...")
+        name_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
+        logger.info(f"-> {len(name_db)} name to entity ID mappings loaded.")
+        return name_db
+
+    @staticmethod
+    def get_entity_name_mapping(filename: str) -> Dict[str, str]:
+        logger.info("Loading entity ID to name mapping from %s ..." % filename)
+        entity_to_name = {}
+        for line in open(filename, "r", encoding="utf8"):
+            entity_id, name = line.strip('\n').split('\t')
+            entity_to_name[entity_id] = name
+        logger.info(f"-> {len(entity_to_name)} entity ID to name mappings loaded.")
+        return entity_to_name
+
+    @staticmethod
+    def get_entity_types_mapping(filename: str) -> Dict[str, List[str]]:
+        logger.info("Loading entity ID to types mapping from %s ..." % filename)
+        entity_to_types = {}
+        for line in open(filename, "r", encoding="utf8"):
+            lst = line.strip('\n').split('\t')
+            entity_id = lst[0]
+            entity_to_types[entity_id] = lst[1:]
+        logger.info(f"-> {len(entity_to_types)} entity ID to types mappings loaded.")
+        return entity_to_types

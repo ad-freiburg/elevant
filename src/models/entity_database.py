@@ -119,6 +119,12 @@ class EntityDatabase:
         else:
             logger.info("Entity type database already loaded.")
 
+    def load_custom_entity_types(self, filename: str):
+        if not self.entity_type_db:
+            self.entity_type_db = EntityDatabaseReader.get_entity_types_mapping(filename)
+        else:
+            logger.info("Entity type mapping already loaded.")
+
     def get_entity_types(self, entity_id: str) -> Optional[List[str]]:
         if len(self.entity_type_db) == 0:
             logger.warning("Tried to access entity type database, but entity type database was not loaded.")
@@ -159,6 +165,12 @@ class EntityDatabase:
             self.entity_name_db = EntityDatabaseReader.get_entity_name_db()
         else:
             logger.info("Entity name database already loaded.")
+
+    def load_custom_entity_names(self, filename: str):
+        if not self.entity_name_db:
+            self.entity_name_db = EntityDatabaseReader.get_entity_name_mapping(filename)
+        else:
+            logger.info("Entity name mapping already loaded.")
 
     def get_entity_name(self, entity_id: str) -> Optional[str]:
         if len(self.entity_name_db) == 0:
