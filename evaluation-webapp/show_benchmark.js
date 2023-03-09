@@ -1599,16 +1599,17 @@ function show_example_benchmark_modal(el) {
     const selected_category = get_evaluation_category_string(table_header_cell, true);
 
     // Get table header title
-    const evaluation_categories = get_evaluation_category_string(table_header_cell, false)
-    const category = evaluation_categories[0];
-    const subcategory = evaluation_categories[1];
-    const error_category_title = category + " - " + subcategory;
+    const evaluation_categories = get_evaluation_category_string(table_header_cell, false).split("|");
+    const category = evaluation_categories[1];
+    const subcategory = evaluation_categories[2];
+    let error_category_title = category + " - " + subcategory;
+    error_category_title = error_category_title.replace(/_/g, " ");
 
     // Determine article index of selected example
     let article_index = 0;
     for (let i=0; i<window.articles_example_benchmark.length; i++) {
         let article = window.articles_example_benchmark[i];
-        if (article.title.toLowerCase().includes(error_category_title)) {
+        if (article.title.toLowerCase().includes(error_category_title.toLowerCase())) {
             article_index = i;
             break;
         }
