@@ -41,7 +41,7 @@ def main(args):
         if t in entity_to_name:
             all_entity_types[t] = entity_to_name[t]
         else:
-            all_entity_types[t] = "Unknown Type"
+            all_entity_types[t] = "OTHER"
 
     with open(settings.CUSTOM_ENTITY_TO_NAME_FILE, "w", encoding="utf8") as file:
         for entity_id, name in entity_to_name.items():
