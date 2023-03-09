@@ -299,35 +299,35 @@ $("document").ready(function() {
         window.history.replaceState({}, '', url);
     });
 
-    // Highlight error category cells on hover
-    $evaluation_table_wrapper.on("mouseenter", "td", function() {
-        if (is_error_cell(this)) {
-            $(this).addClass("hovered");
-        }
-    });
-    $evaluation_table_wrapper.on("mouseleave", "td", function() {
-        $(this).removeClass("hovered");
-    });
 
-    // Highlight all cells in a row belonging to the same mention_type or type or the "all" column on hover
+    // Highlight all cells in a row belonging to the same mention_type or type or the "all" column or
+    // an error category cell on hover
     $evaluation_table_wrapper.on("mouseenter", "td", function() {
         if ($(this).attr('class')) {
-            let cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in MENTION_TYPE_HEADERS || is_type_string(cls) || cls === "all") {
+            const cls = $(this).attr('class').split(/\s+/)[0];
+            const evaluation_category = get_evaluation_category_string(this, true);
+            const base_category = (evaluation_category) ? evaluation_category.split("|")[0] : null;
+            if (base_category === "mention_types" || base_category === "entity_types" || cls === "all") {
                 // Mark all cells in the corresponding row with the corresponding class
                 $(this).closest('tr').find('.' + cls).each(function() {
                     $(this).addClass("hovered");
                 });
+            } else if (base_category === "error_categories") {
+                $(this).addClass("hovered");
             }
         }
     });
     $evaluation_table_wrapper.on("mouseleave", "td", function() {
         if ($(this).attr('class')) {
-            let cls = $(this).attr('class').split(/\s+/)[0];
-            if (cls in MENTION_TYPE_HEADERS || is_type_string(cls) || cls === "all") {
+            const cls = $(this).attr('class').split(/\s+/)[0];
+            const evaluation_category = get_evaluation_category_string(this, true);
+            const base_category = (evaluation_category) ? evaluation_category.split("|")[0] : null;
+            if (base_category === "mention_types" || base_category === "entity_types" || cls === "all") {
                 $(this).closest('tr').find('.' + cls).each(function() {
                     $(this).removeClass("hovered");
                 });
+            } else {
+                $(this).removeClass("hovered");
             }
         }
     });
@@ -379,8 +379,10 @@ $("document").ready(function() {
     $('table').on('stickyHeadersInit', function() {
         // Add table header tooltips to sticky header
         $("#evaluation_table_wrapper .tablesorter-sticky-wrapper th").each(function() {
-            const keys = get_table_header_keys(this);
-            const tooltiptext = get_th_tooltip_text(keys[0], keys[1]);
+            const evaluation_categories = get_evaluation_category_string(this, false).split("|");
+            const category = (evaluation_categories.length >= 2) ? evaluation_categories[1] : "";
+            const subcategory = (evaluation_categories.length >= 3) ? evaluation_categories[2] : "";
+            const tooltiptext = get_th_tooltip_text(category, subcategory);
             if (tooltiptext) {
                 tippy(this, {
                     content: tooltiptext,
@@ -883,19 +885,21 @@ function add_evaluation_table_header(json_obj) {
      */
     let first_row = "<tr><th colspan=2></th>";
     let second_row = "<tr><th>System</th><th>Benchmark</th>";
-    $.each(json_obj, function(key) {
-        $.each(json_obj[key], function(subkey) {
+    $.each(json_obj, function(base_key) {
+        $.each(json_obj[base_key], function(key) {
             let colspan = 0;
-            let class_name = get_class_name(subkey);
-            $.each(json_obj[key][subkey], function(subsubkey) {
-                if (!(IGNORE_HEADERS.includes(subsubkey))) {
-                    let subclass_name = get_class_name(subsubkey);
-                    let sort_order = (subkey in ERROR_CATEGORY_MAPPING) ? " data-sortinitialorder=\"asc\"" : "";
-                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + ">" + get_checkbox_or_column_title(subkey, subsubkey, false) + "</th>";
+            const class_name = get_class_name(key);
+            $.each(json_obj[base_key][key], function(subkey) {
+                if (!(IGNORE_HEADERS.includes(subkey))) {
+                    const subclass_name = get_class_name(subkey);
+                    const sort_order = (key in ERROR_CATEGORY_MAPPING) ? " data-sortinitialorder=\"asc\"" : "";
+                    const data_string = " data-evaluation_category='" + base_key + "|" + key + "|" + subkey + "' ";
+                    second_row += "<th class='" + class_name + " " + class_name + "-" + subclass_name + " sorter-digit'" + sort_order + data_string + ">" + get_checkbox_or_column_title(key, subkey, false) + "</th>";
                     colspan += 1;
                 }
             });
-            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name + "'>" + get_checkbox_or_column_title(key, subkey, false) + "</th>";
+            const data_string = " data-evaluation_category='" + base_key + "|" + key + "' ";
+            first_row += "<th colspan=\"" + colspan + "\" class='" + class_name  + "'" + data_string + ">" + get_checkbox_or_column_title(base_key, key, false) + "</th>";
         });
     });
     first_row += "</tr>";
@@ -904,8 +908,10 @@ function add_evaluation_table_header(json_obj) {
 
     // Add table header tooltips
     $("#evaluation_table_wrapper th").each(function() {
-        let keys = get_table_header_keys(this);
-        let tooltiptext = get_th_tooltip_text(keys[0], keys[1]);
+        const evaluation_categories = get_evaluation_category_string(this, false).split("|");
+        const category = (evaluation_categories.length >= 2) ? evaluation_categories[1] : "";
+        const subcategory = (evaluation_categories.length >= 3) ? evaluation_categories[2] : "";
+        const tooltiptext = get_th_tooltip_text(category, subcategory);
         if (tooltiptext) {
             tippy(this, {
                 content: tooltiptext,
@@ -1008,7 +1014,7 @@ function get_table_row(experiment_id, json_obj) {
                         value = processed_value;
                     }
                     let subclass_name = get_class_name(subkey);
-                    let data_string = "data-category='" + class_name + "," + subclass_name + "'";
+                    let data_string = "data-evaluation_category='" + basekey + "|" + key + "|" + subkey + "' ";
                     row += "<td class='" + class_name + " " + class_name + "-" + subclass_name + "' " + data_string + onclick_str + ">" + value + "</td>";
                 }
             });
@@ -1198,17 +1204,21 @@ function on_cell_click(el) {
     }
 
     // Make new selection
-    let classes = ($(el).attr('class')) ? $(el).attr('class').split(/\s+/) : [];  // System column has no class attribute
-    if (is_error_cell(el)) {
+    const evaluation_categories = get_evaluation_category_string(el, true);
+    const base_category = (evaluation_categories) ? evaluation_categories.split("|")[0] : null;
+    if (base_category === "error_categories") {
+        // Mark just the clicked cell as selected
         $(el).addClass("selected");
         window.selected_cells.push(el);
-    } else if (classes.length > 0 && (classes[0] in MENTION_TYPE_HEADERS || is_type_string(classes[0]))) {
+    } else if (base_category === "entity_types" || base_category === "mention_types") {
+        // Mark all three cells belonging to the same column as selected
+        const classes = $(el).attr('class').split(/\s+/);
         $(el).closest('tr').find('.' + classes[0]).each(function() {
             $(this).addClass("selected");
         });
         window.selected_cells.push(el);
     } else {
-        // Select "all" column
+        // Select all three cells of the "all" column when clicking on System, Benchmark or NER column
         let added = false;
         $(el).closest('tr').find('.all').each(function() {
             $(this).addClass("selected");
@@ -1223,7 +1233,7 @@ function on_cell_click(el) {
     // Updated selected cell categories
     // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
     let exp_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : window.selected_rows.length % MAX_SELECTED_APPROACHES;
-    window.selected_cell_categories[exp_index] = get_error_category_or_type(el);
+    window.selected_cell_categories[exp_index] = evaluation_categories;
 
     // Update current URL without refreshing the site
     const url = new URL(window.location);
@@ -1354,6 +1364,7 @@ function get_th_tooltip_text(key, subkey) {
      * Get the tooltip text (including html) for the table header cell specified by the
      * given evaluation results key and subkey.
      */
+    if (!key) return "";
     if (key.toLowerCase() in HEADER_DESCRIPTIONS) {
         key = key.toLowerCase();
         subkey = subkey.toLowerCase();
@@ -1384,8 +1395,7 @@ function get_th_tooltip_text(key, subkey) {
             }
             return string;
         }
-    } else if (key.toUpperCase() in window.whitelist_types || key.toLowerCase() === "other") {
-        key = key.toUpperCase();
+    } else if (key in window.whitelist_types || key.toLowerCase() === "other") {
         const type = (key in window.whitelist_types) ? window.whitelist_types[key] : "Other";
         if (subkey) {
             // Get tooltips for precision, recall and f1
@@ -1585,12 +1595,14 @@ function show_example_benchmark_modal(el) {
      */
     // Get example error category of the table tooltip to highlight only corresponding mentions
     // Hack to get the reference object from the clicked tippy tooltip.
-    let table_header_cell = $(el).parent().parent().parent().parent()[0]._tippy.reference;
-    let selected_category = get_error_category_or_type(table_header_cell);
+    const table_header_cell = $(el).parent().parent().parent().parent()[0]._tippy.reference;
+    const selected_category = get_evaluation_category_string(table_header_cell, true);
 
     // Get table header title
-    let keys = get_table_header_keys(table_header_cell);
-    let error_category_title = keys[0].replace(/_/g, " ") + " - " + keys[1].replace(/_/g, " ");
+    const evaluation_categories = get_evaluation_category_string(table_header_cell, false)
+    const category = evaluation_categories[0];
+    const subcategory = evaluation_categories[1];
+    const error_category_title = category + " - " + subcategory;
 
     // Determine article index of selected example
     let article_index = 0;
@@ -1603,11 +1615,11 @@ function show_example_benchmark_modal(el) {
     }
 
     // Display error explanation extracted from table header tooltip text
-    let error_explanation = HEADER_DESCRIPTIONS[keys[0]][keys[1]];
+    let error_explanation = HEADER_DESCRIPTIONS[category][subcategory];
     error_explanation = error_explanation.replace(/.*<i>Numerator:<\/i> (.*?)<\/p>.*/, "$1");
     $("#error_explanation").text("Description: " + error_explanation);
     // Display annotated text
-    let textfield = $("#example_prediction_overview tr td");
+    const textfield = $("#example_prediction_overview tr td");
     show_annotated_text("example.error-category-examples", $(textfield[0]), selected_category, 100, article_index, true);
     $("#example_prediction_overview tr th").text(window.articles_example_benchmark[article_index].title);
 }
@@ -2037,16 +2049,20 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     let lowlight_mention = false;
     if (selected_cell_category) {
         lowlight_mention = true;
-        for (const selected_category of selected_cell_category) {
-            if (is_type_string(selected_category)) {
-                const pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.toLowerCase().split("|").includes(selected_category);
-                const gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.toLowerCase().split("|").includes(selected_category);
+        const evaluation_category_tags = get_evaluation_category_tags(selected_cell_category)
+        const base_category = selected_cell_category.split("|")[0];
+        for (const tag of evaluation_category_tags) {
+            if (base_category === "entity_types") {
+                // Selected evaluation category is an entity type
+                const pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.split("|").includes(tag);
+                const gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.split("|").includes(tag);
                 if (pred_type_selected || gt_type_selected) {
                     lowlight_mention = false;
                     break;
                 }
             } else {
-                if ((annotation.error_labels && annotation.error_labels.includes(selected_category)) || annotation.mention_type === selected_category) {
+                // Selected evaluation category is an error category or a mention type
+                if ((annotation.error_labels && annotation.error_labels.includes(tag)) || annotation.mention_type === tag) {
                     lowlight_mention = false;
                     break;
                 }
@@ -2263,15 +2279,18 @@ function get_emphasis_string(selected_cell_category) {
      */
     let emphasis = "All";
     if (selected_cell_category) {
-        let emphasis_strs = [];
-        for (const selected_category of selected_cell_category) {
-            if (is_type_string(selected_category)) {
-                emphasis_strs.push("Entity Type: " + get_type_label(selected_category));
-            } else {
-                emphasis_strs.push(to_title_case(selected_category.toLowerCase().replace(/_/g, " ")));
-            }
+        const evaluation_categories = selected_cell_category.split("|");
+        const base_category = evaluation_categories[0];
+        const category = evaluation_categories[1];
+        const subcategory = evaluation_categories[2];
+        if (base_category === "entity_types") {
+            emphasis = "Entity Type: " + get_type_label(category);
+        } else if (base_category === "error_categories") {
+            emphasis = "Error Category: " + window.EVALUATION_CATEGORY_TITLES[base_category][category]["table_heading"]
+                                          + " - " + to_title_case(subcategory.replace(/_/g, " "));
+        } else if (base_category === "mention_types") {
+            emphasis = "Mention Type: " + window.EVALUATION_CATEGORY_TITLES[base_category][category]["table_heading"];
         }
-        emphasis = emphasis_strs.join(", ");
     }
     return " (emphasis: \"" + emphasis + "\")";
 }
@@ -2667,7 +2686,6 @@ function graph_mode_on() {
      * a table column.
      */
     const $evaluation_table_wrapper = $("#evaluation_table_wrapper");
-
     $("#overlay").show();
     $("#overlay_footer").show();
 
@@ -3095,30 +3113,6 @@ function update_benchmark_filter(regex) {
  Functions for MINI UTILS
  *********************************************************************************************************************/
 
-function get_table_header_keys(th_element) {
-    /*
-     * Get keys for table headers.
-     * For the first table header row this is a single key, e.g. "entity_named".
-     * For the second table header row this is two keys, e.g. "entity_named" and "precision".
-     */
-    let keys = ["", ""];
-    const all_classes_string = $(th_element).attr('class');
-    // System column has no attribute 'class'
-    if (all_classes_string) {
-        const all_classes = all_classes_string.split(/\s+/);
-        if (all_classes.length > 1) {
-            // Second table header row
-            const classes = all_classes[1].split("-");
-            keys[0] = classes[0];
-            keys[1] = classes[1]
-        } else if (all_classes.length === 1) {
-            // First table header row
-            keys[0] = all_classes[0];
-        }
-    }
-    return keys;
-}
-
 function show_table_column(table_id, index) {
     /*
      * Show the column with the given index in the table with the given id.
@@ -3135,58 +3129,43 @@ function hide_table_column(table_id, index) {
     $("#" + table_id + " td:nth-child(" + (index + 1) + ")").hide();
 }
 
-function is_error_cell(el) {
-    /*
-     * Return true if the given cell is a error category td.
-     */
-    if ($(el).attr('class')) {  // System column has no class attribute
-        const classes = $(el).attr('class').split(/\s+/);
-        if (classes.length > 1) {
-            // The second class of a cell is its header and subheader (as class name) connected by "-"
-            const keys = classes[1].split("-");
-            if (keys[0] in ERROR_CATEGORY_MAPPING) {
-                if (keys[1] in ERROR_CATEGORY_MAPPING[keys[0]]) {
-                    return true;
-                }
-            }
+function get_evaluation_category_string(el, only_if_annotation_filter) {
+    const evaluation_category_data = $(el).data("evaluation_category");
+    if (evaluation_category_data) {
+        if (!only_if_annotation_filter || (evaluation_category_data.split("|")[1].toLowerCase() !== "all"
+                                           && evaluation_category_data.split("|")[1].toLowerCase() !== "ner")) {
+            return evaluation_category_data;
         }
     }
-    return false;
+    return "";
 }
 
-function get_error_category_or_type(el) {
+function get_evaluation_category_tags(evaluation_category_string) {
     /*
-     * For a given cell return the error category or type it belongs to, or null otherwise.
+     * For a given cell return the error category, entity type or mention type tag.
      */
-    if ($(el).attr('class')) {
-        const classes = $(el).attr('class').split(/\s+/);
-        if (is_error_cell(el)) {
-            const keys = classes[1].split("-");
-            return ERROR_CATEGORY_MAPPING[keys[0]][keys[1]];
-        } if (is_type_string(classes[0])) {
-            return [get_type_qid(classes[0])];
-        } else if (classes[0] in MENTION_TYPE_HEADERS) {
-            return MENTION_TYPE_HEADERS[classes[0]];
+    if (evaluation_category_string) {
+        const evaluation_categories = evaluation_category_string.split("|");
+        const base_category = evaluation_categories[0];
+        const category = evaluation_categories[1];
+        const subcategory = evaluation_categories[2];
+        if (base_category === "error_categories") {
+            return ERROR_CATEGORY_MAPPING[category][subcategory];
+        } else if (base_category === "entity_types") {
+            return [category];
+        } else if (base_category === "mention_types") {
+            return MENTION_TYPE_HEADERS[category];
         }
     }
     return null;
-}
-
-function is_type_string(class_name) {
-    const match = class_name.match(/[Qq][0-9]+.*/);
-    if (match || class_name === "other") {
-        return true;
-    }
-}
-
-function get_type_qid(string) {
-    return string.replace(/([Qq][0-9]+).*/, "$1");
 }
 
 function get_type_label(qid) {
     const qid_upper = qid.replace("q", "Q");
     if (qid_upper in window.whitelist_types) {
         return window.whitelist_types[qid_upper];
+    } else if (qid in window.whitelist_types) {
+        return window.whitelist_types[qid]
     } else if (qid.toLowerCase() === "other") {
         return "Other";
     }
@@ -3194,9 +3173,7 @@ function get_type_label(qid) {
 }
 
 function get_class_name(text) {
-    const name = text.toLowerCase().replace(/[ ,.#:\/]/g, "_");
-    if (name !== text.toLowerCase()) console.log("WARNING! Class name is not identical to key: " + name + " vs. " + text);
-    return name;
+    return text.toLowerCase().replace(/[ ,.#:\/]/g, "_");
 }
 
 function to_title_case(str) {
@@ -3211,8 +3188,8 @@ function get_checkbox_or_column_title(key, subkey, is_checkbox) {
      */
     const lower_key = key.toLowerCase();
     const lower_subkey = subkey.toLowerCase();
-    if (key === "entity_types" && is_type_string(lower_subkey)) {
-        return (is_checkbox) ? get_type_label(lower_subkey) : "Type: " + get_type_label(lower_subkey);
+    if (key === "entity_types") {
+        return (is_checkbox) ? get_type_label(subkey) : "Type: " + get_type_label(subkey);
     } else if (lower_key in EVALUATION_CATEGORY_TITLES && lower_subkey in EVALUATION_CATEGORY_TITLES[lower_key]) {
         const last_key = (is_checkbox) ? "checkbox_label" : "table_heading";
         return EVALUATION_CATEGORY_TITLES[lower_key][lower_subkey][last_key];
@@ -3226,26 +3203,19 @@ function get_full_category_title_for_column(el) {
      * For a given table cell (not from the first table header row) get the
      * full category title, e.g. "NER: Precision" or "NER FP: Lowercased"
      */
-    const keys = get_table_header_keys(el);
-    return get_full_category_title_for_keys(keys[0], keys[1]);
-}
-
-function get_full_category_title_for_keys(key, subkey) {
-    /*
-     * For a given key and subkey of a table cell (not from the first table header row) get the
-     * full category title, e.g. "NER: Precision" or "NER FP: Lowercased"
-     */
+    const evaluation_category_string = get_evaluation_category_string(el, false).split("|");
+    const base_category = evaluation_category_string[0];
+    const category = evaluation_category_string[1];
+    const subcategory = evaluation_category_string[2];
     let title = "";
-    if (key in window.EVALUATION_CATEGORY_TITLES["mention_types"]) {
-        title += window.EVALUATION_CATEGORY_TITLES["mention_types"][key]["table_heading"];
-    } else if (key in window.EVALUATION_CATEGORY_TITLES["error_categories"]) {
-        title += window.EVALUATION_CATEGORY_TITLES["error_categories"][key]["table_heading"];
-    } else if (is_type_string(key)) {
-        title += "Type: " + get_type_label(key);
+    if (base_category === "mention_types" || base_category === "error_categories") {
+        title += window.EVALUATION_CATEGORY_TITLES[base_category][category]["table_heading"];
+    } else if (base_category === "entity_types") {
+        title += "Type: " + get_type_label(category);
     } else {
-        title += to_title_case(key.replace(/_/g, " "));
+        title += to_title_case(category.replace(/_/g, " "));
     }
-    title += " - " + to_title_case(subkey.replace(/_/g, " "));
+    title += " - " + to_title_case(subcategory.replace(/_/g, " "));
     return title;
 }
 
