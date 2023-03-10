@@ -272,7 +272,8 @@ class EntityDatabase:
     def get_entity_aliases(self, entity_id: str) -> Optional[Set[str]]:
         aliases = set()
         if entity_id in self.entity_name_db:
-            aliases = aliases.union(self.entity_name_db[entity_id])
+            # self.entity_name_db values are strings, not dicts as for the other entity to alias mappings.
+            aliases.add(self.entity_name_db[entity_id])
         if entity_id in self.entity_to_aliases_db:
             aliases = aliases.union(self.entity_to_aliases_db[entity_id])
         if entity_id in self.entity_to_family_name:
