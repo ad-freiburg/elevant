@@ -90,7 +90,8 @@ def read_from_tsv(filename, storage_format=StorageFormat.SINGLE_VAL, processing_
                             d[key] = lst[0]
                 else:
                     vals = [process(v, processing_method) for v in lst[1].split(value_separator)]
-                    val = separator.join(vals)
+                    # Use the original value separator also in the DB, since the data might contain commas
+                    val = value_separator.join(vals)
                     d[lst[0]] = val
 
     logger.info(f"Done. Took {time.time() - start} s")

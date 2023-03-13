@@ -221,9 +221,9 @@ class EntityDatabaseReader:
         return new_set
 
     @staticmethod
-    def read_from_dbm(db_file: str, value_type: Optional[type] = str) -> Database:
+    def read_from_dbm(db_file: str, value_type: Optional[type] = str, separator: Optional[str] = ",") -> Database:
         dbm_db = dbm.open(db_file, "r")
-        db = Database(dbm_db, value_type)
+        db = Database(dbm_db, value_type, separator)
         return db
 
     @staticmethod
@@ -268,7 +268,7 @@ class EntityDatabaseReader:
     @staticmethod
     def get_entity_to_aliases_db(filename: Optional[str] = settings.QID_TO_ALIASES_DB) -> Database:
         logger.info(f"Loading entity ID to aliases database from {filename} ...")
-        aliases_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
+        aliases_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set, separator=";")
         logger.info(f"-> {len(aliases_db)} entity ID to aliases mappings loaded.")
         return aliases_db
 
