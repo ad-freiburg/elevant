@@ -66,7 +66,7 @@ class EntityDatabase:
         self.entity_to_family_name = {}
         self.entity_to_family_name: Dict[str, str]
         self.entity_to_link_alias = {}
-        self.entity_to_link_alias: Dict[str, str]
+        self.entity_to_link_alias: Dict[str, Set[str]]
         self.aliases = {}
         self.aliases: Dict[str, Set[str]]
         self.wikipedia2wikidata = {}
@@ -277,7 +277,7 @@ class EntityDatabase:
         if entity_id in self.entity_to_aliases_db:
             aliases = aliases.union(self.entity_to_aliases_db[entity_id])
         if entity_id in self.entity_to_family_name:
-            aliases = aliases.union(self.entity_to_family_name[entity_id])
+            aliases.add(self.entity_to_family_name[entity_id])
         if entity_id in self.entity_to_link_alias:
             aliases = aliases.union(self.entity_to_link_alias[entity_id])
         return aliases

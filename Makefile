@@ -353,8 +353,13 @@ endef
 
 define QID_TO_NAME_QUERY
 SELECT DISTINCT ?s ?sl WHERE {
-  ?s wdt:P31 wd:Q5 .
-  ?s @en@rdfs:label ?sl .
+  {
+    ?s wdt:P31 wd:Q5 .
+    ?s @en@rdfs:label ?sl .
+  } UNION {
+    ?s wdt:P31/wdt:P279* wd:Q95074 .
+    ?s @en@rdfs:label ?sl .
+  }
 }
 endef
 
