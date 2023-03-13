@@ -62,7 +62,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
         self.model.add_pipe("ner_postprocessor", after="ner")
 
-    def entity_spans(self, text: str, doc: Optional[Doc]) -> List[Tuple[Tuple[int, int], bool]]:
+    def entity_spans(self, text: str, doc: Optional[Doc]) -> List[Tuple[Tuple[int, int], bool, bool]]:
         """
         Retrieve entity spans from the given text, i.e. perform entity recognition step.
         """
@@ -77,13 +77,16 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                 if self.entity_db.is_language(snippet) and token.dep_ == "pobj" and span[0] >= 3 and\
                         text[span[0] - 3:span[0] - 1].lower() == "in":
                     is_language = True
-                spans.append((span, is_language))
+                # TODO: If we want to use MaxMatchingNER, whether a mention refers to a person could
+                #       be determined by a set of first names, e.g. extracted from qid_to_name.tsv
+                is_person = False
+                spans.append((span, is_language, is_person))
         else:
             # Use Spacy NER
             for ent in doc.ents:
                 if ent.label_ in NER_IGNORE_TAGS:
                     continue
-                spans.append(((ent.start_char, ent.end_char), ent.label_ == "LANGUAGE"))
+                spans.append(((ent.start_char, ent.end_char), ent.label_ == "LANGUAGE", ent.label_ == "PERSON"))
         return spans
 
     def predict(self,
@@ -101,7 +104,8 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         if doc is None:
             doc = self.model(text)
         predictions = {}
-        for span, is_language in self.entity_spans(text, doc):
+        unknown_person_name_parts = set()
+        for span, is_language, is_person in self.entity_spans(text, doc):
             if linked_entities:
                 span = get_non_overlapping_span(span, linked_entities, text)
                 if span is None:
@@ -113,6 +117,9 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                 # since it otherwise makes a lot of abstraction errors
                 continue
             if is_date(snippet):
+                continue
+            if snippet in unknown_person_name_parts and is_person:
+                # Don't link parts of a person entity that was linked to unknown before
                 continue
 
             candidates = set()
@@ -137,6 +144,15 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                     entity_id = self.select_entity(candidates)
             candidates.update(name_and_demonym_candidates)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
+
+            # Store entity mention text if no entity could be predicted and it is likely a human name
+            # to avoid linking parts of it later.
+            if entity_id is None and " " in snippet and is_person:
+                first_name = snippet.split()[0]
+                last_name = snippet.split()[-1]
+                unknown_person_name_parts.add(first_name)
+                unknown_person_name_parts.add(last_name)
+
         return predictions
 
     def select_entity(self, candidates: Set[str]) -> str:
