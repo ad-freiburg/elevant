@@ -187,7 +187,7 @@ class EnhancedDependencyGraph(DependencyGraph):
         node = self.get_by_address(address)
         if node and node["word"].lower() == "it" and node["rel"].startswith("nsubj"):
             head = self.get_by_address(node["head"])
-            if head["tag"].startswith("VB"):
+            if head["tag"] and head["tag"].startswith("VB"):
                 head_deps = head['deps']
                 if "ccomp" in head_deps:
                     return True
