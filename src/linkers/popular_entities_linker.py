@@ -138,10 +138,8 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                     # a higher sitelink count than languages or ethnicities
                     demonym_entities = self.entity_db.get_entities_for_demonym(snippet)
                     name_and_demonym_candidates.update(demonym_entities)
-                entity_id = self.select_entity(name_and_demonym_candidates)
-                if entity_id is None:
-                    candidates = self.entity_db.get_candidates(snippet)
-                    entity_id = self.select_entity(candidates)
+                candidates = self.entity_db.get_candidates(snippet)
+                entity_id = self.select_entity(name_and_demonym_candidates, candidates)
             candidates.update(name_and_demonym_candidates)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
 
@@ -155,14 +153,15 @@ class PopularEntitiesLinker(AbstractEntityLinker):
 
         return predictions
 
-    def select_entity(self, candidates: Set[str]) -> str:
+    def select_entity(self, name_and_demonym_candidates: Set[str], candidates: Set[str]) -> str:
         """
         Select the entity from the set of candidates that has the highest sitelink count.
         If none of the entities has a sitelink count > self.min_score return None.
         """
         highest_sitelink_count_entity = None
         highest_sitelink_count = 0
-        for entity_id in sorted(candidates):  # Sort for reproducibility
+        # Sort for reproducibility. Names and demonyms are preferred over aliases with same sitelink count
+        for entity_id in sorted(name_and_demonym_candidates) + sorted(candidates):
             sitelink_count = self.entity_db.get_sitelink_count(entity_id)
             if sitelink_count >= self.min_score and sitelink_count > highest_sitelink_count:
                 highest_sitelink_count_entity = entity_id
