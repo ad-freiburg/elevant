@@ -18,19 +18,20 @@ class EntityMention:
         self.candidates = candidates if candidates is not None else set()
         self.contained = contained
 
-    def to_dict(self) -> Dict:
-        d = {"span": self.span,
-             "recognized_by": self.recognized_by}
+    def to_dict(self, evaluation_format: Optional[bool] = True) -> Dict:
+        d = {"span": self.span}
         if self.entity_id is not None:
             d["id"] = self.entity_id
-        if self.linked_by is not None:
-            d["linked_by"] = self.linked_by
-        if self.referenced_span is not None:
-            d["referenced_span"] = self.referenced_span
-        if self.candidates is not None:
-            d["candidates"] = sorted(self.candidates)
-        if self.contained is not None:
-            d["contained"] = self.contained
+        if evaluation_format:
+            d["recognized_by"] = self.recognized_by
+            if self.linked_by is not None:
+                d["linked_by"] = self.linked_by
+            if self.referenced_span is not None:
+                d["referenced_span"] = self.referenced_span
+            if self.candidates is not None:
+                d["candidates"] = sorted(self.candidates)
+            if self.contained is not None:
+                d["contained"] = self.contained
         return d
 
     def link(self, entity_id: str, linked_by: str):

@@ -37,7 +37,7 @@ class Article:
         self.labels = labels if labels else []
         self.sections = sections
 
-    def to_dict(self) -> Dict:
+    def to_dict(self, evaluation_format: Optional[bool] = True) -> Dict:
         data = {"id": self.id,
                 "title": self.title,
                 "text": self.text}
@@ -48,17 +48,18 @@ class Article:
         if self.url is not None:
             data["url"] = self.url
         if self.entity_mentions:
-            data["entity_mentions"] = [self.entity_mentions[span].to_dict() for span in sorted(self.entity_mentions)]
-        if self.evaluation_span is not None:
+            data["entity_mentions"] = [self.entity_mentions[span].to_dict(evaluation_format)
+                                       for span in sorted(self.entity_mentions)]
+        if evaluation_format and self.evaluation_span is not None:
             data["evaluation_span"] = self.evaluation_span
-        if self.labels is not None:
+        if evaluation_format and self.labels is not None:
             data["labels"] = [label.to_dict() for label in sorted(self.labels)]
         if self.sections:
             data["sections"] = self.sections
         return data
 
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict())
+    def to_json(self, evaluation_format: Optional[bool] = True) -> str:
+        return json.dumps(self.to_dict(evaluation_format))
 
     def add_entity_mentions(self, entity_mentions: Optional[List[EntityMention]]):
         if entity_mentions is not None:
