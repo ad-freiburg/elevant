@@ -5,6 +5,7 @@ from typing import Optional, Tuple, Dict, Set, Any
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.models.article import Article
 from src.models.entity_database import EntityDatabase, MappingName
+from src import settings
 
 import logging
 
@@ -19,8 +20,8 @@ class LinkingSystem:
                  prediction_format: Optional[str] = None,
                  prediction_name: Optional[str] = None,
                  coref_linker: Optional[str] = None,
-                 min_score: Optional[int] = None,
-                 type_mapping_file: Optional[str] = None,
+                 min_score: Optional[int] = 0,
+                 type_mapping_file: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB,
                  custom_mappings: Optional[bool] = False):
         self.linker = None
         self.prediction_reader = None
