@@ -18,6 +18,7 @@ import argparse
 import os
 import sys
 import time
+
 import log
 
 from src import settings
@@ -35,6 +36,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 CHUNK_SIZE = 10  # Number of articles submitted to one process as a single task
 MAX_TASKS_PER_CHILD = 5
+NUM_ARTICLES_BEFORE_RESET = 50000
 
 
 def link_entities_tuple_argument(args_tuple):
@@ -45,16 +47,20 @@ def link_entities_tuple_argument(args_tuple):
     return args_tuple[0]
 
 
-def article_iterator(filename):
+def article_iterator(filename, start_index=0, n_articles=-1):
+    global all_articles_finished
     with open(filename, 'r', encoding='utf8') as file:
         for i, line in enumerate(file):
-            if i == args.n_articles:
+            if i < start_index:
+                continue
+            if i == n_articles:
                 break
             if args.raw_input:
                 article = Article(id=i, title="", text=line[:-1])
             else:
                 article = WikipediaDumpReader.json2article(line)
             yield article, args.uppercase, args.only_pronouns
+    all_articles_finished = i != n_articles
 
 
 def main():
@@ -73,20 +79,30 @@ def main():
 
     logger.info("Start linking using %d processes." % args.multiprocessing)
     start = time.time()
-    iterator = article_iterator(args.input_file)
+    last_time = time.time()
     i = 0
     if args.multiprocessing > 1:
-        with multiprocessing.Pool(processes=args.multiprocessing, maxtasksperchild=MAX_TASKS_PER_CHILD) as executor:
-            for article in executor.imap(link_entities_tuple_argument, iterator, chunksize=CHUNK_SIZE):
-                output_file.write(article.to_json() + "\n")
-                total_time = time.time() - start
-                time_per_article = total_time / (i + 1)
-                if (i + 1) % 100 == 0:
-                    print("\r%i articles, %f s per article, %f s total time." %
-                          (i + 1, time_per_article, total_time), end='')
-                i += 1
-            i -= 1  # So final log reports correct number of linked articles with and without multiprocessing
+        start_index = 0
+        while not all_articles_finished:
+            iterator = article_iterator(args.input_file, start_index, start_index + NUM_ARTICLES_BEFORE_RESET)
+            with multiprocessing.Pool(processes=args.multiprocessing, maxtasksperchild=MAX_TASKS_PER_CHILD) as executor:
+                for article in executor.imap_unordered(link_entities_tuple_argument, iterator, chunksize=CHUNK_SIZE):
+                    output_file.write(f"{article.to_json(evaluation_format=False)}\n")
+                    i += 1
+                    if i % 100 == 0:
+                        total_time = time.time() - start
+                        avg_time = total_time / i
+                        avg_last_time = (time.time() - last_time) / 100
+                        print(f"\r{i} articles, {avg_time:.5f} s per article, "
+                              f"{avg_last_time:.2f} s per article for the last 100 articles, "
+                              f"{int(total_time)} s total time.", end='')
+                        last_time = time.time()
+            start_index = start_index + NUM_ARTICLES_BEFORE_RESET
+            print()
+            logger.info("Resetting worker pool to clean up and collect stuck processes.")
+        i -= 1  # So final log reports correct number of linked articles with and without multiprocessing
     else:
+        iterator = article_iterator(args.input_file)
         for i, tupl in enumerate(iterator):
             article, uppercase, only_pronouns = tupl
             linking_system.link_entities(article, uppercase, only_pronouns)
@@ -141,5 +157,7 @@ if __name__ == "__main__":
                                    coref_linker=args.coreference_linker,
                                    min_score=args.minimum_score,
                                    type_mapping_file=args.type_mapping)
+
+    all_articles_finished = False
 
     main()
