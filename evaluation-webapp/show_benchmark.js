@@ -2045,6 +2045,8 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     if (annotation.error_labels && annotation.error_labels.length > 0 && !correct_ner) {
         for (let e_i = 0; e_i < annotation.error_labels.length; e_i += 1) {
             let error_label = annotation.error_labels[e_i];
+            // Don't show error labels for "correct" or "avoided" tags to not overcrowd the tooltips
+            if (error_label.endsWith("CORRECT") || error_label.startsWith("AVOIDED")) continue;
             error_label = error_label.replace(/_/g, " ").toLowerCase();
             if (e_i > 0) {
                 tooltip_footer_html += " ";
