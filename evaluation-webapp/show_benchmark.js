@@ -431,16 +431,8 @@ $("document").ready(function() {
             }
             if (event.ctrlKey && event.which === 39) {
                 // Jump to next error highlight
-                // This is not needed anymore when only the numerator mentions (i.e. the errors) are highlighted anyway
-                // but keep it until we know for sure that we don't want to display denominator mentions.
-                scroll_to_next_annotation(true);
-            } else if (event.ctrlKey && event.which === 37) {
-                scroll_to_previous_annotation(true);
-            } else if (event.which === 39) {
-                // Jump to next highlight
                 scroll_to_next_annotation(false);
-            } else if (event.which === 37) {
-                // Jump to previous highlight
+            } else if (event.ctrlKey && event.which === 37) {
                 scroll_to_previous_annotation(false);
             }
         }
