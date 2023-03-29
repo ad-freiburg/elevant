@@ -5,7 +5,6 @@ from src import settings
 from src.evaluation.case import Case, ErrorLabel, EvaluationMode
 from src.evaluation.case_generator import CaseGenerator
 from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.models.entity_database import EntityDatabase
 from src.evaluation.errors import label_errors
@@ -90,7 +89,6 @@ class Evaluator:
         self.error_counts = None
         self.type_counts = None
         self.n_entity_lowercase = None
-        self.n_entity_contains_space = None
         self.reset_variables()
 
     def reset_variables(self):
@@ -98,8 +96,6 @@ class Evaluator:
         self.counts = {}
         self.error_counts = {}
         self.type_counts = {}
-        self.n_entity_lowercase = {}
-        self.n_entity_contains_space = {}
         for mode in EvaluationMode:
             self.counts[mode] = {}
             for key in EVALUATION_CATEGORIES:
@@ -108,8 +104,6 @@ class Evaluator:
             self.type_counts[mode] = {GroundtruthLabel.OTHER: {"tp": 0, "fp": 0, "fn": 0}}
             for type_id in self.whitelist_types:
                 self.type_counts[mode][type_id] = {"tp": 0, "fp": 0, "fn": 0}
-            self.n_entity_lowercase[mode] = 0
-            self.n_entity_contains_space[mode] = 0
 
     def evaluate_article(self, article):
         cases = self.case_generator.get_evaluation_cases(article)
@@ -121,20 +115,14 @@ class Evaluator:
                 self.count_error_labels(case, mode)
                 if len(case.candidates) > 1:
                     self.has_candidates = True
-                if case.has_relevant_ground_truth(mode) and not case.is_coreference() and ' ' in case.text:
-                    self.n_entity_contains_space[mode] += 1
         return cases
 
     def count_ner_case(self, case: Case, eval_mode: EvaluationMode):
         if not case.is_coreference():
             if case.is_ner_tp(eval_mode) and case.true_entity.parent is None:
                 self.counts[eval_mode]["ner"]["tp"] += 1
-                if not is_named_entity(case.text):
-                    self.n_entity_lowercase[eval_mode] += 1
             if case.is_ner_fn(eval_mode) and case.true_entity.parent is None:
                 self.counts[eval_mode]["ner"]["fn"] += 1
-                if not is_named_entity(case.text):
-                    self.n_entity_lowercase[eval_mode] += 1
             if case.is_ner_fp(eval_mode) and case.factor != 0:
                 self.counts[eval_mode]["ner"]["fp"] += 1
 
@@ -176,6 +164,12 @@ class Evaluator:
 
     def count_error_labels(self, case: Case, eval_mode: EvaluationMode):
         for label in case.error_labels[eval_mode]:
+            # We do not count error cases for child labels. This is because we treat all child labels of a parent
+            # label as one unit (i.e. for one parent label one can get exactly one TP OR one FN). If we counted all
+            # child error labels, the total number of FN errors could be larger than the total number of GT mentions.
+            # If we selected only one child error label for the parent label, it would be unclear which child error to
+            # select.
+            # should_count = (not case.true_entity or case.true_entity.parent is None) and case.factor != 0
             self.error_counts[eval_mode][label] += case.factor  # factor is 0 or 1
 
     def get_results_dict(self):
@@ -200,23 +194,28 @@ class Evaluator:
                 # Undetected
                 "all": {
                     "errors": self.error_counts[mode][ErrorLabel.NER_FN],
-                    "total": results_dict[mode.value]["error_categories"]["ner"]["ground_truth"]
+                    "total": self.error_counts[mode][ErrorLabel.NER_FN]
+                             + self.error_counts[mode][ErrorLabel.AVOIDED_NER_FN]
                 },
                 "lowercased": {
                     "errors": self.error_counts[mode][ErrorLabel.NER_FN_LOWERCASED],
-                    "total": self.n_entity_lowercase[mode]
+                    "total": self.error_counts[mode][ErrorLabel.NER_FN_LOWERCASED]
+                             + self.error_counts[mode][ErrorLabel.AVOIDED_NER_FN_LOWERCASED]
                 },
                 "partially_included": {
                     "errors": self.error_counts[mode][ErrorLabel.NER_FN_PARTIALLY_INCLUDED],
-                    "total": self.n_entity_contains_space[mode]
+                    "total": self.error_counts[mode][ErrorLabel.NER_FN_PARTIALLY_INCLUDED]
+                             + self.error_counts[mode][ErrorLabel.AVOIDED_NER_FN_PARTIALLY_INCLUDED]
                 },
                 "partial_overlap": {
                     "errors": self.error_counts[mode][ErrorLabel.NER_FN_PARTIAL_OVERLAP],
-                    "total": results_dict[mode.value]["error_categories"]["ner"]["ground_truth"] - self.n_entity_lowercase[mode]
+                    "total": self.error_counts[mode][ErrorLabel.NER_FN_PARTIAL_OVERLAP]
+                             + self.error_counts[mode][ErrorLabel.AVOIDED_NER_FN_PARTIAL_OVERLAP]
                 },
                 "other": {
                     "errors": self.error_counts[mode][ErrorLabel.NER_FN_OTHER],
-                    "total": results_dict[mode.value]["error_categories"]["ner"]["ground_truth"] - self.n_entity_lowercase[mode]
+                    "total": self.error_counts[mode][ErrorLabel.NER_FN_OTHER]
+                             + self.error_counts[mode][ErrorLabel.AVOIDED_NER_FN_OTHER]
                 }
             }
             results_dict[mode.value]["error_categories"]["ner_fp"] = {
@@ -227,52 +226,55 @@ class Evaluator:
                 "other": self.error_counts[mode][ErrorLabel.NER_FP_OTHER],
                 "wrong_span": {
                     "errors": self.error_counts[mode][ErrorLabel.NER_FP_WRONG_SPAN],
-                    "total": self.counts[mode]["all"]["fp"] + self.counts[mode]["all"]["tp"]  # TODO: This should be only entities, because for undetected errors, only entities are considered, too. Also, coreference errors are handled separately.
+                    "total": self.error_counts[mode][ErrorLabel.NER_FP_WRONG_SPAN]
+                             + self.error_counts[mode][ErrorLabel.AVOIDED_NER_FP_WRONG_SPAN]
                 }
             }
             results_dict[mode.value]["error_categories"]["wrong_disambiguation"] = {
                 # Disambiguation errors
                 "all": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG],
-                    "total": self.counts[mode]["ner"]["tp"]
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_CORRECT]
                 },
                 "demonym": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG],
-                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_DEMONYM_CORRECT] +
-                             self.error_counts[mode][ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG]
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_DEMONYM_CORRECT]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_DEMONYM_WRONG]
                 },
                 "metonymy": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_METONYMY_WRONG],
-                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_METONYMY_CORRECT] +
-                             self.error_counts[mode][ErrorLabel.DISAMBIGUATION_METONYMY_WRONG]
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_METONYMY_CORRECT]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_METONYMY_WRONG]
                 },
                 "partial_name": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_WRONG],
-                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_CORRECT] +
-                             self.error_counts[mode][ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_WRONG]
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_CORRECT]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_WRONG]
                 },
                 "rare": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_RARE_WRONG],
-                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_RARE_CORRECT] +
-                             self.error_counts[mode][ErrorLabel.DISAMBIGUATION_RARE_WRONG]
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_RARE_CORRECT]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_RARE_WRONG]
                 },
                 "other": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG_OTHER],
                 "wrong_candidates": {
-                    "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG_CANDIDATES],
-                    "total": self.counts[mode]["ner"]["tp"]
+                    "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_CANDIDATES_WRONG],
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_CANDIDATES_WRONG]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_CANDIDATES_CORRECT]
                 } if self.has_candidates else None,
                 "multiple_candidates": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG],
-                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG] +
-                             self.error_counts[mode][ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT]
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_WRONG]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_MULTI_CANDIDATES_CORRECT]
                 } if self.has_candidates else None
             }
             results_dict[mode.value]["error_categories"]["other_errors"] = {
                 # Other errors
                 "hyperlink": {
                     "errors": self.error_counts[mode][ErrorLabel.HYPERLINK_WRONG],
-                    "total": self.error_counts[mode][ErrorLabel.HYPERLINK_CORRECT] +
-                             self.error_counts[mode][ErrorLabel.HYPERLINK_WRONG]
+                    "total": self.error_counts[mode][ErrorLabel.HYPERLINK_CORRECT]
+                             + self.error_counts[mode][ErrorLabel.HYPERLINK_WRONG]
                 },
             }
             results_dict[mode.value]["error_categories"]["wrong_coreference"] = {
@@ -283,14 +285,14 @@ class Evaluator:
                 },
                 "wrong_mention_referenced": {
                     "errors": self.error_counts[mode][ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED],
-                    "total": results_dict[mode.value]["mention_types"]["coref"]["ground_truth"] -
-                             self.error_counts[mode][ErrorLabel.COREFERENCE_UNDETECTED]
+                    "total": results_dict[mode.value]["mention_types"]["coref"]["ground_truth"]
+                             - self.error_counts[mode][ErrorLabel.COREFERENCE_UNDETECTED]
                 },
                 "reference_wrongly_disambiguated": {
                     "errors": self.error_counts[mode][ErrorLabel.COREFERENCE_REFERENCE_WRONGLY_DISAMBIGUATED],
-                    "total": results_dict[mode.value]["mention_types"]["coref"]["ground_truth"] -
-                             self.error_counts[mode][ErrorLabel.COREFERENCE_UNDETECTED] -
-                             self.error_counts[mode][ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED]
+                    "total": results_dict[mode.value]["mention_types"]["coref"]["ground_truth"]
+                             - self.error_counts[mode][ErrorLabel.COREFERENCE_UNDETECTED]
+                             - self.error_counts[mode][ErrorLabel.COREFERENCE_WRONG_MENTION_REFERENCED]
                 },
                 "false_detection": self.error_counts[mode][ErrorLabel.COREFERENCE_FALSE_DETECTION]
             }

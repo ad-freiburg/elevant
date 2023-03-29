@@ -141,7 +141,7 @@ window.ERROR_CATEGORY_MAPPING = {
         "metonymy": ["DISAMBIGUATION_METONYMY_WRONG"],
         "rare": ["DISAMBIGUATION_RARE_WRONG"],
         "other": ["DISAMBIGUATION_WRONG_OTHER"],
-        "wrong_candidates": ["DISAMBIGUATION_WRONG_CANDIDATES"],
+        "wrong_candidates": ["DISAMBIGUATION_CANDIDATES_WRONG"],
         "multiple_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
     },
     "ner_fp": {
@@ -161,6 +161,22 @@ window.ERROR_CATEGORY_MAPPING = {
         "undetected": ["COREFERENCE_UNDETECTED"]
     }
 };
+
+window.ERROR_CATEGORY_CORRECT_TAGS = {
+    "NER_FN": "AVOIDED_NER_FN",
+    "NER_FN_LOWERCASED": "AVOIDED_NER_FN_LOWERCASED",
+    "NER_FN_PARTIALLY_INCLUDED": "AVOIDED_NER_FN_PARTIALLY_INCLUDED",
+    "NER_FN_PARTIAL_OVERLAP": "AVOIDED_NER_FN_PARTIAL_OVERLAP",
+    "NER_FN_OTHER": "AVOIDED_NER_FN_OTHER",
+    "NER_FP_WRONG_SPAN": "AVOIDED_NER_FP_WRONG_SPAN",
+    "DISAMBIGUATION_WRONG": "DISAMBIGUATION_CORRECT",
+    "DISAMBIGUATION_DEMONYM_WRONG": "DISAMBIGUATION_DEMONYM_CORRECT",
+    "DISAMBIGUATION_PARTIAL_NAME_WRONG": "DISAMBIGUATION_PARTIAL_NAME_CORRECT",
+    "DISAMBIGUATION_METONYMY_WRONG": "DISAMBIGUATION_METONYMY_CORRECT",
+    "DISAMBIGUATION_RARE_WRONG": "DISAMBIGUATION_RARE_CORRECT",
+    "DISAMBIGUATION_CANDIDATES_WRONG": "DISAMBIGUATION_CANDIDATES_CORRECT",
+    "DISAMBIGUATION_MULTI_CANDIDATES_WRONG": "DISAMBIGUATION_MULTI_CANDIDATES_CORRECT"
+}
 
 window.MENTION_TYPE_HEADERS = {"entity": ["entity_named", "entity_other"],
                         "coref": ["nominal", "pronominal"],
@@ -2047,29 +2063,54 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
 
     // Use transparent version of the color, if an error category or type is selected
     // and the current annotation does not have a corresponding error category or type label
-    let lowlight_mention = false;
-    if (selected_cell_category) {
-        lowlight_mention = true;
-        const evaluation_category_tags = get_evaluation_category_tags(selected_cell_category)
-        const base_category = selected_cell_category.split("|")[0];
-        for (const tag of evaluation_category_tags) {
-            if (base_category === "entity_types") {
-                // Selected evaluation category is an entity type
-                const pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.split("|").includes(tag);
-                const gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.split("|").includes(tag);
-                if (pred_type_selected || gt_type_selected) {
-                    lowlight_mention = false;
-                    break;
-                }
-            } else {
-                // Selected evaluation category is an error category or a mention type
-                if ((annotation.error_labels && annotation.error_labels.includes(tag)) || annotation.mention_type === tag) {
-                    lowlight_mention = false;
-                    break;
-                }
+    let lowlight_mention = true;
+    const highlight_mode = get_highlight_mode()
+    const evaluation_category_tags = get_evaluation_category_tags(selected_cell_category)
+    const base_category = selected_cell_category.split("|")[0];
+    for (const tag of evaluation_category_tags) {
+        if (base_category === "entity_types") {
+            // Selected evaluation category is an entity type
+            const pred_type_selected = annotation.pred_entity_type && annotation.pred_entity_type.split("|").includes(tag);
+            const gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.split("|").includes(tag);
+            const one_type_selected = pred_type_selected || gt_type_selected;
+            if ((highlight_mode === "all" && (one_type_selected)) ||
+                (highlight_mode === "correct" && annotation.class === ANNOTATION_CLASS_TP && one_type_selected) ||
+                (highlight_mode === "errors" && ((annotation.class === ANNOTATION_CLASS_FP && pred_type_selected) ||
+                                                (annotation.class === ANNOTATION_CLASS_FN && gt_type_selected)))) {
+                lowlight_mention = false;
+                break;
+            }
+        } else if (base_category === "error_categories" && annotation.error_labels) {
+            // Selected evaluation category is an error category
+            const correct_tag = window.ERROR_CATEGORY_CORRECT_TAGS[tag];
+            if ((highlight_mode !== "correct" && annotation.error_labels.includes(tag)) ||
+                (highlight_mode !== "errors" && annotation.error_labels.includes(correct_tag))) {
+                lowlight_mention = false;
+                break;
+            }
+            // Hacks to cover NER FN lowercase and partially included cases.
+            /*
+            if ((highlight_mode !== "errors" && tag === "NER_FN_LOWERCASED" && annotation.mention_type === "entity_other" && annotation.class === ANNOTATION_CLASS_TP)) {
+                lowlight_mention = false;
+                break;
+            }
+            if ((highlight_mode !== "errors" && tag === "NER_FN_PARTIALLY_INCLUDED" && annotation.mention_type.startsWith("entity") && annotation.class === ANNOTATION_CLASS_TP && annotation.text.includes(" "))) {
+                lowlight_mention = false;
+                break;
+            }
+            */
+        } else {
+            // Selected evaluation category is a mention type
+            if (annotation.mention_type === tag || tag === "all") {
+                if (highlight_mode === "all" ||
+                    (highlight_mode === "correct" && annotation.class === ANNOTATION_CLASS_TP) ||
+                    (highlight_mode === "errors" && [ANNOTATION_CLASS_FN, ANNOTATION_CLASS_FP].includes(annotation.class)))
+                lowlight_mention = false;
+                break;
             }
         }
     }
+
     const lowlight = (lowlight_mention) ? " lowlight" : "";
 
     const annotation_kind = (annotation.gt_entity_id) ? "gt" : "pred";
@@ -2296,6 +2337,10 @@ function get_emphasis_string(selected_cell_category) {
     return " (emphasis: \"" + emphasis + "\")";
 }
 
+function on_highlight_mode_change() {
+    const timestamp = new Date().getTime();
+    show_article(window.selected_experiment_ids, timestamp);
+}
 
 /**********************************************************************************************************************
  Functions for JUMPING BETWEEN ERROR ANNOTATIONS
@@ -3158,7 +3203,7 @@ function get_evaluation_category_tags(evaluation_category_string) {
             return MENTION_TYPE_HEADERS[category];
         }
     }
-    return null;
+    return ["all"];
 }
 
 function get_type_label(qid) {
@@ -3262,6 +3307,10 @@ function get_evaluation_mode() {
 
 function get_group_by() {
     return $('input[name=group_by]:checked').val();
+}
+
+function get_highlight_mode() {
+    return $('input[name=highlight_mode]:checked', '#highlight_modes').val();
 }
 
 function get_benchmark_from_experiment_id(exp_id) {
