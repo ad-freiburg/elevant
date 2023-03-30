@@ -19,7 +19,6 @@ def load_evaluation_entities(type_mapping_file: str, custom_mappings: bool) -> E
         entity_db.load_custom_entity_names(settings.CUSTOM_ENTITY_TO_NAME_FILE)
         entity_db.load_custom_entity_types(settings.CUSTOM_ENTITY_TO_TYPES_FILE)
     else:
-        entity_db.load_sitelink_counts()
         entity_db.load_entity_names()
         entity_db.load_entity_types(type_mapping_file)
         entity_db.load_wikipedia_to_wikidata_db()
@@ -29,7 +28,7 @@ def load_evaluation_entities(type_mapping_file: str, custom_mappings: bool) -> E
         entity_db.load_datetimes()
         entity_db.load_family_name_aliases()
         entity_db.load_alias_to_entities()
-        entity_db.load_link_aliases()
+        entity_db.load_link_aliases(with_frequencies=True)
     logger.info("-> Entity database initialized.")
     return entity_db
 

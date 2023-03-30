@@ -212,15 +212,28 @@ class EntityDatabase:
                     self.family_name_aliases[family_name] = {entity_id}
         logger.info(f"-> {len(self.family_name_aliases)} family name aliases loaded into entity database.")
 
-    def load_link_aliases(self):
-        logger.info("Loading link aliases into entity database ...")
+    def load_link_aliases(self, with_frequencies: Optional[bool] = False):
+        if with_frequencies:
+            logger.info("Loading link aliases and their frequencies into entity database ...")
+        else:
+            logger.info("Loading link aliases into entity database ...")
         self.loaded_info[MappingName.LINK_ALIASES] = LoadedInfo(LoadingType.FULL)
         for link_text, entity_id, frequency in self._iterate_link_frequencies():
             if link_text in self.link_aliases:
                 self.link_aliases[link_text].add(entity_id)
+                if with_frequencies:
+                    if entity_id not in self.link_frequencies[link_text]:
+                        self.link_frequencies[link_text][entity_id] = frequency
+                    else:
+                        self.link_frequencies[link_text][entity_id] += frequency
             else:
                 self.link_aliases[link_text] = {entity_id}
-        logger.info(f"-> {len(self.link_aliases)} link aliases loaded into entity database.")
+                if with_frequencies:
+                    self.link_frequencies[link_text] = {entity_id: frequency}
+        if with_frequencies:
+            logger.info(f"-> {len(self.link_aliases)} link aliases and their frequencies loaded into entity database.")
+        else:
+            logger.info(f"-> {len(self.link_aliases)} link aliases loaded into entity database.")
 
     def get_candidates(self, alias: str) -> Set[str]:
         entity_ids = set()
@@ -263,7 +276,7 @@ class EntityDatabase:
         logger.info("Loading entity ID to link aliases into entity database ...")
         self.loaded_info[MappingName.ENTITY_ID_TO_LINK_ALIAS] = LoadedInfo(LoadingType.FULL)
         for link_text, entity_id, frequency in self._iterate_link_frequencies():
-            if link_text in self.link_aliases:
+            if link_text in self.entity_to_link_alias:
                 self.entity_to_link_alias[entity_id].add(link_text)
             else:
                 self.entity_to_link_alias[entity_id] = {link_text}
@@ -336,6 +349,9 @@ class EntityDatabase:
                 self.link_frequencies[link_text][entity_id] = frequency
             else:
                 self.link_frequencies[link_text][entity_id] += frequency
+
+    def load_entity_frequencies(self):
+        for link_text, entity_id, frequency in self._iterate_link_frequencies():
             if entity_id not in self.entity_frequencies:
                 self.entity_frequencies[entity_id] = frequency
             else:

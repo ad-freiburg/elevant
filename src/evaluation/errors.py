@@ -97,11 +97,11 @@ def is_rare_case(case: Case, entity_db: EntityDatabase) -> bool:
     most_popular_candidate, score = get_most_popular_candidate(entity_db, case.text)
     # Right now, this is always true when the entity is Unknown and there exists at least one candidate.
     # So many evaluated cases with unknown GT are automatically rare errors.
-    # Also compare with sitelink count of true entity, because it's not a rare case if
-    # the most popular candidate has the same sitelink count as the true entity (e.g. both 0).
+    # Also compare with popularity of true entity, because it's not a rare case if
+    # the most popular candidate has the same popularity as the true entity (e.g. both 0).
     return most_popular_candidate and \
         case.true_entity.entity_id != most_popular_candidate and \
-        score != entity_db.get_sitelink_count(case.true_entity.entity_id)
+        score != entity_db.get_link_frequency(case.text, case.true_entity.entity_id)
 
 
 def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: EvaluationMode):
@@ -159,12 +159,18 @@ ETHNICITY_TYPE_ID = "Q41710"
 
 def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Tuple[Optional[str], Optional[int]]:
     """
-    Returns the entity ID of the most popular candidate for the given alias, or None if no candidate exists.
+    Returns the entity ID of the most popular candidate for the given alias, or None if no candidate exists
+    or all link frequencies are 0.
     """
     candidates = entity_db.get_candidates(alias)
     if len(candidates) == 0:
         return None, None
-    score, most_popular_candidate = max((entity_db.get_sitelink_count(c), c) for c in candidates)
+    # Use the link frequency and not the sitelink count to get the most popular candidate. Otherwise, since we're
+    # including link aliases, it would be enough if a more popular entity was linked once with the alias in Wikipedia,
+    # e.g. France would be a rare error, because it was at least once falsly linked to Turkey in Wikipedia.
+    score, most_popular_candidate = max((entity_db.get_link_frequency(alias, c), c) for c in candidates)
+    if score == 0:
+        return None, None
     return most_popular_candidate, score
 
 
