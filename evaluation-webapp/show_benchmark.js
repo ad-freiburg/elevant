@@ -1142,18 +1142,10 @@ function on_row_click(el) {
     let new_benchmark = get_benchmark_from_experiment_id(experiment_id);
 
     // De-select previously selected rows
-    if (!is_compare_checked() || window.selected_experiment_ids.length >= MAX_SELECTED_APPROACHES) {
+    if (!is_compare_checked() || window.selected_experiment_ids.length >= MAX_SELECTED_APPROACHES || comparing_different_benchmarks(experiment_id)) {
         $("#evaluation_table_wrapper tbody tr").removeClass("selected");
         window.selected_rows = [];
         window.selected_experiment_ids = [];
-    }
-
-    // Show alert message if the user tries to compare experiments on different benchmarks
-    if (comparing_different_benchmarks(experiment_id)) {
-        alert("Linking results can only be compared side-by-side if the experiments have been run on " +
-            "the same benchmark. You tried to select the experiments "
-            + window.selected_experiment_ids[0] + " and " + experiment_id);
-        return;
     }
 
     // Show the loading GIF
@@ -1173,7 +1165,8 @@ function on_row_click(el) {
     window.history.replaceState({}, '', url);
 
     read_linking_results(experiment_id).then(function() {
-        // Reset article select options only if a different benchmark was previously selected or if it
+        // Reset article select options only if a different benchmark was previously selected
+        // or if it has not been initialized yet
         const article_select_val = $("#article_select").val();
         if (previous_benchmark !== new_benchmark || article_select_val == null) set_article_select_options(new_benchmark, article_select_val==null);
         show_article(selected_exp_ids_copy, timestamp);
@@ -1187,14 +1180,13 @@ function on_cell_click(el) {
      */
     // Reject the cell click if the user tries to compare experiments on different benchmarks
     let experiment_id = get_experiment_id_from_row($(el).closest("tr"));
-    if (comparing_different_benchmarks(experiment_id)) return;
 
     // Determine whether an already selected cell has been clicked
     let curr_row = $(el).closest("tr").index();
     let prev_selected_rows = $.map(window.selected_rows, function(sel_row) { return $(sel_row).index(); });
     let already_selected_row_clicked = $.inArray(curr_row, prev_selected_rows);
     if (window.selected_cells.length > 0) {
-        if (!is_compare_checked() || window.selected_rows.length >= MAX_SELECTED_APPROACHES) {
+        if (!is_compare_checked() || window.selected_rows.length >= MAX_SELECTED_APPROACHES || comparing_different_benchmarks(experiment_id)) {
             // Remove selected classes for all currently selected cells
             for (let i=0; i<window.selected_cells.length; i++) {
                 remove_selected_classes(window.selected_cells[i]);
@@ -1242,7 +1234,7 @@ function on_cell_click(el) {
 
     // Updated selected cell categories
     // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
-    let exp_index = (already_selected_row_clicked >= 0 || !is_compare_checked()) ? 0 : window.selected_rows.length % MAX_SELECTED_APPROACHES;
+    let exp_index = (already_selected_row_clicked >= 0 || !is_compare_checked() || comparing_different_benchmarks(experiment_id)) ? 0 : window.selected_rows.length % MAX_SELECTED_APPROACHES;
     window.selected_cell_categories[exp_index] = evaluation_categories;
 
     // Update current URL without refreshing the site
