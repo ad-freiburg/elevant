@@ -50,7 +50,7 @@ window.HEADER_DESCRIPTIONS = {
     "wrong_disambiguation": {
         "": "NER true positives where a wrong entity was linked.",
         "all": "<p><i>Numerator:</i> A ground truth span was detected, but linked to the wrong entity.</p><p><i>Denominator:</i> All NER true positives.</p>",
-        "demonym": "<p><i>Numerator:</i> FP & FN and the mention text is a demonym, i.e. it is contained in a list of demonyms from Wikidata.</p><p><i>Denominator:</i> NER true positives where the mention text is a demonym.</p>",
+        "demonym": "<p><i>Numerator:</i> FP & FN and the mention is a demonym (i.e. the mention text is contained in a list of demonyms and the ground truth type is a location, ethnicity or language).</p><p><i>Denominator:</i> NER true positives where the mention is a demonym.</p>",
         "metonymy": "<p><i>Numerator:</i> FP & FN and the most popular entity for the given mention text and the prediction are locations, the ground truth is not a location.</p><p><i>Denominator:</i> NER true positives where the most popular candidate is a location but the ground truth is not.</p>",
         "partial_name": "<p><i>Numerator:</i> FP & FN and the mention text is a part of the ground truth entity name.</p><p><i>Denominator:</i> NER true positives that are a part of the ground truth entity name.</p>",
         "rare": "<p><i>Numerator:</i> FP & FN and the most popular entity for the given mention text was predicted instead of the less popular ground truth entity.</p><p><i>Denominator:</i> NER true positives where the most popular candidate is not the correct entity.</p>",
@@ -254,6 +254,7 @@ window.url_param_show_columns = null;
 window.url_param_sort_order = null;
 window.url_param_access = null;
 window.url_param_evaluation_mode = null;
+window.url_param_highlight_mode = null;
 window.url_param_group_by = null;
 window.url_param_internal_experiment_filter = null;
 window.url_param_internal_benchmark_filter = null;
@@ -271,18 +272,18 @@ $("document").ready(function() {
     // Initialize tippy tooltips contained in the html file
     tippy('[data-tippy-content]', {
         appendTo: document.body,
-        theme: 'light-border'
+        theme: 'light-border',
+        allowHTML: true
     });
 
-    // Set the table filter strings and show-deprecated checkbox according to the URL parameters
+    // Set the table filter strings, radio buttons and show-deprecated/compare checkboxes according to the URL parameters
     if (window.url_param_experiment_filter) $experiment_filter.val(window.url_param_experiment_filter);
     if (window.url_param_benchmark_filter) $benchmark_filter.val(window.url_param_benchmark_filter);
     if (window.url_param_internal_experiment_filter) window.internal_experiment_filter = new RegExp(window.url_param_internal_experiment_filter, "i");
     if (window.url_param_internal_benchmark_filter) window.internal_benchmark_filter = new RegExp(window.url_param_internal_benchmark_filter, "i");
+    if (window.url_param_group_by) $("#group_by input:radio[value=" + window.url_param_group_by + "]").prop("checked", true);
+    if (window.url_param_highlight_mode) $("#highlight_modes input:radio[value=" + window.url_param_highlight_mode + "]").prop("checked", true);
     $("#checkbox_deprecated").prop('checked', window.url_param_show_deprecated);
-
-    if (window.url_param_group_by) $("input:radio[name=" + window.url_param_group_by + "]").prop("checked", true);
-
     $("#checkbox_compare").prop('checked', window.url_param_compare);
 
     // Read the necessary data files (config, whitelist types, benchmark articles, evaluation results)
@@ -470,6 +471,7 @@ function read_url_parameters() {
     window.url_param_sort_order = get_url_parameter_array(get_url_parameter("sort_order"), true);
     window.url_param_access = get_url_parameter_string(get_url_parameter("access"));
     window.url_param_evaluation_mode = get_url_parameter_string(get_url_parameter("evaluation_mode"));
+    window.url_param_highlight_mode = get_url_parameter_string(get_url_parameter("highlight_mode"));
     window.url_param_group_by = get_url_parameter_string(get_url_parameter("group_by"));
     window.url_param_internal_experiment_filter = get_url_parameter_string(get_url_parameter("internal_experiment_filter"));
     window.url_param_internal_benchmark_filter = get_url_parameter_string(get_url_parameter("internal_benchmark_filter"));
@@ -1643,9 +1645,10 @@ function show_annotated_text(experiment_id, textfield, selected_cell_category, c
      * Generate annotations and tooltips for predicted and ground truth mentions of the selected experiment
      * and article and show them in the textfield.
      */
-    let benchmark = get_benchmark_from_experiment_id(experiment_id);
-    let articles = (example_modal) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
+    const benchmark = get_benchmark_from_experiment_id(experiment_id);
+    const articles = (example_modal) ? window.articles_example_benchmark : window.benchmark_articles[benchmark];
     let annotated_text = "";
+    const highlight_mode = (example_modal) ? "errors" : get_highlight_mode();
     if (window.is_show_all_articles && !example_modal) {
         let annotated_texts = [];
         for (let i=0; i < articles.length; i++) {
@@ -1654,7 +1657,8 @@ function show_annotated_text(experiment_id, textfield, selected_cell_category, c
                                                annotations,
                                                articles[i].hyperlinks,
                                                articles[i].evaluation_span,
-                                               selected_cell_category));
+                                               selected_cell_category,
+                                               highlight_mode));
         }
 
         for (let i=0; i < annotated_texts.length; i++) {
@@ -1665,7 +1669,12 @@ function show_annotated_text(experiment_id, textfield, selected_cell_category, c
     } else {
         let curr_article = articles[article_index];
         let annotations = get_annotations(article_index, experiment_id, benchmark, column_idx, example_modal);
-        annotated_text = annotate_text(curr_article.text, annotations, curr_article.hyperlinks, [0, curr_article.text.length], selected_cell_category);
+        annotated_text = annotate_text(curr_article.text,
+                                       annotations,
+                                       curr_article.hyperlinks,
+                                       [0, curr_article.text.length],
+                                       selected_cell_category,
+                                       highlight_mode);
     }
     textfield.html(annotated_text);
 }
@@ -1883,7 +1892,7 @@ function get_annotations(article_index, experiment_id, benchmark, column_idx, ex
     return annotations
 }
 
-function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_cell_category) {
+function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_cell_category, highlight_mode) {
     /*
      * Generate tooltips for the given annotations and html hyperlinks for the given hyperlinks.
      * Tooltips and hyperlinks can overlap.
@@ -1928,7 +1937,6 @@ function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_
     // single article is supposed to be shown and the article evaluation span if all articles are supposed to be
     // shown)
     text = text.substring(0, evaluation_span[1]);
-
     // STEP 2: Add the combined annotations and hyperlinks to the text.
     // This is done in reverse order so that the text before is always unchanged. This allows to use the spans as given.
     for (const ann of combined_annotations.reverse()) {
@@ -1943,7 +1951,7 @@ function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_
         const before = text.substring(0, span[0]);
         const snippet = text.substring(span[0], span[1]);
         const after = text.substring(span[1]);
-        const replacement = generate_annotation_html(snippet, annotation, selected_cell_category);
+        const replacement = generate_annotation_html(snippet, annotation, selected_cell_category, highlight_mode);
         text = before + replacement + after;
     }
     text = text.substring(evaluation_span[0], text.length);
@@ -1951,7 +1959,7 @@ function annotate_text(text, annotations, hyperlinks, evaluation_span, selected_
     return text;
 }
 
-function generate_annotation_html(snippet, annotation, selected_cell_category) {
+function generate_annotation_html(snippet, annotation, selected_cell_category, highlight_mode) {
     /*
      * Generate html snippet for a given annotation. A hyperlink is also regarded as an annotation
      * and can be identified by the property "hyperlink". Inner annotations, e.g. hyperlinks contained in
@@ -1960,7 +1968,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     let inner_annotation = snippet;
 
     if ("inner_annotation" in annotation) {
-        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category);
+        inner_annotation = generate_annotation_html(snippet, annotation.inner_annotation, selected_cell_category, highlight_mode);
     }
 
     if ("hyperlink" in annotation) {
@@ -2058,7 +2066,6 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
     // Use transparent version of the color, if an error category or type is selected
     // and the current annotation does not have a corresponding error category or type label
     let lowlight_mention = true;
-    const highlight_mode = get_highlight_mode()
     const evaluation_category_tags = get_evaluation_category_tags(selected_cell_category)
     const base_category = selected_cell_category.split("|")[0];
     for (const tag of evaluation_category_tags) {
@@ -2068,7 +2075,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
             const gt_type_selected = annotation.gt_entity_type && annotation.gt_entity_type.split("|").includes(tag);
             const one_type_selected = pred_type_selected || gt_type_selected;
             if ((highlight_mode === "all" && (one_type_selected)) ||
-                (highlight_mode === "correct" && annotation.class === ANNOTATION_CLASS_TP && one_type_selected) ||
+                (highlight_mode === "avoided" && annotation.class === ANNOTATION_CLASS_TP && one_type_selected) ||
                 (highlight_mode === "errors" && ((annotation.class === ANNOTATION_CLASS_FP && pred_type_selected) ||
                                                 (annotation.class === ANNOTATION_CLASS_FN && gt_type_selected)))) {
                 lowlight_mention = false;
@@ -2077,27 +2084,16 @@ function generate_annotation_html(snippet, annotation, selected_cell_category) {
         } else if (base_category === "error_categories" && annotation.error_labels) {
             // Selected evaluation category is an error category
             const correct_tag = window.ERROR_CATEGORY_CORRECT_TAGS[tag];
-            if ((highlight_mode !== "correct" && annotation.error_labels.includes(tag)) ||
+            if ((highlight_mode !== "avoided" && annotation.error_labels.includes(tag)) ||
                 (highlight_mode !== "errors" && annotation.error_labels.includes(correct_tag))) {
                 lowlight_mention = false;
                 break;
             }
-            // Hacks to cover NER FN lowercase and partially included cases.
-            /*
-            if ((highlight_mode !== "errors" && tag === "NER_FN_LOWERCASED" && annotation.mention_type === "entity_other" && annotation.class === ANNOTATION_CLASS_TP)) {
-                lowlight_mention = false;
-                break;
-            }
-            if ((highlight_mode !== "errors" && tag === "NER_FN_PARTIALLY_INCLUDED" && annotation.mention_type.startsWith("entity") && annotation.class === ANNOTATION_CLASS_TP && annotation.text.includes(" "))) {
-                lowlight_mention = false;
-                break;
-            }
-            */
         } else {
             // Selected evaluation category is a mention type
             if (annotation.mention_type === tag || tag === "all") {
                 if (highlight_mode === "all" ||
-                    (highlight_mode === "correct" && annotation.class === ANNOTATION_CLASS_TP) ||
+                    (highlight_mode === "avoided" && annotation.class === ANNOTATION_CLASS_TP) ||
                     (highlight_mode === "errors" && [ANNOTATION_CLASS_FN, ANNOTATION_CLASS_FP].includes(annotation.class)))
                 lowlight_mention = false;
                 break;
@@ -2249,7 +2245,7 @@ async function show_article(selected_exp_ids, timestamp) {
 
     $("#prediction_overview").show();
     let columns = $("#prediction_overview tbody tr td");
-    let column_headers = $("#prediction_overview thead tr th");
+    let column_headers = $("#prediction_overview thead tr:nth-child(2) th");
     let column_idx = 0;
 
     let iteration = 0;
@@ -2331,8 +2327,14 @@ function get_emphasis_string(selected_cell_category) {
     return " (emphasis: \"" + emphasis + "\")";
 }
 
-function on_highlight_mode_change() {
+function on_highlight_mode_change(el) {
     const timestamp = new Date().getTime();
+
+    // Update current URL without refreshing the site
+    const url = new URL(window.location);
+    url.searchParams.set('highlight_mode', $(el).val());
+    window.history.replaceState({}, '', url);
+
     show_article(window.selected_experiment_ids, timestamp);
 }
 
@@ -3300,7 +3302,7 @@ function get_evaluation_mode() {
 }
 
 function get_group_by() {
-    return $('input[name=group_by]:checked').val();
+    return $('input[name=group_by]:checked', '#group_by').val();
 }
 
 function get_highlight_mode() {

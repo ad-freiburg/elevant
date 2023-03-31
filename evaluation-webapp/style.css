@@ -471,6 +471,16 @@ Moreover, the selected border color is not shown, only the background color.
     padding: 0;
 }
 
+
+/* Table header row for the highlight-mode checkboxes. This should be in the table, because otherwise,
+   due to the large necessary table padding, it would be too far away from the table */
+#prediction_overview tr:nth-child(1) th {
+    border: none;
+    background: none;
+    font-weight: normal;
+    text-align: end;
+}
+
 #prediction_overview {
     display: none;
 }

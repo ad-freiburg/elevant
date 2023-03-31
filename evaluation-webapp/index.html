@@ -244,13 +244,23 @@
 					</div>
 				</div>
 			</div>
-			<div id="highlight_modes" class="checkboxes">
-				<span><input type="radio" id="radio_highlight_mode_all" name="highlight_mode" value="all" onchange="on_highlight_mode_change(this)" checked><label for="radio_highlight_mode_all">Show all</label></span>
-				<span><input type="radio" id="radio_highlight_mode_errors" name="highlight_mode" value="errors" onchange="on_highlight_mode_change(this)"><label for="radio_highlight_mode_errors">Show errors</label></span>
-				<span><input type="radio" id="radio_highlight_mode_correct" name="highlight_mode" value="correct" onchange="on_highlight_mode_change(this)"><label for="radio_highlight_mode_correct">Show correct</label></span>
-			</div>
 			<table id="prediction_overview" class="article_table">
 				<thead>
+					<tr>
+						<th colspan="2">
+							<div id="highlight_modes" class="checkboxes">
+								<span data-tippy-content="<p><i>Highlight all mentions of the selected category.</i></p><p>For error categories, these are the mentions that make up the denominators of the selected category, for precision/recall/F1 columns, these are all TP, FN and FP of the selected category.</p>">
+									<input type="radio" id="radio_highlight_mode_all" name="highlight_mode" value="all" onchange="on_highlight_mode_change(this)" checked><label for="radio_highlight_mode_all">Show all</label>
+								</span>
+								<span data-tippy-content="<p><i>Highlight all error mentions that fall into the selected category.</i></p><p>For error categories, these are the mentions that make up the numerator of the selected category, for precision/recall/F1 columns, these are all FN and FP of the selected category.</p>">
+									<input type="radio" id="radio_highlight_mode_errors" name="highlight_mode" value="errors" onchange="on_highlight_mode_change(this)"><label for="radio_highlight_mode_errors">Show errors</label>
+								</span>
+								<span data-tippy-content="<p><i>Highlight all mentions that constitute avoided errors of the selected category.</i></p><p>For error categories, these are the denominators minus the errors, for precision/recall/F1 columns, these are all TP of the selected category.</p>">
+									<input type="radio" id="radio_highlight_mode_avoided" name="highlight_mode" value="avoided" onchange="on_highlight_mode_change(this)"><label for="radio_highlight_mode_avoided">Show avoided errors</label>
+								</span>
+							</div>
+						</th>
+					</tr>
 					<tr>
 						<th></th><th></th>
 					</tr>
