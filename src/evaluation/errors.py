@@ -8,6 +8,12 @@ from src.models.wikidata_entity import WikidataEntity
 from src.models.article import Article
 
 
+LOCATION_TYPE_QID = "Q27096213"
+ETHNICITY_TYPE_QID = "Q33829"
+PERSON_TYPE_QID = "Q215627"
+FICTIONAL_CHARACTER_QID = "Q95074"
+
+
 def label_errors(article: Article,
                  cases: List[Case],
                  entity_db: EntityDatabase,
@@ -152,11 +158,6 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: Evalu
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_OTHER, eval_mode)
 
 
-LOCATION_TYPE_ID = "Q27096213"
-PERSON_TYPE_QID = "Q18336849"
-ETHNICITY_TYPE_ID = "Q41710"
-
-
 def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Tuple[Optional[str], Optional[int]]:
     """
     Returns the entity ID of the most popular candidate for the given alias, or None if no candidate exists
@@ -174,17 +175,6 @@ def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Tuple[O
     return most_popular_candidate, score
 
 
-def is_location_alias(text: str, entity_db: EntityDatabase) -> bool:
-    """
-    The most popular candidate is a location.
-    """
-    most_popular_candidate, _ = get_most_popular_candidate(entity_db, text)
-    if not most_popular_candidate:
-        return False
-    most_popular_entity_types = entity_db.get_entity_types(most_popular_candidate)
-    return LOCATION_TYPE_ID in most_popular_entity_types
-
-
 def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is a location, and the ground truth is neither a location, person nor ethnicity.
@@ -193,13 +183,14 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
         # Cases with unknown groundtruth are not considered as metonymy errors
         return False
     true_types = entity_db.get_entity_types(case.true_entity.entity_id)
-    if LOCATION_TYPE_ID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_ID in true_types:
+    if LOCATION_TYPE_QID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_QID in true_types or \
+            FICTIONAL_CHARACTER_QID in true_types:
         return False
     most_popular_candidate, _ = get_most_popular_candidate(entity_db, case.text)
     if not most_popular_candidate:
         return False
     most_popular_entity_types = entity_db.get_entity_types(most_popular_candidate)
-    return LOCATION_TYPE_ID in most_popular_entity_types
+    return LOCATION_TYPE_QID in most_popular_entity_types
 
 
 def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
@@ -209,7 +200,7 @@ def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
     if not is_metonymy(case, entity_db):
         return False
     predicted_types = entity_db.get_entity_types(case.predicted_entity.entity_id)
-    return LOCATION_TYPE_ID in predicted_types
+    return LOCATION_TYPE_QID in predicted_types
 
 
 def label_disambiguation_errors(cases: List[Case], entity_db: EntityDatabase, eval_mode: EvaluationMode):
