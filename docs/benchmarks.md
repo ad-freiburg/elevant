@@ -127,6 +127,7 @@ The following benchmarks are included in ELEVANT and can be used out of the box 
 - Annotations are missing, e.g. in "Edelman was unsuccessful last year", "Edelman" is not annotated, even though it
  is annotated in previous sentences.
 
+
 ### Derczynski
 *Derczynski et al., 2015*
 
@@ -144,6 +145,68 @@ The following benchmarks are included in ELEVANT and can be used out of the box 
 **GERBIL Download:** <https://github.com/dice-group/gerbil/releases/download/v1.2.6/gerbil_data.zip>
 
 
+### OKE-2015
+*Nuzzolese et al., 2015*
+
+**Paper**:
+[Open Knowledge Extraction Challenge](https://link.springer.com/chapter/10.1007/978-3-319-25518-7_1)
+
+**ELEVANT benchmark name:** `oke-2015-train` and `oke-2015-eval`
+
+**Volume:** Sentences from Wikipedia articles about the biographies of scholars. The dataset is split into training
+ and evaluation dataset. The training dataset contains 95 sentences, the evaluation dataset contains 101 sentences.
+
+**Method:** The sentences were manually annotated. The annotators considered as entity "any discourse referent (the
+ actors and objects around which story unfolds), either named or anonymous that is an individual of one of the
+ following DOLCE Ultra Lite classes, i.e., dul:Person, dul:Place, dul:Organization, and dul:Role.". Importantly,
+ co-references to such entities are also considered as entities.
+
+**Download:**\
+**Official Download:** <https://github.com/anuzzolese/oke-challenge/>\
+The folder `GoldStandard_sampleData/task1` contains the training set and the folder `evaluation-data/task1/` contains
+ the evaluation dataset.
+
+**GERBIL Download (identical to the official version):** <https://github.com/dice-group/gerbil/releases/download/v1.2.6
+/gerbil_data.zip>
+
+**Notes:**
+- Some ground truth mention spans are not correct, e.g. in the training dataset in sentence #49, the span for the
+ mention text "candidate" does not include the first letter and in sentence #62 the span for the mention text "civil
+ engineering" is moved by one character to the right.
+- Some annotations don't match the annotation guidelines, e.g. "civil engineering" is annotated even though it's
+ neither a person, organization nor role.
+- Inconsistent annotations: "Irish" in "Irish stone carver" (training set, sentence 50) is annotated (with "Irish
+ people"), but "American" in "American poet" or "Canadian" in "Canadian musician" is not. Similarly, "street" is
+ annotated, but "county" is not.
+- The definition of an entity in this benchmark excludes things that are widely accepted as entities, such as languages.
+
+
+### OKE-2016
+*Nuzzolese et al., 2016*
+
+**Paper**:
+[The Second Open Knowledge Extraction Challenge](https://link.springer.com/book/10.1007/978-3-319-46565-4)
+
+**ELEVANT benchmark name:** `oke-2016-train` and `oke-2016-eval`
+
+**Volume:** As for OKE-2015, the datasets consist of sentences from Wikipedia articles about the biographies of
+ scholars. The dataset is split into training and evaluation dataset. The training dataset consists of the 196
+ sentences of the combined OKE-2015 training and evaluation dataset. The evaluation dataset contains 55 sentences.
+
+**Method:** The sentences were manually annotated using a CrowdFlower task. Similarly to the OKE-2015 dataset, the
+ annotators were asked to consider as entity "any discourse referent (the actors and objects around which a story
+ unfolds), either named (e.g., Albert Einstein) or anonymous (e.g., a man)" of the types Person, Place, Organization
+ or Role. As in the OKE-2015 dataset, co-references to such entities are also considered as entities.
+
+**Download:**\
+**Official Download:** <https://github.com/anuzzolese/oke-challenge-2016/>
+
+**GERBIL Download (identical to the official version):** <https://github.com/dice-group/gerbil/releases/download/v1.2.6
+/gerbil_data.zip>
+
+**Notes**:
+See notes for OKE-2015. However, in the OKE-2016 evaluation set, we could not find any span errors as reported for
+ OKE-2015.
 
 ## Excluded Benchmarks
 
@@ -153,7 +216,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
  appropriate `benchmark_file` and `benchmark_format` arguments.
 
 ### ACE 2004
-**Not recommended for EL evaluation! See notes below.**
+**Not recommended for entity linking evaluation! See notes below.**
 
 *Ratinov et al., 2011*
 
@@ -186,7 +249,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
 
 
 ### AQUAINT
-**Not recommended for EL evaluation! See notes below.**
+**Not recommended for entity linking evaluation! See notes below.**
 
 *Milne and Witten, 2008*
 
@@ -212,7 +275,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
 
 
 ### RSS-500
-**Not recommended for EL evaluation! See notes below.**
+**Not recommended for entity linking evaluation! See notes below.**
 
 *Röder et al., 2014*
 
@@ -245,7 +308,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
  "FLAGSTAFF , Ariz. -- No sooner had six-time Pro Bowl receiver Larry Fitzgerald arrived in Uganda in July on a
   humanitarian mission than former president Bill Clinton hit him with the question : Does n't matter who is
   quarterback is , Larry Fitzgerald still finds a way to make big plays for the Cardinals ."
-  In one occurrense of this sentence, only the spans "Larry Fitzgerald" and "Uganda" are marked as ground truth
+  In one occurrence of this sentence, only the spans "Larry Fitzgerald" and "Uganda" are marked as ground truth
   entities, while in the other occurrence only the spans "Bowl" and "Larry Fitzgerald" are marked as ground truth
   entities.
 - Mention spans are sometimes not intuitive, e.g. in the phrase "Pro Bowl receiver Larry Fitzgerald", "Bowl" is
@@ -253,7 +316,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
 
 
 ### DBPedia Spotlight
-**Not recommended for EL evaluation! See notes below.**
+**Not recommended for entity linking evaluation! See notes below.**
 
 *Mendes et al., 2011*
 
@@ -279,7 +342,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
 
 
 ### WNED-CWEB
-**Not recommended for EL evaluation! See notes below.**
+**Not recommended for entity linking evaluation! See notes below.**
 
 *Guo and Barbosa, 2018*
 
@@ -301,7 +364,7 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
 
 
 ### WNED-WIKI
-**Not recommended for EL evaluation! See notes below.**
+**Not recommended for entity linking evaluation! See notes below.**
 
 *Guo and Barbosa, 2018*
 
@@ -321,23 +384,3 @@ The following benchmarks are not included in ELEVANT for various reasons, mostly
  contributors are encouraged to omit hyperlinks if entities are very well known and only the first occurrence of an
  entity is linked in an article. The dataset can therefore not be used to reasonably compute precision or F1 score
  unless ground truth mention spans are given.
-
-
-### OKE-2015
-TODO: Write something
-
-**Download:**\
-**Official Download:** <https://github.com/anuzzolese/oke-challenge/>
-
-**GERBIL Download (identical to the official version):** <https://github.com/dice-group/gerbil/releases/download/v1.2.6
-/gerbil_data.zip>
-
-
-### OKE-2016
-TODO: Write something
-
-**Download:**\
-**Official Download:** <https://github.com/anuzzolese/oke-challenge-2016/>
-
-**GERBIL Download (identical to the official version):** <https://github.com/dice-group/gerbil/releases/download/v1.2.6
-/gerbil_data.zip>
