@@ -1,16 +1,17 @@
 # Add a Benchmark
 You can easily add a benchmark if you have a benchmark file that is in one of the following formats:
 
-- our JSONL format
+- a very simple JSONL format
 - NLP Interchange Format (NIF)
 - IOB-based format used by Hoffart et al. for their AIDA-CoNLL benchmark
 - XML format used for example for the MSNBC benchmarks
+- TTL format used for the OKE challenges
 - a simple TSV format with IOB tags
-- a simple JSONL format
+- our JSONL format
 
 To add a benchmark, simply run
 
-    python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat <ours|nif|aida-conll|xml|tsv|simple-jsonl>
+    python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat <simple-jsonl|nif|aida-conll|xml|oke|tsv|ours>
 
 This converts the `<benchmark_file>` into our JSONL format (if it is not in this format already), annotates ground
  truth labels with their Wikidata label and Wikidata types as given in
@@ -28,9 +29,29 @@ If your benchmark is not in one of the supported formats, you can either convert
 
 This section describes the three file formats that can be used as input to the `add_benchmark.py` script.
 
-#### Our JSONL Format
+#### Simple JSONL Format
+The benchmark file should contain one line per benchmark article, where each line is a json object with the
+ following keys:
+- `text`: The text of the benchmark article
+- `title` (*optional*): The title of the benchmark article
+- `labels`: The ground truth labels for an article. An array of objects with the keys
+    - `entity_reference`: The reference to the predicted entity in one of the knowledge bases [Wikidata, Wikipedia
+    , DBpedia]. The reference is either a complete link to the entity (e.g.
+    "https://en.wikipedia.org/wiki/Angelina_Jolie") or just the Wikidata QID / Wikipedia title / DBpedia title. Note
+    however, if no complete link is given the knowledge base is inferred from the format of the entity reference and
+    predicted Wikipedia titles that match the regular expression `Q[0-9]+` will be interpreted as Wikidata QIDs.
+    - `start_char`: The character offset of the start of the label (including) within the article text
+    - `end_char`: The character offset of the end of the label (excluding) within the article text
 
-Our JSONL format is described in detail [here](our_jsonl_format.md).
+Your benchmark file should look something like this:
+
+    {"text": "Angelina, her father Jon, and her partner Brad never played together in the same movie.", "title": "Some Title", "labels": [{"entity_reference": "Angelina Jolie", "start_char": 0, "end_char": 8}, {"entity_reference": "Jon Voight", "start_char": 21, "end_char": 24}, {"entity_reference": "Brad Pitt", "start_char": 42, "end_char": 46}]}
+    {"text": "Heidi and her husband Seal live in Vegas.", "title": "Some Title", "labels": [{"entity_reference": "Heidi Klum", "start_char": 0, "end_char": 5}, {"entity_reference": "Seal", "start_char": 22, "end_char": 26}, {"entity_reference": "Las Vegas", "start_char": 35, "end_char": 40}]}
+
+`<benchmark_file>` can be the path to a single JSONL file that contains all benchmark articles or the path to a
+ directory that contains multiple such JSONL files.
+
+The Simple JSONL benchmark reader is implemented [here](../src/benchmark_readers/simple_jsonl_benchmark_reader.py).
 
 #### NIF
 The NIF format for the purpose of entity linking is explained in detail in the
@@ -163,6 +184,40 @@ In order to add a benchmark in this format, call the `add_benchmark.py` with the
 
 The XML benchmark reader is implemented [here](../src/benchmark_readers/xml_benchmark_reader.py).
 
+#### OKE
+The OKE format is based on NIF, but the taIdentRef are not valid entity URIs. Instead, it includes sameAs relations
+ that map the URIs used for the taIdentRef to DBpedia URIs. The benchmark file should look something like this:
+
+    @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+    @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+    @prefix oke:   <http://www.ontologydesignpatterns.org/data/oke-challenge/task-1/sentence-> .
+    @prefix itsrdf: <http://www.w3.org/2005/11/its/rdf#> .
+    @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix nif:   <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#> .
+    @prefix dul:   <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
+    @prefix dbpedia: <http://dbpedia.org/resource/> .
+
+    <http://www.ontologydesignpatterns.org/data/oke-challenge/task-1/sentence-24#char=0,111>
+        a               nif:String , nif:RFC5147String , nif:Context ;
+        nif:beginIndex  "0"^^xsd:nonNegativeInteger ;
+        nif:endIndex    "111"^^xsd:nonNegativeInteger ;
+        nif:isString    "Neruda derived his pen name from the Czech poet Jan Neruda and became known as a poet when he was 10 years old."@en .
+
+    <http://www.ontologydesignpatterns.org/data/oke-challenge/task-1/sentence-24#char=0,6>
+        a                     nif:String , nif:RFC5147String ;
+        nif:anchorOf          "Neruda"@en ;
+        nif:beginIndex        "0"^^xsd:nonNegativeInteger ;
+        nif:endIndex          "6"^^xsd:nonNegativeInteger ;
+        nif:referenceContext  <http://www.ontologydesignpatterns.org/data/oke-challenge/task-1/sentence-24#char=0,111> ;
+        itsrdf:taIdentRef     oke:Pablo_Neruda .
+
+    oke:Pablo_Neruda  a  owl:Individual , dul:Person ;
+        rdfs:label  "Pablo Neruda"@en ;
+        owl:sameAs  dbpedia:Pablo_Neruda .
+
+The OKE benchmark reader is implemented [here](../src/benchmark_readers/oke_benchmark_reader.py).
+
 #### TSV IOB Format
 The benchmark file should contain one line per token. Each line contains at least three tab-separated columns, where
 - column 1 is the token
@@ -189,30 +244,9 @@ Your benchmark file could for example look something like this:
 The TSV benchmark reader is implemented [here](../src/benchmark_readers/tsv_benchmark_reader.py).
 
 
-#### Simple JSONL Format
-The benchmark file should contain one line per benchmark article, where each line is a json object with the
- following keys:
-- `text`: The text of the benchmark article
-- `title` (*optional*): The title of the benchmark article
-- `labels`: The ground truth labels for an article. An array of objects with the keys
-    - `entity_reference`: The reference to the predicted entity in one of the knowledge bases [Wikidata, Wikipedia
-    , DBpedia]. The reference is either a complete link to the entity (e.g.
-    "https://en.wikipedia.org/wiki/Angelina_Jolie") or just the Wikidata QID / Wikipedia title / DBpedia title. Note
-    however, if no complete link is given the knowledge base is inferred from the format of the entity reference and
-    predicted Wikipedia titles that match the regular expression `Q[0-9]+` will be interpreted as Wikidata QIDs.
-    - `start_char`: The character offset of the start of the label (including) within the article text
-    - `end_char`: The character offset of the end of the label (excluding) within the article text
+#### Our JSONL Format
 
-Your benchmark file should look something like this:
-
-    {"text": "Angelina, her father Jon, and her partner Brad never played together in the same movie.", "title": "Some Title", "labels": [{"entity_reference": "Angelina Jolie", "start_char": 0, "end_char": 8}, {"entity_reference": "Jon Voight", "start_char": 21, "end_char": 24}, {"entity_reference": "Brad Pitt", "start_char": 42, "end_char": 46}]}
-    {"text": "Heidi and her husband Seal live in Vegas.", "title": "Some Title", "labels": [{"entity_reference": "Heidi Klum", "start_char": 0, "end_char": 5}, {"entity_reference": "Seal", "start_char": 22, "end_char": 26}, {"entity_reference": "Las Vegas", "start_char": 35, "end_char": 40}]}
-
-`<benchmark_file>` can be the path to a single JSONL file that contains all benchmark articles or the path to a
- directory that contains multiple such JSONL files.
-
-The Simple JSONL benchmark reader is implemented [here](../src/benchmark_readers/simple_jsonl_benchmark_reader.py).
-
+Our JSONL format is described in detail [here](our_jsonl_format.md).
 
 ## Writing a Custom Benchmark Reader
 As an alternative to converting your benchmark into one of the formats mentioned above, you can write your own

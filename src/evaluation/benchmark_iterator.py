@@ -5,6 +5,7 @@ from typing import Optional, List
 from src import settings
 from src.benchmark_readers.aida_conll_benchmark_reader import AidaConllBenchmarkReader
 from src.benchmark_readers.nif_benchmark_reader import NifBenchmarkReader
+from src.benchmark_readers.oke_benchmark_reader import OkeBenchmarkReader
 from src.benchmark_readers.our_jsonl_benchmark_reader import OurJsonlBenchmarkReader
 from src.benchmark_readers.simple_jsonl_benchmark_reader import SimpleJsonlBenchmarkReader
 from src.benchmark_readers.tagme_benchmark_reader import TagmeBenchmarkReader
@@ -67,7 +68,7 @@ def get_benchmark_iterator(benchmark_name: str,
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
             benchmark_iterator = XMLBenchmarkReader(entity_db, benchmark_files[0], benchmark_files[1])
-        elif benchmark_format == BenchmarkFormat.tagme.value:
+        elif benchmark_format == BenchmarkFormat.TAGME.value:
             if len(benchmark_files) == 1:
                 raise IndexError("The TagMe benchmark reader needs the annotation file and the text snippet file "
                                  "as input, but only one file was provided.")
@@ -78,6 +79,13 @@ def get_benchmark_iterator(benchmark_name: str,
             entity_db.load_wikipedia_id2wikipedia_title()
             logger.info("-> Mappings loaded.")
             benchmark_iterator = TagmeBenchmarkReader(entity_db, benchmark_files[0], benchmark_files[1])
+        elif benchmark_format == BenchmarkFormat.OKE.value:
+            entity_db = EntityDatabase()
+            logger.info("Load mappings for OKE benchmark reader...")
+            entity_db.load_wikipedia_to_wikidata_db()
+            entity_db.load_redirects()
+            logger.info("-> Mappings loaded.")
+            benchmark_iterator = OkeBenchmarkReader(entity_db, benchmark_files[0])
         else:
             # Per default, assume OUR_JSONL format
             benchmark_iterator = OurJsonlBenchmarkReader(benchmark_files[0])

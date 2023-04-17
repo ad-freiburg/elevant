@@ -26,6 +26,7 @@ class BenchmarkFormat(Enum):
     XML = "xml"
     TAGME = "tagme"
     TSV = "tsv"
+    OKE = "oke"
 
 
 def get_available_benchmarks():
