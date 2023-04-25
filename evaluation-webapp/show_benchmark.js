@@ -2058,8 +2058,10 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
     // Use transparent version of the color, if an error category or type is selected
     // and the current annotation does not have a corresponding error category or type label
     let lowlight_mention = true;
-    const evaluation_category_tags = get_evaluation_category_tags(selected_cell_category)
-    const base_category = selected_cell_category.split("|")[0];
+    const evaluation_category_tags = get_evaluation_category_tags(selected_cell_category);
+    const evaluation_categories = selected_cell_category.split("|");
+    const base_category = evaluation_categories[0];
+    const category = evaluation_categories[1];
     for (const tag of evaluation_category_tags) {
         if (base_category === "entity_types") {
             // Selected evaluation category is an entity type
@@ -2078,7 +2080,10 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
             const correct_tag = window.ERROR_CATEGORY_CORRECT_TAGS[tag];
             if ((highlight_mode !== "avoided" && annotation.error_labels.includes(tag)) ||
                 (highlight_mode !== "errors" && annotation.error_labels.includes(correct_tag))) {
-                lowlight_mention = false;
+                // Set lowlight_mention to false unless an NER FN category is selected and the annotation is a prediction
+                // or an NER FP category is selected and the annotation is a ground truth.
+                lowlight_mention = (category === "ner_fn" && annotation.pred_entity_id) ||
+                    (category === "ner_fp" && annotation.gt_entity_id);
                 break;
             }
         } else {
