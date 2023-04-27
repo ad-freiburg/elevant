@@ -7,7 +7,6 @@ from src import settings
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.database import Database
 from src.models.gender import Gender
-from src.models.wikidata_entity import WikidataEntity
 from src.helpers.entity_database_reader import EntityDatabaseReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -47,8 +46,8 @@ class LoadedInfo:
 
 class EntityDatabase:
     def __init__(self):
-        self.entities = {}
-        self.entities: Dict[str, WikidataEntity]
+        self.entities = set()
+        self.entities: Set[str]
         self.name_to_entities_db = {}
         self.name_to_entities_db: Dict[str, Set[str]]
         self.entity_type_db = {}
