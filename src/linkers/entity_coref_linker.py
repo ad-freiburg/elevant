@@ -201,7 +201,8 @@ class EntityCorefLinker(AbstractCorefLinker):
         if not article.entity_mentions:
             return []
 
-        doc = self.model(article.text)
+        if doc is None:
+            doc = self.model(article.text)
 
         clusters = defaultdict(list)
         sorted_entity_mentions = sorted(article.entity_mentions.items())

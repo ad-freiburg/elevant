@@ -13,7 +13,7 @@ from src.utils.dates import is_date
 from src import settings
 from src.utils.offset_converter import OffsetConverter
 import src.ner.ner_postprocessing  # import is needed so Python finds the custom factory
-
+import src.utils.custom_sentencizer  # import is needed so Python finds the custom component
 
 def get_non_overlapping_span(span: Tuple[int, int],
                              linked_entities: Dict[Tuple[int, int], EntityMention],
@@ -60,6 +60,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
             self.ner = MaximumMatchingNER(self.entity_db)
 
         self.model = spacy.load(settings.LARGE_MODEL_NAME)
+        self.model.add_pipe("custom_sentencizer", before="parser")
         self.model.add_pipe("ner_postprocessor", after="ner")
 
     def entity_spans(self, text: str, doc: Optional[Doc]) -> List[Tuple[Tuple[int, int], bool, bool]]:

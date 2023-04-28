@@ -222,6 +222,9 @@ class LinkingSystem:
                       only_pronouns: Optional[bool] = False,
                       evaluation_span: Optional[Tuple[int, int]] = None):
         if self.linker and self.linker.model:
+            # This takes a lot of time, so if several components of the linking_system rely on the processed
+            # document, only do this once. However, be aware the models of the different components might
+            # differ slightly or have different pipeline components.
             doc = self.linker.model(article.text)
         else:
             doc = None
@@ -234,6 +237,7 @@ class LinkingSystem:
         if self.coref_linker:
             coref_eval_span = evaluation_span if evaluation_span else None
             self.coref_linker.link_entities(article,
+                                            doc,
                                             only_pronouns=only_pronouns,
                                             evaluation_span=coref_eval_span)
         elif self.coref_prediction_iterator:
