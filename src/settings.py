@@ -94,7 +94,7 @@ WIKI_EX_BENCHMARK_FILE = BENCHMARK_DIR + "wiki-ex.benchmark.jsonl"
 # Other files and paths
 EVALUATION_RESULTS_DIR = "evaluation-results/"
 LOG_PATH = "logs/"
-
+TMP_FORKSERVER_CONFIG_FILE = "configs/tmp_forkserver.config.json"
 
 # Other settings
 LARGE_MODEL_NAME = "en_core_web_lg"

@@ -5,7 +5,7 @@ from src import settings
 from datetime import datetime
 
 
-def setup_logger(script_name, stdout_level=logging.INFO, file_level=logging.DEBUG):
+def setup_logger(script_name, stdout_level=logging.INFO, file_level=logging.DEBUG, write_to_file=True):
     # Create logger
     logger = logging.getLogger('main')
     logger.setLevel(logging.DEBUG)
@@ -18,20 +18,23 @@ def setup_logger(script_name, stdout_level=logging.INFO, file_level=logging.DEBU
     stdout_handler.setLevel(stdout_level)
     stdout_handler.setFormatter(formatter)
 
-    # Create logs directory if it does not yet exist
-    if not os.path.exists(settings.LOG_PATH):
-        os.makedirs(settings.LOG_PATH)
-
-    # Create file handler
-    script_name = script_name.replace(".py", "")
-    current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
-    filename = settings.LOG_PATH + script_name + "." + current_datetime + ".log"
-    file_handler = logging.FileHandler(filename)
-    file_handler.setLevel(file_level)
-    file_handler.setFormatter(formatter)
-
-    # Add handlers to logger
+    # Add stdout handler to logger
     logger.addHandler(stdout_handler)
-    logger.addHandler(file_handler)
+
+    if write_to_file:
+        # Create logs directory if it does not yet exist
+        if not os.path.exists(settings.LOG_PATH):
+            os.makedirs(settings.LOG_PATH)
+
+        # Create file handler
+        script_name = script_name.replace(".py", "")
+        current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
+        filename = settings.LOG_PATH + script_name + "." + current_datetime + ".log"
+        file_handler = logging.FileHandler(filename)
+        file_handler.setLevel(file_level)
+        file_handler.setFormatter(formatter)
+
+        # Add file handler to logger
+        logger.addHandler(file_handler)
 
     return logger
