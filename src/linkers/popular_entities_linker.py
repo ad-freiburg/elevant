@@ -59,7 +59,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         if self.longest_alias_ner:
             self.ner = MaximumMatchingNER(self.entity_db)
 
-        self.model = spacy.load(settings.LARGE_MODEL_NAME)
+        self.model = spacy.load(settings.LARGE_MODEL_NAME, disable=["lemmatizer"])
         self.model.add_pipe("custom_sentencizer", before="parser")
         self.model.add_pipe("ner_postprocessor", after="ner")
 

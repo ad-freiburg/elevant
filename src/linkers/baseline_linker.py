@@ -30,7 +30,7 @@ class BaselineLinker(AbstractEntityLinker):
             self.ner = MaximumMatchingNER(entity_database)
             self.model = None
         else:
-            self.model = spacy.load(settings.LARGE_MODEL_NAME)
+            self.model = spacy.load(settings.LARGE_MODEL_NAME, disable=["lemmatizer"])
             self.model.add_pipe("ner_postprocessor", after="ner")
 
     def has_entity(self, entity_id: str) -> bool:

@@ -14,7 +14,7 @@ class NeuralcorefCorefLinker(AbstractCorefLinker):
     def __init__(self,
                  model: Optional[Language] = None):
         if model is None:
-            self.model = spacy.load(settings.LARGE_MODEL_NAME)
+            self.model = spacy.load(settings.LARGE_MODEL_NAME, disable=["lemmatizer"])
         else:
             self.model = model
         neuralcoref.add_to_pipe(self.model, max_dist=50, max_dist_match=100)

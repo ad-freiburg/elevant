@@ -137,7 +137,7 @@ class EntityCorefLinker(AbstractCorefLinker):
 
     def __init__(self, entity_db: EntityDatabase, model: Optional[Language] = None):
         if model is None:
-            self.model = spacy.load(settings.LARGE_MODEL_NAME)
+            self.model = spacy.load(settings.LARGE_MODEL_NAME, disable=["lemmatizer"])
             self.model.add_pipe("custom_sentencizer", before="parser")
         else:
             self.model = model

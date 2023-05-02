@@ -18,7 +18,7 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 class PriorLinker(AbstractEntityLinker):
     def __init__(self, entity_database: EntityDatabase, config: Dict[str, Any]):
         self.entity_db = entity_database
-        self.model = spacy.load(settings.LARGE_MODEL_NAME)
+        self.model = spacy.load(settings.LARGE_MODEL_NAME, disable=["lemmatizer"])
 
         # Get config variables
         self.linker_identifier = config["linker_name"] if "linker_name" in config else "Prior"
