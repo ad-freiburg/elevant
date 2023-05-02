@@ -144,6 +144,7 @@ class EntityCorefLinker(AbstractCorefLinker):
         self.entity_db = entity_db
         self.sent_start_idxs = None
         self.title_entity = None
+        self.type_aliases = None
 
     def get_referenced_entity(self,
                               span: Tuple[int, int],
@@ -203,7 +204,6 @@ class EntityCorefLinker(AbstractCorefLinker):
 
         if doc is None:
             doc = self.model(article.text)
-
         clusters = defaultdict(list)
         sorted_entity_mentions = sorted(article.entity_mentions.items())
         mention_idx = 0
@@ -214,6 +214,7 @@ class EntityCorefLinker(AbstractCorefLinker):
         seen_types = set()
         direct_speeches = get_direct_speeches(article, doc)
         paragraphs = get_paragraphs(article)
+        self.type_aliases = dict()
 
         for sent in doc.sents:
 
@@ -235,13 +236,17 @@ class EntityCorefLinker(AbstractCorefLinker):
                     deps = [tok.dep_ for tok in OffsetConverter.get_tokens_in_span(span, doc)]
 
                     types = set()
-                    if self.entity_db.has_coreference_types(entity_id):
+                    if entity_id in self.type_aliases:
+                        types = self.type_aliases[entity_id]
+                    elif self.entity_db.has_coreference_types(entity_id):
                         for type_id in self.entity_db.get_coreference_types(entity_id):
                             type_entity_aliases = self.entity_db.get_entity_aliases(type_id)
                             for alias in type_entity_aliases:
                                 alias_list = alias.lower().split("/")
                                 types.update(alias_list)
-                        seen_types.update(types)
+                        self.type_aliases[entity_id] = types
+                    seen_types.update(types)
+
                     referenced_entity = ReferencedEntity(span, entity_id, gender, types, deps, direct_speech)
                     recent_ents_per_sent[-1][(tok_idx, end_idx)] = referenced_entity
                     if span[0] == 0:
