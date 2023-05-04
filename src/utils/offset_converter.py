@@ -23,7 +23,9 @@ class OffsetConverter:
                 left = mid + 1
             # If the index of the first character of the current token is
             # greater than the offset we're looking for, search in left part.
-            elif doc[mid].idx > offset:
+            # Additionally, check if the offset is in the gap between the
+            # current token and the previous one
+            elif doc[mid].idx > offset and (mid-1 < 0 or doc[mid-1].idx + len(doc[mid-1].text) > offset):
                 right = mid - 1
             # Offset is present at mid
             else:
@@ -49,6 +51,8 @@ class OffsetConverter:
         left_i = left_i if doc[left_i].idx >= span[0] else left_i + 1
         # Get the index of the token that contains the end of the span
         right_i = OffsetConverter.get_token_idx(span[1] - 1, doc)  # -1 because right end of span is exclusive
+        if right_i is None:
+            return doc[left_i:]
         # We only want fully contained tokens, i.e. no tokens that end after the span ends
         right_i = right_i if doc[right_i].idx + len(doc[right_i].text) <= span[1] else right_i - 1
         # Get all contained tokens
@@ -74,6 +78,7 @@ class OffsetConverter:
         first token in the sentence return 0.
         """
         token = OffsetConverter.get_token(offset, doc)
-        for i, tok in enumerate(token.sent):
-            if tok.idx >= offset:
-                return i
+        if token:
+            for i, tok in enumerate(token.sent):
+                if tok.idx >= offset:
+                    return i
