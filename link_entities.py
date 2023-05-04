@@ -155,7 +155,7 @@ def main():
         for i, tupl in enumerate(iterator):
             article, uppercase, only_pronouns = tupl
             linking_system.link_entities(article, uppercase, only_pronouns)
-            output_file.write(article.to_json() + "\n")
+            output_file.write(f"{article.to_json(evaluation_format=False)}\n")
             total_time = time.time() - start
             time_per_article = total_time / (i + 1)
             print("\r%i articles, %f s per article, %f s total time." % (i + 1, time_per_article, total_time), end='')
