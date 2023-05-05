@@ -15,35 +15,18 @@ from src.utils.offset_converter import OffsetConverter
 import src.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 import src.utils.custom_sentencizer  # import is needed so Python finds the custom component
 
-def get_non_overlapping_span(span: Tuple[int, int],
-                             linked_entities: Dict[Tuple[int, int], EntityMention],
-                             text: str) -> Optional[Tuple[int, int]]:
+
+def overlaps_with_linked_entity(span: Tuple[int, int], linked_entities: Dict[Tuple[int, int], EntityMention]) -> bool:
     for linked_span in sorted(linked_entities):
-        if linked_span[0] > span[1]:
+        if linked_span[0] >= span[1]:
             # linked spans are sorted so we can break the loop as soon as the start
-            # of a already linked span is greater than the end of the predicted span
-            break
-        if linked_span[0] <= span[0] and linked_span[1] >= span[1]:
-            # Return None if the already linked span completely covers the predicted span
-            return None
-        if span[0] < linked_span[0] < span[1]:
-            # span starts before the already linked span and overlaps with it
-            end = linked_span[0]
-            while not text[end - 1].isalpha():
-                end -= 1
-            for ending in ("'s", "'"):
-                # Trim possessive suffixes from span
-                if text[span[0]:end].endswith(ending):
-                    end = end - len(ending)
-            span = span[0], end
-        elif False and linked_span[0] <= span[0] < linked_span[1]:
-            # TODO: Not sure if this case ever occurs and makes sense
-            # span starts after the already linked span and overlaps with it
-            start = linked_span[1] + 1
-            while not text[start].isalpha():
-                start += 1
-            span = start, span[1]
-    return span
+            # of a already linked span is >= the end of the predicted span
+            return False
+        if linked_span[1] > span[0]:
+            # Start of linked span is smaller than the end of the predicted span and
+            # the end of the linked span is greater than the start of the predicted span
+            return True
+    return False
 
 
 class PopularEntitiesLinker(AbstractEntityLinker):
@@ -107,10 +90,8 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         predictions = {}
         unknown_person_name_parts = set()
         for span, is_language, is_person in self.entity_spans(text, doc):
-            if linked_entities:
-                span = get_non_overlapping_span(span, linked_entities, text)
-                if span is None:
-                    continue
+            if linked_entities and overlaps_with_linked_entity(span, linked_entities):
+                continue
             snippet = text[span[0]:span[1]]
 
             if snippet.islower():
