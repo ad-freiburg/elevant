@@ -31,7 +31,7 @@ import log
 
 from src import settings
 from src.linkers.linkers import Linkers, CoreferenceLinkers
-from src.models.article import Article
+from src.models.article import Article, article_from_json
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 # This has to happen here, so I can write the configuration file for the linking_system
@@ -49,6 +49,8 @@ parser.add_argument("--linker_config",
                          "Per default, the system looks for the config file at configs/<linker_name>.config.json")
 parser.add_argument("-raw", "--raw_input", action="store_true",
                     help="Set to use an input file with raw text.")
+parser.add_argument("--article_format", action="store_true",
+                    help="The input file is in our article jsonl format.")
 parser.add_argument("-n", "--n_articles", type=int, default=-1,
                     help="Number of articles to link.")
 parser.add_argument("-coref", "--coreference_linker", choices=[cl.value for cl in CoreferenceLinkers],
@@ -114,6 +116,8 @@ def article_iterator(filename):
                 break
             if args.raw_input:
                 article = Article(id=i, title="", text=line[:-1])
+            elif args.article_format:
+                article = article_from_json(line)
             else:
                 article = WikipediaDumpReader.json2article(line)
             yield article, args.uppercase, args.only_pronouns
