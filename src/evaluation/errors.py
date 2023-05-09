@@ -180,8 +180,10 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     most_popular_candidates = get_most_popular_candidate(entity_db, case.text)
     if not most_popular_candidates:
         return False
-    # For reproducibility take not a random most popular candidate, but the one returned by max
-    most_popular_entity_types = entity_db.get_entity_types(max(most_popular_candidates))
+    # It counts as metonymy if any one of the most popular candidates (often there'll be only one) is a location
+    most_popular_entity_types = set()
+    for candidate in most_popular_candidates:
+        most_popular_entity_types |= set(entity_db.get_entity_types(candidate))
     return LOCATION_TYPE_QID in most_popular_entity_types
 
 
