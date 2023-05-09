@@ -28,7 +28,7 @@ def load_evaluation_entities(type_mapping_file: str, custom_mappings: bool) -> E
         entity_db.load_datetimes()
         entity_db.load_family_name_aliases()
         entity_db.load_alias_to_entities()
-        entity_db.load_link_aliases(with_frequencies=True)
+        entity_db.load_hyperlink_to_most_popular_candidates()
     logger.info("-> Entity database initialized.")
     return entity_db
 

@@ -24,7 +24,7 @@ class ValueProcessingMethod(Enum):
     NAME_FROM_URL = "name_from_url"
 
 
-def read_from_pkl(filename, separator=","):
+def read_from_pkl(filename: str, separator: str = ","):
     logger.info(f"Reading from file {filename} ...")
     start = time.time()
     with open(filename, "rb") as f:
@@ -98,6 +98,28 @@ def read_from_tsv(filename, storage_format=StorageFormat.SINGLE_VAL, processing_
     return d
 
 
+def read_most_popular_candidates(filename: str):
+    logger.info(f"Reading most popular hyperlink aliases from file {filename} ...")
+    start = time.time()
+    with open(filename, "rb") as f:
+        d = pickle.load(f)
+        new_d = {}
+        for link_text, frequency_dict in d.items():
+            most_popular_candidates = []
+            max_frequency = 0
+            for entity_id, frequency in frequency_dict.items():
+                if frequency > max_frequency:
+                    most_popular_candidates = [entity_id]
+                    max_frequency = frequency
+                elif frequency == max_frequency:
+                    most_popular_candidates.append(entity_id)
+            if most_popular_candidates:
+                new_d[link_text] = ",".join(most_popular_candidates)
+        d = new_d
+    logger.info(f"Done. Took {time.time() - start} s")
+    return d
+
+
 def process(value: str, method: Optional[ValueProcessingMethod] = None) -> str:
     if method == ValueProcessingMethod.NAME_FROM_URL:
         # Can't use rfind("/") here, because some entity names contain "/", e.g.
@@ -136,7 +158,9 @@ def main(args):
     storage_format = StorageFormat(args.format)
     processing_method = ValueProcessingMethod(args.processing_method) if args.processing_method else None
 
-    if args.input_file.endswith(".pkl"):
+    if args.most_popular_candidates:
+        dictionary = read_most_popular_candidates(args.input_file)
+    elif args.input_file.endswith(".pkl"):
         dictionary = read_from_pkl(args.input_file)
     else:
         dictionary = read_from_tsv(args.input_file, storage_format, processing_method, inverse=args.inverse)
@@ -157,6 +181,9 @@ if __name__ == "__main__":
                         default=None, help="Processing method that will be applied to each value in the database.")
     parser.add_argument("-i", "--inverse", action="store_true",
                         help="Use the original keys (left-most element) as values, and the values as keys.")
+    parser.add_argument("--most_popular_candidates", action="store_true",
+                        help="Create a database that contains a mapping from hyperlink text to the its popular entity"
+                             "candidates.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))

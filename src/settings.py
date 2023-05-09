@@ -52,7 +52,7 @@ WHITELIST_FILE = "small-data-files/whitelist_types.tsv"
 WHITELIST_TYPE_ADJUSTMENTS_FILE = "small-data-files/type_adjustments.txt"
 
 # Wikipedia mappings
-LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "wikipedia_mappings/link_frequencies.pkl"
+LINK_FREEQUENCIES_FILE = DATA_DIRECTORY + "wikipedia_mappings/hyperlink_frequencies.pkl"
 REDIRECTS_FILE = DATA_DIRECTORY + "wikipedia_mappings/redirects.pkl"
 TITLE_SYNONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/title_synonyms.pkl"
 AKRONYMS_FILE = DATA_DIRECTORY + "wikipedia_mappings/akronyms.pkl"
@@ -68,6 +68,7 @@ QID_TO_ALIASES_DB = DATA_DIRECTORY + "wikidata_mappings/qid_to_aliases.db"
 ALIAS_TO_QIDS_DB = DATA_DIRECTORY + "wikidata_mappings/alias_to_qids.db"
 WIKIPEDIA_NAME_TO_QID_DB = DATA_DIRECTORY + "wikidata_mappings/wikipedia_name_to_qid.db"
 REDIRECTS_DB = DATA_DIRECTORY + "wikipedia_mappings/redirects.db"
+HYPERLINK_TO_MOST_POPULAR_CANDIDATES_DB = DATA_DIRECTORY + "wikipedia_mappings/hyperlink_to_most_popular_candidates.db"
 
 # Custom mappings (have to be created by the user, e.g. using the extract_custom_mappings.py script)
 CUSTOM_ENTITY_TO_NAME_FILE = DATA_DIRECTORY + "custom_mappings/entity_to_name.tsv"

@@ -36,25 +36,14 @@ class BaselineLinker(AbstractEntityLinker):
     def has_entity(self, entity_id: str) -> bool:
         return self.entity_db.contains_entity(entity_id)
 
-    def _score_entity_by_link_frequency(self, alias: str, entity_id: str) -> int:
-        return self.entity_db.get_link_frequency(alias, entity_id)
-
-    def _score_entity_by_score(self, entity_id: str) -> int:
+    def score_entity(self, entity_id: str) -> int:
         return self.entity_db.get_sitelink_count(entity_id)
-
-    def score_entity(self, alias: str, entity_id: str) -> int:
-        if self.strategy == "wikipedia":
-            return self._score_entity_by_link_frequency(alias, entity_id)
-        elif self.strategy == "wikidata":
-            return self._score_entity_by_score(entity_id)
-        else:
-            raise NotImplementedError("AliasEntityLinker: Strategy %s not implemented." % str(self.strategy))
 
     def select_entity(self, alias: str, candidates: Set[str]) -> Optional[str]:
         if len(candidates) == 0:
             return None
         scored_entities = [
-            (self.score_entity(alias, candidate), candidate) for candidate in candidates
+            (self.score_entity(alias), candidate) for candidate in candidates
         ]
         score, entity_id = max(scored_entities)
         return entity_id
@@ -83,7 +72,17 @@ class BaselineLinker(AbstractEntityLinker):
                 continue
             if is_date(snippet):
                 continue
-            candidates = self.entity_db.get_candidates(snippet)
-            predicted_entity_id = self.select_entity(snippet, candidates)
+            if self.strategy == "wikipedia":
+                candidates = self.entity_db.get_most_popular_candidate_for_hyperlink(snippet)
+                if candidates:
+                    predicted_entity_id = max(candidates)  # just to get deterministic results
+                else:
+                    candidates = self.entity_db.get_candidates(snippet)
+                    predicted_entity_id = max(candidates) if candidates else None # just to get deterministic results
+            elif self.strategy == "wikidata":
+                candidates = self.entity_db.get_candidates(snippet)
+                predicted_entity_id = self.select_entity(snippet, candidates)
+            else:
+                raise NotImplementedError("AliasEntityLinker: Strategy %s not implemented." % str(self.strategy))
             predictions[span] = EntityPrediction(span, predicted_entity_id, candidates)
         return predictions

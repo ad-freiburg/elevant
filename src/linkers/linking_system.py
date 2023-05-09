@@ -122,8 +122,7 @@ class LinkingSystem:
                     logger.info("Unknown strategy %s. Assuming strategy \"wikipedia\"" % self.linker_config["strategy"])
                 self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                             MappingName.REDIRECTS,
-                                            MappingName.LINK_ALIASES,
-                                            MappingName.LINK_FREQUENCIES,
+                                            MappingName.HYPERLINK_TO_MOST_POPULAR_CANDIDATES,
                                             MappingName.FAMILY_NAME_ALIASES,
                                             MappingName.WIKIDATA_ALIASES})
             self.linker = BaselineLinker(self.entity_db, self.linker_config)
@@ -259,6 +258,8 @@ class LinkingSystem:
             self.entity_db.load_family_name_aliases()
         if MappingName.LINK_ALIASES in mappings and not self.entity_db.loaded_info.get(MappingName.LINK_ALIASES):
             self.entity_db.load_link_aliases()
+        if MappingName.HYPERLINK_TO_MOST_POPULAR_CANDIDATES in mappings and not self.entity_db.loaded_info.get(MappingName.HYPERLINK_TO_MOST_POPULAR_CANDIDATES):
+            self.entity_db.load_hyperlink_to_most_popular_candidates()
 
         # Inverse alias mappings
         if MappingName.ENTITY_ID_TO_ALIAS in mappings and not self.entity_db.loaded_info.get(MappingName.ENTITY_ID_TO_ALIAS):

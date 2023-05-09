@@ -274,10 +274,18 @@ class EntityDatabaseReader:
 
     @staticmethod
     def get_alias_to_entities_db(filename: Optional[str] = settings.ALIAS_TO_QIDS_DB) -> Database:
-        logger.info(f"Loading entity ID to aliases database from {filename} ...")
+        logger.info(f"Loading alias to entity IDs database from {filename} ...")
         aliases_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
-        logger.info(f"-> {len(aliases_db)} entity ID to aliases mappings loaded.")
+        logger.info(f"-> {len(aliases_db)} alias to entity IDs mappings loaded.")
         return aliases_db
+
+    @staticmethod
+    def get_hyperlink_to_most_popular_candidates_db(filename: Optional[str] =
+                                                  settings.HYPERLINK_TO_MOST_POPULAR_CANDIDATES_DB) -> Database:
+        logger.info(f"Loading hyperlink to most popular entity IDs database from {filename} ...")
+        hyperlink_aliases_db = EntityDatabaseReader.read_from_dbm(filename, value_type=set)
+        logger.info(f"-> {len(hyperlink_aliases_db)} hyperlink to most popular entity IDs mappings loaded.")
+        return hyperlink_aliases_db
 
     @staticmethod
     def get_name_to_entities_db() -> Database:

@@ -212,13 +212,14 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	@echo
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
 	python3 extract_akronyms.py
-	python3 get_link_frequencies.py
 	python3 extract_redirects.py ${WIKI_DUMP}
 	python3 create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
+	python3 get_link_frequencies.py  # Needs redirects and qid_to_wikipedia_url.db
+	python3 create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_frequencies.pkl -o ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db  --most_popular_candidates
 	python3 extract_title_synonyms.py
 	python3 count_unigrams.py
 	python3 get_wikipedia_id_to_title_mapping.py
-	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.tsv
+	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.db
 
 generate_wikidata_mappings: get_qlever_mappings generate_databases generate_coreference_type_mappings
 

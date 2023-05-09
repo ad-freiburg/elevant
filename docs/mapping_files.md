@@ -132,12 +132,18 @@ The following files are generated in `<data_directory>/wikipedia_mappings/` when
       >>> akronyms["CIAM"]
       {"Congres Internationaux d'Architecture Moderne", 'Central Institute of Aviation Motors', "Congrès Internationaux d'Architecture Moderne", "Congrès International d'Architecture Moderne#Influence", "Congrès International d'Architecture Moderne"}
 
-* **`link_frequencies.pkl`**: Pickled Python dictionary that maps link anchor texts to a dictionary of link targets
- and their corresponding link frequencies. Link frequencies are computed over the Wikipedia training split. Example
- dictionary entry:
+* **`hyperlink_frequencies.pkl`**: Pickled Python dictionary that maps link anchor texts to a dictionary of link target
+ QIDs and their corresponding link frequencies. Hyperlink frequencies are computed over the Wikipedia training split.
+ Example dictionary entry:
 
-      >>> link_frequencies["Gandalf"]
-      {'Gandalf': 321, 'Gandalf (musician)': 2, 'Gandalf Alfgeirsson': 2, 'Gandalf (American band)': 5, 'Gandalf (Norse mythology)': 1, 'Gandalf (Finnish band)': 4, 'Gandalf (mythology)': 1, 'Gandalf (new age)': 1, 'Gandalf the Grey': 1}
+      >>> hyperlink_frequencies["Gandalf"]
+      {'Q177499': 322, 'Q208870': 3, 'Q4133209': 2, 'Q3095082': 5, 'Q587350': 2, 'Q220967': 4}
+
+* **`hyperlink_to_most_popular_candidates.db`**: Python dbm database that maps link anchor texts to its set of QIDs
+ with the highest link frequency. Example database entry:
+
+      >>> hyperlink_to_most_popular_candidates["Gandalf"]
+      {'Q177499'}
 
 * **`redirects.pkl`**: Pickled Python dictionary that maps redirect page titles to their corresponding redirect
  target. *This file is an intermediate file used only to generate a Python database and is therefore not contained in

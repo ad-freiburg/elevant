@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Set
 
 from src.evaluation.case import Case, ErrorLabel, EvaluationMode
 from src.evaluation.groundtruth_label import GroundtruthLabel
@@ -100,14 +100,10 @@ def is_rare_case(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is not the ground truth entity.
     """
-    most_popular_candidate, score = get_most_popular_candidate(entity_db, case.text)
+    most_popular_candidates = get_most_popular_candidate(entity_db, case.text)
     # Right now, this is always true when the entity is Unknown and there exists at least one candidate.
     # So many evaluated cases with unknown GT are automatically rare errors.
-    # Also compare with popularity of true entity, because it's not a rare case if
-    # the most popular candidate has the same popularity as the true entity (e.g. both 0).
-    return most_popular_candidate and \
-        case.true_entity.entity_id != most_popular_candidate and \
-        score != entity_db.get_link_frequency(case.text, case.true_entity.entity_id)
+    return most_popular_candidates and case.true_entity.entity_id not in most_popular_candidates
 
 
 def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: EvaluationMode):
@@ -158,21 +154,16 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: Evalu
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_OTHER, eval_mode)
 
 
-def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Tuple[Optional[str], Optional[int]]:
+def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Set[str]:
     """
     Returns the entity ID of the most popular candidate for the given alias, or None if no candidate exists
     or all link frequencies are 0.
     """
-    candidates = entity_db.get_candidates(alias)
-    if len(candidates) == 0:
-        return None, None
     # Use the link frequency and not the sitelink count to get the most popular candidate. Otherwise, since we're
     # including link aliases, it would be enough if a more popular entity was linked once with the alias in Wikipedia,
     # e.g. France would be a rare error, because it was at least once falsly linked to Turkey in Wikipedia.
-    score, most_popular_candidate = max((entity_db.get_link_frequency(alias, c), c) for c in candidates)
-    if score == 0:
-        return None, None
-    return most_popular_candidate, score
+    most_popular_candidates = entity_db.get_most_popular_candidate_for_hyperlink(alias)
+    return most_popular_candidates
 
 
 def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
@@ -186,10 +177,11 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     if LOCATION_TYPE_QID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_QID in true_types or \
             FICTIONAL_CHARACTER_QID in true_types:
         return False
-    most_popular_candidate, _ = get_most_popular_candidate(entity_db, case.text)
-    if not most_popular_candidate:
+    most_popular_candidates = get_most_popular_candidate(entity_db, case.text)
+    if not most_popular_candidates:
         return False
-    most_popular_entity_types = entity_db.get_entity_types(most_popular_candidate)
+    # For reproducibility take not a random most popular candidate, but the one returned by max
+    most_popular_entity_types = entity_db.get_entity_types(max(most_popular_candidates))
     return LOCATION_TYPE_QID in most_popular_entity_types
 
 
@@ -223,7 +215,7 @@ def label_disambiguation_errors(cases: List[Case], entity_db: EntityDatabase, ev
             elif is_partial_name(case):
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_WRONG, eval_mode)
             elif is_rare_case(case, entity_db) and \
-                    case.predicted_entity.entity_id == get_most_popular_candidate(entity_db, case.text)[0]:
+                    case.predicted_entity.entity_id in get_most_popular_candidate(entity_db, case.text):
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_RARE_WRONG, eval_mode)
             else:
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG_OTHER, eval_mode)
