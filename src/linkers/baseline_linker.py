@@ -75,10 +75,12 @@ class BaselineLinker(AbstractEntityLinker):
             if self.strategy == "wikipedia":
                 candidates = self.entity_db.get_most_popular_candidate_for_hyperlink(snippet)
                 if candidates:
-                    predicted_entity_id = max(candidates)  # just to get deterministic results
+                    # In order to get deterministic results, take not a random most popular candidate but
+                    # the one returned by min (smaller QID is sometimes also an indicator for popularity).
+                    predicted_entity_id = min(candidates)
                 else:
                     candidates = self.entity_db.get_candidates(snippet)
-                    predicted_entity_id = max(candidates) if candidates else None # just to get deterministic results
+                    predicted_entity_id = min(candidates) if candidates else None
             elif self.strategy == "wikidata":
                 candidates = self.entity_db.get_candidates(snippet)
                 predicted_entity_id = self.select_entity(snippet, candidates)
