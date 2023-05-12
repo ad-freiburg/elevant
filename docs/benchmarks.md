@@ -174,7 +174,7 @@ The folder `GoldStandard_sampleData/task1` contains the training set and the fol
  mention text "candidate" does not include the first letter and in sentence #62 the span for the mention text "civil
  engineering" is moved by one character to the right.
 - Some annotations don't match the annotation guidelines, e.g. "civil engineering" is annotated even though it's
- neither a person, organization nor role.
+ neither a place, person, organization nor role.
 - Inconsistent annotations: "Irish" in "Irish stone carver" (training set, sentence 50) is annotated (with "Irish
  people"), but "American" in "American poet" or "Canadian" in "Canadian musician" is not. Similarly, "street" is
  annotated, but "county" is not.
