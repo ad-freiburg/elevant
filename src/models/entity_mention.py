@@ -4,7 +4,7 @@ from typing import Tuple, Dict, Optional, Set
 class EntityMention:
     def __init__(self,
                  span: Tuple[int, int],
-                 recognized_by: str,
+                 recognized_by: Optional[str] = None,
                  entity_id: Optional[str] = None,
                  linked_by: Optional[str] = None,
                  candidates: Optional[Set[str]] = None,
@@ -23,7 +23,8 @@ class EntityMention:
         if self.entity_id is not None:
             d["id"] = self.entity_id
         if evaluation_format:
-            d["recognized_by"] = self.recognized_by
+            if self.recognized_by is not None:
+                d["recognized_by"] = self.recognized_by
             if self.linked_by is not None:
                 d["linked_by"] = self.linked_by
             if self.referenced_span is not None:
@@ -56,7 +57,7 @@ class EntityMention:
 
 def entity_mention_from_dict(data: Dict) -> EntityMention:
     return EntityMention(span=tuple(data["span"]),
-                         recognized_by=data["recognized_by"],
+                         recognized_by=data["recognized_by"] if "recognized_by" in data else None,
                          entity_id=data["id"] if "id" in data else None,
                          linked_by=data["linked_by"] if "linked_by" in data else None,
                          referenced_span=data["referenced_span"] if "referenced_span" in data else None,
