@@ -5,7 +5,6 @@ from src import settings
 
 
 class Benchmark(Enum):
-    WIKI_EX = "wiki-ex"
     AIDA_CONLL = "aida-conll"
     AIDA_CONLL_TRAIN = "aida-conll-train"
     AIDA_CONLL_DEV = "aida-conll-dev"
@@ -15,7 +14,8 @@ class Benchmark(Enum):
     MSNBC_UPDATED = "msnbc-updated"
     MSNBC_ORIGINAL = "msnbc"
     WIKIPEDIA = "wikipedia"
-    NEWSCRAWL = "newscrawl"
+    WIKI_FAIR = "wiki-fair"
+    NEWS_FAIR = "news-fair"
 
 
 class BenchmarkFormat(Enum):

@@ -89,7 +89,7 @@ def get_benchmark_iterator(benchmark_name: str,
         else:
             # Per default, assume OUR_JSONL format
             benchmark_iterator = OurJsonlBenchmarkReader(benchmark_files[0])
-    elif from_json_file or benchmark_name in [Benchmark.WIKI_EX.value, Benchmark.NEWSCRAWL.value]:
+    elif from_json_file or benchmark_name in [Benchmark.WIKI_FAIR.value, Benchmark.NEWS_FAIR.value]:
         benchmark_filename = settings.BENCHMARK_DIR + benchmark_name + ".benchmark.jsonl"
         benchmark_iterator = OurJsonlBenchmarkReader(benchmark_filename)
     elif benchmark_name in [Benchmark.AIDA_CONLL.value, Benchmark.AIDA_CONLL_TRAIN.value,
