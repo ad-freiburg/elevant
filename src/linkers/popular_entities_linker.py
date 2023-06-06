@@ -3,6 +3,7 @@ from typing import Dict, Tuple, List, Optional, Set, Any
 import spacy
 from spacy.tokens import Doc
 
+from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.linkers.abstract_entity_linker import AbstractEntityLinker
 from src.models.entity_mention import EntityMention
 from src.models.entity_prediction import EntityPrediction
@@ -89,14 +90,21 @@ class PopularEntitiesLinker(AbstractEntityLinker):
             doc = self.model(text)
         predictions = {}
         unknown_person_name_parts = set()
+        prediction_cache = {}
         for span, is_language, is_person in self.entity_spans(text, doc):
             if linked_entities and overlaps_with_linked_entity(span, linked_entities):
                 continue
             snippet = text[span[0]:span[1]]
+            if snippet in prediction_cache:
+                # If the snippet was linked before, use the cache to link it to the same entity
+                entity_id, candidates, is_language_cache, is_person_cache = prediction_cache[snippet]
+                if is_language_cache == is_language and is_person_cache == is_person:
+                    predictions[span] = EntityPrediction(span, entity_id, candidates)
+                    continue
 
             if snippet.islower():
-                # Only include snippets that contain uppercase letters for this linker
-                # since it otherwise makes a lot of abstraction errors
+                # Only include snippets recognized by SpaCy that contain uppercase letters
+                # since SpaCy's non-named entity recognition is bad (recognizes mostly dates or "year", "season")
                 continue
             if is_date(snippet):
                 continue
@@ -124,6 +132,7 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                 entity_id = self.select_entity(name_and_demonym_candidates, candidates)
             candidates.update(name_and_demonym_candidates)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
+            prediction_cache[snippet] = (entity_id, candidates, is_language, is_person)
 
             # Store entity mention text if no entity could be predicted and it is likely a human name
             # to avoid linking parts of it later.
@@ -132,8 +141,40 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                 last_name = snippet.split()[-1]
                 unknown_person_name_parts.add(first_name)
                 unknown_person_name_parts.add(last_name)
-
+        predictions.update(self.get_lowercase_predictions(linked_entities, predictions, doc, text))
         return predictions
+
+    def get_lowercase_predictions(self, linked_entities, predictions, doc, text):
+        linked_entities.update(predictions)
+        lowercase_predictions = {}
+        for i, tok in enumerate(doc):
+            for j in range(3):  # only consider multiword non-named entities of up to 3 words
+                if i + j >= len(doc):
+                    break
+                tokens = [t for t in doc[i:i + j + 1]]
+                span = tok.idx, tokens[-1].idx + len(tokens[-1].text)
+                snippet = text[span[0]:span[1]]
+                if overlaps_with_linked_entity(span, linked_entities):
+                    continue
+                contains_stopword = any([t.is_stop for t in tokens])
+                contains_punctuation = any([t.is_punct for t in tokens])
+                deps = set(t.dep_ for t in tokens)
+                if not snippet.islower() or contains_stopword or contains_punctuation or \
+                        not deps.intersection({"pobj", "nsubj", "nsubjpass", "dobj"}):
+                    continue
+                if self.entity_db.contains_entity_name(snippet):
+                    candidates = self.entity_db.get_entities_by_name(snippet)
+                    highest_sitelink_count_entity = None
+                    highest_sitelink_count = 0
+                    for entity_id in candidates:
+                        sitelink_count = self.entity_db.get_sitelink_count(entity_id)
+                        if sitelink_count >= self.min_score and sitelink_count > highest_sitelink_count:
+                            highest_sitelink_count_entity = entity_id
+                            highest_sitelink_count = sitelink_count
+                    if highest_sitelink_count_entity and \
+                            self.entity_db.get_entity_types(highest_sitelink_count_entity) != [GroundtruthLabel.OTHER]:
+                        lowercase_predictions[span] = EntityPrediction(span, highest_sitelink_count_entity, candidates)
+        return lowercase_predictions
 
     def select_entity(self, name_and_demonym_candidates: Set[str], candidates: Set[str]) -> str:
         """
