@@ -118,6 +118,7 @@ class EntityDatabase:
     def load_entity_types(self, type_db: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB):
         if not self.entity_type_db:
             self.entity_type_db = EntityDatabaseReader.get_whitelist_types_db(type_db)
+            self.type_adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
         else:
             logger.info("Entity type database already loaded.")
 
@@ -134,8 +135,6 @@ class EntityDatabase:
         return self.adjusted_entity_types(entity_id)
 
     def adjusted_entity_types(self, entity_id: str) -> List[str]:
-        if not self.type_adjustments:
-            self.type_adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
         adj_replace = self.type_adjustments["REPLACE_WITH"]
         adj_minus = self.type_adjustments["MINUS"]
         if entity_id in self.entity_type_db:
