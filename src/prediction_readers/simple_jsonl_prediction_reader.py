@@ -13,9 +13,9 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class SimpleJsonlPredictionReader(AbstractPredictionReader):
-    def __init__(self, input_filepath: str, entity_db: EntityDatabase, custom_mappings: Optional[bool] = False):
+    def __init__(self, input_filepath: str, entity_db: EntityDatabase, custom_kb: Optional[bool] = False):
         self.entity_db = entity_db
-        self.custom_mappings = custom_mappings
+        self.custom_kb = custom_kb
         super().__init__(input_filepath, predictions_iterator_implemented=True)
 
     def _get_prediction_from_jsonl(self, string: str) -> Dict[Tuple[int, int], EntityPrediction]:
@@ -30,7 +30,7 @@ class SimpleJsonlPredictionReader(AbstractPredictionReader):
             entity_reference = raw_prediction["entity_reference"]
             # If the entity reference is not a URI and is not from Wikidata, references in the format "Q[0-9]+"
             # will be wrongly assumed to be Wikidata QIDs
-            if self.custom_mappings:
+            if self.custom_kb:
                 entity_id = entity_reference
             else:
                 entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db, verbose=False)

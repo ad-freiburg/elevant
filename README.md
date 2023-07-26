@@ -26,8 +26,8 @@ Unless otherwise noted, all the following commands should be run inside the dock
 
 ## Get the Data
 
-(Note: If you want to use a custom ontology or knowledge base instead of Wikidata/Wikipedia/DBpedia you can skip this
- step and instead follow the instructions in [Use a Custom Ontology](docs/use_custom_ontology.md).)
+(Note: If you want to use a custom knowledge base instead of Wikidata/Wikipedia/DBpedia you can skip this
+ step and instead follow the instructions in [Use a Custom Knowledge Base](docs/use_custom_knowledge_base.md).)
 
 For linking entities in text or evaluating the output of a linker, our system needs information about entities and
  mention texts, e.g. entity names, aliases, popularity scores, types, the frequency with which a mention is linked

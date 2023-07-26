@@ -12,10 +12,10 @@ from src.evaluation.errors import label_errors
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
-def load_evaluation_entities(type_mapping_file: str, custom_mappings: bool) -> EntityDatabase:
+def load_evaluation_entities(type_mapping_file: str, custom_kb: bool) -> EntityDatabase:
     logger.info("Initializing entity database for evaluation ...")
     entity_db = EntityDatabase()
-    if custom_mappings:
+    if custom_kb:
         entity_db.load_custom_entity_names(settings.CUSTOM_ENTITY_TO_NAME_FILE)
         entity_db.load_custom_entity_types(settings.CUSTOM_ENTITY_TO_TYPES_FILE)
     else:
@@ -76,9 +76,9 @@ class Evaluator:
                  type_mapping_file: Optional[str],
                  whitelist_file: Optional[str] = settings.WHITELIST_FILE,
                  contains_unknowns: Optional[bool] = True,
-                 custom_mappings: Optional[bool] = False):
+                 custom_kb: Optional[bool] = False):
         self.whitelist_types = EntityDatabaseReader.read_whitelist_types(whitelist_file, with_adjustments=True)
-        self.entity_db = load_evaluation_entities(type_mapping_file, custom_mappings)
+        self.entity_db = load_evaluation_entities(type_mapping_file, custom_kb)
         self.case_generator = CaseGenerator(self.entity_db)
         self.contains_unknowns = contains_unknowns
         self.has_candidates = False

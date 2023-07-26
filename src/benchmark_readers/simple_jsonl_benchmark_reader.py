@@ -16,11 +16,11 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class SimpleJsonlBenchmarkReader(AbstractBenchmarkReader):
-    def __init__(self, entity_db: EntityDatabase, benchmark_path: str, custom_mappings: Optional[bool] = False):
+    def __init__(self, entity_db: EntityDatabase, benchmark_path: str, custom_kb: Optional[bool] = False):
         self.entity_db = entity_db
         self.benchmark_path = benchmark_path
         self.article_id_counter = 0
-        self.custom_mappings = custom_mappings
+        self.custom_kb = custom_kb
 
     def get_articles_from_file(self, filepath: str) -> Iterator[Article]:
         """
@@ -38,7 +38,7 @@ class SimpleJsonlBenchmarkReader(AbstractBenchmarkReader):
                 for raw_label in benchmark_json["labels"]:
                     span = raw_label["start_char"], raw_label["end_char"]
                     entity_uri = raw_label["entity_reference"]
-                    if self.custom_mappings:
+                    if self.custom_kb:
                         entity_id = entity_uri
                     else:
                         entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=False)

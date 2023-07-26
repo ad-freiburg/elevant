@@ -45,7 +45,7 @@ def main(args):
                                    args.coreference_linker,
                                    args.minimum_score,
                                    args.type_mapping,
-                                   args.custom_mappings)
+                                   args.custom_kb)
 
     for benchmark in args.benchmark:
         benchmark_iterator = get_benchmark_iterator(benchmark)
@@ -144,8 +144,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--description", "-desc", type=str,
                         help="A description for the experiment. This will be displayed in the webapp.")
-    parser.add_argument("-c", "--custom_mappings", action="store_true",
-                        help="Use custom entity to name and entity to type mappings instead of Wikidata.")
+    parser.add_argument("-c", "--custom_kb", action="store_true",
+                        help="Use custom entity to name and entity to type mappings (instead of Wikidata mappings).")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))

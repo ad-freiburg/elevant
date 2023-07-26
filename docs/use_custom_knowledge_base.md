@@ -1,13 +1,13 @@
-# Use a Custom Ontology
+# Use a Custom Knowledge Base
 
 This section explains the steps you need to take if you want to use ELEVANT to evaluate linking results for linkers and
- benchmarks that link to a custom ontology or knowledge base.
+ benchmarks that link to a custom knowledge base or ontology.
  
-Note that some features are not available when using a custom ontology. E.g. some error categories like metonyms,
- demonyms (which might not even make sense for your ontology) and rare errors can not be evaluated separately.
+Note that some features are not available when using a custom knowledge base. E.g. some error categories like metonyms,
+ demonyms (which might not even make sense for your knowledge base) and rare errors can not be evaluated separately.
  
 Instead of following the instructions in [Get the Data](../README.md#get-the-data), perform the following steps
- within the docker container to setup ELEVANT for your custom ontology:
+ within the docker container to setup ELEVANT for your custom KB:
  
 1) Remove all subdirectories in `evaluation-results/` and all contents of the `benchmarks/` directory:
  
@@ -18,9 +18,9 @@ Instead of following the instructions in [Get the Data](../README.md#get-the-dat
     / DBpedia.
 
 2) Run the Python script `extract_custom_mappings.py` to extract the necessary name and type mappings from your
- ontology. For this script to work, your ontology must be in the turtle (ttl) format.
+ KB. For this script to work, your KB must be in the turtle (ttl) format.
  
-       python3 extract_custom_mappings.py <custom_ontology_in_ttl_format> --name_predicate <predicate_for_entity_name> --type_predicate <predicate_for_entity_type>
+       python3 extract_custom_mappings.py <custom_kb_in_ttl_format> --name_predicate <predicate_for_entity_name> --type_predicate <predicate_for_entity_type>
    
     Per default, the predicate used to extract the entity name is `http://www.w3.org/2004/02/skos/core#prefLabel` and
      the default predicate used to extract the entity type is `http://www.w3.org/2000/01/rdf-schema#subClassOf`.
@@ -41,15 +41,16 @@ Instead of following the instructions in [Get the Data](../README.md#get-the-dat
           http://emmo.info/emmo/domain/fatigue#EMMO_15a16e99-19cb-5d5e-84d0-b74029837f28 Mechanical Property
           
          In the web app you will then be able to see evaluation results for each of these whitelist types individually.
-         You can manually adjust the set of whitelist types, but then make sure to only include types in the
-         `entity_to_types.tsv` file that are included in this whitelist.
+         You can manually filter the set of whitelist types (this is especially important if you have a lot of entity
+         types, e.g. > 50, because then your web app will become cluttered), but then make sure to only include types in
+         the `entity_to_types.tsv` file that are included in this whitelist.
     
-    If you don't have your ontology in ttl format or can't use the script for other reasons, it is enough to create
-     the three tsv files mentioned above yourself and move them to a directory `<data_directory>/custom_mappings/`.
+    If you don't have your knowledge base in ttl format or can't use the script for other reasons, it is enough to
+     create the three tsv files mentioned above yourself and move them to a directory
+     `<data_directory>/custom_mappings/`.
      
-3) To add a benchmark that links mentions to your custom ontology, run the `add_benchmark.py` script with the option
- `-c` (for **c**ustom ontology). The supported benchmark formats for custom ontology benchmarks are `nif` and 
- `simple-jsonl`. E.g.
+3) To add a benchmark that links mentions to your custom knowledge base, run the `add_benchmark.py` script with the
+ option `-c` (for **c**ustom KB). The supported benchmark formats for custom KB benchmarks are `nif` and `simple-jsonl`. E.g.
  
         python3 add_benchmark.py <benchmark_name> -bfile <benchmark_file> -bformat <nif|simple-jsonl> -c
  
@@ -57,8 +58,7 @@ Instead of following the instructions in [Get the Data](../README.md#get-the-dat
      formats.
 
 4) To add linking results for such a benchmark to ELEVANT, run the `python3 link_benchmark_entities.py` script with the
- option `-c`. The supported linking results formats for custom ontology linking results are `nif` and `simple-jsonl`.
- E.g.
+ option `-c`. The supported linking results formats for custom KB linking results are `nif` and `simple-jsonl`. E.g.
  
        python3 link_benchmark_entities.py <experiment_name> -pfile <linking_results_file> -pformat <nif|simple-jsonl> -b <benchmark_name> -c
 

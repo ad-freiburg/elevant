@@ -23,19 +23,19 @@ def get_benchmark_iterator(benchmark_name: str,
                            from_json_file: Optional[bool] = True,
                            benchmark_files: Optional[List[str]] = None,
                            benchmark_format: Optional[BenchmarkFormat] = None,
-                           custom_mappings: Optional[bool] = False):
-    if custom_mappings and benchmark_format not in {BenchmarkFormat.NIF.value, BenchmarkFormat.SIMPLE_JSONL.value}:
-        logger.warning(f"Using a custom ontology is not supported for benchmark format {benchmark_format}. "
+                           custom_kb: Optional[bool] = False):
+    if custom_kb and benchmark_format not in {BenchmarkFormat.NIF.value, BenchmarkFormat.SIMPLE_JSONL.value}:
+        logger.warning(f"Using a custom knowledge base is not supported for benchmark format {benchmark_format}. "
                        f"Please choose a different format.")
     if benchmark_files:
         if benchmark_format == BenchmarkFormat.NIF.value:
             entity_db = EntityDatabase()
-            if not custom_mappings:
+            if not custom_kb:
                 logger.info("Load mappings for NIF benchmark reader...")
                 entity_db.load_wikipedia_to_wikidata_db()
                 entity_db.load_redirects()
                 logger.info("-> Mappings loaded.")
-            benchmark_iterator = NifBenchmarkReader(entity_db, benchmark_files[0], custom_mappings)
+            benchmark_iterator = NifBenchmarkReader(entity_db, benchmark_files[0], custom_kb)
         elif benchmark_format == BenchmarkFormat.AIDA_CONLL.value:
             entity_db = EntityDatabase()
             logger.info("Load mappings for AIDA CoNLL benchmark reader...")
@@ -45,12 +45,12 @@ def get_benchmark_iterator(benchmark_name: str,
             benchmark_iterator = AidaConllBenchmarkReader(entity_db, benchmark_files[0])
         elif benchmark_format == BenchmarkFormat.SIMPLE_JSONL.value:
             entity_db = EntityDatabase()
-            if not custom_mappings:
+            if not custom_kb:
                 logger.info("Load mappings for Simple JSONL benchmark reader...")
                 entity_db.load_wikipedia_to_wikidata_db()
                 entity_db.load_redirects()
                 logger.info("-> Mappings loaded.")
-            benchmark_iterator = SimpleJsonlBenchmarkReader(entity_db, benchmark_files[0], custom_mappings)
+            benchmark_iterator = SimpleJsonlBenchmarkReader(entity_db, benchmark_files[0], custom_kb)
         elif benchmark_format == BenchmarkFormat.TSV.value:
             entity_db = EntityDatabase()
             logger.info("Load mappings for TSV benchmark reader...")

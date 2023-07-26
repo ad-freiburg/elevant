@@ -21,10 +21,10 @@ def main(args):
                                                 from_json_file=from_json_file,
                                                 benchmark_files=args.benchmark_file,
                                                 benchmark_format=args.benchmark_format,
-                                                custom_mappings=args.custom_mappings)
+                                                custom_kb=args.custom_kb)
 
     entity_db = EntityDatabase()
-    if args.custom_mappings:
+    if args.custom_kb:
         entity_db.load_custom_entity_names(settings.CUSTOM_ENTITY_TO_NAME_FILE)
         entity_db.load_custom_entity_types(settings.CUSTOM_ENTITY_TO_TYPES_FILE)
     else:
@@ -91,8 +91,8 @@ if __name__ == "__main__":
     parser.add_argument("--displayed_name", "-dname", type=str,
                         help="The benchmark name that will be stored in the metadata file and displayed in the webapp.")
 
-    parser.add_argument("-c", "--custom_mappings", action="store_true",
-                        help="Use custom entity to name and entity to type mappings instead of Wikidata.")
+    parser.add_argument("-c", "--custom_kb", action="store_true",
+                        help="Use custom entity to name and entity to type mappings (instead of Wikidata mappings).")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))

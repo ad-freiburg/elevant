@@ -67,7 +67,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
 
     parser.add_argument("input_file", type=str,
-                        help="Input ttl file that contains the custom ontology.")
+                        help="Input ttl file that contains the custom knowledge base or ontology.")
 
     parser.add_argument("--name_predicate", type=str, default="http://www.w3.org/2004/02/skos/core#prefLabel",
                         help="The predicate used to indicate the entity name.")

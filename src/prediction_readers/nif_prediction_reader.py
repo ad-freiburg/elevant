@@ -12,9 +12,9 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 class NifPredictionReader(AbstractPredictionReader):
-    def __init__(self, input_filepath: str, entity_db: EntityDatabase, custom_mappings: Optional[bool] = False):
+    def __init__(self, input_filepath: str, entity_db: EntityDatabase, custom_kb: Optional[bool] = False):
         self.entity_db = entity_db
-        self.custom_mappings = custom_mappings
+        self.custom_kb = custom_kb
         super().__init__(input_filepath, predictions_iterator_implemented=False)
 
     def get_predictions_with_text_from_file(self, filepath: str) -> Iterator[Tuple[Dict[Tuple[int, int],
@@ -39,7 +39,7 @@ class NifPredictionReader(AbstractPredictionReader):
                 # Make sure predictions are sorted by start index
                 for phrase in sorted(context.phrases, key=lambda p: p.beginIndex):
                     entity_uri = phrase.taIdentRef
-                    if self.custom_mappings:
+                    if self.custom_kb:
                         entity_id = entity_uri
                     else:
                         entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
