@@ -135,6 +135,12 @@ class EntityDatabase:
         return self.adjusted_entity_types(entity_id)
 
     def adjusted_entity_types(self, entity_id: str) -> List[str]:
+        if not self.type_adjustments:
+            if entity_id in self.entity_type_db:
+                return self.entity_type_db[entity_id]
+            else:
+                return [GroundtruthLabel.OTHER]
+
         adj_replace = self.type_adjustments["REPLACE_WITH"]
         adj_minus = self.type_adjustments["MINUS"]
         if entity_id in self.entity_type_db:
