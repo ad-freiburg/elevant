@@ -32,7 +32,7 @@ class EntityDatabaseReader:
             adjustments = EntityDatabaseReader.read_whitelist_type_adjustments()
         with open(whitelist_file, "r", encoding="utf8") as file:
             for line in file:
-                line = line.strip()
+                line = line.strip("\n")
                 if line:
                     lst = line.split("\t")
                     entity_id = lst[0].strip()
