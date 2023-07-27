@@ -1,5 +1,7 @@
 from typing import Dict, Tuple, List, Optional, Set, Any
 
+import logging
+import pygtrie
 import spacy
 from spacy.tokens import Doc
 
@@ -15,6 +17,8 @@ from src import settings
 from src.utils.offset_converter import OffsetConverter
 import src.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 import src.utils.custom_sentencizer  # import is needed so Python finds the custom component
+
+logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 def overlaps_with_linked_entity(span: Tuple[int, int], linked_entities: Dict[Tuple[int, int], EntityMention]) -> bool:
@@ -46,6 +50,22 @@ class PopularEntitiesLinker(AbstractEntityLinker):
         self.model = spacy.load(settings.LARGE_MODEL_NAME, disable=["lemmatizer"])
         self.model.add_pipe("custom_sentencizer", before="parser")
         self.model.add_pipe("ner_postprocessor", after="ner")
+
+        # Create a prefix trie to speed up lowercase entity detection
+        logger.info("Building prefix trie for detection of lowercase entities...")
+        self.trie = pygtrie.StringTrie(separator=" ")
+        for i, (entity_name, qids) in enumerate(entity_db.name_to_entities_db.items()):
+            if entity_name.islower():
+                if len(qids) == 1:
+                    self.trie[entity_name] = next(iter(qids))
+                else:
+                    max_entity = None, -1
+                    for qid in qids:
+                        score = entity_db.get_sitelink_count(qid)
+                        if score > max_entity[1]:
+                            max_entity = qid, score
+                    self.trie[entity_name] = max_entity[0]
+        logger.info(f"Built prefix trie with {len(self.trie)} non-named entities.")
 
     def entity_spans(self, text: str, doc: Optional[Doc]) -> List[Tuple[Tuple[int, int], bool, bool]]:
         """
@@ -147,33 +167,59 @@ class PopularEntitiesLinker(AbstractEntityLinker):
     def get_lowercase_predictions(self, linked_entities, predictions, doc, text):
         linked_entities.update(predictions)
         lowercase_predictions = {}
-        for i, tok in enumerate(doc):
-            for j in range(3):  # only consider multiword non-named entities of up to 3 words
-                if i + j >= len(doc):
-                    break
-                tokens = [t for t in doc[i:i + j + 1]]
-                span = tok.idx, tokens[-1].idx + len(tokens[-1].text)
-                snippet = text[span[0]:span[1]]
-                if overlaps_with_linked_entity(span, linked_entities):
-                    continue
-                contains_stopword = any([t.is_stop for t in tokens])
-                contains_punctuation = any([t.is_punct for t in tokens])
-                deps = set(t.dep_ for t in tokens)
-                if not snippet.islower() or contains_stopword or contains_punctuation or \
-                        not deps.intersection({"pobj", "nsubj", "nsubjpass", "dobj"}):
-                    continue
-                if self.entity_db.contains_entity_name(snippet):
-                    candidates = self.entity_db.get_entities_by_name(snippet)
-                    highest_sitelink_count_entity = None
-                    highest_sitelink_count = 0
-                    for entity_id in candidates:
-                        sitelink_count = self.entity_db.get_sitelink_count(entity_id)
-                        if sitelink_count >= self.min_score and sitelink_count > highest_sitelink_count:
-                            highest_sitelink_count_entity = entity_id
-                            highest_sitelink_count = sitelink_count
-                    if highest_sitelink_count_entity and \
-                            self.entity_db.get_entity_types(highest_sitelink_count_entity) != [GroundtruthLabel.OTHER]:
-                        lowercase_predictions[span] = EntityPrediction(span, highest_sitelink_count_entity, candidates)
+        i = 0
+        while i < len(doc):
+            tok = doc[i]
+            if not tok.text.islower() or tok.is_stop or tok.is_punct:
+                # First word of a non-named entity cannot be a stopword or punctuation
+                i += 1
+                continue
+
+            span_end = tok.idx + len(tok.text)
+            snippet = text[tok.idx:span_end]
+            last_snippet = ""
+            j = i + 1
+
+            while self.trie.has_subtrie(snippet) and j < len(doc):
+                new_tok = doc[j]
+                new_span_end = new_tok.idx + len(new_tok.text)
+                last_snippet = snippet
+                snippet += text[span_end:new_span_end]
+                span_end = new_span_end
+                j += 1
+            j -= 1
+            if snippet in self.trie:
+                # has_subtrie(snippet) is False if the only key with the prefix snippet
+                # is snippet so I need this check here
+                entity_id = self.trie[snippet]
+            elif last_snippet and last_snippet in self.trie:
+                entity_id = self.trie[last_snippet]
+                snippet = last_snippet
+                j -= 1
+            else:
+                i += 1
+                continue
+
+            span = tok.idx, tok.idx + len(snippet)
+            tokens = [t for t in doc[i:j + 1]]
+
+            if overlaps_with_linked_entity(span, linked_entities):
+                i += 1
+                continue
+
+            deps = set(t.dep_ for t in tokens)
+            if not deps.intersection({"pobj", "nsubj", "nsubjpass", "dobj"}):
+                i += 1
+                continue
+
+            sitelink_count = self.entity_db.get_sitelink_count(entity_id)
+            if sitelink_count >= self.min_score and \
+                    self.entity_db.get_entity_types(entity_id) != [GroundtruthLabel.OTHER]:
+                # This is not the same as simply excluding these entities from the prefix trie.
+                # This way, entities are skipped if they exist, but don't have the correct type
+                # or required min score. Otherwise parts of the entity could be linked.
+                lowercase_predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+            i = j + 1
         return lowercase_predictions
 
     def select_entity(self, name_and_demonym_candidates: Set[str], candidates: Set[str]) -> str:
