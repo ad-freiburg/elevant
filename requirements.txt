@@ -10,3 +10,4 @@ numpy==1.24.2
 https://github.com/amazon-science/ReFinED/archive/refs/tags/V1.zip
 radboud-el==0.0.1
 xrenner==2.2.0.0
+pygtrie==2.5.0
