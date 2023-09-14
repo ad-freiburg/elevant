@@ -58,11 +58,24 @@ Currently, most systems don't recognize purely descriptive mentions. However, it
 - "[DESC:Q6408627|[Q6138516|Her] character] had been [...|Ray]’s partner for several months."
 - "[...|He] talked to [DESC:Unknown1|an [...|investigator]]."
 - "[DESC:Unknown1|performance [...|analyst]"
+- "[DESC:...|Louis VIII, [...|Landgrave of Hesse-Darmstadt]]"
+- "[DESC:Q406|[Q406|Istanbul], [...|Turkey]]" **and** "[DESC:Q7268035|[Q7268035|Qohestan Rural District], [...|Qohestan
+ District], [...|Darmian County], [...|Iran]]" (Don't annotate a descriptive entity for each possible combination of 
+ adjacent regions. If a linker counts such occurrences as a single entity, it should do that consistently and link
+ the entire phrase.)
 - "In the [DESC:DATETIME|previous year], the [...|Olympic Games] had been held in [...|London]." **But:** "In
  hindsight, the previous year typically appears less dramatic than the current one."
-- "[...|He] is now the richest person on [DESC:...|the planet]."
-- **But:** "[...|2012 Summer Olympics]", "[...|South Australia]", "[...|New York]", "[...|French Equatorial
- Africa]", "[...|Louis IX of Hesse-Darmstadt]", "[...|Second World War]", "[...|United States of America]"
+- "[...|He] is now the richest person on [DESC:...|the planet]." (If "Earth" had occurred before in the text, then
+ this would be a coreference instead.)
+
+**But:**
+- "[...|2012 Summer Olympics]"
+- "[...|South Australia]"
+- "[...|New York]"
+- "[...|French Equatorial Africa]"
+- "[...|Louis IX of Hesse-Darmstadt]"
+- "[...|Second World War]"
+- "[...|United States of America]"
 
 
 ## Notability of an entity
@@ -97,11 +110,13 @@ A common case of descriptive mentions is to append the type of an entity to the 
 "Jalap tribe". These mentions can be considered as purely descriptive *if the type is not capitalized*. If the type
  is capitalized as in "New York City" or "Punjab Province", then the author of the text clearly used the type as part
  of the entity name, thus the mention is not 100% descriptive and should not be annotated as descriptive.
+If the type is not capitalized, but it is essential to the entity's name as in "Allegheny plateau" or "Tadlow Bridge"
+ then allow only the entire phrase.
 
 **Examples:**
 - "[DESC:...|[Mollarino] river]"
 - "[DESC:...|[Jalap] tribe]"
-- **But:** "[...|New York City]", "[...|Punjab Province]", "[...|Jhelum District]"
+- **But:** "[...|New York City]", "[...|Punjab Province]", "[...|Jhelum District]", "[...|Allegheny plateau]"
 
 ### Derived Guideline: Narrowing of entities
 **Guideline:**
@@ -127,7 +142,7 @@ If the narrowing modifier is capitalized as in "South Asia" then the author of t
 ### Derived Guideline: Descriptive prefix to an entity
 **Guideline:**
 A descriptive prefix to an entity should not be included in the annotation for the entity, unless it is part of the
- entity name.
+ entity name. If it can in some circumstances be considered part of the entity name, annotate both versions.
 
 **Explanation:**
 In the phrase "[...|guitarist] [...|Jimmy Ponder]", "guitarist" is a descriptive prefix to the entity "Jimmy
@@ -135,10 +150,15 @@ In the phrase "[...|guitarist] [...|Jimmy Ponder]", "guitarist" is a descriptive
  by its name, "Jimmy Ponder". Therefore, the entire phrase should not be annotated as descriptive mention.
 If however the descriptive prefix is part of the entity name as in "Pope Francis", then the entire mention should be
  annotated as non-descriptive.
+If the descriptive prefix can be part of the entity name, but not rigidly, as in "Dr. Justin Maciejewski" or
+ "Brigadier Justin Maciejewski", allow both options (see also guideline for honorific prefixes).
 
 **Examples:**
 - "[...|guitarist] [...|Jimmy Ponder]"
 - "[...|orator] [...|Libanius]"
+- "[...|Januzaj]'s [...|agent] [...|Dirk de Vriese]"
+- "[...|his] wife [...|Jacquetta Hawkes]"
+- "[...|French] TV show [...|Telefoot]"
 - **But:** "[...|Pope Francis]", "[...|King Louis XI]"
 
 
@@ -157,6 +177,7 @@ Honorific prefixes such as "Mr.", "Dr." or "Prof." can be considered as part of 
 **Examples:**
 - "[...|[Q177053|Mr.] [...|Vittorio Zoboli]]"
 - "[...|[Q841594|Rev.] [...|Vittorio Zoboli]]"
+- "[...|[Q4967182|Brigadier] [...|Justin Maciejewski]]"
 - **But:** [...|Pope Francis]
 
 
