@@ -12,10 +12,12 @@ Entity annotations are written as "[Q1234|**original mention text**]". Alternati
 
 ### Entities with whitelist types
 **Example:**
-"[Q44578|**Titanic**] **is a film by** [Q2526255|**director**] [Q42574|**James Cameron**]**.**" *(The entities for
- "Titanic", "director" and "James Cameron" all have an instance of / subclass of path in Wikidata to a type from our
- type whitelist ("creative work", "occupation" and "person", respectively). "film" on the other hand is not an
- instance of any type in Wikidata, but only subclass of some types.)*
+"[[Q44578](https://www.wikidata.org/wiki/Q44578)|**Titanic**] **is a film by**
+ [[Q2526255](https://www.wikidata.org/wiki/Q2526255)|**director**]
+ [[Q42574](https://www.wikidata.org/wiki/Q42574)|**James Cameron**]**.**"
+ *(The entities for "Titanic", "director" and "James Cameron" all have an instance of / subclass of path in Wikidata
+ to a type from our type whitelist ("creative work", "occupation" and "person", respectively). "film" on the other
+ hand is not an instance of any type in Wikidata, but only subclass of some types.)*
 
 **Guideline:**
 Annotate only entities that have an instance of / subclass of (P31/P279*) path to at least one type that occurs in our
@@ -36,18 +38,21 @@ While it is relatively easy to decide what counts as an entity when only conside
  whitelist type to/from an entity.
 
 **More examples:**
-- “[Q22656|**oil**] **or** [Q40858|**gas**] **reserves**” *(Only oil has a whitelist type, gas on the 
- other hand is only subclass of fossil fuel, fuel gas and mixture. But if one of those has a whitelist type, clearly
- the other one should also have one.)*
-- "**mediation, arbitration and conflict resolution**" *(Conflict resolution has the whitelist type academic discipline
- while mediation and arbitration don't. However, it is quite clear that all three phrases should be handled the same.
- Conflict resolution is not an academic discipline in the same sense that Psychology or Maths is, so we decide not to
- annotate any of the phrases.)*
+- “[[Q22656](https://www.wikidata.org/wiki/Q22656)|**oil**] **or**
+ [[Q40858](https://www.wikidata.org/wiki/Q40858)|**gas**] **reserves**”
+ *(Only oil has a whitelist type, gas on the  other hand is only subclass of fossil fuel, fuel gas and mixture. But
+ if one of those has a whitelist type, clearly the other one should also have one.)*
+- "**mediation, arbitration and conflict resolution**"
+ *(Conflict resolution has the whitelist type academic discipline while mediation and arbitration don't. However, it
+ is quite clear that all three phrases should be handled the same. Conflict resolution is not an academic discipline
+ in the same sense that Psychology or Maths is, so we decide not to annotate any of the phrases.)*
  
 #### Occupation vs. profession
-**Example:** "[Q38111|**Leonardo DiCaprio**] **is an** [Q33999|**actor**] **and supporter of environmental
- conservation.**" *(Even though both "actor" and "supporter" have the whitelist type "occupation", only "actor" is an
- actual profession.)*
+**Example:**
+ "[[Q38111](https://www.wikidata.org/wiki/Q38111)|**Leonardo DiCaprio**] **is an**
+ [[Q33999](https://www.wikidata.org/wiki/Q33999)|**actor**] **and supporter of environmental conservation.**"
+ *(Even though both "actor" and "supporter" have the whitelist type "occupation", only "actor" is an actual
+ profession.)*
 
 **Guideline:**
 Only annotate occupations if they are actual professions or describe how a person can spend a significant part of
@@ -58,11 +63,11 @@ Many Wikidata occupations are not professions or occupations in the typical sens
  or "gentleman". Such Wikidata occupations should not be annotated
 
 **More examples:**
-- "[Q485178|**analyst**]"
-- "[Q48282|**student**]"
-- "[Q30093123|**investigator**]"
-- "[Q937857|**football player**]"
-- "[Q38126150|**housewife**]"
+- "[[Q485178](https://www.wikidata.org/wiki/Q485178)|**analyst**]"
+- "[[Q48282](https://www.wikidata.org/wiki/Q48282)|**student**]"
+- "[[Q30093123](https://www.wikidata.org/wiki/Q30093123)|**investigator**]"
+- "[[Q937857](https://www.wikidata.org/wiki/Q937857)|**football player**]"
+- "[[Q38126150](https://www.wikidata.org/wiki/Q38126150)|**housewife**]"
 
 *But:*
 - "gentleman"
@@ -70,8 +75,9 @@ Many Wikidata occupations are not professions or occupations in the typical sens
 - "lover"
 
 #### Datetimes and Quantities
-**Example:** "[Q16855376|**Wayde**] **was born prematurely on** [datetime|**July 15, 1992**] **and weighed only a
- little over** [quantity|**1**] **kg.**" *(Datetimes and quantities are annotated with special labels.)*
+**Example:** "[[Q16855376](https://www.wikidata.org/wiki/Q16855376)|**Wayde**] **was born prematurely on**
+ [datetime|**July 15, 1992**] **and weighed only a little over** [quantity|**1**] **kg.**"
+ *(Datetimes and quantities are annotated with special labels.)*
 
 **Guideline:**
 Annotate datetimes and quantities with the special labels "datetime" and "quantity". No QID is annotated.
@@ -86,18 +92,21 @@ Datetimes and quantities are evaluated as optional mentions, i.e. they don't cou
  correctly linked, but they also don't count as false negatives if they are not linked.
 
 **More examples:**
-- "[Q26720335|**Sameli Ventelä**] **(born** [datetime|**July 19, 1994**]) **is a ...**"
+- "[[Q26720335](https://www.wikidata.org/wiki/Q26720335)|**Sameli Ventelä**] **(born** [datetime|**July 19, 1994**])
+ **is a ...**"
 - "**... which occurred** [quantity|**398**]**-**[quantity|**391 million**] **years ago.**"
 - "[quantity|**235**] **kg**"
-- "[Q234491|**Junko Tabei**] **was the** [quantity|**first**] **woman to climb** [Q513|**Mount Everest**]."
+- "[[Q234491](https://www.wikidata.org/wiki/Q234491)|**Junko Tabei**] **was the** [quantity|**first**] **woman to
+ climb** [[Q513](https://www.wikidata.org/wiki/Q513)|**Mount Everest**]."
 
 
 ### Notability of an entity
 
 **Example:**
 "**As children, they competed against each other in a yearly local sports competition. They later both went on to
- compete in the** [Q5389|**Olympics**] **.**" *(While both the local sports competition and the Olympics are entities,
- only the latter is notable enough to be annotated and to appear in a Knowledge Base.)*
+ compete in the** [[Q5389](https://www.wikidata.org/wiki/Q5389)|**Olympics**] **.**"
+ *(While both the local sports competition and the Olympics are entities, only the latter is notable enough to be
+ annotated and to appear in a Knowledge Base.)*
 
 **Guideline:**
 Annotate entities that are notable enough to occur in the Knowledge Base (Wikidata).
@@ -115,7 +124,9 @@ When annotating, the question is sometimes not whether something is an entity, b
  annotated. 
 
 **More examples:**
-- "[Q317521|**Elon Musk**] **launched** [coref:Q317521|**his**] **car** [Q46845259|**TSLA10**] **into space.**"
+- "[[Q317521](https://www.wikidata.org/wiki/Q317521)|**Elon Musk**] **launched**
+ [coref:[Q317521](https://www.wikidata.org/wiki/Q317521)|**his**] **car**
+ [[Q46845259](https://www.wikidata.org/wiki/Q46845259)|**TSLA10**] **into space.**"
 
 *But:*
 
@@ -125,7 +136,9 @@ When annotating, the question is sometimes not whether something is an entity, b
 
 ### Descriptive mentions
 **Example:**
-"[desc:Q233583|**second war between** [Q843|**Pakistan**] **and** [Q668|**India**] **in** [datetime|**1965**]]"
+"[desc:[Q233583](https://www.wikidata.org/wiki/Q233583)|**second war between**
+ [[Q843](https://www.wikidata.org/wiki/Q843)|**Pakistan**] **and**
+ [[Q668](https://www.wikidata.org/wiki/Q668)|**India**] **in** [datetime|**1965**]]"
 
 **Guideline:**
 Annotate mentions as descriptive ([desc:...|...]) only if they are 100% descriptive.
@@ -148,33 +161,46 @@ Currently, most systems don't recognize purely descriptive mentions. However, it
  such descriptive mentions.
 
 **More examples:**
-- "[desc:Q3996446|[datetime|**1992**] [Q599903|**Ireland rugby union**] **tour of** [Q664|**New Zealand**]]"
-- "[desc:Q6408627|[Q6138516|**Her**] **character**] **had been** [Q6100764|**Ray**]**’s partner for several months.**"
-- "[Q3521569|**He**] **talked to** [desc:Unknown1|**an** [Q30093123|**investigator**]]."
-- "[desc:Unknown1|**performance** [Q485178|**analyst**]"
-- "**In the** [desc:datetime|**previous year**], **the** [Q5389|**Olympic Games**] **had been held in**
- [Q84|**London**]." *But:* "**In hindsight, the previous year typically appears less dramatic than the current one.**"
+- "[desc:[Q3996446](https://www.wikidata.org/wiki/Q3996446)|[datetime|**1992**]
+ [[Q599903](https://www.wikidata.org/wiki/Q599903)|**Ireland rugby union**] **tour of**
+ [[Q664](https://www.wikidata.org/wiki/Q664)|**New Zealand**]]"
+- "[desc:[Q6408627](https://www.wikidata.org/wiki/Q6408627)|[[Q6138516](https://www.wikidata.org/wiki/Q6138516)|**Her**]
+ **character**] **had been** [[Q6100764](https://www.wikidata.org/wiki/Q6100764)|**Ray**]**’s partner for several
+ months.**"
+- "[[Q3521569](https://www.wikidata.org/wiki/Q3521569)|**He**] **talked to**
+ [desc:Unknown1|**an** [[Q30093123](https://www.wikidata.org/wiki/Q30093123)|**investigator**]]."
+- "[desc:Unknown1|**performance** [[Q485178](https://www.wikidata.org/wiki/Q485178)|**analyst**]"
+- "**In the** [desc:datetime|**previous year**], **the**
+ [[Q5389](https://www.wikidata.org/wiki/Q5389)|**Olympic Games**] **had been held in**
+ [[Q84](https://www.wikidata.org/wiki/Q84)|**London**]." *But:* "**In hindsight, the previous year typically appears
+ less dramatic than the current one.**"
  *(Because "previous year" in this example does not refer to a concrete year.)*
-- "[Q317521|**He**] **is now the richest person on** [desc:Q2|**the planet**]." *(If "Earth" had occurred before in the
- text, then this would be a coreference instead.)*
-- "[Unknown1|**VRA**] **is one of the premier** [Q729267|**radiation oncology**] **groups in**
- [desc:Q30|**the nation**] **.**" *(If "USA" had occurred before in the text, then this would be a coreference instead)*
-- "**In the** [desc:Q1466815|**2008 election**]**, ...**"
+- "[[Q317521](https://www.wikidata.org/wiki/Q317521)|**He**] **is now the richest person on**
+ [desc:[Q2](https://www.wikidata.org/wiki/Q2)|**the planet**]." *(If "Earth" had occurred before in the text, then
+ this would be a coreference instead.)*
+- "[Unknown1|**VRA**] **is one of the premier**
+ [[Q729267](https://www.wikidata.org/wiki/Q729267)|**radiation oncology**] **groups in**
+ [desc:[Q30](https://www.wikidata.org/wiki/Q30)|**the nation**] **.**" *(If "USA" had occurred before in the text,
+ then this would be a coreference instead)*
+- "**In the** [desc:[Q1466815](https://www.wikidata.org/wiki/Q1466815)|**2008 election**]**, ...**"
 
 *But:*
-- "[Q8577|**2012 Summer Olympics**]"
-- "[Q35715|**South Australia**]"
-- "[Q60|**New York**]"
-- "[Q271894|**French Equatorial Africa**]"
-- "[Q213610|**Louis IX of Hesse-Darmstadt**]"
-- "[Q362|**Second World War**]"
-- "[Q30|**United States of America**]"
-- "[Q109981393|[Q109981393|**Mollarino**] **river**]"
+- "[[Q8577](https://www.wikidata.org/wiki/Q8577)|**2012 Summer Olympics**]"
+- "[[Q35715](https://www.wikidata.org/wiki/Q35715)|**South Australia**]"
+- "[[Q60](https://www.wikidata.org/wiki/Q60)|**New York**]"
+- "[[Q271894](https://www.wikidata.org/wiki/Q271894)|**French Equatorial Africa**]"
+- "[[Q213610](https://www.wikidata.org/wiki/Q213610)|**Louis IX of Hesse-Darmstadt**]"
+- "[[Q362](https://www.wikidata.org/wiki/Q362)|**Second World War**]"
+- "[[Q30](https://www.wikidata.org/wiki/Q30)|**United States of America**]"
+- "[[Q109981393](https://www.wikidata.org/wiki/Q109981393)|
+ [[Q109981393](https://www.wikidata.org/wiki/Q109981393)|**Mollarino**] **river**]"
 
 
 #### Narrowing of entities
 **Example:**
-"[Q221|**North Macedonia**] **is in** [desc:Q27449|**southern-**[Q46|**Europe**]] **.**"
+"[[Q221](https://www.wikidata.org/wiki/Q221)|**North Macedonia**] **is in**
+[desc:[Q27449](https://www.wikidata.org/wiki/Q27449)|**southern-**[[Q46](https://www.wikidata.org/wiki/Q46)|**Europe**]]
+ **.**"
 
 **Guideline:**
 A phrase that is narrowing down an entity should be annotated as descriptive entity if the described part of the entity
@@ -191,16 +217,18 @@ If the narrowing modifier is capitalized as in "South Asia" then the author of t
  name, thus the mention is not 100% descriptive and should not be annotated as such.
 
 **More examples:**
-- "[desc:Q14234469|**south-central** [Q816|**Arizona**]]"
+- "[desc:[Q14234469](https://www.wikidata.org/wiki/Q14234469)|**south-central**
+ [[Q816](https://www.wikidata.org/wiki/Q816)|**Arizona**]]"
 
 *But:*
-- "[Q771405|**South Asia**]"
-- "[Q35715|**South Australia**]"
+- "[[Q771405](https://www.wikidata.org/wiki/Q771405)|**South Asia**]"
+- "[[Q35715](https://www.wikidata.org/wiki/Q35715)|**South Australia**]"
 
 
 ### Names
 **Example:**
-"[Q13462698|**Chersotis juncta**]**, known generally as the** [optional:Q13462698|**stirrup dart moth**]"
+"[[Q13462698](https://www.wikidata.org/wiki/Q13462698)|**Chersotis juncta**]**, known generally as the**
+ [optional:[Q13462698](https://www.wikidata.org/wiki/Q13462698)|**stirrup dart moth**]"
 
 **Guideline:**
 Use optional annotations for cases where an entity's name and not the entity itself is being referred to.
@@ -214,7 +242,8 @@ In cases like "Chersotis juncta, known generally as the stirrup dart moth ..." t
  character".
 
 **Examples:**
-- "[Q5720272|**Tizkharab**]**, also Romanized as** [optional:Q5720272|**Tīzkharāb**]**, ...**"
+- "[[Q5720272](https://www.wikidata.org/wiki/Q5720272)|**Tizkharab**]**, also Romanized as**
+[optional:[Q5720272](https://www.wikidata.org/wiki/Q5720272)|**Tīzkharāb**]**, ...**"
 
 *But:*
 - "**Rosaline is used as a name for only one other character.**"
@@ -228,52 +257,68 @@ Don't annotate entities that would have a whitelist types but are used figurativ
 **Explanation:**
 
 **Examples:**
-- *"air" in* "[Q6100764|**Ray**] **needs to come up for a breath of air, as there's only so much of**
- [Q6408627|**Kim**]**'s heightened personality** [Q6100764|**he**] **can bear.**"
+- *"air" in* "[[Q6100764](https://www.wikidata.org/wiki/Q6100764)|**Ray**] **needs to come up for a breath of air, as
+ there's only so much of** [[Q6408627](https://www.wikidata.org/wiki/Q6408627)|**Kim**]**'s heightened personality**
+ [[Q6100764](https://www.wikidata.org/wiki/Q6100764)|**he**] **can bear.**"
 - "**That's a storyline with legs.**" *(Not a good example, because "leg" does currently not have a whitelist type
  anymore anyway.)*
 - "**A soft heart, calm head and gentleman to everyone.**" *(Not a good example, see above.)*
 
 ### Coreferences
 **Example:**
-"[Q567|**Angela Merkel**] **received** [coref:Q567|**her**] [Q752297|**PhD**] **in** [datetime|**1986**] **.**
- [coref:Q567|**The politician**] **speaks at least** [quantity|**three**] **languages fluently.**"
+"[[Q567](https://www.wikidata.org/wiki/Q567)|**Angela Merkel**] **received**
+ [coref:[Q567](https://www.wikidata.org/wiki/Q567)|**her**] [[Q752297](https://www.wikidata.org/wiki/Q752297)|**PhD**]
+ **in** [datetime|**1986**] **.** [coref:[Q567](https://www.wikidata.org/wiki/Q567)|**The politician**] **speaks at
+ least** [quantity|**three**] **languages fluently.**"
 
 **Guideline:**
 Annotate pronominal (e.g., her, he, itself) and nominal (e.g., the politician, the film, the < type >) references to
  an entity that has been mentioned in the text before as coreferences.
 
 **More examples:**
-- "[Q2|**Earth**] **orbits the** [Q525|**Sun**] **at an average distance of** [quantity|**149.60 million**] **km.**
- [coref:Q2|**The planet**] **is the** [quantity|**fourth**] **biggest in the** [Q544|**solar system**]."
+- "[[Q2](https://www.wikidata.org/wiki/Q2)|**Earth**] **orbits the**
+ [[Q525](https://www.wikidata.org/wiki/Q525)|**Sun**] **at an average distance of** [quantity|**149.60 million**]
+ **km.** [coref:[Q2](https://www.wikidata.org/wiki/Q2)|**The planet**] **is the** [quantity|**fourth**] **biggest in
+ the** [[Q544](https://www.wikidata.org/wiki/Q544)|**solar system**]."
 
 *But*
-- "[Q317521|**Elon Musk**] **is now the richest person on** [desc:Q2|**the planet**]." *(If "Earth" had occurred
- before in the text, then this would be a coreference instead.)*
+- "[[Q317521](https://www.wikidata.org/wiki/Q317521)|**Elon Musk**] **is now the richest person on**
+ [desc:[Q2](https://www.wikidata.org/wiki/Q2)|**the planet**]." *(If "Earth" had occurred before in the text, then
+ this would be a coreference instead.)*
 
 
 ## What should be part of an entity mention?
 
 ### Alternative Mention Spans
 **Example:**
-"[Q6065437|[Q192964|**Istanbul University**] [Q6065437|**Faculty of Medicine**]]"
+"[[Q6065437](https://www.wikidata.org/wiki/Q6065437)|
+ [[Q192964](https://www.wikidata.org/wiki/Q192964)|**Istanbul University**]
+ [[Q6065437](https://www.wikidata.org/wiki/Q6065437)|**Faculty of Medicine**]]"
 
 **Guideline:**
 If it is not clear whether something is part of the mention or not, e.g. because a longer span could be seen either
  as an alias of an entity or just as a clarifying addition, annotate both versions.
 
 **More examples:**
-- "[Q213677|[Q213677|**Louis VIII**]**,** [Q841633|**Landgrave**] **of** [Q693551|**Hesse-Darmstadt**]]"
-- "[Q406|[Q406|**Istanbul**]**,** [Q43|**Turkey**]]"
-- "[Q7268035|[Q7268035|**Qohestan Rural District**]**,** [Q1286121|**Darmian County**]**,** [Q794|**Iran**]]" *(Don't
- annotate a descriptive entity for each possible combination of adjacent region names. If a linker counts such
+- "[[Q213677](https://www.wikidata.org/wiki/Q213677)|[[Q213677](https://www.wikidata.org/wiki/Q213677)|**Louis VIII**]
+ **,** [[Q841633](https://www.wikidata.org/wiki/Q841633)|**Landgrave**] **of**
+ [[Q693551](https://www.wikidata.org/wiki/Q693551)|**Hesse-Darmstadt**]]"
+- "[[Q406](https://www.wikidata.org/wiki/Q406)|[[Q406](https://www.wikidata.org/wiki/Q406)|**Istanbul**]**,**
+ [[Q43](https://www.wikidata.org/wiki/Q43)|**Turkey**]]"
+- "[[Q7268035](https://www.wikidata.org/wiki/Q7268035)|
+ [[Q7268035](https://www.wikidata.org/wiki/Q7268035)|**Qohestan Rural District**]**,**
+ [[Q1286121](https://www.wikidata.org/wiki/Q1286121)|**Darmian County**]**,**
+ [[Q794](https://www.wikidata.org/wiki/Q794)|**Iran**]]"
+ *(Don't annotate a descriptive entity for each possible combination of adjacent region names. If a linker counts such
  occurrences as a single entity, it should do that consistently and link the entire phrase.)*
-- "[Q2309784|**professional** [Q2309784|**racing cyclist**]]" *(Note that this is not descriptive, as "professional"
- is at least to some degree redundant)*
+- "[[Q2309784](https://www.wikidata.org/wiki/Q2309784)|**professional*q*
+ [[Q2309784](https://www.wikidata.org/wiki/Q2309784)|**racing cyclist**]]"
+ *(Note that this is not descriptive, as "professional" is at least to some degree redundant)*
 
 ### Entity name + type
 **Example:**
-"**The** [Unknown1|[Unknown1|**Jalap**] **tribe**] **resides in** [Q32429|**Jhelum District**] **.**"
+"**The** [Unknown1|[Unknown1|**Jalap**] **tribe**] **resides in**
+ [[Q32429](https://www.wikidata.org/wiki/Q32429)|**Jhelum District**] **.**"
 
 **Guideline:**
 Annotate both the entity name, and the entity name together with the type as alternative mentions if the type is
@@ -290,17 +335,20 @@ If the type is not capitalized, but it is essential to the entity's name as in "
  then also allow only the entire phrase.
 
 **More examples:**
-- "[Q109981393|[Q109981393|**Mollarino**] **river**]"
+- "[[Q109981393](https://www.wikidata.org/wiki/Q109981393)|
+ [[Q109981393](https://www.wikidata.org/wiki/Q109981393)|**Mollarino**] **river**]"
 
 *But:*
-- "[Q60|**New York City**]"
-- "[Q4478|**Punjab Province**]"
-- "[Q654947|**Allegheny plateau**]"
+- "[[Q60](https://www.wikidata.org/wiki/Q60)|**New York City**]"
+- "[[Q4478](https://www.wikidata.org/wiki/Q4478)|**Punjab Province**]"
+- "[[Q654947](https://www.wikidata.org/wiki/Q654947)|**Allegheny plateau**]"
 - "[Unknown1|**Tadlow bridge**]"
 
 ### Descriptive prefix to an entity
 **Example:**
-"[Q855091|**Guitarist**] [Q1689423|**Jimmy Ponder**] **never had an audition with** [Q450675|**Pope Francis**] **.**"
+"[[Q855091](https://www.wikidata.org/wiki/Q855091)|**Guitarist**]
+ [[Q1689423](https://www.wikidata.org/wiki/Q1689423)|**Jimmy Ponder**] **never had an audition with**
+ [[Q450675](https://www.wikidata.org/wiki/Q450675)|**Pope Francis**] **.**"
  *("guitarist" is merely a descriptive prefix to the entity "Jimmy Ponder". It is not part of the entity name as is
  the case for "Pope" in "Pope Francis".)*
 
@@ -319,19 +367,27 @@ If the descriptive prefix can be part of the entity name, but not rigidly, as in
  "Brigadier Justin Maciejewski", allow both options (see guideline for honorific prefixes).
 
 **More examples:**
-- "[Q855091|**guitarist**] [Q1689423|**Jimmy Ponder**]"
-- "[Q12859263|**orator**] [Q263892|**Libanius**]"
-- "[Q14558450|**Januzaj**]**'s** [Q1344174|**agent**] [Q2316058|**Dirk de Vriese**]"
-- "[Q443528|**his**] **wife** [Q1570201|**Jacquetta Hawkes**]"
-- "[Q142|**French**] **TV show** [Q3546609|**Telefoot**]"
+- "[[Q855091](https://www.wikidata.org/wiki/Q855091)|**guitarist**]
+ [[Q1689423](https://www.wikidata.org/wiki/Q1689423)|**Jimmy Ponder**]"
+- "[[Q12859263](https://www.wikidata.org/wiki/Q12859263)|**orator**]
+ [[Q263892](https://www.wikidata.org/wiki/Q263892)|**Libanius**]"
+- "[[Q14558450](https://www.wikidata.org/wiki/Q14558450)|**Januzaj**]**'s**
+ [[Q1344174](https://www.wikidata.org/wiki/Q1344174)|**agent**]
+ [[Q2316058](https://www.wikidata.org/wiki/Q2316058)|**Dirk de Vriese**]"
+- "[[Q443528](https://www.wikidata.org/wiki/Q443528)|**his**] **wife**
+ [[Q1570201](https://www.wikidata.org/wiki/Q1570201)|**Jacquetta Hawkes**]"
+- "[[Q142](https://www.wikidata.org/wiki/Q142)|**French**] **TV show**
+ [[Q3546609](https://www.wikidata.org/wiki/Q3546609)|**Telefoot**]"
 
 *But:*
-- "[Q8058|**King Louis XI**]"
+- "[[Q8058](https://www.wikidata.org/wiki/Q8058)|**King Louis XI**]"
 
 
 ### Honorific prefixes
 **Example:**
-"[Q75420596|[Q177053|**Mr.**] [Q75420596|**George Wilson**]] **never met** [Q450675|**Pope Francis**] **.**"
+"[[Q75420596](https://www.wikidata.org/wiki/Q75420596)|[[Q177053](https://www.wikidata.org/wiki/Q177053)|**Mr.**]
+ [[Q75420596](https://www.wikidata.org/wiki/Q75420596)|**George Wilson**]] **never met**
+ [[Q450675](https://www.wikidata.org/wiki/Q450675)|**Pope Francis**] **.**"
  *("Mr." can be considered as part of the entity name, but does not have to. "Pope" on the other hand is part of
  the entity name.)*
 
@@ -347,16 +403,21 @@ Honorific prefixes such as "Mr.", "Dr." or "Prof." can be considered as part of 
  options: the entire phrase including the honorific prefix and the honorific prefix and the name separately. 
 
 **More examples:**
-- "[Q75420596|[Q841594|**Rev.**] [Q75420596|**George Wilson**]]"
-- "[Q104708740|[Q4967182|**Brigadier**] [Q104708740|**Justin Maciejewski**]]"
+- "[[Q75420596](https://www.wikidata.org/wiki/Q75420596)|[[Q841594](https://www.wikidata.org/wiki/Q841594)|**Rev.**]
+ [[Q75420596](https://www.wikidata.org/wiki/Q75420596)|**George Wilson**]]"
+- "[[Q104708740](https://www.wikidata.org/wiki/Q104708740)|
+ [[Q4967182](https://www.wikidata.org/wiki/Q4967182)|**Brigadier**]
+ [[Q104708740](https://www.wikidata.org/wiki/Q104708740)|**Justin Maciejewski**]]"
 
 *But:*
-- "[Q8058|**King Louis XI**]"
+- "[[Q8058](https://www.wikidata.org/wiki/Q8058)|**King Louis XI**]"
 
 
 ### Distributed entity mentions
 **Example:**
-"[Q6271700|**Tucker**] **has written** [Q637866|**book**] **and** [Q69699844|**film reviews**]**.**"
+"[[Q6271700](https://www.wikidata.org/wiki/Q6271700)|**Tucker**] **has written**
+ [[Q637866](https://www.wikidata.org/wiki/Q637866)|**book**] **and**
+ [[Q69699844](https://www.wikidata.org/wiki/Q69699844)|**film reviews**]**.**"
 
 **Guideline:**
 Annotate the parts of a distributed entity mention separately and with the entity they refer to, respectively.
@@ -368,8 +429,9 @@ In phrases like "Tucker has also written book and film reviews.", the entity men
  with the entity for book review (and "film reviews" with the entity for film reviews).
 
 **More examples:**
-- "[Q16195965|**He**] **was not a member of the squads for the** [Q1322713|**1991**] **or** [Q1130017|**1995 Rugby World
- Cups**]**.**"
+- "[[Q16195965](https://www.wikidata.org/wiki/Q16195965)|**He**] **was not a member of the squads for the**
+ [[Q1322713](https://www.wikidata.org/wiki/Q1322713)|**1991**] **or**
+ [[Q1130017](https://www.wikidata.org/wiki/Q1130017)|**1995 Rugby World Cups**]**.**"
 
 
 ## Which entity should a mention be annotated with?
@@ -382,8 +444,11 @@ Most of the times, this is straight forward. "Merkel" in "Merkel congratulates O
 
 ### Demonyms
 **Example:**
-"[Q44578|**Titanic**] **is an** [Q30|**American**] **movie by the** [Q16|[Q1196645|**Canadian**]]
- [Q2526255|**director**] [Q42574|**James Cameron**]**.**"
+"[[Q44578](https://www.wikidata.org/wiki/Q44578)|**Titanic**] **is an**
+ [[Q30](https://www.wikidata.org/wiki/Q30)|**American**] **movie by the**
+ [[Q16](https://www.wikidata.org/wiki/Q16)|[[Q1196645](https://www.wikidata.org/wiki/Q1196645)|**Canadian**]]
+ [[Q2526255](https://www.wikidata.org/wiki/Q2526255)|**director**]
+ [[Q42574](https://www.wikidata.org/wiki/Q42574)|**James Cameron**]**.**"
 
 **Guideline:**
 In general, annotate demonym mentions with the country. Additionally, annotate the mention with the ethnicity or
@@ -391,27 +456,35 @@ In general, annotate demonym mentions with the country. Additionally, annotate t
  language if it is 100% clear that the language is being referred to.
 
 **Explanation:**
-The mention should not be annotated with the ethnicity in cases like "The [Q15180|Soviets] agreed to the [Q30|American]
- demands", since both "Soviet" and "American" here refers to (a part of) the government which is better represented by
- the country than the ethnicity or citizenship. The mention should also not be annotated in cases like "[...|American] 
- movie", since it will still be an American movie if the director decides to migrate to another country, so the
- modifier "American" does not change with the citizenship. However, "American" in "American dish" refers to the
- culture, therefore it should be annotated with both the country and the ethnicity/citizens.
+The mention should not be annotated with the ethnicity in cases like "The
+ [[Q15180](https://www.wikidata.org/wiki/Q15180)|Soviets] agreed to the
+ [[Q30](https://www.wikidata.org/wiki/Q30)|American] demands", since both "Soviet" and "American" here refers to (a
+ part of) the government which is better represented by the country than the ethnicity or citizenship. The ethnicity
+ should also not be annotated in cases like "[[Q30](https://www.wikidata.org/wiki/Q30)|American] movie", since it will
+ still be an American movie if the director decides to migrate to another country, so the modifier "American" does
+ not change with the citizenship. However, "American" in "American dish" refers to the culture, therefore it should
+ be annotated with both the country and the ethnicity/citizens.
 
 **More examples:**
-- "[Q30|[Q846570|**American**]] **dish**" *(country and citizens)*
-- "**'sectores' means 'sectors' in** [Q1321|**Spanish**]" *(language)*
+- "[[Q30](https://www.wikidata.org/wiki/Q30)|[[Q846570](https://www.wikidata.org/wiki/Q846570)|**American**]] **dish**"
+ *(country and citizens)*
+- "**'sectores' means 'sectors' in** [[Q1321](https://www.wikidata.org/wiki/Q1321)|**Spanish**]" *(language)*
 
 *But:*
-- "[Q30|**American**] **movie**" *(country)*
-- "**The** [Q15180|**Soviets**] **agreed to the** [Q30|**American**] **demands**" *(country)*
-- "[Q30|**American**] **music group** [Q72349|**Krewella**]" *(country)*
-- "[Q23736538|**Store Egholm**] **is a small** [Q35|**Danish**] **island**" *(country)*
+- "[[Q30](https://www.wikidata.org/wiki/Q30)|**American**] **movie**" *(country)*
+- "**The** [[Q15180](https://www.wikidata.org/wiki/Q15180)|**Soviets**] **agreed to the**
+ [[Q30](https://www.wikidata.org/wiki/Q30)|**American**] **demands**" *(country)*
+- "[[Q30](https://www.wikidata.org/wiki/Q30)|**American**] **music group**
+ [[Q72349](https://www.wikidata.org/wiki/Q72349)|**Krewella**]" *(country)*
+- "[[Q23736538](https://www.wikidata.org/wiki/Q23736538)|**Store Egholm**] **is a small**
+ [[Q35](https://www.wikidata.org/wiki/Q35)|**Danish**] **island**" *(country)*
 
 
 ### Metonyms
 **Example:**
-"[Q43310|**Germany**] **beat** [Q83459|**Brazil**] **7 to 1 in** [Q42800|**Belo Horizonte**]**.**"
+"[[Q43310](https://www.wikidata.org/wiki/Q43310)|**Germany**] **beat**
+ [[Q83459](https://www.wikidata.org/wiki/Q83459)|**Brazil**] **7 to 1 in**
+ [[Q42800](https://www.wikidata.org/wiki/Q42800)|**Belo Horizonte**]**.**"
 
 **Guideline:**
 If it is 100% clear which entity is being referred to, annotate that entity. Otherwise link the entity that is being
