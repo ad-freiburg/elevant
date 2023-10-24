@@ -1,8 +1,13 @@
 # ELEVANT: Entity Linking Evaluation & Analysis Tool
 
 ELEVANT is a tool that helps you evaluate, analyse and compare entity linking systems in detail. You can explore a
- demo instance of the ELEVANT web app [here](https://elevant.cs.uni-freiburg.de/). If you are using ELEVANT for your
- research please cite [our paper](https://aclanthology.org/2022.emnlp-demos.8.pdf).
+ demo instance of the ELEVANT web app at https://elevant.cs.uni-freiburg.de/. If you are using ELEVANT for your
+ research please cite our paper
+ ["ELEVANT: A Fully Automatic Fine-Grained Entity Linking Evaluation and Analysis Tool"](https://aclanthology.org/2022.emnlp-demos.8.pdf).
+
+For the ELEVANT instance of the EMNLP 2023 paper
+["A Fair and In-Depth Evaluation of Existing End-to-End Entity Linking Systems"](https://arxiv.org/abs/2305.14937)
+ see https://elevant.cs.uni-freiburg.de/emnlp2023.
 
 ## Docker Instructions
 Get the code, and build and start the docker container:
