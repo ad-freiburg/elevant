@@ -208,6 +208,9 @@ class LinkingSystem:
         elif linker_type == CoreferenceLinkers.XRENNER.value:
             from src.linkers.xrenner_coref_linker import XrennerCorefLinker
             self.coref_linker = XrennerCorefLinker()
+        elif linker_type == CoreferenceLinkers.FASTCOREF.value:
+            from src.linkers.fastcoref_coref_linker import FastcorefCorefLinker
+            self.coref_linker = FastcorefCorefLinker()
         else:
             linker_exists = False
 
