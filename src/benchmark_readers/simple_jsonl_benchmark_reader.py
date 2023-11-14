@@ -35,7 +35,7 @@ class SimpleJsonlBenchmarkReader(AbstractBenchmarkReader):
                 title = benchmark_json["title"] if "title" in benchmark_json else ""
                 text = benchmark_json["text"]
                 labels = []
-                for raw_label in benchmark_json["labels"]:
+                for raw_label in sorted(benchmark_json["labels"], key=lambda x: x["start_char"]):
                     span = raw_label["start_char"], raw_label["end_char"]
                     entity_uri = raw_label["entity_reference"]
                     if self.custom_kb:

@@ -42,7 +42,7 @@ class XMLBenchmarkReader(AbstractBenchmarkReader):
         labels = []
         label_id_counter = 0
         no_mapping_count = 0
-        for span, wiki_name in wiki_labels:
+        for span, wiki_name in sorted(wiki_labels, key=lambda x: x[0][0]):
             span = span[0] - offset, span[1] - offset
             if wiki_name != "NIL" and wiki_name is not None:
                 entity_id = KnowledgeBaseMapper.get_wikidata_qid(wiki_name, self.entity_db, verbose=False)
