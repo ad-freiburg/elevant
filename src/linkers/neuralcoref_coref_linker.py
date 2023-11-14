@@ -11,6 +11,9 @@ from src.models.article import Article
 
 
 class NeuralcorefCorefLinker(AbstractCorefLinker):
+    """
+    Neuralcoref is outdated, see ELEVANT Github issue #5.
+    """
     def __init__(self,
                  model: Optional[Language] = None):
         if model is None:
