@@ -19,7 +19,7 @@ class CoreferenceLinkers(Enum):
     FASTCOREF = "fastcoref"
     ENTITY = "entity"
     STANFORD = "stanford"
-    XRENNER = "xrenner"
+    # XRENNER = "xrenner"  # Xrenner has a dependency conflict with REL (flair)
 
 
 class PredictionFormats(Enum):
