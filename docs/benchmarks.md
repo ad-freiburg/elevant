@@ -8,6 +8,51 @@ This document gives an overview of the benchmarks that are included in ELEVANT. 
 The following benchmarks are included in ELEVANT and can be used out of the box with the `link_benchmark_entities.py`
  script with the provided benchmark name.
 
+### Wiki-Fair
+*Bast et al., 2023*
+
+**Paper:** [A Fair and In-Depth Evaluation of Existing End-to-End Entity Linking Systems](https://arxiv.org/abs/2305.14937)
+
+**ELEVANT benchmark name:** `wiki-fair` and `wiki-fair-no-coref`
+
+**Volume:** 80 random Wikipedia articles from a Wikipedia dump from 2020. In each article, 3 consecutive paragraphs were
+ manually exhaustively annotated. The remainder of each article is left unannotated but kept in the benchmark to
+ provide context for entity linkers.
+
+**Method:** Bast et al. aimed at creating a benchmark that allows a fair comparison of different entity linkers.
+ Unlike most entity linking benchmarks, the benchmark contains not only named entities, but also non-named entities.
+ Which kinds of entities were annotated was determined by a [type whitelist](../small-data-files/whitelist_types.tsv).
+ To ensure a fair comparison of different linkers, the benchmark includes alternative ground truth mentions in cases
+ where it is unclear what the best ground truth annotation is. The benchmark also contains optional mentions, e.g.,
+ for datetimes and quantities. Coreferences are annotated, too, but there also exists a version without coreferences.
+ See https://github.com/ad-freiburg/entity-linking-annotation-guidelines for a comprehensive list of annotation
+ guidelines.
+
+**Official Download:** The benchmark should be used within ELEVANT, since ELEVANT automatically handles the
+ evaluation of alternative or optional mentions as well as the evaluation of only the annotated parts of the benchmark.
+ The benchmark can be found in this repository [here](../benchmarks/wiki-fair.benchmark.jsonl)
+ ([or here](../benchmarks/wiki-fair-no-coref.benchmark.jsonl) for the version without coreferences).
+
+### News-Fair
+*Bast et al., 2023*
+
+**Paper:** [A Fair and In-Depth Evaluation of Existing End-to-End Entity Linking Systems](https://arxiv.org/abs/2305.14937)
+
+**ELEVANT benchmark name:** `news-fair` and `news-fair-no-coref`
+
+**Volume:** 40 random articles from a news crawl. In each article, 3 consecutive paragraphs were manually exhaustively
+ annotated. The remainder of each article is left unannotated but kept in the benchmark to provide context for entity
+ linkers.
+
+**Method:** Same as for [Wiki-Fair](#wiki-fair). 
+ See https://github.com/ad-freiburg/entity-linking-annotation-guidelines for a comprehensive list of annotation
+ guidelines.
+
+**Official Download:** The benchmark should be used within ELEVANT, since ELEVANT automatically handles the
+ evaluation of alternative or optional mentions as well as the evaluation of only the annotated parts of the benchmark.
+ The benchmark can be found in this repository [here](../benchmarks/news-fair.benchmark.jsonl)
+ ([or here](../benchmarks/news-fair-no-coref.benchmark.jsonl) for the version without coreferences).
+
 ### AIDA-CoNLL
 *Hoffart et al., 2011*
 

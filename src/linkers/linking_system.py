@@ -192,10 +192,11 @@ class LinkingSystem:
     def _initialize_coref_linker(self, linker_type: str):
         logger.info("Initializing coref linker %s ..." % linker_type)
         linker_exists = True
-        if linker_type == CoreferenceLinkers.NEURALCOREF.value:
-            from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
-            self.coref_linker = NeuralcorefCorefLinker()
-        elif linker_type == CoreferenceLinkers.ENTITY.value:
+        # Neuralcoref is outdated, see ELEVANT Github issue #5
+        # if linker_type == CoreferenceLinkers.NEURALCOREF.value:
+        #     from src.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
+        #     self.coref_linker = NeuralcorefCorefLinker()
+        if linker_type == CoreferenceLinkers.ENTITY.value:
             from src.linkers.entity_coref_linker import EntityCorefLinker
             self.load_missing_mappings({MappingName.GENDER,
                                         MappingName.COREFERENCE_TYPES,
@@ -204,9 +205,12 @@ class LinkingSystem:
         elif linker_type == CoreferenceLinkers.STANFORD.value:
             from src.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
             self.coref_linker = StanfordCoreNLPCorefLinker()
-        elif linker_type == CoreferenceLinkers.XRENNER.value:
-            from src.linkers.xrenner_coref_linker import XrennerCorefLinker
-            self.coref_linker = XrennerCorefLinker()
+        # elif linker_type == CoreferenceLinkers.XRENNER.value:
+        #     from src.linkers.xrenner_coref_linker import XrennerCorefLinker
+        #     self.coref_linker = XrennerCorefLinker()
+        elif linker_type == CoreferenceLinkers.FASTCOREF.value:
+            from src.linkers.fastcoref_coref_linker import FastcorefCorefLinker
+            self.coref_linker = FastcorefCorefLinker()
         else:
             linker_exists = False
 

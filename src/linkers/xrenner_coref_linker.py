@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 from numpy import VisibleDeprecationWarning
 from xrenner import Xrenner
+from xrenner.modules.get_models import check_models
 from spacy.tokens import Doc
 from spacy_conll import init_parser
 
@@ -17,8 +18,15 @@ warnings.filterwarnings("ignore", category=VisibleDeprecationWarning)
 
 
 class XrennerCorefLinker(AbstractCorefLinker):
+    """
+    Xrenner has a dependency conflict with the REL linker:
+        radboud-el 0.0.1 depends on flair>=0.11
+        xrenner 2.2.0.0 depends on flair==0.6.1
+    Therefore Xrenner can't be used out of the box anymore.
+    """
     def __init__(self):
         self.model = init_parser("en_core_web_lg", "spacy", parser_opts={}, include_headers=True)
+        check_models()
         self.xrenner = Xrenner()
 
     def get_clusters(self, article: Article, doc: Optional[Doc] = None) -> List[CorefCluster]:
