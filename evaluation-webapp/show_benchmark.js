@@ -1815,7 +1815,7 @@ function get_annotations(article_index, experiment_id, benchmark, column_idx, ex
                 while (curr_label_id in child_label_to_parent) {
                     curr_label_id = child_label_to_parent[curr_label_id];
                 }
-                gt_annotation.gt_entity_type = label_id_to_label[curr_label_id].type;
+                gt_annotation.gt_entity_type = label_id_to_label[curr_label_id] ? label_id_to_label[curr_label_id].type : mention.true_entity.type;
                 // Get text of parent span
                 if (curr_label_id !== mention.true_entity.id) {
                     let parent_span = label_id_to_label[curr_label_id].span;

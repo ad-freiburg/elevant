@@ -73,6 +73,8 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
     pos = 0
     labels = []
     optional_tags = []
+    desc_tags = []
+    coref_tags = []
     inside = 0  # Indicates current annotation nesting level
     article_labels = []
     original_texts = []  # Maps nesting levels to a list of original texts at this nesting level
@@ -105,6 +107,8 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
 
                 labels.append("")
                 optional_tags.append(False)
+                desc_tags.append(False)
+                coref_tags.append(False)
         elif inside > 0 and char == "|":
             # Inside of an annotation reaching the original text cell
             original_text_cell = True
@@ -121,9 +125,12 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
             entity_name = "Unknown"
             groundtruth_label = GroundtruthLabel(label_id, (start_pos[-1], start_pos[-1] + end_pos), labels[-1],
                                                  entity_name, parent=parent, children=children,
-                                                 optional=optional_tags[-1], type=label_type)
+                                                 optional=optional_tags[-1], type=label_type, desc=desc_tags[-1],
+                                                 coref=coref_tags[-1])
             article_labels.append(groundtruth_label)
             del optional_tags[-1]
+            del desc_tags[-1]
+            del coref_tags[-1]
             del labels[-1]
             del start_pos[-1]
             inside -= 1
@@ -146,6 +153,12 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
                 if labels[-1] == "OPTIONAL":
                     optional_tags[-1] = True
                     labels[-1] = ""
+                elif labels[-1] == "DESC":
+                    desc_tags[-1] = True
+                    labels[-1] = ""
+                elif labels[-1] == "COREF":
+                    coref_tags[-1] = True
+                    labels[-1] = ""
                 else:
                     entity_name_cell = True
             elif not entity_name_cell:
@@ -157,8 +170,7 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
 
 
 def main(args):
-    logger.info("Reading labels for %d articles from plain text benchmark file %s ..."
-                % (args.num_articles, args.input_file))
+    logger.info(f"Reading labels for {args.num_articles} articles from plain text benchmark file {args.input_file} ...")
     labels_texts = read_labeled_texts(args.input_file, args.num_articles)
 
     skip_articles = [int(num) - 1 for num in args.skip_articles.split()]
@@ -187,6 +199,13 @@ def main(args):
                 article = article_from_json(json)
                 labels = get_nested_labels(labels_texts[i + skip_count])
                 article.labels = labels
+
+                # Make sure label spans are within the article text boundaries
+                text_len = len(article.text)
+                for l in article.labels:
+                    if l.span[1] > text_len:
+                        logger.warning(f"Label in article {i + skip_count + 1} is outside of the article boundaries:"
+                                       f"{l.span} vs. {text_len}")
 
                 if title_span_jsonl_file:
                     article_title_spans = article_from_json(title_span_json)
@@ -218,9 +237,9 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--num_articles", type=int,
                         help="Number of articles to read from the input file.")
 
-    parser.add_argument("--skip_articles", type=str, default="3 11 15",
+    parser.add_argument("--skip_articles", type=str, default="3 11 15 87 101",
                         help="Articles that should be skipped, separated by whitespace. Articles start at 1."
-                             "Default: 3 11 15")
+                             "Default: 3 11 15 87 101. For News-Fair this should be 40 55 60 68 79 81 116 122")
 
     parser.add_argument("--skip", action="store_true",
                         help="Set if the article_jsonl_file contains those articles that should be skipped.")
