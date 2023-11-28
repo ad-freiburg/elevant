@@ -1010,8 +1010,12 @@ function get_table_row(experiment_id, json_obj) {
                         // key-value pairs are displayed in a single column.
                         let processed_value = "<div class='" + class_name + " tooltip'>";
                         let percentage = get_error_percentage(value);
+
+                        // Display accuracies instead of error rates
+                        // let percentage = get_accuracy(value);
                         processed_value += percentage + "%";
                         processed_value += "<span class='tooltiptext'>";
+                        // processed_value += value["total"] - value["errors"] + " / " + value["total"];
                         processed_value += value["errors"] + " / " + value["total"];
                         processed_value += "</span></div>";
                         value = processed_value;
@@ -2797,6 +2801,9 @@ function create_graph(y_column) {
         if (!el[line_column][2]) return el[line_column][0];
     });
     line_labels = line_labels.filter(is_unique);
+    // tmp = line_labels[3];
+    // line_labels[3] = line_labels[4];
+    // line_labels[4] = tmp;
 
     // Show a warning instead of the canvas if more lines are to be drawn than colors exist.
     // This is mostly to prevent the legend from overlapping with the graph and the graph looking all weird.
@@ -2820,6 +2827,11 @@ function create_graph(y_column) {
         dict["fill"] = false;
         dict["lineTension"] = 0;
         dict["label"] = val;
+        // if (val == "ReFinED (AIDA)") dict["label"] = "ReFinED";
+        // else if (val == "REL (2014)") dict["label"] = "REL";
+        // else if (val == "GENRE (YAGO)") dict["label"] = "GENRE";
+        // else dict["label"] = val;
+
         let x_index = 0;
         // Get y-values
         let y_values = [];
@@ -2857,8 +2869,11 @@ function create_graph(y_column) {
             datasets
         },
         options: {
+            // maintainAspectRatio: false,
             plugins: {
+                // title: {display: true, text: 'Overall F1'},
                 legend: {
+                    // position: 'bottom',
                     display: true,
                     labels: {
                         boxWidth: 10,
@@ -2878,7 +2893,9 @@ function create_graph(y_column) {
             scales: {
                 x: {
                     ticks: {
-                        autoSkip: false
+                        autoSkip: false,
+                        // maxRotation: 90,
+                        // minRotation: 90
                     },
                     grid: {
                         display: false,
@@ -2888,6 +2905,8 @@ function create_graph(y_column) {
                     }
                 },
                 y: {
+                    min: 0,
+                    max: 100,
                     title: {
                         display: true,
                         text: y_axis_label
@@ -3292,6 +3311,12 @@ function copy(object) {
 function get_error_percentage(value) {
     if (value["total"] === 0) return 0.00;
     return (value["errors"] / value["total"] * 100).toFixed(2);
+}
+
+function get_accuracy(value) {
+    if (value["total"] === 0) return 0.00;
+    const correct = value["total"] - value["errors"];
+    return (correct / value["total"] * 100).toFixed(2);
 }
 
 function get_evaluation_mode() {
