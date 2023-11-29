@@ -27,7 +27,7 @@ def setup_logger(script_name, stdout_level=logging.INFO, file_level=logging.DEBU
             os.makedirs(settings.LOG_PATH)
 
         # Create file handler
-        script_name = script_name.replace(".py", "")
+        script_name = script_name.split("/")[-1].replace(".py", "")
         current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
         filename = settings.LOG_PATH + script_name + "." + current_datetime + ".log"
         file_handler = logging.FileHandler(filename)
