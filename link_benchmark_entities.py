@@ -26,6 +26,7 @@ from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.linking_system import LinkingSystem
+from src.linkers.oracle_linker import link_entities_with_oracle
 
 
 def convert_to_filename(string: str):
@@ -37,15 +38,17 @@ def convert_to_filename(string: str):
 
 
 def main(args):
-    linking_system = LinkingSystem(args.linker_name,
-                                   args.linker_config,
-                                   args.prediction_file,
-                                   args.prediction_format,
-                                   args.prediction_name,
-                                   args.coreference_linker,
-                                   args.minimum_score,
-                                   args.type_mapping,
-                                   args.custom_kb)
+    linking_system = None
+    if not args.linker_name == "oracle":
+        linking_system = LinkingSystem(args.linker_name,
+                                       args.linker_config,
+                                       args.prediction_file,
+                                       args.prediction_format,
+                                       args.prediction_name,
+                                       args.coreference_linker,
+                                       args.minimum_score,
+                                       args.type_mapping,
+                                       args.custom_kb)
 
     for benchmark in args.benchmark:
         benchmark_iterator = get_benchmark_iterator(benchmark)
@@ -68,7 +71,10 @@ def main(args):
         start_time = time.time()
         for i, article in enumerate(tqdm(benchmark_iterator.iterate(), desc="Linking progress", unit=" articles")):
             evaluation_span = article.evaluation_span if args.evaluation_span else None
-            linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
+            if args.linker_name == "oracle":
+                link_entities_with_oracle(article)
+            else:
+                linking_system.link_entities(article, args.uppercase, args.only_pronouns, evaluation_span)
             output_file.write(article.to_json() + '\n')
             n_articles = i+1
         linking_time = time.time() - start_time
@@ -77,7 +83,7 @@ def main(args):
 
         # Write metadata to metadata file
         with open(metadata_filename, "w", encoding="utf8") as metadata_file:
-            linker_config = linking_system.get_linker_config()
+            linker_config = linking_system.get_linker_config() if linking_system else {}
             exp_name = args.experiment_name
             exp_description = None
             if args.description:
@@ -112,7 +118,7 @@ if __name__ == "__main__":
                              "<evaluation_dir>/<linker_name>/<experiment_name>.<benchmark_name>.linked_articles.jsonl")
 
     linker_group = parser.add_mutually_exclusive_group(required=True)
-    linker_group.add_argument("-l", "--linker_name", choices=[li.value for li in Linkers],
+    linker_group.add_argument("-l", "--linker_name", choices=[li.value for li in Linkers] + ["oracle"],
                               help="Entity linker name.")
     linker_group.add_argument("-pfile", "--prediction_file",
                               help="Path to predictions file.")
