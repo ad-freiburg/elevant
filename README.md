@@ -92,7 +92,7 @@ The benchmark can now be linked with a linker of your choice using the `link_ben
 
 See [Add A Benchmark](docs/add_benchmark.md) for more details on adding a benchmark including a description of the
  supported file formats.
- 
+
 ## Add an Experiment
 
 You can add an experiment, i.e. a row in the table for a particular benchmark, in two steps: 1) link the benchmark
@@ -127,7 +127,7 @@ To evaluate a linker's predictions use the script `evaluate_linking_results.py`:
 
     python3 evaluate_linking_results.py <path_to_linking_result_file>
 
-This will print precision, recall and F1 scores and create two new files where the `linked_articles.jsonl` file
+This will print precision, recall and F1 scores and create two new files where the `.linked_articles.jsonl` file
  extension is replaced by `.eval_cases.jsonl` and `.eval_results.json` respectively. For example
 
     python3 evaluate_linking_results.py evaluation-results/baseline/baseline.kore50.linked_articles.jsonl
@@ -137,8 +137,14 @@ will create the files `evaluation-results/baseline/baseline.kore50.eval_cases.js
  each true positive, false positive and false negative case. The `eval_results` file contains the scores that are shown
  in the web app's evaluation results table.
 
-In the web app, simply reload the page and the experiment will show up as a row in the evaluation results table for
- the corresponding benchmark.
+In the web app, simply reload the page (you might have to disable caching) and the experiment will show up as a row in
+ the evaluation results table for the corresponding benchmark.
 
 See [Evaluate Linking Results](docs/evaluate_linking_results.md) for instructions on how to evaluate multiple linking
  results with a single command.
+
+
+## Remove an Experiment
+If you want to remove an experiment from the web app, simply (re)move the corresponding `.linked_articles.jsonl`,
+ `.eval_cases.jsonl` and `.eval_results.json` files from the `evaluation-results/<linker_name>/` directory and reload
+ the web app (again disabling caching).
