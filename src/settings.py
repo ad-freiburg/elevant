@@ -70,7 +70,7 @@ WIKIPEDIA_NAME_TO_QID_DB = DATA_DIRECTORY + "wikidata_mappings/wikipedia_name_to
 REDIRECTS_DB = DATA_DIRECTORY + "wikipedia_mappings/redirects.db"
 HYPERLINK_TO_MOST_POPULAR_CANDIDATES_DB = DATA_DIRECTORY + "wikipedia_mappings/hyperlink_to_most_popular_candidates.db"
 
-# Custom mappings (have to be created by the user, e.g. using the extract_custom_mappings.py script)
+# Custom mappings (have to be created by the user, e.g. using the scripts/extract_custom_mappings.py script)
 CUSTOM_ENTITY_TO_NAME_FILE = DATA_DIRECTORY + "custom_mappings/entity_to_name.tsv"
 CUSTOM_ENTITY_TO_TYPES_FILE = DATA_DIRECTORY + "custom_mappings/entity_to_types.tsv"
 CUSTOM_WHITELIST_TYPES_FILE = DATA_DIRECTORY + "custom_mappings/whitelist_types.tsv"

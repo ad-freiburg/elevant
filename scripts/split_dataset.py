@@ -5,6 +5,8 @@ import argparse
 import sys
 import os
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader

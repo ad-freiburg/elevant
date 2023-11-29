@@ -3,6 +3,8 @@ import re
 import sys
 from typing import List, Tuple, Optional
 
+sys.path.append(".")
+
 from src.utils import log
 from src import settings
 from src.evaluation.groundtruth_label import GroundtruthLabel

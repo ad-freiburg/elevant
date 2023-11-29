@@ -1,6 +1,8 @@
 import pickle
 import sys
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 from src.helpers.wikipedia_corpus import WikipediaCorpus

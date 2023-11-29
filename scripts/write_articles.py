@@ -21,19 +21,20 @@ To write articles in a format that is suitable as Wikifier input use options
 
 import argparse
 import os.path
-import logging
+import sys
 import re
 from typing import Optional
 from enum import Enum
 
+
+sys.path.append(".")
+
+from src.utils import log
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src.models.entity_database import EntityDatabase
 from src.models.article import Article, article_from_json
-
-logging.basicConfig(format='%(asctime)s: %(message)s', datefmt="%H:%M:%S", level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class Annotation(Enum):
@@ -308,5 +309,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--ascii", action="store_true",
                         help="Use only ASCII characters in output file(s) and replace errors by '_'.")
+
+    logger = log.setup_logger(sys.argv[0])
+    logger.debug(' '.join(sys.argv))
 
     main(parser.parse_args())

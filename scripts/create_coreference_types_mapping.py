@@ -2,6 +2,8 @@ import argparse
 import sys
 from typing import Set
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 from src.helpers.entity_database_reader import EntityDatabaseReader

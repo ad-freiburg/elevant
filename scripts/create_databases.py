@@ -7,6 +7,8 @@ from typing import Optional
 from urllib.parse import unquote
 from enum import Enum
 
+sys.path.append(".")
+
 from src.utils import log
 
 

@@ -1,5 +1,8 @@
 import random
 import argparse
+import sys
+
+sys.path.append(".")
 
 from src.helpers.newscrawl_corpus import NewscrawlCorpus
 from src.helpers.wikipedia_corpus import WikipediaCorpus

@@ -1,6 +1,8 @@
 import argparse
 import sys
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 from src.models.entity_database import EntityDatabase

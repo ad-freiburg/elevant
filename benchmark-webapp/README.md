@@ -4,9 +4,10 @@ This webapp displays information about the groundtruth label types and level1 di
 
 ## How to start the benchmark webapp
 
-1. Create the relevant `<benchmark_name>.types.json` and `<benchmark_name>.labels.tsv` files using the script `analyze_benchmark_entity_types.py`:
+1. Create the relevant `<benchmark_name>.types.json` and `<benchmark_name>.labels.tsv` files using the script
+ `analyze_benchmark_entity_types.py`:
         
-        analyze_benchmark_entity_types.py <benchmark_name>
+        python3 scripts/analyze_benchmark_entity_types.py <benchmark_name>
         
 1. Go to (this) directory:
 

@@ -4,6 +4,8 @@ import re
 import pickle
 import sys
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 

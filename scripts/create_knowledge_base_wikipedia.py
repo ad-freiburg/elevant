@@ -1,6 +1,8 @@
 import sys
 import os
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 from src.helpers.knowledge_base_creator import KnowledgeBaseCreator

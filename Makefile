@@ -155,7 +155,7 @@ generate_entity_types_mapping:
 	cd wikidata-types; chmod 777 index; $(MAKE) -sB DOCKER_CMD=${DOCKER_CMD} WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
+	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
 
 download_all: download_wikidata_mappings download_wikipedia_mappings download_entity_types_mapping
 
@@ -198,7 +198,7 @@ extract_wiki:
 	fi
 
 split_wiki:
-	python3 split_dataset.py
+	python3 scripts/split_dataset.py
 
 # Link Wikipedia dump only if it does not exist already at the specified location.
 link_wiki:
@@ -211,15 +211,15 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	@echo "[generate_wikipedia_mappings] Build mappings from Wikipedia."
 	@echo
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
-	python3 extract_akronyms.py
-	python3 extract_redirects.py ${WIKI_DUMP}
-	python3 create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
-	python3 get_link_frequencies.py  # Needs redirects and qid_to_wikipedia_url.db
-	python3 create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_frequencies.pkl -o ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db  --most_popular_candidates
-	python3 extract_title_synonyms.py
-	python3 count_unigrams.py
-	python3 get_wikipedia_id_to_title_mapping.py
-	python3 create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.db
+	python3 scripts/extract_akronyms.py
+	python3 scripts/extract_redirects.py ${WIKI_DUMP}
+	python3 scripts/create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
+	python3 scripts/get_link_frequencies.py  # Needs redirects and qid_to_wikipedia_url.db
+	python3 scripts/create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_frequencies.pkl -o ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db  --most_popular_candidates
+	python3 scripts/extract_title_synonyms.py
+	python3 scripts/count_unigrams.py
+	python3 scripts/get_wikipedia_id_to_title_mapping.py
+	python3 scripts/create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.db
 
 generate_wikidata_mappings: get_qlever_mappings generate_databases generate_coreference_type_mappings
 
@@ -241,20 +241,20 @@ generate_coreference_type_mappings:
 	@echo "Get mapping from QID to coreference types needed only for our own coref resolver."
 	@echo "Takes ca. 1h. If the coref resolver is not needed you can skip this step."
 	@echo
-	python3 create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
-	python3 create_coreference_types_mapping.py
+	python3 scripts/create_all_types_mapping.py  # Needs qid_to_sitelinks, qid_to_p31 and qid_to_p279
+	python3 scripts/create_coreference_types_mapping.py
 	@echo
 
 generate_databases:
 	@echo
 	@echo "[generate_databases] Build databases from large Wikidata mappings."
 	@echo
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -i -m name_from_url -o ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv -i -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -i -f multiple_values_semicolon_separated -o ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db
-	python3 create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -f multiple_values_semicolon_separated
+	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -i -m name_from_url -o ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db
+	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv
+	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
+	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv -i -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db
+	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -i -f multiple_values_semicolon_separated -o ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db
+	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -f multiple_values_semicolon_separated
 
 cleanup:
 	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv

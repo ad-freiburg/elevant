@@ -17,10 +17,10 @@ Instead of following the instructions in [Get the Data](../README.md#get-the-dat
     The evaluation results and benchmarks contained in these folders per default are targeted at Wikidata / Wikipedia
     / DBpedia.
 
-2) Run the Python script `extract_custom_mappings.py` to extract the necessary name and type mappings from your
+2) Run the Python script `scripts/extract_custom_mappings.py` to extract the necessary name and type mappings from your
  KB. For this script to work, your KB must be in the turtle (ttl) format.
  
-       python3 extract_custom_mappings.py <custom_kb_in_ttl_format> --name_predicate <predicate_for_entity_name> --type_predicate <predicate_for_entity_type>
+       python3 scripts/extract_custom_mappings.py <custom_kb_in_ttl_format> --name_predicate <predicate_for_entity_name> --type_predicate <predicate_for_entity_type>
    
     Per default, the predicate used to extract the entity name is `http://www.w3.org/2004/02/skos/core#prefLabel` and
      the default predicate used to extract the entity type is `http://www.w3.org/2000/01/rdf-schema#subClassOf`.

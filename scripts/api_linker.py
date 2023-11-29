@@ -4,6 +4,8 @@ import argparse
 from pynif import NIFCollection
 from urllib.parse import quote
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats

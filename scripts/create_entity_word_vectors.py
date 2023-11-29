@@ -2,6 +2,8 @@ import argparse
 import sys
 import pickle
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 from src.models.entity_database import EntityDatabase

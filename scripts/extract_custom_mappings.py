@@ -3,6 +3,8 @@ import sys
 import os
 from rdflib import Graph
 
+sys.path.append(".")
+
 from src import settings
 from src.utils import log
 

@@ -164,15 +164,15 @@ Alternatively you can train the linker yourself. This requires the following ste
 
 1. Generate word vectors:
 
-       python3 create_entity_word_vectors.py 0
+       python3 scripts/create_entity_word_vectors.py 0
 
 2. Create the Wikipedia knowledge base:
 
-       python3 create_knowledge_base_wikipedia.py
+       python3 scripts/create_knowledge_base_wikipedia.py
 
 3. Train the entity linker:
 
-       python3 train_spacy_entity_linker.py <linker_name> <n_batches> wikipedia
+       python3 scripts/train_spacy_entity_linker.py <linker_name> <n_batches> wikipedia
        
 #### Oracle
 
