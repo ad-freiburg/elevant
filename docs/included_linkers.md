@@ -3,13 +3,14 @@ We distinguish between three classes of linkers in Elevant:
 1. Some linkers can be incorporated into our framework without writing much code, e.g. by accessing an external
  linker API. These linkers can be used directly with Elevant's `link_benchmark_entities.py` script to generate linking
  results. The following linkers belong to this class:
-    - ReFinED
-    - REL
-    - TagMe (requires an access token that can easily be obtained)
-    - WAT (requires an access token that can easily be obtained)
-    - DBPedia Spotlight
-    - Spacy (needs to be trained before usage)
-    - Our baselines
+    - [ReFinED](#refined)
+    - [REL](#rel)
+    - [TagMe](#tagme) (requires an access token that can easily be obtained)
+    - [WAT](#wat) (requires an access token that can easily be obtained)
+    - [DBPedia Spotlight](#dbpedia-spotlight)
+    - [Spacy](#spacy) (needs to be trained before usage)
+    - [Our baselines](#baseline)
+    - [Oracle](#oracle) (i.e. predictions that correspond exactly to the ground truth labels)
 
     All of these linkers are described in this document.
 
@@ -173,3 +174,12 @@ Alternatively you can train the linker yourself. This requires the following ste
 
        python3 train_spacy_entity_linker.py <linker_name> <n_batches> wikipedia
        
+#### Oracle
+
+You can also create oracle predictions (that is, predictions that correspond exactly to the ground truth labels) for
+ any benchmark by specifying the linker name `oracle`. This can be useful e.g., to inspect a benchmark's ground truth
+ labels.
+
+    python3 link_benchmark_entities.py <experiment_name> -l oracle -b <benchmark_name>
+
+The code for creating oracle predictions can be found [here](../src/linkers/oracle_linker.py)
