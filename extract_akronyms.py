@@ -1,10 +1,10 @@
 import pickle
-import log
 import sys
 import re
 
-from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src import settings
+from src.utils import log
+from src.helpers.wikipedia_corpus import WikipediaCorpus
 
 _akronym_re = re.compile(r" \(([A-Z]+)\).*")
 

@@ -1,9 +1,9 @@
 import argparse
 import re
-import log
 import sys
 from typing import List, Tuple, Optional
 
+from src.utils import log
 from src import settings
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.models.article import article_from_json

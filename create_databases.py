@@ -2,12 +2,12 @@ import argparse
 import pickle
 import time
 import dbm
+import sys
 from typing import Optional
 from urllib.parse import unquote
-
-import log
-import sys
 from enum import Enum
+
+from src.utils import log
 
 
 WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"

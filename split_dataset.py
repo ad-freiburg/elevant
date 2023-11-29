@@ -2,12 +2,12 @@ import json
 import pickle
 import random
 import argparse
-import log
 import sys
 import os
 
-from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src import settings
+from src.utils import log
+from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 PRINT_EVERY = 1000
 

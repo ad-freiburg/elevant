@@ -1,10 +1,10 @@
 from itertools import chain
 import pickle
-import log
 import sys
 
-from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src import settings
+from src.utils import log
+from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src.models.entity_database import EntityDatabase
 
 

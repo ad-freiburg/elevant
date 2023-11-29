@@ -19,10 +19,10 @@ import json
 import os
 import sys
 import time
-import log
 import multiprocessing
 
 from src import settings
+from src.utils import log
 from src.linkers.linkers import Linkers, CoreferenceLinkers
 from src.models.article import Article, article_from_json
 from src.helpers.wikipedia_dump_reader import WikipediaDumpReader

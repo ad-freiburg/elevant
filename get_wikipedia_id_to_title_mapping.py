@@ -1,8 +1,8 @@
-import log
 import sys
 
-from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 from src import settings
+from src.utils import log
+from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 
 def main():

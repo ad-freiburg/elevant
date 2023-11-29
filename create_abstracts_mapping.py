@@ -1,8 +1,8 @@
 import argparse
 import sys
-import log
 
 from src import settings
+from src.utils import log
 from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src.models.entity_database import EntityDatabase
 

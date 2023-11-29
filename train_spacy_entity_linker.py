@@ -1,9 +1,9 @@
-import log
 import sys
 import spacy
 from spacy.kb import KnowledgeBase
 
 from src import settings
+from src.utils import log
 from src.helpers.entity_database_reader import EntityDatabaseReader
 from src.helpers.label_generator import LabelGenerator
 
@@ -38,7 +38,7 @@ def train():
     entity_linker.initialize(get_examples=lambda: [example])
     print(f"hyperparameters: {entity_linker.cfg}")
 
-    from spacy.util import minibatch, compounding
+    from spacy.util import minibatch
 
     with nlp.select_pipes(enable=["entity_linker"]):  # train only the entity_linker
         optimizer = nlp.resume_training()

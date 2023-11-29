@@ -1,10 +1,10 @@
 import argparse
-import log
 import sys
 import os
-
 from rdflib import Graph
+
 from src import settings
+from src.utils import log
 
 
 def main(args):

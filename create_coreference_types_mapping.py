@@ -1,9 +1,9 @@
 import argparse
-import log
 import sys
-
 from typing import Set
+
 from src import settings
+from src.utils import log
 from src.helpers.entity_database_reader import EntityDatabaseReader
 
 

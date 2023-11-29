@@ -13,7 +13,6 @@ per line.
 """
 
 import argparse
-import log
 import sys
 import os
 import json
@@ -22,6 +21,7 @@ from datetime import datetime
 from tqdm import tqdm
 
 from src import settings
+from src.utils import log
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats

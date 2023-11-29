@@ -1,8 +1,8 @@
 import argparse
 import json
-import log
 import sys
 
+from src.utils import log
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.mention_type import is_named_entity
 from src.helpers.entity_database_reader import EntityDatabaseReader

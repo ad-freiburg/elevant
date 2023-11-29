@@ -8,12 +8,12 @@ The evaluation results are printed.
 """
 
 import argparse
-import log
 import sys
 import json
 import re
 
 from src import settings
+from src.utils import log
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.models.article import article_from_json

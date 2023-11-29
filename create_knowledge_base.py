@@ -1,10 +1,10 @@
 import argparse
-import log
 import sys
 
+from src import settings
+from src.utils import log
 from src.models.entity_database import EntityDatabase
 from src.helpers.knowledge_base_creator import KnowledgeBaseCreator
-from src import settings
 
 
 def main(args):

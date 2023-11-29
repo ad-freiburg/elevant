@@ -1,11 +1,11 @@
 import argparse
-import log
 import bz2
 import re
 import pickle
 import sys
 
 from src import settings
+from src.utils import log
 
 
 TITLE_START = "<title>"

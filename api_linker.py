@@ -1,10 +1,11 @@
 from flask import Flask, request, Response
-import log
 import sys
 import argparse
 from pynif import NIFCollection
 from urllib.parse import quote
+
 from src import settings
+from src.utils import log
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from src.linkers.linking_system import LinkingSystem
 from src.models.article import Article, article_from_json

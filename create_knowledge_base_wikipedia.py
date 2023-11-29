@@ -1,9 +1,9 @@
 import sys
-import log
 import os
 
-from src.helpers.knowledge_base_creator import KnowledgeBaseCreator
 from src import settings
+from src.utils import log
+from src.helpers.knowledge_base_creator import KnowledgeBaseCreator
 
 
 def main():

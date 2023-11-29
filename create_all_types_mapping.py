@@ -4,9 +4,9 @@ import operator
 import copy
 import argparse
 import sys
-import log
 
 from src import settings
+from src.utils import log
 from src.helpers.entity_database_reader import EntityDatabaseReader
 
 

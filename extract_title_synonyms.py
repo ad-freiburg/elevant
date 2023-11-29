@@ -1,9 +1,9 @@
 import pickle
-import log
 import sys
 
-from src.helpers.wikipedia_corpus import WikipediaCorpus
 from src import settings
+from src.utils import log
+from src.helpers.wikipedia_corpus import WikipediaCorpus
 
 
 def main():
