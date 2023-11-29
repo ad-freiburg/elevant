@@ -167,14 +167,20 @@ class CaseGenerator:
         """
         for case in self.gt_case_dict.values():
             if case.true_entity.parent is None:
-                if case.true_entity.children and case.factor == 0:
-                    # Get relevant child evaluation types for both linking and NER
-                    child_linking_et, child_ner_et = self.get_relevant_child_eval_types(case.true_entity)
-                    case.set_child_linking_eval_types(child_linking_et)
-                    case.set_child_ner_eval_types(child_ner_et)
+                if case.true_entity.children:
+                    if case.true_entity.is_optional():
+                        # Determine whether a ground truth parent label has non-optional children
+                        case.set_has_non_optional_children(case.true_entity.has_non_optional_child(self.label_dict))
+                        # Re-compute evaluation types for parent GT labels with children
+                        case.compute_eval_types()
+                    if case.factor == 0:
+                        # Get relevant child evaluation types for both linking and NER
+                        child_linking_et, child_ner_et = self.get_relevant_child_eval_types(case.true_entity)
+                        case.set_child_linking_eval_types(child_linking_et)
+                        case.set_child_ner_eval_types(child_ner_et)
 
-                    # Re-compute evaluation types for parent GT labels with children
-                    case.compute_eval_types()
+                        # Re-compute evaluation types for parent GT labels with children
+                        case.compute_eval_types()
 
     def get_relevant_child_eval_types(self, gt_label: GroundtruthLabel) \
             -> Tuple[Dict[EvaluationMode, Set[EvaluationType]], Dict[EvaluationMode, Set[EvaluationType]]]:
@@ -224,7 +230,22 @@ class CaseGenerator:
         0
         >>> sorted(cg.factor_dict.items())
         [(1, 0), (2, 1)]
-
+        >>> cg = CaseGenerator(EntityDatabase())
+        >>> text = "aa, bb, cc"
+        >>> article = Article(0, "", text, [])
+        >>> cg.article = article
+        >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2])
+        >>> l2 = GroundtruthLabel(2, (0, 2), "Unknown", "Unknown1", 1, None)
+        >>> labels = [l1, l2]
+        >>> cg.label_dict = {label.id: label for label in labels}
+        >>> p1 = EntityMention((0, 2), "Unknown", None)
+        >>> cg.all_predictions ={p1.span: p1}
+        >>> result_list = []
+        >>> cg.factor_dict = dict()
+        >>> cg.recursively_determine_factor(1)
+        0
+        >>> sorted(cg.factor_dict.items())
+        [(1, 0), (2, 1)]
         >>> cg = CaseGenerator(EntityDatabase())
         >>> text = "aa, bb, cc"
         >>> article = Article(0, "", text, [])
@@ -268,6 +289,11 @@ class CaseGenerator:
         # Get predicted entity id for label span
         if label.span in self.all_predictions:
             pred_entity_id = self.all_predictions[label.span].entity_id
+            if pred_entity_id is None:
+                # For an unknown GT label, the prediction is correct if it is None.
+                # Therefore, pretend the prediction is the same as the GT label
+                # Without this, pred_entity_id would be None (as if there was no matching prediction)
+                pred_entity_id = label.entity_id if label.entity_id.startswith("Unknown") else "Unknown"
         elif expanded_label_span in self.all_predictions:
             pred_entity_id = self.all_predictions[expanded_label_span].entity_id
         else:

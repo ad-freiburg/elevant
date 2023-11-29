@@ -29,7 +29,7 @@ class GroundtruthLabel:
         self.desc = desc
 
     def is_optional(self) -> bool:
-        return self.optional or self.is_quantity() or self.is_datetime()
+        return self.optional or self.is_quantity() or self.is_datetime() or self.desc
 
     def is_quantity(self) -> bool:
         return self.QUANTITY in self.get_types()
@@ -63,6 +63,24 @@ class GroundtruthLabel:
 
     def __lt__(self, other):
         return self.id < other.id
+
+    def has_non_optional_child(self, label_dict):
+        """
+        Recursively determine whether the ground truth label has non-optional
+        children.
+        """
+        has_non_optional_children = False
+        for child_id in self.children:
+            # Determine whether there are non-optional direct children of the current label
+            child_gt_label = label_dict[child_id]
+            if not child_gt_label.is_optional():
+                return True
+            # Recursively determine whether there are non-optional indirect children of the
+            # current label
+            has_non_optional_children = child_gt_label.has_non_optional_child(label_dict)
+            if has_non_optional_children:
+                return True
+        return has_non_optional_children
 
 
 def groundtruth_label_from_dict(data: Dict) -> GroundtruthLabel:

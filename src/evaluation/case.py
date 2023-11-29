@@ -97,6 +97,7 @@ class Case:
         self.factor = 1 if factor is None else factor
         self.child_linking_eval_types = child_linking_eval_types
         self.child_ner_eval_types = child_ner_eval_types
+        self.has_non_optional_children = False
         self.linking_eval_types = {}
         self.ner_eval_types = {}
         self.compute_eval_types()
@@ -106,11 +107,14 @@ class Case:
             self.linking_eval_types[mode] = self._get_linking_eval_type(mode)
             self.ner_eval_types[mode] = self._get_ner_eval_type(mode)
 
-    def set_child_linking_eval_types(self, child_eval_types=Dict[EvaluationMode, Set[EvaluationType]]):
+    def set_child_linking_eval_types(self, child_eval_types: Dict[EvaluationMode, Set[EvaluationType]]):
         self.child_linking_eval_types = child_eval_types
 
-    def set_child_ner_eval_types(self, child_eval_types=Set[EvaluationType]):
+    def set_child_ner_eval_types(self, child_eval_types: Set[EvaluationType]):
         self.child_ner_eval_types = child_eval_types
+
+    def set_has_non_optional_children(self, has_non_optional_children):
+        self.has_non_optional_children = has_non_optional_children
 
     def _get_linking_eval_type(self, eval_mode: EvaluationMode) -> List[EvaluationType]:
         if self.factor == 0:
@@ -150,7 +154,9 @@ class Case:
                 return []
 
         if not self.has_prediction():
-            if self.is_optional():
+            if self.is_optional() and not self.has_non_optional_children:
+                # An optional ground truth label without corresponding prediction might still be
+                # an FN if it has non-optional children (often the case with descriptive GT labels)
                 # optent / ---: IGN, REQ
                 # optunk / ---: IGN, REQ
                 return []
@@ -250,7 +256,9 @@ class Case:
                 return []
 
         if not self.has_prediction():
-            if self.is_optional():
+            if self.is_optional() and not self.has_non_optional_children:
+                # An optional ground truth label without corresponding prediction might still be
+                # an FN if it has non-optional children (often the case with descriptive GT labels)
                 # optent / ---: IGN, REQ
                 # optunk / ---: IGN, REQ
                 return []
