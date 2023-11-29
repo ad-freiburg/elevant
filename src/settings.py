@@ -79,7 +79,7 @@ CUSTOM_WHITELIST_TYPES_FILE = DATA_DIRECTORY + "custom_mappings/whitelist_types.
 KB_FILE = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/wikidata/kb"
 KB_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/"
 VOCAB_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/wikidata/vocab"
-VECTORS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/vectors/vectors"
+VECTORS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/vectors/"
 VECTORS_ABSTRACTS_DIRECTORY = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/vectors/vectors_abstracts/"
 
 # Linker files

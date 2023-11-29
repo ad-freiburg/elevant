@@ -16,7 +16,7 @@ def preprocess_description(description: str) -> str:
 
 
 def save_vectors(vectors, file_no):
-    path = settings.VECTORS_DIRECTORY + "%i.pkl" % file_no
+    path = settings.VECTORS_DIRECTORY + "vectors%i.pkl" % file_no
     logger.info("Saving vectors to %s" % path)
     with open(path, "wb") as f:
         pickle.dump(vectors, f)
@@ -62,9 +62,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=__doc__)
 
-    parser.add_argument("min_score", type=int, required=True,
+    parser.add_argument("min_score", type=int,
                         help="Minimum score.")
-    parser.add_argument("start_line", type=int, default=0,
+    parser.add_argument("--start_line", type=int, default=0,
                         help="Start line.")
 
     logger = log.setup_logger(sys.argv[0])

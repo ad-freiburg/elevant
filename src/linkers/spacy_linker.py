@@ -52,7 +52,7 @@ class SpacyLinker(AbstractEntityLinker):
         return predictions
 
     def get_candidates(self, snippet: str) -> Set[str]:
-        return {candidate.entity_ for candidate in self.kb.get_candidates(snippet)}
+        return {candidate.entity_ for candidate in self.kb.get_alias_candidates(snippet)}
 
     def contains_entity(self, entity_id: str) -> bool:
         return entity_id in self.known_entities

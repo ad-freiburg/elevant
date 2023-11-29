@@ -26,14 +26,14 @@ class KnowledgeBaseCreator:
         logger.info("-> Spacy model loaded.")
 
         logger.info("Load vectors...")
-        vector_dir = settings.VECTORS_ABSTRACTS_DIRECTORY
+        vector_dir = settings.VECTORS_DIRECTORY
         for entity_id, vector in VectorLoader.iterate(vector_dir):
             frequency = entity_db.get_entity_frequency(entity_id)
             kb.add_entity(entity=entity_id, freq=frequency, entity_vector=vector)
         logger.info("-> Vectors loaded. Knowledge base contains %d entities." % len(kb))
 
         logger.info("Adding aliases...")
-        for alias in entity_db.aliases:
+        for alias in entity_db.link_aliases:
             if len(alias) > 0:
                 alias_entity_ids = [entity_id for entity_id in entity_db.get_candidates(alias)
                                     if kb.contains_entity(entity_id)]

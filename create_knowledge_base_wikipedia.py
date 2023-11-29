@@ -20,9 +20,9 @@ def main():
         logger.info("Creating directory %s ..." % save_path)
         os.mkdir(save_path)
 
-    kb_path = save_path + "kb"
+    kb_path = save_path
     logger.info("Writing knowledge base to %s ..." % kb_path)
-    kb.dump(kb_path)
+    kb.to_disk(kb_path)
     vocab_file = save_path + "vocab"
     logger.info("Writing vocab to %s ..." % vocab_file)
     kb.vocab.to_disk(vocab_file)
