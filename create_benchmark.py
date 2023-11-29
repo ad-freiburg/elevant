@@ -248,12 +248,12 @@ if __name__ == "__main__":
                         help="File that contains the original article in jsonl format"
                              "(for additional info like hyperlink spans). If the settings.OWN_BENCHMARK_FILE"
                              "does not contain all articles because the benchmark is being extended, use e.g."
-                             "benchmarks/benchmark_articles.all.jsonl")
+                             "benchmarks/noshow/benchmark_articles.all.jsonl")
 
     parser.add_argument("--title_span_jsonl_file", type=str,
                         help="File that contains the benchmark articles including bold title span info."
                              "Only needed if the benchmark is extended."
-                             "(E.g. benchmarks/benchmark_articles.all.bold.jsonl. This can't simply be used as"
+                             "(E.g. benchmarks/noshow/benchmark_articles.all.bold.jsonl. This can't simply be used as"
                              "article_jsonl_file, since the article texts slightly differ from the benchmark version)")
 
     logger = log.setup_logger(sys.argv[0])
