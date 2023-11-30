@@ -8,6 +8,7 @@ RUN python3 -m pip install -r requirements.txt
 RUN python3 -m spacy download en_core_web_lg
 RUN python3 -m spacy download en_core_web_sm
 COPY src src
+COPY scripts scripts
 COPY evaluation-webapp evaluation-webapp
 RUN mkdir third-party
 COPY third-party/wiki_extractor third-party/wiki_extractor
