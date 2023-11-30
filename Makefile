@@ -120,9 +120,8 @@ convert_benchmark_predictions:
 	done
 
 get_oracle_predictions:
-	@[ -d ${EVALUATION_RESULTS_DIR}oracle/ ] || mkdir ${EVALUATION_RESULTS_DIR}oracle/
 	for BENCHMARK in $(BENCHMARK_NAMES); do echo; \
-		python3 get_oracle_predictions.py ${EVALUATION_RESULTS_DIR}oracle/oracle.$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
+		python3 link_benchmark_articles.py "Oracle" -l oracle -b $${BENCHMARK}; \
 	done
 
 evaluate_linking_results:
