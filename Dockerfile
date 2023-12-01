@@ -17,7 +17,6 @@ COPY small-data-files small-data-files
 COPY configs configs
 COPY Makefile .
 COPY *.py ./
-COPY *.sh ./
 # Set DATA_DIR variable in Makefile to /data/ within the container
 RUN sed -i 's|^DATA_DIR =.*|DATA_DIR = /data/|' Makefile
 # Enable Makefile target autocompletion
