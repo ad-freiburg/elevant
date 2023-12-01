@@ -779,7 +779,7 @@ function read_linking_results(experiment_id) {
 
     // The linked_articles.jsonl files are only needed to display linked entities outside the evaluation span.
     // Therefore, only read these files for benchmarks where the evaluation span can be not the entire article.
-    if (benchmark.toLowerCase() === "wiki-ex" || benchmark.toLowerCase() === "newscrawl") {
+    if (benchmark.toLowerCase().startsWith("wiki-fair") || benchmark.toLowerCase().startsWith("news-fair")) {
         return $.when(
             read_linked_articles(experiment_id),
             read_evaluation_cases(experiment_id)
