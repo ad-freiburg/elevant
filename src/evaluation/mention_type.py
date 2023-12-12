@@ -49,6 +49,14 @@ def is_named_entity(entity_name: str) -> bool:
 
 
 def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType:
+    if true_entity and true_entity.is_coref() is not None:
+        # If the mention has a corresponding ground truth and the ground truth was
+        # explicitly marked as coreference or not coreference, use this information.
+        gt_is_coref = true_entity.is_coref()
+        if gt_is_coref is False:
+            return MentionType.ENTITY_NAMED if is_named_entity(true_entity.name) else MentionType.ENTITY_OTHER
+        return MentionType.COREF_PRONOMINAL if PronounFinder.is_pronoun(mention) else MentionType.COREF_NOMINAL
+    # Otherwise infer it from the mention text.
     if PronounFinder.is_pronoun(mention):
         return MentionType.COREF_PRONOMINAL
     elif is_nominal(mention):

@@ -15,7 +15,7 @@ class GroundtruthLabel:
                  children: Optional[List[int]] = None,
                  optional: Optional[bool] = False,
                  type: Optional[str] = OTHER,
-                 coref: Optional[bool] = False,
+                 coref: Optional[bool] = None,
                  desc: Optional[bool] = False):
         self.id = label_id
         self.span = span
@@ -37,7 +37,9 @@ class GroundtruthLabel:
     def is_datetime(self) -> bool:
         return self.DATETIME in self.get_types()
 
-    def is_coref(self) -> bool:
+    def is_coref(self) -> Optional[bool]:
+        # self.coref is only True or False if the coref property was explicitly set in the ground truth.
+        # Otherwise it is None.
         return self.coref
 
     def get_types(self) -> List[str]:
@@ -57,7 +59,7 @@ class GroundtruthLabel:
             d["optional"] = self.optional
         if self.desc:
             d["desc"] = self.desc
-        if self.coref:
+        if self.coref is not None:
             d["coref"] = self.coref
         return d
 
@@ -92,5 +94,5 @@ def groundtruth_label_from_dict(data: Dict) -> GroundtruthLabel:
                             children=data["children"] if "children" in data else None,
                             optional=data["optional"] if "optional" in data else False,
                             type=data["type"] if "type" in data else GroundtruthLabel.OTHER,
-                            coref=data["coref"] if "coref" in data else False,
+                            coref=data["coref"] if "coref" in data else None,
                             desc=data["desc"] if "desc" in data else False)
