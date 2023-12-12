@@ -1,13 +1,13 @@
 # Add a Benchmark
 You can easily add a benchmark if you have a benchmark file that is in one of the following formats:
 
-- a very simple JSONL format
-- NLP Interchange Format (NIF)
-- IOB-based format used by Hoffart et al. for their AIDA-CoNLL benchmark
-- XML format used for example for the MSNBC benchmarks
-- TTL format used for the OKE challenges
-- a simple TSV format with IOB tags
-- our JSONL format
+- [a very simple JSONL format](#simple-jsonl-format)
+- [NLP Interchange Format (NIF)](#nif)
+- [IOB-based format](#aida-conll-iob-format) used by Hoffart et al. for their AIDA-CoNLL benchmark
+- [XML format](#xml-msnbc-format) used for example for the MSNBC benchmarks
+- [TTL format](#oke) used for the OKE challenges
+- [a simple TSV format](#tsv-iob-format) with IOB tags
+- [our JSONL format](#our-jsonl-format)
 
 To add a benchmark, simply run
 
@@ -42,6 +42,9 @@ The benchmark file should contain one line per benchmark article, where each lin
     predicted Wikipedia titles that match the regular expression `Q[0-9]+` will be interpreted as Wikidata QIDs.
     - `start_char`: The character offset of the start of the label (including) within the article text
     - `end_char`: The character offset of the end of the label (excluding) within the article text
+    - `coref`(*optional*): A boolean flag indicating whether the ground truth label is a coreference. If this is not set
+    for a ground truth label ELEVANT will infer whether the label is a coreference or not from the mention text
+    (a mention is marked as a coreference if it is a pronoun or of the format "the *type*").
 
 Your benchmark file should look something like this:
 
