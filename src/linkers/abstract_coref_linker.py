@@ -5,7 +5,7 @@ from spacy.tokens import Doc
 from src.utils.pronoun_finder import PronounFinder
 from src.models.article import Article
 from src.models.entity_mention import EntityMention
-from src.evaluation.coreference_groundtruth_generator import is_coreference
+from src.evaluation.mention_type import is_coreference
 
 
 class AbstractCorefLinker(abc.ABC):
