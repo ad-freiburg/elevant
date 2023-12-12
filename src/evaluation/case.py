@@ -407,7 +407,19 @@ def case_from_dict(data) -> Case:
     # eval_types are freshly computed.
     true_entity = None
     if "true_entity" in data:
-        true_entity = WikidataEntity(data["true_entity"]["entity_id"], data["true_entity"]["name"])
+        gt_label_id = data["true_entity"]["id"]
+        gt_entity_id = data["true_entity"]["entity_id"]
+        gt_span = data["true_entity"]["span"]
+        gt_name = data["true_entity"]["name"]
+        gt_type = data["true_entity"]["type"]
+        gt_parent = data["true_entity"]["parent"] if "parent" in data["true_entity"] else None
+        gt_children = data["true_entity"]["children"] if "children" in data["true_entity"] else None
+        gt_optional = data["true_entity"]["optional"] if "optional" in data["true_entity"] else False
+        gt_coref = data["true_entity"]["coref"] if "coref" in data["true_entity"] else None
+        gt_desc = data["true_entity"]["desc"] if "desc" in data["true_entity"] else False
+        true_entity = GroundtruthLabel(gt_label_id, gt_span, gt_entity_id, gt_name, parent=gt_parent,
+                                       children=gt_children, optional=gt_optional, type=gt_type, coref=gt_coref,
+                                       desc=gt_desc)
     pred_entity = None
     if "predicted_entity" in data:
         pred_entity = WikidataEntity(data["predicted_entity"]["entity_id"], data["predicted_entity"]["name"])
