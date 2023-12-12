@@ -179,7 +179,7 @@ window.ERROR_CATEGORY_CORRECT_TAGS = {
 }
 
 window.MENTION_TYPE_HEADERS = {"entity": ["entity_named", "entity_other"],
-                        "coref": ["nominal", "pronominal"],
+                        "coref": ["coref_nominal", "coref_pronominal"],
                         "entity_named": ["entity_named"],
                         "entity_other": ["entity_other"],
                         "coref_nominal": ["coref_nominal"],
