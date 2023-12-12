@@ -55,7 +55,7 @@ Share
 
 <START>[QUANTITY|265] shares
 
-'That radical authenticity of [Q232708|hers] was what made [Q212064|me] fall head over heels in love,' [Q212064|he] added.
+'That radical authenticity of [COREF:Q232708|hers] was what made [COREF:Q212064|me] fall head over heels in love,' [COREF:Q212064|he] added.
 
 'And that's what [COREF:Q212064|I] want for [DESC:Unknown1|[COREF:Q212064|my] daughter] - to be expectation-less with [COREF:Unknown1|her] love and not allow preconceived standards to affect [COREF:Unknown1|her], to ask [COREF:Unknown1|herself] what [COREF:Unknown1|she] wants and feel empowered enough to act on it.'<END>
 
@@ -2816,7 +2816,7 @@ A group of writers and scholars is suing the New York Public Library over the Ce
 
 <START>[Q3071037|Paula Deen] will star as a character in a [Q1760610|comic book] coming out this [Q1314|fall].
 
-"[COREF:Q7348003|I]'m actually the nut who has about [QUANTITY|forty] or [QUANTITY|forty-five] manual typewrtiers.... It's become a sort of weird private fetish for [Q7348003|me]." The [Q36180|writer] [Q7348003|Robert Neuwirth] has re-created typewriter art from the [DATETIME|sixties], which originally involved tossing a typewriter from a speeding car and building a crime-scene investigation around the battered machine.
+"[COREF:Q7348003|I]'m actually the nut who has about [QUANTITY|forty] or [QUANTITY|forty-five] manual typewrtiers.... It's become a sort of weird private fetish for [COREF:Q7348003|me]." The [Q36180|writer] [Q7348003|Robert Neuwirth] has re-created typewriter art from the [DATETIME|sixties], which originally involved tossing a typewriter from a speeding car and building a crime-scene investigation around the battered machine.
 
 In [Q894580|Boston Review], [Unknown1|Lucy McKeon] on [Q16214941|Kiese Laymon]'s "[Unknown2|Long Division]," a "multilayered, allusion-packed, time-traveling" [Q8261|novel] that attempts to confront the "messy complexity" of race and [Q131110|[Q30|American] history].<END>
 
@@ -4165,7 +4165,7 @@ The [Q607272|Woolies] price cuts, effective from [DATETIME|today], include a [QU
 What's making Romney hesitant to disclose taxes?
 
 <START>
-[Q4496|Mitt Romney] says [COREF:Q4496|he]'ll release [Q4496|his] [DATETIME|2011] tax return in [DATETIME|April]. This, after persistent calls for [COREF:Q4496|the [Q29468|Republican] presidential] hopeful to do so, particularly from fellow [Q2380299|candidate] [Q182788|Newt Gingrich].
+[Q4496|Mitt Romney] says [COREF:Q4496|he]'ll release [COREF:Q4496|his] [DATETIME|2011] tax return in [DATETIME|April]. This, after persistent calls for [COREF:Q4496|the [Q29468|Republican] presidential] hopeful to do so, particularly from fellow [Q2380299|candidate] [Q182788|Newt Gingrich].
 
 But during [DATETIME|last night]'s [Q29468|GOP] debate, [Q4496|Romney] "had a difficult time talking comfortably about [COREF:Q4496|his] taxes," [Q3336905|National Journal] [Unknown1|Congressional Correspondent] [Q6738068|Major Garrett] observed on "[Q2784108|CBS This Morning]" [DATETIME|Friday]. It was, [COREF:Q6738068|he] noted, the [QUANTITY|second] debate in a row where that happened.
 
