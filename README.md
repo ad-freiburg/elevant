@@ -125,8 +125,8 @@ See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information o
  with a single command.
 
 See [Included Linkers](docs/included_linkers.md) for a list of linkers that can be used out of the box with ELEVANT.
- These are for example ReFinED, OpenAI's GPT (you'll need an OpenAI API key for that), REL, TagMe (you'll need an access
- token that can be obtained easily and free of cost) and DBpediaSpotlight.
+ These are for example *ReFinED*, OpenAI's *GPT* (you'll need an OpenAI API key for that), *REL*, *TagMe* (you'll
+ need an access token for that which can be obtained easily and free of cost) and *DBpediaSpotlight*.
 
 ### Evaluate Linking Results
 
