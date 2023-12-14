@@ -34,8 +34,7 @@ class LinkingSystem:
         self.linker_config = self.read_linker_config(linker_name, config_path) if linker_name else {}
         self.custom_kb = custom_kb
 
-        if custom_kb and prediction_format not in {PredictionFormats.NIF.value,
-                                                         PredictionFormats.SIMPLE_JSONL.value}:
+        if custom_kb and prediction_format not in {PredictionFormats.NIF.value, PredictionFormats.SIMPLE_JSONL.value}:
             logger.warning(f"Using a custom knowledge base is not supported for linking result format "
                            f"{prediction_format}. Please choose a different format.")
 
@@ -177,6 +176,11 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = WatLinker(self.entity_db, self.linker_config)
+        elif linker_type == Linkers.GPT.value:
+            from src.linkers.gpt_linker import GPTLinker
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = GPTLinker(self.entity_db, self.linker_config)
         else:
             linker_exists = False
 

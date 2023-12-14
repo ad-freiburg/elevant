@@ -4,6 +4,7 @@ from enum import Enum
 class Linkers(Enum):
     REFINED = "refined"
     REL = "rel"
+    GPT = "gpt"
     TAGME = "tagme"
     WAT = "wat"
     DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"

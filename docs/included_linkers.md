@@ -5,6 +5,7 @@ We distinguish between three classes of linkers in Elevant:
  results. The following linkers belong to this class:
     - [ReFinED](#refined)
     - [REL](#rel)
+    - [GPT](#gpt) (requires an OpenAI API key)
     - [TagMe](#tagme) (requires an access token that can easily be obtained)
     - [WAT](#wat) (requires an access token that can easily be obtained)
     - [DBPedia Spotlight](#dbpedia-spotlight)
@@ -35,10 +36,11 @@ ReFinED is a fast end-to-end entity linker based on Transformers that is capable
 [ReFinED: An Efficient Zero-shot-capable Approach to End-to-End Entity Linking](https://arxiv.org/pdf/2207.04108v1.pdf).
 
 In ELEVANT, you can use the ReFinED linker with the `link_benchmark_entities.py` script and the linker name `refined`.
- In the corresponding config file `configs/refined.config.json` you can set the model name (e.g. `aida_model` for the
- fine-tuned model or `wikipedia_model` for the model trained on Wikipedia only) as well as the candidate set
- (`wikipedia` to restrict the candidate set to 6 million Wikidata entities that also have a Wikipedia page, or
- `wikidata` for a set of 33 million Wikidata entities).
+ In the corresponding config file [configs/refined.config.json](../configs/refined.config.json) you can set the model
+  name
+ (e.g. `aida_model` for the fine-tuned model or `wikipedia_model` for the model trained on Wikipedia only) as well as
+ the candidate set (`wikipedia` to restrict the candidate set to 6 million Wikidata entities that also have a
+ Wikipedia page, or `wikidata` for a set of 33 million Wikidata entities).
 
     python3 link_benchmark_entities.py <experiment_name> -l refined -b <benchmark_name>
 
@@ -59,16 +61,36 @@ Per default, REL uses Flair (Akbik et al., 2018) as NER component which is based
  dataset.
  
 In ELEVANT, you can use the REL linker with the `link_benchmark_entities.py` script and the linker name `rel`.
- In the corresponding config file `configs/rel.config.json`, you can set the Wikipedia version and NER model name
-  (consult the REL GitHub page for information on the available options:
-  [GitHub repo](https://github.com/informagi/REL)). When you first use the corresponding model, the necessary data
-  will be automatically downloaded. Alternatively you can set `use_api` to `true` and set the `api_url` config
-  parameter (the official REL API URL per default), to query an API for REL linking results. Note that in this case,
-  the config parameters `wiki_version` and `ner_model` have no effect.
+ In the corresponding config file [configs/rel.config.json](../configs/rel.config.json), you can set the Wikipedia
+ version and NER model name (consult the REL GitHub page for information on the available options:
+ [GitHub repo](https://github.com/informagi/REL)). When you first use the corresponding model, the necessary data
+ will be automatically downloaded. Alternatively you can set `use_api` to `true` and set the `api_url` config
+ parameter (the official REL API URL per default), to query an API for REL linking results. Note that in this case,
+ the config parameters `wiki_version` and `ner_model` have no effect.
 
     python3 link_benchmark_entities.py <experiment_name> -l rel -b <benchmark_name>
 
 The REL linker class is implemented [here](../src/linkers/rel_linker.py). REL predicts Wikipedia entity links.
+ We map the predicted Wikipedia entities to Wikidata using our mappings.
+
+#### GPT
+GPT probably needs no introduction. **NOTE: You will need your own OpenAI API key in order to use GPT within ELEVANT.**
+ Using the OpenAI API is not free. See https://openai.com/pricing for information about the pricing.
+
+In ELEVANT, you can use GPT for entity linking with the `link_benchmark_entities.py` script and the linker name `gpt`.
+ In the corresponding config file [configs/gpt.config.json](../configs/gpt.config.json), you can set your OpenAI API key
+ with the `openai_api_key` field. If this is not set, ELEVANT will try to retrieve the API key from the
+ `OPENAI_API_KEY` environment variable.
+ In the config, you can also set the model to be used. We recommend to use a model &gt;= `gpt-4`, since
+ `gpt-3.5-turbo-1106` for example does not reliably produce the expected output format  especially for long benchmark
+ texts. You can also set the model temperature as well as a seed for reproducible outputs there. If you set the
+ `named_only` field to `true`, GPT will be prompted to only link named entities.
+ See [here](../src/linkers/gpt_linker.py) for the exact prompt. You can adjust the prompt if you like but make sure you
+ don't ask for a different output format, otherwise you will need to adjust the parser code in `parse_annotated_text()`.
+
+    python3 link_benchmark_entities.py <experiment_name> -l gpt -b <benchmark_name>
+
+The GPT linker class is implemented [here](../src/linkers/gpt_linker.py). GPT predicts Wikipedia entity names.
  We map the predicted Wikipedia entities to Wikidata using our mappings.
 
 #### TagMe
@@ -78,11 +100,12 @@ TagMe was introduced by Ferragina & Scaiella in the 2010 paper [TAGME: On-the-fl
  ](https://github.com/marcocor/tagme-python).
  
 In ELEVANT, you can use the TagMe linker with the `link_benchmark_entities.py` script and the linker name `tagme`. In
- the corresponding config file `configs/tagme.config.json` you can additionally specify a score threshold. The
- threshold is a value between 0 and 1. Predicted entities with a score lower than the threshold will be discarded.
- Per default, the threshold is 0.2. NOTE: You need a personal access token to access the TagMe API which ELEVANT
- uses. The process is easy and is described at <https://github.com/marcocor/tagme-python>. Once you have your token,
- specify it in the config file under the key word `token`.
+ the corresponding config file [configs/tagme.config.json](../configs/tagme.config.json) you can additionally specify a
+ score threshold. The threshold is a value between 0 and 1. Predicted entities with a score lower than the threshold
+ will be discarded. Per default, the threshold is 0.2.
+ **NOTE: You need a personal access token to access the TagMe API which ELEVANT uses.** The process is easy and is
+ described at <https://github.com/marcocor/tagme-python>. Once you have your token, specify it in the config file
+ under the key word `token`.
  
     python3 link_benchmark_entities.py <experiment_name> -l tagme -b <benchmark_name>
 
@@ -95,11 +118,12 @@ WAT is an entity linker based on the TagMe linker introduced by Piccinno & Ferra
  hosted at [d4science](https://sobigdata.d4science.org/web/tagme/wat-api).
  
 In ELEVANT, you can use the WAT linker with the `link_benchmark_entities.py` script and the linker name `wat`. In
- the corresponding config file `configs/wat.config.json` you can additionally specify a score threshold. The
- threshold is a value between 0 and 1. Predicted entities with a score lower than the threshold will be discarded.
- Per default, the threshold is 0.266. NOTE: You need a personal access token to access the WAT API which ELEVANT
- uses. The process is easy and is described at <https://github.com/marcocor/tagme-python>. Once you have your token,
- specify it in the config file under the key word `token`.
+ the corresponding config file [configs/wat.config.json](../configs/wat.config.json) you can additionally specify a
+ score threshold. The threshold is a value between 0 and 1. Predicted entities with a score lower than the threshold
+ will be discarded. Per default, the threshold is 0.266.
+ **NOTE: You need a personal access token to access the WAT API which ELEVANT uses.** The process is easy and is
+ described at <https://github.com/marcocor/tagme-python>. Once you have your token, specify it in the config file
+ under the key word `token`.
  
     python3 link_benchmark_entities.py <experiment_name> -l wat -b <benchmark_name>
 
@@ -112,7 +136,8 @@ DBpedia Spotlight is a linking system developed by Daiber et al. and described i
  links entities to their entries in DBpedia.
 
 In ELEVANT, you can use the DBpedia linker with the `link_benchmark_entities.py` script and the linker name
- `dbpedia-spotlight`. In the corresponding config file `configs/dbpedia-spotlight.config.json` you can set the API
+ `dbpedia-spotlight`. In the corresponding config file
+ [configs/dbpedia-spotlight.config.json](../configs/dbpedia-spotlight.config.json) you can set the API
  URL - the official DBpedia Spotlight API URL per default, but you can also run the system yourself, e.g. using Docker
  as described in the [GitHub repo](https://github.com/dbpedia-spotlight/dbpedia-spotlight-model), and provide a custom
  API URL. You can also specify a confidence threshold, which is set to 0.35 per default.
@@ -157,8 +182,8 @@ The SpaCy linker can then be used by providing the linker name `spacy`:
 
     python3 link_benchmark_entities.py <experiment_name> -l spacy -b <benchmark_name>
 
-In the corresponding config file `configs/spacy.config.json` you can adjust the model and knowledge base name if needed.
- The Spacy linker class is implemented [here](../src/linkers/spacy_linker.py).
+In the corresponding config file [configs/spacy.config.json](../configs/spacy.config.json) you can adjust the model and
+ knowledge base name if needed. The Spacy linker class is implemented [here](../src/linkers/spacy_linker.py).
 
 Alternatively you can train the linker yourself. This requires the following steps:
 
