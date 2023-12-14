@@ -14,6 +14,7 @@ import re
 
 from src import settings
 from src.utils import log
+from src.utils.colors import Colors
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.models.article import article_from_json
@@ -21,7 +22,7 @@ from src.evaluation.evaluator import Evaluator
 
 
 def main(args):
-    logger.info("Evaluating linking results from %s ..." % args.input_files)
+    logger.info(f"Evaluating linking results from {Colors.BLUE}{args.input_files}{Colors.END} ...")
 
     # Read whitelist types
     whitelist_types = set()
@@ -54,10 +55,10 @@ def main(args):
         if args.benchmark:
             # If a benchmark is given, labels and article texts are retrieved from the benchmark
             # and not from the given jsonl file. The user has to make sure the files match.
-            logger.info("Retrieving labels from %s benchmark file instead of %s" % (args.benchmark, input_file_name))
+            logger.info(f"Retrieving labels from {args.benchmark} benchmark file instead of {input_file_name}")
             benchmark_iterator = get_benchmark_iterator(args.benchmark).iterate()
 
-        logger.info("Evaluating linking results ...")
+        logger.info(f"Evaluating linking results from {Colors.BLUE}{input_file_name}{Colors.END}")
         input_file = open(input_file_name, 'r', encoding='utf8')
         for line in input_file:
             article = article_from_json(line)
@@ -114,7 +115,7 @@ def main(args):
 
         with open(results_file, "w") as f:
             f.write(json.dumps(results_dict))
-        logger.info("Wrote results to %s" % results_file)
+        logger.info(f"Wrote results to {Colors.BOLD}{results_file}{Colors.END}")
 
         if args.benchmark and args.write_benchmark:
             input_file.seek(0)
@@ -133,7 +134,7 @@ def main(args):
             input_file.close()
 
         output_file.close()
-        logger.info("Wrote evaluation cases to %s" % output_filename)
+        logger.info(f"Wrote evaluation cases to {Colors.BOLD}{output_filename}{Colors.END}")
 
 
 if __name__ == "__main__":

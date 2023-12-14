@@ -5,6 +5,7 @@ from datetime import datetime
 
 from src import settings
 from src.utils import log
+from src.utils.colors import Colors
 from src.evaluation.benchmark import BenchmarkFormat, Benchmark, get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.evaluation.groundtruth_label import GroundtruthLabel
@@ -13,8 +14,8 @@ from src.models.entity_database import EntityDatabase
 
 def main(args):
     benchmark_info = args.benchmark if args.benchmark else args.benchmark_file
-    logger.info("Transform benchmark %s into jsonl format and annotate groundtruth labels with Wikidata label and type."
-                % benchmark_info)
+    logger.info(f"Transform benchmark {Colors.BLUE}{benchmark_info}{Colors.END} into jsonl format and annotate"
+                f"groundtruth labels with Wikidata label and type.")
 
     from_json_file = args.benchmark in get_available_benchmarks()
     benchmark_iterator = get_benchmark_iterator(args.benchmark,
@@ -60,9 +61,9 @@ def main(args):
                     "description": description,
                     "timestamp": datetime.now().strftime("%Y/%m/%d %H:%M")}
         metadata_file.write(json.dumps(metadata))
-    logger.info("Wrote benchmark metadata to %s" % metadata_filename)
+    logger.info(f"Wrote benchmark metadata to {Colors.BOLD}{metadata_filename}{Colors.END}")
 
-    logger.info("Wrote benchmark articles to %s" % filename)
+    logger.info(f"Wrote benchmark articles to {Colors.BOLD}{filename}{Colors.END}")
 
 
 if __name__ == "__main__":

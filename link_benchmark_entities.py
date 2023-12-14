@@ -22,6 +22,7 @@ from tqdm import tqdm
 
 from src import settings
 from src.utils import log
+from src.utils.colors import Colors
 from src.evaluation.benchmark import get_available_benchmarks
 from src.evaluation.benchmark_iterator import get_benchmark_iterator
 from src.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
@@ -60,12 +61,12 @@ def main(args):
         output_filename = output_dir + "/" + experiment_filename + "." + benchmark + ".linked_articles.jsonl"
         metadata_filename = output_filename[:-len(".linked_articles.jsonl")] + ".metadata.json"
         if output_dir and not os.path.exists(output_dir):
-            logger.info("Creating directory %s" % output_dir)
+            logger.info(f"Creating directory {output_dir}")
             os.makedirs(output_dir)
 
         output_file = open(output_filename, 'w', encoding='utf8')
 
-        logger.info("Linking entities in %s benchmark ..." % benchmark)
+        logger.info(f"Linking entities in {Colors.BLUE}{benchmark}{Colors.END} benchmark ...")
 
         n_articles = 0
         start_time = time.time()
@@ -105,8 +106,8 @@ def main(args):
                         "linker_config": linker_config}
             metadata_file.write(json.dumps(metadata))
 
-        logger.info("Wrote metadata to %s" % metadata_filename)
-        logger.info("Wrote %d linked articles to %s" % (n_articles, output_filename))
+        logger.info(f"Wrote metadata to {Colors.BOLD}{metadata_filename}{Colors.END}")
+        logger.info(f"Wrote {n_articles} linked articles to {Colors.BOLD}{output_filename}{Colors.END}")
 
 
 if __name__ == "__main__":
