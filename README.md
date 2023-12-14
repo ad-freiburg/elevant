@@ -93,6 +93,9 @@ The benchmark can now be linked with a linker of your choice using the `link_ben
 See [Add A Benchmark](docs/add_benchmark.md) for more details on adding a benchmark including a description of the
  supported file formats.
 
+Many popular entity linking benchmarks are already included in ELEVANT and can be used with ELEVANT's scripts out of the
+ box. See [Benchmarks](docs/benchmarks.md) for a list of these benchmarks.
+
 ## Add an Experiment
 
 You can add an experiment, i.e. a row in the table for a particular benchmark, in two steps: 1) link the benchmark
@@ -120,6 +123,10 @@ will create the file `evaluation-results/baseline/baseline.kore50.linked_article
 See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information on how you can transform your existing
  linking result files into our format, and instructions for how to link multiple benchmarks using multiple linkers
  with a single command.
+
+See [Included Linkers](docs/included_linkers.md) for a list of linkers that can be used out of the box with ELEVANT.
+ These are for example ReFinED, OpenAI's GPT (you'll need an OpenAI API key for that), REL, TagMe (you'll need an access
+ token that can be obtained easily and free of cost) and DBpediaSpotlight.
 
 ### Evaluate Linking Results
 
