@@ -1,7 +1,23 @@
+"""
+Example call for creating Wiki-Fair v2.0:
+
+    python3 scripts/create_benchmark.py benchmarks/noshow/wiki-fair-v2.annotations.txt -o wiki-fair-v2.jsonl --skip \
+    --article_jsonl_file benchmarks/noshow/benchmark_articles.all.jsonl \
+    --title_span_jsonl_file benchmarks/noshow/benchmark_articles.all.bold.jsonl
+
+Example call for creating Wiki-Fair v2.0 as no-coref variant (i.e. excluding coreference ground truth labels)
+
+    python3 scripts/create_benchmark.py benchmarks/noshow/wiki-fair-v2.annotations.txt -o wiki-fair-v2-no-coref.jsonl \
+    --skip --no_coref_variant \
+    --article_jsonl_file benchmarks/noshow/benchmark_articles.all.jsonl \
+    --title_span_jsonl_file benchmarks/noshow/benchmark_articles.all.bold.jsonl
+"""
+
+
 import argparse
 import re
 import sys
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Set
 
 sys.path.append(".")
 
@@ -68,7 +84,7 @@ def get_labels(labeled_text: str) -> List[Tuple[Tuple[int, int], str]]:
     return labels
 
 
-def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
+def get_nested_labels(labeled_text: str, no_coref_variant: bool = False) -> List[GroundtruthLabel]:
     """
     Labels can be nested.
     """
@@ -77,6 +93,7 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
     optional_tags = []
     desc_tags = []
     coref_tags = []
+    no_coref_alt_tags = []
     inside = 0  # Indicates current annotation nesting level
     article_labels = []
     original_texts = []  # Maps nesting levels to a list of original texts at this nesting level
@@ -85,6 +102,7 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
     original_text_cell = False
     entity_name_cell = False
     label_id_counter = 0
+    delete_ids = set()
     for char_idx, char in enumerate(labeled_text):
         if char == "[":
             # At the beginning of an annotation
@@ -111,6 +129,7 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
                 optional_tags.append(False)
                 desc_tags.append(False)
                 coref_tags.append(False)
+                no_coref_alt_tags.append(False)
         elif inside > 0 and char == "|":
             # Inside of an annotation reaching the original text cell
             original_text_cell = True
@@ -130,9 +149,19 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
                                                  optional=optional_tags[-1], type=label_type, desc=desc_tags[-1],
                                                  coref=coref_tags[-1])
             article_labels.append(groundtruth_label)
+            if (no_coref_variant and coref_tags[-1]) or (no_coref_variant is False and no_coref_alt_tags[-1]):
+                # The label needs to be deleted eventually if the label is a coreference and the benchmark is
+                # not supposed to contain coreferences
+                # OR if the label is a no-coref alternative (i.e. an alternative label only if coreferences are
+                # excluded) and the benchmark is supposed to include coreferences.
+                # E.g. Predicting "singer" in [COREF:Qxyz|the [NO_COREF_ALT:Qabc|singer]] should not count as TP in a
+                # benchmark variant that includes coreferences. In a benchmark variant that does not include
+                # coreferences however, it should count as a TP.
+                delete_ids.add(label_id)
             del optional_tags[-1]
             del desc_tags[-1]
             del coref_tags[-1]
+            del no_coref_alt_tags[-1]
             del labels[-1]
             del start_pos[-1]
             inside -= 1
@@ -161,6 +190,9 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
                 elif labels[-1] == "COREF":
                     coref_tags[-1] = True
                     labels[-1] = ""
+                elif labels[-1] == "NO_COREF_ALT":
+                    no_coref_alt_tags[-1] = True
+                    labels[-1] = ""
                 else:
                     entity_name_cell = True
             elif not entity_name_cell:
@@ -168,7 +200,29 @@ def get_nested_labels(labeled_text: str) -> List[GroundtruthLabel]:
         else:
             # Outside of an annotation
             pos += 1
+    # Delete labels that are marked for deletion
+    article_labels = delete_labels(article_labels, delete_ids)
     return article_labels
+
+
+def delete_labels(labels: List[GroundtruthLabel], delete_ids: Set[int]) -> List[GroundtruthLabel]:
+    label_dict = {gt_label.id: gt_label for gt_label in labels}
+    for l in labels:
+        if l.id in delete_ids:
+            # Remove delete label from children of its parent
+            if l.parent is not None and l.parent in label_dict:
+                parent = label_dict[l.parent]
+                if parent.children:
+                    parent.children.remove(l.id)
+            # Remove delete label as parent from its children
+            if l.children:
+                for child_id in l.children:
+                    if child_id in label_dict:
+                        child = label_dict[child_id]
+                        child.parent = l.parent
+            # Remove delete label
+            label_dict.pop(l.id)
+    return sorted(label_dict.values(), key=lambda x: x.id)
 
 
 def main(args):
@@ -199,7 +253,7 @@ def main(args):
                 if not args.skip and i + skip_count in skip_articles:
                     skip_count += 1
                 article = article_from_json(json)
-                labels = get_nested_labels(labels_texts[i + skip_count])
+                labels = get_nested_labels(labels_texts[i + skip_count], args.no_coref_variant)
                 article.labels = labels
 
                 # Make sure label spans are within the article text boundaries
@@ -257,6 +311,9 @@ if __name__ == "__main__":
                              "Only needed if the benchmark is extended."
                              "(E.g. benchmarks/noshow/benchmark_articles.all.bold.jsonl. This can't simply be used as"
                              "article_jsonl_file, since the article texts slightly differ from the benchmark version)")
+
+    parser.add_argument("--no_coref_variant", action="store_true",
+                        help="Create a benchmark variant without coreference ground truth labels.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))
