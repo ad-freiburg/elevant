@@ -218,7 +218,7 @@ Kate, 35, attended a reception at Buckingham Palace for World Mental Health Day 
 
 While many commenters on Kensington Palace's Instagram account complimented Kate on how well she looked, others were eager to point out her tiny stomach with one saying: 'I can't believe she's pregnant, she looks too thin.'
 
-<START>Others even claimed that they look more pregnant than [COREF:Q10479|the [Q4593319|Duchess]] does, questioning how [COREF:Q10479|she] can still look so slim.
+<START>Others even claimed that they look more pregnant than [COREF:Q10479|the [NO_COREF_ALT:Q4593319|Duchess]] does, questioning how [COREF:Q10479|she] can still look so slim.
 
 However, [Q381160|experts] hit back at the comments saying that 'bump shaming' can cause unnecessary [Q154430|anxiety] for mothers-to-be.
 
@@ -392,7 +392,7 @@ Standing completely naked, she mimicked the goddess of love, beauty, sex and fer
 
 Like the seashell surfing deity, strategically placed hair and hands helped preserve her modesty.
 
-<START>[COREF:Q5372335|The [Q33999|actress]], who has often posted images of [COREF:Q5372335|herself] of the steamier variety, discussed online photos with [Q237875|Naomi Wolf] in [Q654606|Harper's Bazaar] in [DATETIME|2016].
+<START>[COREF:Q5372335|The [NO_COREF_ALT:Q33999|actress]], who has often posted images of [COREF:Q5372335|herself] of the steamier variety, discussed online photos with [Q237875|Naomi Wolf] in [Q654606|Harper's Bazaar] in [DATETIME|2016].
 
 'A [Q12068677|selfie] is a sort of interesting way to reclaim the gaze, right?' said [Q5372335|Emily]. 'You're looking at yourself and taking a photo while looking at everyone.'
 
@@ -473,11 +473,11 @@ Some fans have wondered whether the song title, Ready For It?, is directed at Jo
 
 The song was released amid claims Taylor has filed paperwork to trademark phrases and lyrics connected with her new reputation album, including the line from Look What You Made Me Do, 'The old Taylor can't come to the phone right now. Why? Because she's dead.'
 
-<START>According to [Q2630118|TMZ], [COREF:Q26876|the award-winning [Q488205|singer-songwriter]] has also trademarked song titles from [COREF:Q26876|her] [Q37814092|[Q37814092|reputation] album] so [COREF:Q26876|she] can use the lyrics and titles on official merchandise.
+<START>According to [Q2630118|TMZ], [COREF:Q26876|the award-winning [NO_COREF_ALT:Q488205|singer-songwriter]] has also trademarked song titles from [COREF:Q26876|her] [Q37814092|[Q37814092|reputation] album] so [COREF:Q26876|she] can use the lyrics and titles on official merchandise.
 
 Meanwhile, a minute-long snippet of [Q38552445|Ready For It?] debuted during the [Q4705216|Alabama] versus [Q5461626|Florida State] [Q41323|football] game on [DATETIME|Saturday], before [Q26876|Taylor] released [COREF:Q38552445|the entire track] to [Q866|YouTube] on [DATETIME|Sunday].
 
-In stark contrast to [Q37912621|Look What You Made Me Do], [COREF:Q38552445|the peppy new [Q541947|anthem]] struck a far more upbeat note, with [Q26876|Taylor] singing of love and romance.<END>
+In stark contrast to [Q37912621|Look What You Made Me Do], [COREF:Q38552445|the peppy new [NO_COREF_ALT:Q541947|anthem]] struck a far more upbeat note, with [Q26876|Taylor] singing of love and romance.<END>
 
 Both Taylor and ESPN shared a clip of the track with fans on social media, which was the background music for scenes of the two football teams prepared to hit the field.
 
@@ -1134,9 +1134,9 @@ Looking back on the film that spotlighted Ginsburg worldwide, and offered intima
 
 <START>"We never expected [COREF:Q42048168|the film] to generate the reaction that [COREF:Q42048168|it] did. Many people were unfamiliar with [COREF:Q11116|her] pre-judicial career as a [Q40348|lawyer] for the [Q21637|ACLU] and how [COREF:Q11116|she] played such an essential role in securing equal rights, particularly for women, which meant all [Q846570|Americans] benefited," [COREF:Q58416693|she] wrote. "The stories of [COREF:Q11116|her] personal struggle to become an [Q40348|attorney] makes [COREF:Q11116|her] singular contributions to the law that much more poignant. And [COREF:Q11116|her] enduring marriage to [Q6775247|Martin Ginsburg] touched and moved audiences of all genders and generations."
 
-[COREF:Q42048168|This [Q15994987|CNN Films] [Q93204|documentary]] will be broadcast on [Q48340|CNN] [DATETIME|Saturday] night at [DATETIME|10 p.m. ET], with encores [DATETIME|Sunday] at [DATETIME|10 p.m.] and [DATETIME|2 a.m. Eastern]. [COREF:Q42048168|The film] is also available via [Q48340|CNN] on demand with cable and satellite subscriptions beginning [DATETIME|Sunday], and for streaming via [Q21503813|CNNgo] platforms, also beginning [DATETIME|Sunday] until [DATETIME|Sept. 26].
+[COREF:Q42048168|This [NO_COREF_ALT:Q15994987|CNN Films] [NO_COREF_ALT:Q93204|documentary]] will be broadcast on [Q48340|CNN] [DATETIME|Saturday] night at [DATETIME|10 p.m. ET], with encores [DATETIME|Sunday] at [DATETIME|10 p.m.] and [DATETIME|2 a.m. Eastern]. [COREF:Q42048168|The film] is also available via [Q48340|CNN] on demand with cable and satellite subscriptions beginning [DATETIME|Sunday], and for streaming via [Q21503813|CNNgo] platforms, also beginning [DATETIME|Sunday] until [DATETIME|Sept. 26].
 
-[COREF:Q42048168|The [Q93204|documentary]] is also available for streaming on [Q1630304|Hulu], [Q270285|Apple TV] and for rent on [Q4740856|Amazon Prime Video] and in the [Q9593|[Q9593|iTunes] store].<END>
+[COREF:Q42048168|The [NO_COREF_ALT:Q93204|documentary]] is also available for streaming on [Q1630304|Hulu], [Q270285|Apple TV] and for rent on [Q4740856|Amazon Prime Video] and in the [Q9593|[Q9593|iTunes] store].<END>
 
 Time magazine will feature Ginsburg on one of multiple special covers for an October double issue presenting the 2020 Time 100 list of the world's most influential people. It will include a special tribute to the justice, who was featured on the list in 2015.
 
@@ -1288,7 +1288,7 @@ One admirer, Bobbie Brown, 42, asked Kate whether she had felt the baby kicking 
 
 <START>Although [COREF:Q179406|it] is still one of the largest centres for [Q152|fish] processing in [Q145|Britain], [Q179406|Grimsby] has been in decline since [DATETIME|the 1950s] and youth unemployment is among the highest in [COREF:Q145|the country].
 
-Unfortunately [COREF:Q10479|the [Q4593319|Duchess]]'s arrival was almost [QUANTITY|90] minutes late after [COREF:Q10479|her] helicopter was delayed by thick fog.
+Unfortunately [COREF:Q10479|the [NO_COREF_ALT:Q4593319|Duchess]]'s arrival was almost [QUANTITY|90] minutes late after [COREF:Q10479|her] helicopter was delayed by thick fog.
 
 Royal [Q483501|artist] [Q2947141|Paul Emsley] explains the new [Q134307|portrait] of [Q10479|The Duchess of Cambridge]<END>
 
@@ -1335,11 +1335,11 @@ Four: "My question is to the Minister for Communications [Malcolm Turnbull]. Min
 
 The answers were (question one) no; (question two) yes; (question three) no; (question four) because I'm not a treacherous back-stabber who helped bring down both leaders I have served under.
 
-<START>[Q4910865|[Q177053|Mr] [Q4910865|Shorten]] then moved a no-confidence motion in [COREF:Q348577|the [Q14212|Prime Minister]], yet devoted much of [COREF:Q4910865|his] energy to a gratuitous personal attack on [Q927550|Turnbull]: "[COREF:Q927550|He], the [Q226822|Zorro] of the dispatch box, has said that [COREF:Q927550|he] wants [COREF:Q319145|the job] but [COREF:Q927550|he] will not fight for [COREF:Q319145|the job]. [COREF:Q927550|He] is prepared to injure [DESC:Q348577|[COREF:Q927550|his] [Q319145|Prime Minister]] but [COREF:Q927550|he] leaves [COREF:Q927550|his] supporters hanging. [COREF:Q927550|He] is a veritable ball of ambivalence!"
+<START>[Q4910865|[Q177053|Mr] [Q4910865|Shorten]] then moved a no-confidence motion in [COREF:Q348577|the [NO_COREF_ALT:Q14212|Prime Minister]], yet devoted much of [COREF:Q4910865|his] energy to a gratuitous personal attack on [Q927550|Turnbull]: "[COREF:Q927550|He], the [Q226822|Zorro] of the dispatch box, has said that [COREF:Q927550|he] wants [COREF:Q319145|the job] but [COREF:Q927550|he] will not fight for [COREF:Q319145|the job]. [COREF:Q927550|He] is prepared to injure [DESC:Q348577|[COREF:Q927550|his] [Q319145|Prime Minister]] but [COREF:Q927550|he] leaves [COREF:Q927550|his] supporters hanging. [COREF:Q927550|He] is a veritable ball of ambivalence!"
 
 And so on. [Q4910865|Shorten] will not be remembered for [COREF:Q4910865|his] wit.
 
-This week was an opportunity for [COREF:Q4910865|him] to display that [COREF:Q4910865|he] was a better man than [COREF:Q348577|the [Q14212|Prime Minister]], that [COREF:Q4910865|he] was more than a vindictive point-scorer, that [COREF:Q4910865|he] had policies to address [COREF:Q408|the nation]'s drift into debt and deficit. [COREF:Q4910865|He] did not take that opportunity. [COREF:Q4910865|He] missed it completely.<END>
+This week was an opportunity for [COREF:Q4910865|him] to display that [COREF:Q4910865|he] was a better man than [COREF:Q348577|the [NO_COREF_ALT:Q14212|Prime Minister]], that [COREF:Q4910865|he] was more than a vindictive point-scorer, that [COREF:Q4910865|he] had policies to address [COREF:Q408|the nation]'s drift into debt and deficit. [COREF:Q4910865|He] did not take that opportunity. [COREF:Q4910865|He] missed it completely.<END>
 
 Then there were the voyeurs of the opposition, the members waving goodbye to the Prime Minister and Treasurer Joe Hockey. They were led from the front row by Jenny Macklin, who, you would think, would know better, having reached her 60s and been in parliament for 19 years. Nineteen years in which six Labor leaders were deposed in eight leadership changes, with all but Paul Keating departing at the behest of their own colleagues (Kim Beazley, Simon Crean, Mark Latham, Kevin Rudd and Julia Gillard).
 
@@ -1366,9 +1366,9 @@ Thick snow still blankets the small ski town of Big Bear Lake after a weekend st
 
 <START>A massive manhunt led [Q578478|sheriffs] here last week after [COREF:Q4419912|the 33-year-old]'s truck was found burning on a mountain road.
 
-The authorities went from house to house in the snow, looking for [COREF:Q4419912|the ex-[Q384593|policeman]] who was suspected of double murder and of killing [DESC:Unknown1|a former colleague] while on the run.
+The authorities went from house to house in the snow, looking for [COREF:Q4419912|the ex-[NO_COREF_ALT:Q384593|policeman]] who was suspected of double murder and of killing [DESC:Unknown1|a former colleague] while on the run.
 
-They used snow cat vehicles to scour the area for any sign of [COREF:Q4419912|the 270lb (122kg) [Q49085|African American]], who was not thought to have had any winter survival training.<END>
+They used snow cat vehicles to scour the area for any sign of [COREF:Q4419912|the 270lb (122kg) [NO_COREF_ALT:Q49085|African American]], who was not thought to have had any winter survival training.<END>
 
 'Heartbroken'
 
@@ -1931,7 +1931,7 @@ It appears that both the Democrats and Microsoft took a beating on Tuesday, afte
 
 <START>[Q48340|CNN] received the [Q17042552|[Q17042552|Surface Pro 3] tablets] from [Q2283|Microsoft] as part of an [DESC:Q7892464|election 2014] partnership deal, along with an updated [Q6934414|Multi-Touch Collaboration Wall], colloquially known as [OPTIONAL:Q6934414|CNN's "[OPTIONAL:Q6934414|Magic Wall],"] to be used on air.
 
-And while [COREF:Q17042552|the [Q2283|Microsoft] tablets] were featured prominently during [Q48340|CNN]'s [DATETIME|Tuesday] night [Q7892464|election] coverage, it was what was going on behind the scenes that really got everyone's attention.
+And while [COREF:Q17042552|the [NO_COREF_ALT:Q2283|Microsoft] tablets] were featured prominently during [Q48340|CNN]'s [DATETIME|Tuesday] night [Q7892464|election] coverage, it was what was going on behind the scenes that really got everyone's attention.
 
 While the "barricade of [Q17042552|Pro 3s]" managed to cover the clandestine [Q2796|iPad] activity during straight shots, the panning camera revealed [Q6125032|Jake Tapper] tapping away on [COREF:Q6125032|his] [Q2796|iPad] one finger at a time.<END>
 
@@ -1974,7 +1974,7 @@ The Jakarata native turned heads as she made her way into the gathering in a gli
 
 With chunky jewellery adorning [COREF:Q1362169|her] wrists, [COREF:Q1362169|she] wore [COREF:Q1362169|her] [Q112989985|[Q112989985|platinum blonde] tresses] in a pixie cut, while a pair of dangling sweeper earrings added another touch of sparkle.
 
-Carrying a glittering [Q317802|silver] clutch bag, [COREF:Q1362169|the [Q177220|singer]] was just steps behind [DESC:Q155700|[COREF:Q1362169|her] rumoured beau], who cut a casual figure in [Q23445|black] tracksuit bottoms, teamed with a matching bomber jacket, [Q42519|grey] cap and classic [Q483915|Nike] sneakers.<END>
+Carrying a glittering [Q317802|silver] clutch bag, [COREF:Q1362169|the [NO_COREF_ALT:Q177220|singer]] was just steps behind [DESC:Q155700|[COREF:Q1362169|her] rumoured beau], who cut a casual figure in [Q23445|black] tracksuit bottoms, teamed with a matching bomber jacket, [Q42519|grey] cap and classic [Q483915|Nike] sneakers.<END>
 
 Last month, Chris took to Instagram to share a shot of himself inside a recording studio with Agnez, nuzzling her neck as he placed an arm around her waist.
 
@@ -2143,7 +2143,7 @@ Manchester United face competition from Real Madrid in their bid to sign Athleti
 <START>
 Despite featuring sparingly this season, [Q14558450|Adnan Januzaj] is unlikely to leave [Q18656|United] before next week's transfer deadline. Speaking to [Q38|Italian] [Q11033|media outlet] [Q3076466|Foot Mercato], [Q14558450|Januzaj]'s [Q1344174|agent] [Q2316058|Dirk de Vriese] confirmed interest has come from [Q483020|PSG], but [Q18656|United] [Q628099|manager] [Q207431|Van Gaal] has personally halted any potential departure - temporary or permanent.
 
-[Q2316058|De Vriese] said: "Yes, [Q483020|PSG] have shown [COREF:Q483020|themselves] to be interested this winter. [COREF:Q483020|They] directly contacted [Q18656|Manchester United] for information. But [Q207431|Louis van Gaal] announced that [COREF:Q14558450|he] [[Q14558450|Januzaj]] cannot leave this winter. Not as a permanent transfer nor as a loan. [COREF:Q207431|The [Q628099|coach]] considered [COREF:Q14558450|him] as an important [Q937857|player] for squad. [COREF:Q207431|He] is counting on everyone. It seems like a definitive decision, [COREF:Q2316058|I] don't think that it can change."
+[Q2316058|De Vriese] said: "Yes, [Q483020|PSG] have shown [COREF:Q483020|themselves] to be interested this winter. [COREF:Q483020|They] directly contacted [Q18656|Manchester United] for information. But [Q207431|Louis van Gaal] announced that [COREF:Q14558450|he] [[Q14558450|Januzaj]] cannot leave this winter. Not as a permanent transfer nor as a loan. [COREF:Q207431|The [NO_COREF_ALT:Q628099|coach]] considered [COREF:Q14558450|him] as an important [Q937857|player] for squad. [COREF:Q207431|He] is counting on everyone. It seems like a definitive decision, [COREF:Q2316058|I] don't think that it can change."
 
 [Q14558450|Januzaj]<END>
 
@@ -2585,7 +2585,7 @@ Magistrates were told staff initially suspected him of being a shoplifter. A PCS
 
 On [DATETIME|May 5], [DESC:Unknown2|a [Q856887|security guard]] at [Q6123139|Boots] saw [Unknown1|Stephan] bending down near [QUANTITY|two] girls aged around [QUANTITY|eight] and [QUANTITY|11], filming them from the waist down on [COREF:Unknown1|his] phone.
 
-[Unknown3|David Devine], prosecuting, said: '[COREF:Unknown2|He] approached [Unknown1|Mr Stephan]. [COREF:Unknown2|The [Q856887|guard]] said [COREF:Unknown2|he] felt shocked and outraged as [COREF:Unknown2|he] has nieces of a similar age. [COREF:Unknown2|He] said [COREF:Unknown2|he] felt sickened by [Unknown1|Mr Stephan]'s behaviour.'<END>
+[Unknown3|David Devine], prosecuting, said: '[COREF:Unknown2|He] approached [Unknown1|Mr Stephan]. [COREF:Unknown2|The [NO_COREF_ALT:Q856887|guard]] said [COREF:Unknown2|he] felt shocked and outraged as [COREF:Unknown2|he] has nieces of a similar age. [COREF:Unknown2|He] said [COREF:Unknown2|he] felt sickened by [Unknown1|Mr Stephan]'s behaviour.'<END>
 
 Magistrates were told the guard challenged Stephan, who told him he was doing 'nothing wrong' and he planned to 'delete the video anyway'.
 
@@ -2624,7 +2624,7 @@ And on Thursday, Beyonce and Jay-Z - who welcomed twins Rumi and Sir Carter in J
 
 <START>The couple - who also share [QUANTITY|five]-year-old daughter [Q18913048|Blue Ivy] - were leaving their vehicle with [Q62766|Jay-Z] leading the way.
 
-[COREF:Q62766|The [Q2252262|rapper]], [QUANTITY|47], was casually dressed in head-to-toe [Q23445|black], teaming a hoodie with shorts, sports leggings and trainers.
+[COREF:Q62766|The [NO_COREF_ALT:Q2252262|rapper]], [QUANTITY|47], was casually dressed in head-to-toe [Q23445|black], teaming a hoodie with shorts, sports leggings and trainers.
 
 Share this [Q5707594|article]<END>
 
@@ -3054,9 +3054,9 @@ Review of The Divide on WeTV
 
 Marin Ireland in The Divide. WE
 
-<START>It's generally a good thing for a new series to introduce itself with a clear, simple title, but in the case of [Q15072810|The Divide], the [QUANTITY|first] scripted [Q130232|[Q21010853|drama]] from [Q7949152|WeTV], the title makes it seem much more simple than it is. The [QUANTITY|eight]-episode [Q643873|legal drama] is, in brief, about a controversial effort to reopen the death-penalty convictions of [QUANTITY|two] [Q235155|white] [Q1862087|prisoners] in the murder of a [Q817393|black] family. You might assume, then, that [COREF:Q15072810|the [Q5398426|show]] is about a single, sharp, unambiguous divide between [Q49078|white Americans] and [Q49085|black Americans] in the justice system-the [Q643873|law-drama] equivalent of [Q188000|[Q1797743|Crash]].
+<START>It's generally a good thing for a new series to introduce itself with a clear, simple title, but in the case of [Q15072810|The Divide], the [QUANTITY|first] scripted [Q130232|[Q21010853|drama]] from [Q7949152|WeTV], the title makes it seem much more simple than it is. The [QUANTITY|eight]-episode [Q643873|legal drama] is, in brief, about a controversial effort to reopen the death-penalty convictions of [QUANTITY|two] [Q235155|white] [Q1862087|prisoners] in the murder of a [Q817393|black] family. You might assume, then, that [COREF:Q15072810|the [NO_COREF_ALT:Q5398426|show]] is about a single, sharp, unambiguous divide between [Q49078|white Americans] and [Q49085|black Americans] in the justice system-the [Q643873|law-drama] equivalent of [Q188000|[Q1797743|Crash]].
 
-But to [COREF:Q15072810|its] credit, and like the case it begins to explore in [COREF:Q15072810|its] [QUANTITY|two]-hour premiere [DATETIME|Wednesday] night, [Q15072810|The Divide] is much more complicated than it seems. Yes, there is a racial divide at the center of [COREF:Q15072810|the [Q5398426|show]]: [Unknown1|Christine Rosa] ([Q72749|Marin Ireland]), an [Q15253558|advocate] for a [Q1345|Philadelphia] group based on the [Q1664111|Innocence Project], and most of [COREF:Unknown1|her] colleagues working to overturn what they believe to be wrongful convictions, are [Q235155|white]. [Q653368|District attorney] [Unknown2|Adam Page] ([Q21964824|Damon Gupton]), [DESC:Unknown3|[COREF:Unknown2|his] [Q2101758|police-commissioner] father] ([Q1095834|Clarke Peters]) and [DESC:Unknown4|the surviving daughter of the victims] are [Q817393|black].
+But to [COREF:Q15072810|its] credit, and like the case it begins to explore in [COREF:Q15072810|its] [QUANTITY|two]-hour premiere [DATETIME|Wednesday] night, [Q15072810|The Divide] is much more complicated than it seems. Yes, there is a racial divide at the center of [COREF:Q15072810|the [NO_COREF_ALT:Q5398426|show]]: [Unknown1|Christine Rosa] ([Q72749|Marin Ireland]), an [Q15253558|advocate] for a [Q1345|Philadelphia] group based on the [Q1664111|Innocence Project], and most of [COREF:Unknown1|her] colleagues working to overturn what they believe to be wrongful convictions, are [Q235155|white]. [Q653368|District attorney] [Unknown2|Adam Page] ([Q21964824|Damon Gupton]), [DESC:Unknown3|[COREF:Unknown2|his] [Q2101758|police-commissioner] father] ([Q1095834|Clarke Peters]) and [DESC:Unknown4|the surviving daughter of the victims] are [Q817393|black].
 
 As the case unfolds, however, it becomes clear that neither side of this (purposely unsettled) case has a monopoly on righteousness or ethical conflict. [Unknown1|Christine] and [Unknown2|Adam] are each driven, if to different ends, and each is vulnerable to being blinded by their determination and external motivations. ([COREF:Unknown2|He]'s politically ambitious; [DESC:Unknown5|[COREF:Unknown1|her] father] is in jail for a crime [COREF:Unknown1|she] knows [COREF:Unknown5|he]'s innocent of because [COREF:Unknown1|she] was with [COREF:Unknown5|him] when it happened.)<END>
 
@@ -3273,7 +3273,7 @@ Receiving a disappointing field of sixes from the judges, host Tom Bergeron admi
 
 [Q16947675|Olympic gymnast] [Q15710550|Laurie Hernandez], [QUANTITY|16], was the [QUANTITY|first] to be told [COREF:Q15710550|she] was safe, coming as no surprise given that [COREF:Q15710550|she] was top of the leaderboard with a combined score of [QUANTITY|63] from [COREF:Q15710550|her] [QUANTITY|first] [QUANTITY|two] dances.
 
-[COREF:Q15710550|She] had insisted it had been a dream to be on [COREF:Q2674710|[COREF:Q499092|the [Q15416|show]]] since [COREF:Q15710550|she] was "a little kid," saying: "Now that [COREF:Q15710550|I]'ve got my [Q406039|gold medal] [COREF:Q15710550|I]'m ready to get the mirrorball."
+[COREF:Q15710550|She] had insisted it had been a dream to be on [COREF:Q2674710|[COREF:Q499092|the [NO_COREF_ALT:Q15416|show]]] since [COREF:Q15710550|she] was "a little kid," saying: "Now that [COREF:Q15710550|I]'ve got my [Q406039|gold medal] [COREF:Q15710550|I]'m ready to get the mirrorball."
 <END>
 **** ARTICLE #89: 20201201 - Fijian British army veterans in high court battle to remain in UK (None) *****
 Fijian British army veterans in high court battle to remain in UK
@@ -3298,7 +3298,7 @@ Others in the group include Taitusi Ratucaucau, who is recovering from an operat
 
 But [Unknown1|Waqaliva] was surprised to discover [COREF:Unknown1|he] had been told to leave [COREF:Q222595|the army] with [QUANTITY|one] week's notice. Family friends said the only money [COREF:Unknown1|he] was given was for a train ticket from [Q184163|Colchester] to [Q25|Wales], where [COREF:Unknown1|his] family were.
 
-[COREF:Unknown1|The [Q193891|veteran]] served with the [Q4630663|20th Armoured Brigade], and undertook tours of [Q796|Iraq] in [DATETIME|2006], and again just before [COREF:Unknown1|he] was discharged. The [QUANTITY|first] tour was particularly dangerous: "Every day you got out of the camp, you wouldn't know if you would come back alive."<END>
+[COREF:Unknown1|The [NO_COREF_ALT:Q193891|veteran]] served with the [Q4630663|20th Armoured Brigade], and undertook tours of [Q796|Iraq] in [DATETIME|2006], and again just before [COREF:Unknown1|he] was discharged. The [QUANTITY|first] tour was particularly dangerous: "Every day you got out of the camp, you wouldn't know if you would come back alive."<END>
 
 Waqaliva said he hoped the legal hearing, which begins on Tuesday, would help get his immigration status resolved. "I think the first thing is to get a visa. That would put everything to rest, the stress the worry."
 
@@ -4165,7 +4165,7 @@ The [Q607272|Woolies] price cuts, effective from [DATETIME|today], include a [QU
 What's making Romney hesitant to disclose taxes?
 
 <START>
-[Q4496|Mitt Romney] says [COREF:Q4496|he]'ll release [COREF:Q4496|his] [DATETIME|2011] tax return in [DATETIME|April]. This, after persistent calls for [COREF:Q4496|the [Q29468|Republican] presidential] hopeful to do so, particularly from fellow [Q2380299|candidate] [Q182788|Newt Gingrich].
+[Q4496|Mitt Romney] says [COREF:Q4496|he]'ll release [COREF:Q4496|his] [DATETIME|2011] tax return in [DATETIME|April]. This, after persistent calls for [COREF:Q4496|the [NO_COREF_ALT:Q29468|Republican] presidential] hopeful to do so, particularly from fellow [Q2380299|candidate] [Q182788|Newt Gingrich].
 
 But during [DATETIME|last night]'s [Q29468|GOP] debate, [Q4496|Romney] "had a difficult time talking comfortably about [COREF:Q4496|his] taxes," [Q3336905|National Journal] [Unknown1|Congressional Correspondent] [Q6738068|Major Garrett] observed on "[Q2784108|CBS This Morning]" [DATETIME|Friday]. It was, [COREF:Q6738068|he] noted, the [QUANTITY|second] debate in a row where that happened.
 
@@ -4321,11 +4321,11 @@ Can you have a comedy about tyranny? Chaplin got away with in The Great Dictator
 
 Horowitz has seized on the fact that Saddam did indeed descend on the homes of Baghdad citizens to avoid his enemies and show solidarity with his people. We see a deeply divided Sunni family, on the eve of invasion in March 2003, coping with the news that the leader is about to arrive. Husband and wife are at odds, their anti-Saddam daughter is in love with a Shia actor and the household is in chaos. But jokes about blocked toilets, water shortages and the confusion of rat poison and exotic spices that might seem funny in a western farce tend to stifle laughter when they occur in a city suffering from United Nations sanctions.
 
-<START>With the arrival of [Q1316|Saddam] [COREF:Q1316|himself], [COREF:Unknown1|the [Q25379|play]] takes a completely different turn. We are left in no doubt that [Q1316|Saddam], played with virtuosic menace by an almost unrecognisable, thickly moustached [Q529849|Steven Berkoff], is filled with the arbitrary cruelty of the [Q889870|despot]. A [Q856887|security guard] who unwisely yawns is taken out to be shot and, recalling the fate of [COREF:Q1316|his] kith and kin, [Q1316|Saddam] remarks on one who died a most unusual death: "It was completely natural."
+<START>With the arrival of [Q1316|Saddam] [COREF:Q1316|himself], [COREF:Unknown1|the [NO_COREF_ALT:Q25379|play]] takes a completely different turn. We are left in no doubt that [Q1316|Saddam], played with virtuosic menace by an almost unrecognisable, thickly moustached [Q529849|Steven Berkoff], is filled with the arbitrary cruelty of the [Q889870|despot]. A [Q856887|security guard] who unwisely yawns is taken out to be shot and, recalling the fate of [COREF:Q1316|his] kith and kin, [Q1316|Saddam] remarks on one who died a most unusual death: "It was completely natural."
 
 [Q7499809|Shobu Kapoor], [Q3472307|Sanjeev Bhaskar], [Q506944|Rebecca Grant] and [Q19560588|Ilan Goodman] in [Unknown1|Dinner With Saddam]. Photograph: [Unknown2|Tristram Kenton] for [Q11148|the [Q11148|Guardian]]
 
-[Q1316|Saddam] also becomes the vehicle for [Q279305|Horowitz]'s genuine anger about the actions of western governments: we are reminded that [COREF:Q1316|the [Q183318|dictator]] would never have come to power without the [Q37230|CIA], that [Q846570|the [Q846570|Americans]] were supportive of [Q82664|[Q796|Iraq]'s war with [Q794|Iran]] and that [Q842438|the [Q842438|British]] were gassing [Q12223|Kurds] long before [Q1316|Saddam Hussein] was born. All these charges may be just, but they mean the farcical action is suspended in order to give [Q1316|Saddam] the floor.<END>
+[Q1316|Saddam] also becomes the vehicle for [Q279305|Horowitz]'s genuine anger about the actions of western governments: we are reminded that [COREF:Q1316|the [NO_COREF_ALT:Q183318|dictator]] would never have come to power without the [Q37230|CIA], that [Q846570|the [Q846570|Americans]] were supportive of [Q82664|[Q796|Iraq]'s war with [Q794|Iran]] and that [Q842438|the [Q842438|British]] were gassing [Q12223|Kurds] long before [Q1316|Saddam Hussein] was born. All these charges may be just, but they mean the farcical action is suspended in order to give [Q1316|Saddam] the floor.<END>
 
 A part of me admires Horowitz, a skilled TV writer and author of a new James Bond novel, Trigger Mortis, for boldly using a popular form to make political points. But he never quite marries the two, and while I'm normally receptive to faecal and fart jokes, it's difficult to laugh when they stem from a sewage crisis caused by an international ban on the importation of chlorine.
 
