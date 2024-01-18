@@ -1,17 +1,12 @@
 from typing import List, Tuple, Set
 
+from src import settings
 from src.evaluation.case import Case, ErrorLabel, EvaluationMode
 from src.evaluation.groundtruth_label import GroundtruthLabel
 from src.evaluation.mention_type import MentionType, is_named_entity
 from src.models.entity_database import EntityDatabase
 from src.models.wikidata_entity import WikidataEntity
 from src.models.article import Article
-
-
-LOCATION_TYPE_QID = "Q27096213"
-ETHNICITY_TYPE_QID = "Q33829"
-PERSON_TYPE_QID = "Q215627"
-FICTIONAL_CHARACTER_QID = "Q95074"
 
 
 def label_errors(article: Article,
@@ -72,7 +67,7 @@ def label_undetected_errors(cases: List[Case], eval_mode: EvaluationMode):
                 case.add_error_label(ErrorLabel.NER_FN_OTHER, eval_mode)
 
 
-DEMONYM_TYPES = {"Q27096213", "Q41710", "Q17376908"}
+DEMONYM_TYPES = {settings.TYPE_LOCATION_QID, settings.TYPE_ETHNICITY_QID, settings.TYPE_LANGUOID_QID}
 
 
 def is_demonym(case: Case, entity_db: EntityDatabase) -> bool:
@@ -174,8 +169,8 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
         # Cases with unknown groundtruth are not considered as metonymy errors
         return False
     true_types = entity_db.get_entity_types(case.true_entity.entity_id)
-    if LOCATION_TYPE_QID in true_types or PERSON_TYPE_QID in true_types or ETHNICITY_TYPE_QID in true_types or \
-            FICTIONAL_CHARACTER_QID in true_types:
+    if settings.TYPE_LOCATION_QID in true_types or settings.TYPE_PERSON_QID in true_types or settings.TYPE_ETHNICITY_QID in true_types or \
+            settings.TYPE_FICTIONAL_CHARACTER_QID in true_types:
         return False
     most_popular_candidates = get_most_popular_candidate(entity_db, case.text)
     if not most_popular_candidates:
@@ -184,7 +179,7 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     most_popular_entity_types = set()
     for candidate in most_popular_candidates:
         most_popular_entity_types |= set(entity_db.get_entity_types(candidate))
-    return LOCATION_TYPE_QID in most_popular_entity_types
+    return settings.TYPE_LOCATION_QID in most_popular_entity_types
 
 
 def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
@@ -194,7 +189,7 @@ def is_metonymy_error(case: Case, entity_db: EntityDatabase) -> bool:
     if not is_metonymy(case, entity_db):
         return False
     predicted_types = entity_db.get_entity_types(case.predicted_entity.entity_id)
-    return LOCATION_TYPE_QID in predicted_types
+    return settings.TYPE_LOCATION_QID in predicted_types
 
 
 def label_disambiguation_errors(cases: List[Case], entity_db: EntityDatabase, eval_mode: EvaluationMode):
