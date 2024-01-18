@@ -177,38 +177,40 @@ class PopularEntitiesLinker(AbstractEntityLinker):
 
             span_end = tok.idx + len(tok.text)
             snippet = text[tok.idx:span_end]
-            last_snippet = ""
+            last_snippet_in_trie = None
+            last_snippet_in_trie_j = -1
             j = i + 1
 
             while self.trie.has_subtrie(snippet) and j < len(doc):
                 new_tok = doc[j]
                 new_span_end = new_tok.idx + len(new_tok.text)
-                last_snippet = snippet
+                if self.is_snippet_variant_in_trie(snippet):
+                    last_snippet_in_trie = snippet
+                    last_snippet_in_trie_j = j
                 snippet += text[span_end:new_span_end]
                 span_end = new_span_end
                 j += 1
-            j -= 1
-            if snippet in self.trie:
+            if self.is_snippet_variant_in_trie(snippet):
                 # has_subtrie(snippet) is False if the only key with the prefix snippet
                 # is snippet so I need this check here
-                entity_id = self.trie[snippet]
-            elif last_snippet and last_snippet in self.trie:
-                entity_id = self.trie[last_snippet]
-                snippet = last_snippet
-                j -= 1
+                entity_id = self.get_entity_from_trie(snippet)
+            elif last_snippet_in_trie is not None:
+                entity_id = self.get_entity_from_trie(last_snippet_in_trie)
+                snippet = last_snippet_in_trie
+                j = last_snippet_in_trie_j
             else:
                 i += 1
                 continue
 
             span = tok.idx, tok.idx + len(snippet)
-            tokens = [t for t in doc[i:j + 1]]
+            tokens = [t for t in doc[i:j]]
 
             if overlaps_with_linked_entity(span, linked_entities):
                 i += 1
                 continue
 
-            deps = set(t.dep_ for t in tokens)
-            if not deps.intersection({"pobj", "nsubj", "nsubjpass", "dobj"}):
+            pos = set(t.pos_ for t in tokens)
+            if not pos.intersection({"NOUN"}):
                 i += 1
                 continue
 
@@ -221,6 +223,20 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                 lowercase_predictions[span] = EntityPrediction(span, entity_id, {entity_id})
             i = j + 1
         return lowercase_predictions
+
+    def is_snippet_variant_in_trie(self, snippet: str) -> bool:
+        """
+        Returns true if the snippet or a potential singular form of it is in
+        the trie.
+        """
+        return snippet in self.trie or (snippet[-1] == "s" and snippet[:-1] in self.trie)
+
+    def get_entity_from_trie(self, snippet: str) -> str:
+        """
+        Returns the entity ID for the given snippet (or its singular form)
+        from the trie
+        """
+        return self.trie[snippet] if snippet in self.trie else self.trie[snippet[:-1]]
 
     def select_entity(self, name_and_demonym_candidates: Set[str], candidates: Set[str]) -> str:
         """
