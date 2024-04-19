@@ -24,20 +24,28 @@ from src.evaluation.evaluator import Evaluator
 def main(args):
     logger.info(f"Evaluating linking results from {Colors.BLUE}{args.input_files}{Colors.END} ...")
 
-    # Read whitelist types
-    whitelist_types = set()
-    if args.type_whitelist:
-        with open(args.type_whitelist, 'r', encoding='utf8') as file:
+    # Read whitelist types for filtering labels
+    label_whitelist_types = set()
+    if args.filter_labels_with_whitelist:
+        with open(args.filter_labels_with_whitelist, 'r', encoding='utf8') as file:
             for line in file:
                 type_match = re.search(r"Q[0-9]+", line)
                 if type_match:
                     typ = type_match.group(0)
-                    whitelist_types.add(typ)
+                    label_whitelist_types.add(typ)
+
+    # Read whitelist types for filtering predictions
+    prediction_whitelist_types = set()
+    if args.filter_predictions_with_whitelist:
+        with open(args.filter_predictions_with_whitelist, 'r', encoding='utf8') as file:
+            for line in file:
+                type_match = re.search(r"Q[0-9]+", line)
+                if type_match:
+                    typ = type_match.group(0)
+                    prediction_whitelist_types.add(typ)
 
     whitelist_file = settings.WHITELIST_FILE
-    if args.type_whitelist:
-        whitelist_file = args.type_whitelist
-    elif args.custom_kb:
+    if args.custom_kb:
         whitelist_file = settings.CUSTOM_WHITELIST_TYPES_FILE
 
     type_mapping_file = args.type_mapping if args.type_mapping else settings.QID_TO_WHITELIST_TYPES_DB
@@ -73,8 +81,9 @@ def main(args):
                     types = evaluator.entity_db.get_entity_types(gt_label.entity_id)
                     gt_label.type = types.join("|")
 
-            if whitelist_types:
-                # Ignore groundtruth labels that do not have a type that is included in the whitelist
+            # If the filter_labels_with_whitelist argument is set, ignore groundtruth labels that
+            # do not have a type that is included in the whitelist
+            if args.filter_labels_with_whitelist:
                 filtered_labels = []
                 added_label_ids = set()
                 for gt_label in article.labels:
@@ -85,24 +94,24 @@ def main(args):
                     if gt_label.parent is None or gt_label.parent in added_label_ids:
                         types = gt_label.get_types()
                         for typ in types:
-                            if typ in whitelist_types or gt_label.parent is not None \
+                            if typ in label_whitelist_types or gt_label.parent is not None \
                                     or gt_label.entity_id.startswith("Unknown"):
                                 filtered_labels.append(gt_label)
                                 added_label_ids.add(gt_label.id)
                                 break
                 article.labels = filtered_labels
 
-                # If the type_filter_predictions argument is set, ignore predictions that do
-                # not have a type that is included in the whitelist
+            # If the filter_predictions_with_whitelist argument is set, ignore predictions that do
+            # not have a type that is included in the whitelist
+            if args.filter_predictions_with_whitelist:
                 filtered_entity_mentions = {}
-                if args.type_filter_predictions:
-                    for span, em in article.entity_mentions.items():
-                        types = evaluator.entity_db.get_entity_types(em.entity_id)
-                        for typ in types:
-                            if typ in whitelist_types:
-                                filtered_entity_mentions[span] = em
-                                break
-                    article.entity_mentions = filtered_entity_mentions
+                for span, em in article.entity_mentions.items():
+                    types = evaluator.entity_db.get_entity_types(em.entity_id)
+                    for typ in types:
+                        if typ in prediction_whitelist_types:
+                            filtered_entity_mentions[span] = em
+                            break
+                article.entity_mentions = filtered_entity_mentions
 
             cases = evaluator.evaluate_article(article)
 
@@ -158,12 +167,11 @@ if __name__ == "__main__":
                              "Uppercase false detections will be treated as 'unknown named entity' errors.")
     parser.add_argument("--type_mapping", type=str,
                         help="Map groundtruth labels and predicted entities to types using the given mapping.")
-    parser.add_argument("--type_whitelist", type=str,
+    parser.add_argument("-flw", "--filter_labels_with_whitelist", type=str,
                         help="Evaluate only over labels with a type from the given whitelist and ignore other labels. "
                              "One type per line in the format \"<qid> # <label>\".")
-    parser.add_argument("--type_filter_predictions", action="store_true",
-                        help="Ignore predicted links that do not have a type from the type whitelist."
-                             "This has no effect if the type_whitelist argument is not provided.")
+    parser.add_argument("-fpw", "--filter_predictions_with_whitelist", type=str,
+                        help="Ignore predicted links that do not have a type from the provided type whitelist.")
     parser.add_argument("-c", "--custom_kb", action="store_true",
                         help="Use custom entity to name and entity to type mappings (instead of Wikidata mappings).")
 
