@@ -147,6 +147,25 @@ In ELEVANT, you can use the DBpedia linker with the `link_benchmark_entities.py`
 DBpedia predicts DBpedia entities which we map to Wikidata entities using our mappings. The DBpedia Spotlight linker
  class is implemented [here](../src/linkers/dbpedia_spotlight_linker.py).
 
+#### Babelfy
+Babelfy is a linking system developed by Moro et al. and described in the 2014 paper
+ [Entity Linking meets Word Sense Disambiguation: a Unified Approach](http://wwwusers.di.uniroma1.it/~navigli/pubs/TACL_2014_Babelfy.pdf). The system
+ links entities and word senses to their entries in DBpedia or BabelNet.
+
+In ELEVANT, you can use the Babelffy linker with the `link_benchmark_entities.py` script and the linker name
+ `babelfy`.
+
+**NOTE: You need a personal API key to access the Babelfy API which ELEVANT uses.** The process is easy and is
+ described at <http://babelfy.org/guide>. Once you have your API key, specify it in the config file
+[configs/babelfy.config.json](../configs/babelfy.config.json)
+ under the key word `api_key`.
+
+    python3 link_benchmark_entities.py <experiment_name> -l babelfy -b <benchmark_name>
+
+Babelfy predicts DBpedia entities which we map to Wikidata entities using our mappings. Predictions that only have a
+ BabelNet reference and no DBpedia reference are linked to NIL. The Babelfy linker class is implemented
+ [here](../src/linkers/babelfy_linker.py).
+
 #### Baseline
 ELEVANT comes with a simple baseline that performs Entity Recognition using the SpaCy NER component and that links
  entities based on prior probabilities for recognized mention texts. These prior probabilities are computed using

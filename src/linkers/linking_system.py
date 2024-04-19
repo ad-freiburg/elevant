@@ -47,7 +47,8 @@ class LinkingSystem:
         # The Wikipedia2Wikidata mapping that might be loaded in _initialize_linker()
         # remains unaffected by this.
         no_db_linkers = (Linkers.TAGME.value, Linkers.DBPEDIA_SPOTLIGHT.value, Linkers.NONE.value,
-                         Linkers.REFINED.value, Linkers.REL.value, Linkers.WAT.value, Linkers.SPACY.value)
+                         Linkers.REFINED.value, Linkers.REL.value, Linkers.WAT.value, Linkers.SPACY.value,
+                         Linkers.BABELFY.value, Linkers.GPT.value)
 
         self.entity_db = EntityDatabase()
 
@@ -181,6 +182,11 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = GPTLinker(self.entity_db, self.linker_config)
+        elif linker_type == Linkers.BABELFY.value:
+            from src.linkers.babelfy_linker import BabelfyLinker
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = BabelfyLinker(self.entity_db, self.linker_config)
         else:
             linker_exists = False
 

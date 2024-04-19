@@ -8,6 +8,7 @@ class Linkers(Enum):
     TAGME = "tagme"
     WAT = "wat"
     DBPEDIA_SPOTLIGHT = "dbpedia-spotlight"
+    BABELFY = "babelfy"
     BASELINE = "baseline"
     SPACY = "spacy"
     POPULAR_ENTITIES = "popular-entities"
