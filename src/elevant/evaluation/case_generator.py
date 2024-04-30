@@ -4,6 +4,7 @@ from typing import Tuple, List, Set, Dict
 from src.elevant.evaluation.case import Case, EvaluationType, EvaluationMode
 from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
 from src.elevant.models.entity_database import EntityDatabase
+from src.elevant.models.entity_mention import EntityMention
 from src.elevant.models.wikidata_entity import WikidataEntity
 from src.elevant.models.article import Article
 

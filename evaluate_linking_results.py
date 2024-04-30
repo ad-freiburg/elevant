@@ -12,13 +12,13 @@ import sys
 import json
 import re
 
-from src import settings
-from src.utils import log
-from src.utils.colors import Colors
-from src.evaluation.benchmark import get_available_benchmarks
-from src.evaluation.benchmark_iterator import get_benchmark_iterator
-from src.models.article import article_from_json
-from src.evaluation.evaluator import Evaluator
+from src.elevant import settings
+from src.elevant.utils import log
+from src.elevant.utils.colors import Colors
+from src.elevant.evaluation.benchmark import get_available_benchmarks
+from src.elevant.evaluation.benchmark_iterator import get_benchmark_iterator
+from src.elevant.models.article import article_from_json
+from src.elevant.evaluation.evaluator import Evaluator
 
 
 def main(args):

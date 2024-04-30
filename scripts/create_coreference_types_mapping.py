@@ -4,9 +4,9 @@ from typing import Set
 
 sys.path.append(".")
 
-from src import settings
-from src.utils import log
-from src.helpers.entity_database_reader import EntityDatabaseReader
+from src.elevant import settings
+from src.elevant.utils import log
+from src.elevant.helpers.entity_database_reader import EntityDatabaseReader
 
 
 def extract_coreference_types(coarse_types: Set[str]):

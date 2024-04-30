@@ -10,7 +10,7 @@ from src.elevant import settings
 from src.elevant.settings import NER_IGNORE_TAGS
 from src.elevant.ner.maximum_matching_ner import MaximumMatchingNER
 from src.elevant.utils.dates import is_date
-
+import src.elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 
 class BaselineLinker(AbstractEntityLinker):
     def __init__(self,

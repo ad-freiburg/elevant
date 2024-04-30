@@ -15,6 +15,8 @@ from src.elevant.models.entity_database import EntityDatabase
 from src.elevant.utils.dates import is_date
 from src.elevant import settings
 from src.elevant.utils.offset_converter import OffsetConverter
+import src.elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
+import src.elevant.utils.custom_sentencizer  # import is needed so Python finds the custom component
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

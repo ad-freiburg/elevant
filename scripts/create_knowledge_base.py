@@ -3,10 +3,10 @@ import sys
 
 sys.path.append(".")
 
-from src import settings
-from src.utils import log
-from src.models.entity_database import EntityDatabase
-from src.helpers.knowledge_base_creator import KnowledgeBaseCreator
+from src.elevant import settings
+from src.elevant.utils import log
+from src.elevant.models.entity_database import EntityDatabase
+from src.elevant.helpers.knowledge_base_creator import KnowledgeBaseCreator
 
 
 def main(args):

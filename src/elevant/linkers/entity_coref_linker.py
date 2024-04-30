@@ -6,6 +6,7 @@ import spacy
 import re
 from collections import defaultdict
 
+import src.elevant.utils.custom_sentencizer  # import is needed so Python finds the custom component
 from src.elevant.linkers.abstract_coref_linker import AbstractCorefLinker
 from src.elevant.models.coref_cluster import CorefCluster
 from src.elevant.utils.dependency_conll_extractor import DependencyConllExtractor

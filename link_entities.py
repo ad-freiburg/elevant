@@ -21,11 +21,11 @@ import sys
 import time
 import multiprocessing
 
-from src import settings
-from src.utils import log
-from src.linkers.linkers import Linkers, CoreferenceLinkers
-from src.models.article import Article, article_from_json
-from src.helpers.wikipedia_dump_reader import WikipediaDumpReader
+from src.elevant import settings
+from src.elevant.utils import log
+from src.elevant.linkers.linkers import Linkers, CoreferenceLinkers
+from src.elevant.models.article import Article, article_from_json
+from src.elevant.helpers.wikipedia_dump_reader import WikipediaDumpReader
 
 # Don't show dependencygraph UserWarning: "The graph doesn't contain a node that depends on the root element."
 import warnings
@@ -37,7 +37,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 config = {"no_loading": True}
 with open(settings.TMP_FORKSERVER_CONFIG_FILE, "w", encoding="utf8") as config_file:
     json.dump(config, config_file)
-from src.linkers.forkserver_linking_system import linking_system
+from src.elevant.linkers.forkserver_linking_system import linking_system
 
 
 CHUNK_SIZE = 10  # Number of articles submitted to one process as a single task
@@ -81,7 +81,7 @@ def main():
     if args.multiprocessing > 1:
         logger.info("Loading linking system...")
         multiprocessing.set_start_method('forkserver')
-        multiprocessing.set_forkserver_preload(["src.linkers.forkserver_linking_system"])
+        multiprocessing.set_forkserver_preload(["src.elevant.linkers.forkserver_linking_system"])
         start = time.time()
         last_time = start
         with multiprocessing.Pool(processes=args.multiprocessing, maxtasksperchild=MAX_TASKS_PER_CHILD) as executor:
@@ -99,7 +99,7 @@ def main():
                     last_time = time.time()
         i -= 1  # So final log reports correct number of linked articles with and without multiprocessing
     else:
-        from src.linkers.linking_system import LinkingSystem
+        from src.elevant.linkers.linking_system import LinkingSystem
         ls = LinkingSystem(args.linker_name,
                            args.linker_config,
                            coref_linker=args.coreference_linker,

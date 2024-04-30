@@ -44,7 +44,7 @@ In ELEVANT, you can use the ReFinED linker with the `link_benchmark_entities.py`
 
     python3 link_benchmark_entities.py <experiment_name> -l refined -b <benchmark_name>
 
-The ReFinED linker class is implemented [here](../src/linkers/refined_linker.py).
+The ReFinED linker class is implemented [here](../src/elevant/linkers/refined_linker.py).
  
 #### REL
 REL (Radboud Entity Linker) is a modular linking system developed by van Hulst et al. and described in the 2020 paper 
@@ -70,7 +70,7 @@ In ELEVANT, you can use the REL linker with the `link_benchmark_entities.py` scr
 
     python3 link_benchmark_entities.py <experiment_name> -l rel -b <benchmark_name>
 
-The REL linker class is implemented [here](../src/linkers/rel_linker.py). REL predicts Wikipedia entity links.
+The REL linker class is implemented [here](../src/elevant/linkers/rel_linker.py). REL predicts Wikipedia entity links.
  We map the predicted Wikipedia entities to Wikidata using our mappings.
 
 #### GPT
@@ -85,12 +85,12 @@ In ELEVANT, you can use GPT for entity linking with the `link_benchmark_entities
  `gpt-3.5-turbo-1106` for example does not reliably produce the expected output format  especially for long benchmark
  texts. You can also set the model temperature as well as a seed for reproducible outputs there. If you set the
  `named_only` field to `true`, GPT will be prompted to only link named entities.
- See [here](../src/linkers/gpt_linker.py) for the exact prompt. You can adjust the prompt if you like but make sure you
+ See [here](../src/elevant/linkers/gpt_linker.py) for the exact prompt. You can adjust the prompt if you like but make sure you
  don't ask for a different output format, otherwise you will need to adjust the parser code in `parse_annotated_text()`.
 
     python3 link_benchmark_entities.py <experiment_name> -l gpt -b <benchmark_name>
 
-The GPT linker class is implemented [here](../src/linkers/gpt_linker.py). GPT predicts Wikipedia entity names.
+The GPT linker class is implemented [here](../src/elevant/linkers/gpt_linker.py). GPT predicts Wikipedia entity names.
  We map the predicted Wikipedia entities to Wikidata using our mappings.
 
 #### TagMe
@@ -109,7 +109,7 @@ In ELEVANT, you can use the TagMe linker with the `link_benchmark_entities.py` s
  
     python3 link_benchmark_entities.py <experiment_name> -l tagme -b <benchmark_name>
 
-The TagMe linker class is implemented [here](../src/linkers/tagme_linker.py). TagMe predicts Wikipedia entity links.
+The TagMe linker class is implemented [here](../src/elevant/linkers/tagme_linker.py). TagMe predicts Wikipedia entity links.
  We map the predicted Wikipedia entities to Wikidata using our mappings.
 
 #### WAT
@@ -127,7 +127,7 @@ In ELEVANT, you can use the WAT linker with the `link_benchmark_entities.py` scr
  
     python3 link_benchmark_entities.py <experiment_name> -l wat -b <benchmark_name>
 
-The WAT linker class is implemented [here](../src/linkers/wat_linker.py). WAT predicts Wikipedia entity links.
+The WAT linker class is implemented [here](../src/elevant/linkers/wat_linker.py). WAT predicts Wikipedia entity links.
  We map the predicted Wikipedia entities to Wikidata using our mappings.
 
 #### DBpedia Spotlight
@@ -145,7 +145,7 @@ In ELEVANT, you can use the DBpedia linker with the `link_benchmark_entities.py`
     python3 link_benchmark_entities.py <experiment_name> -l dbpedia-spotlight -b <benchmark_name>
 
 DBpedia predicts DBpedia entities which we map to Wikidata entities using our mappings. The DBpedia Spotlight linker
- class is implemented [here](../src/linkers/dbpedia_spotlight_linker.py).
+ class is implemented [here](../src/elevant/linkers/dbpedia_spotlight_linker.py).
 
 #### Babelfy
 Babelfy is a linking system developed by Moro et al. and described in the 2014 paper
@@ -164,7 +164,7 @@ In ELEVANT, you can use the Babelffy linker with the `link_benchmark_entities.py
 
 Babelfy predicts DBpedia entities which we map to Wikidata entities using our mappings. Predictions that only have a
  BabelNet reference and no DBpedia reference are linked to NIL. The Babelfy linker class is implemented
- [here](../src/linkers/babelfy_linker.py).
+ [here](../src/elevant/linkers/babelfy_linker.py).
 
 #### Baseline
 ELEVANT comes with a simple baseline that performs Entity Recognition using the SpaCy NER component and that links
@@ -177,7 +177,7 @@ You can use the Baseline by providing the linker name `baseline` to the linking 
  
     python3 link_benchmark_entities.py <experiment_name> -l baseline -b <benchmark_name>
 
-The Baseline linker class is implemented [here](../src/linkers/baseline_linker.py).
+The Baseline linker class is implemented [here](../src/elevant/linkers/baseline_linker.py).
 
 #### POS Prior
 This linker is similar to the baseline linker described above. The main difference is, that instead of using the
@@ -187,7 +187,7 @@ You can use the POS Prior linker by providing the linker name `pos-prior`.
 
     python3 link_benchmark_entities.py <experiment_name> -l pos-prior -b <benchmark_name>
 
-The POS Prior linker class is implemented [here](../src/linkers/prior_linker.py).
+The POS Prior linker class is implemented [here](../src/elevant/linkers/prior_linker.py).
 
 
 #### SpaCy
@@ -202,7 +202,7 @@ The SpaCy linker can then be used by providing the linker name `spacy`:
     python3 link_benchmark_entities.py <experiment_name> -l spacy -b <benchmark_name>
 
 In the corresponding config file [configs/spacy.config.json](../configs/spacy.config.json) you can adjust the model and
- knowledge base name if needed. The Spacy linker class is implemented [here](../src/linkers/spacy_linker.py).
+ knowledge base name if needed. The Spacy linker class is implemented [here](../src/elevant/linkers/spacy_linker.py).
 
 Alternatively you can train the linker yourself. This requires the following steps:
 
@@ -226,4 +226,4 @@ You can also create oracle predictions (that is, predictions that correspond exa
 
     python3 link_benchmark_entities.py <experiment_name> -l oracle -b <benchmark_name>
 
-The code for creating oracle predictions can be found [here](../src/linkers/oracle_linker.py)
+The code for creating oracle predictions can be found [here](../src/elevant/linkers/oracle_linker.py)

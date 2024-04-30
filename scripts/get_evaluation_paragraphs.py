@@ -4,8 +4,8 @@ import sys
 
 sys.path.append(".")
 
-from src.helpers.newscrawl_corpus import NewscrawlCorpus
-from src.helpers.wikipedia_corpus import WikipediaCorpus
+from src.elevant.helpers.newscrawl_corpus import NewscrawlCorpus
+from src.elevant.helpers.wikipedia_corpus import WikipediaCorpus
 
 
 N_PARAGRAPHS_PER_ARTICLE = 3

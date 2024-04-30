@@ -54,7 +54,7 @@ Your benchmark file should look something like this:
 `<benchmark_file>` can be the path to a single JSONL file that contains all benchmark articles or the path to a
  directory that contains multiple such JSONL files.
 
-The Simple JSONL benchmark reader is implemented [here](../src/benchmark_readers/simple_jsonl_benchmark_reader.py).
+The Simple JSONL benchmark reader is implemented [here](../src/elevant/benchmark_readers/simple_jsonl_benchmark_reader.py).
 
 #### NIF
 The NIF format for the purpose of entity linking is explained in detail in the
@@ -85,7 +85,7 @@ Note that in ELEVANT
 - `<benchmark_file>` can be the path to a single NIF file that contains all benchmark articles or the path to a
  directory that contains multiple such NIF files
  
-The NIF benchmark reader is implemented [here](../src/benchmark_readers/nif_benchmark_reader.py).
+The NIF benchmark reader is implemented [here](../src/elevant/benchmark_readers/nif_benchmark_reader.py).
 
 #### AIDA-CoNLL IOB Format
 The format should be as follows:
@@ -119,7 +119,7 @@ Your benchmark file should look something like this:
     Peter	B	Peter Blackburn	--NME--
     Blackburn	I	Peter Blackburn	--NME--
 
-The AIDA-CoNLL benchmark reader is implemented [here](../src/benchmark_readers/aida_conll_benchmark_reader.py).
+The AIDA-CoNLL benchmark reader is implemented [here](../src/elevant/benchmark_readers/aida_conll_benchmark_reader.py).
 
 
 #### XML (MSNBC) Format
@@ -185,7 +185,7 @@ In order to add a benchmark in this format, call the `add_benchmark.py` with the
 
     python3 add_benchmark.py <benchmark_name> -bfile <path_to_xml_file(s)> <path_to_raw_text_dir> -bformat xml
 
-The XML benchmark reader is implemented [here](../src/benchmark_readers/xml_benchmark_reader.py).
+The XML benchmark reader is implemented [here](../src/elevant/benchmark_readers/xml_benchmark_reader.py).
 
 #### OKE
 The OKE format is based on NIF, but the taIdentRef are not valid entity URIs. Instead, it includes sameAs relations
@@ -219,7 +219,7 @@ The OKE format is based on NIF, but the taIdentRef are not valid entity URIs. In
         rdfs:label  "Pablo Neruda"@en ;
         owl:sameAs  dbpedia:Pablo_Neruda .
 
-The OKE benchmark reader is implemented [here](../src/benchmark_readers/oke_benchmark_reader.py).
+The OKE benchmark reader is implemented [here](../src/elevant/benchmark_readers/oke_benchmark_reader.py).
 
 #### TSV IOB Format
 The benchmark file should contain one line per token. Each line contains at least three tab-separated columns, where
@@ -244,7 +244,7 @@ Your benchmark file could for example look something like this:
     Good            O
     weekend         O
 
-The TSV benchmark reader is implemented [here](../src/benchmark_readers/tsv_benchmark_reader.py).
+The TSV benchmark reader is implemented [here](../src/elevant/benchmark_readers/tsv_benchmark_reader.py).
 
 
 #### Our JSONL Format

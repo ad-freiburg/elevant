@@ -4,9 +4,9 @@ import re
 
 sys.path.append(".")
 
-from src import settings
-from src.utils import log
-from src.helpers.wikipedia_corpus import WikipediaCorpus
+from src.elevant import settings
+from src.elevant.utils import log
+from src.elevant.helpers.wikipedia_corpus import WikipediaCorpus
 
 _akronym_re = re.compile(r" \(([A-Z]+)\).*")
 

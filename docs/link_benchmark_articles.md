@@ -74,7 +74,7 @@ Your linking results file should look something like this:
 - `<path_to_linking_results>` can be the path to a single NIF file that contains all benchmark articles and the
  predicted links or the path to a directory that contains multiple such NIF files.
 
-The NIF prediction reader is implemented [here](../src/prediction_readers/nif_prediction_reader.py).
+The NIF prediction reader is implemented [here](../src/elevant/prediction_readers/nif_prediction_reader.py).
 
 #### Linking Results in a Simple JSONL Format
 If you have linking results for a certain benchmark in a very simple JSONL format as described below, use
@@ -98,7 +98,7 @@ The file `<path_to_linking_results>` should contain one line per benchmark artic
 - `start_char` is the character offset of the start of the mention (including) within the article text
 - `end_char` is the character offset of the end of the mention (excluding) within the article text
 
-The simple JSONL prediction reader is implemented [here](../src/prediction_readers/simple_jsonl_prediction_reader.py).
+The simple JSONL prediction reader is implemented [here](../src/elevant/prediction_readers/simple_jsonl_prediction_reader.py).
 
 #### Linking Results in Ambiverse Output Format
 If you have linking results for a certain benchmark in the Ambiverse output format, use `-pformat ambiverse` in the
@@ -138,7 +138,7 @@ If you have linking results for a certain benchmark in the Ambiverse output form
        ]
     }
 
-The Ambiverse prediction reader is implemented [here](../src/prediction_readers/ambiverse_prediction_reader.py).
+The Ambiverse prediction reader is implemented [here](../src/elevant/prediction_readers/ambiverse_prediction_reader.py).
 
 ### Writing a Custom Prediction Reader
 As an alternative to converting your predictions into one of the formats mentioned above, you can write your own
@@ -152,12 +152,12 @@ As an alternative to converting your predictions into one of the formats mention
 
     Implement `predictions_iterator()` if you are sure that the order in which the predictions are read corresponds
      to the article order in the benchmark. Set `predictions_iterator_implemented = True` when calling
-     `super().__init__()`. See [here](../src/prediction_readers/simple_jsonl_prediction_reader.py) for an example.
+     `super().__init__()`. See [here](../src/elevant/prediction_readers/simple_jsonl_prediction_reader.py) for an example.
 
     Implement `get_predictions_with_text_from_file()` if you are not sure that the order in which the predictions are
      read corresponds to the article order in the benchmark and the prediction file contains the original article
      texts. Set `predictions_iterator_implemented = False` when calling `super().__init__()`. See
-     [here](../src/prediction_readers/nif_prediction_reader.py) for an example.
+     [here](../src/elevant/prediction_readers/nif_prediction_reader.py) for an example.
 
 2) Add your custom prediction reader name to the `src.linkers.linkers.PredictionFormats` enum, e.g.
  `MY_FORMAT = "my_format"`.

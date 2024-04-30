@@ -3,13 +3,13 @@ import sys
 import json
 from datetime import datetime
 
-from src import settings
-from src.utils import log
-from src.utils.colors import Colors
-from src.evaluation.benchmark import BenchmarkFormat, Benchmark, get_available_benchmarks
-from src.evaluation.benchmark_iterator import get_benchmark_iterator
-from src.evaluation.groundtruth_label import GroundtruthLabel
-from src.models.entity_database import EntityDatabase
+from src.elevant import settings
+from src.elevant.utils import log
+from src.elevant.utils.colors import Colors
+from src.elevant.evaluation.benchmark import BenchmarkFormat, Benchmark, get_available_benchmarks
+from src.elevant.evaluation.benchmark_iterator import get_benchmark_iterator
+from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
+from src.elevant.models.entity_database import EntityDatabase
 
 
 def main(args):

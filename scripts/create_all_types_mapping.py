@@ -7,9 +7,9 @@ import sys
 
 sys.path.append(".")
 
-from src import settings
-from src.utils import log
-from src.helpers.entity_database_reader import EntityDatabaseReader
+from src.elevant import settings
+from src.elevant.utils import log
+from src.elevant.helpers.entity_database_reader import EntityDatabaseReader
 
 
 class AllTypesMappingCreator:
