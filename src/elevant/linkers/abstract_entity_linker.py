@@ -4,9 +4,9 @@ from typing import Dict, Tuple, Optional
 
 from spacy.tokens import Doc
 
-from src.elevant.models.entity_mention import EntityMention
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.models.article import Article
+from elevant.models.entity_mention import EntityMention
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.models.article import Article
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

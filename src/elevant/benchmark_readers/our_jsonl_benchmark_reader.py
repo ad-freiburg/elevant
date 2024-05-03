@@ -1,8 +1,8 @@
 import logging
 from typing import Iterator
 
-from src.elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
-from src.elevant.models.article import Article, article_from_json
+from elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
+from elevant.models.article import Article, article_from_json
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from src.elevant.utils.pronoun_finder import PronounFinder
+from elevant.utils.pronoun_finder import PronounFinder
 
 
 class MentionType(Enum):

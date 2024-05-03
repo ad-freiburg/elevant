@@ -1,7 +1,7 @@
 import os
 
 from enum import Enum
-from src.elevant import settings
+from elevant import settings
 
 
 class Benchmark(Enum):

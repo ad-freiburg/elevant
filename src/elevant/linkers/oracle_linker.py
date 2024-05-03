@@ -1,5 +1,5 @@
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.models.entity_prediction import EntityPrediction
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.models.entity_prediction import EntityPrediction
 
 
 def link_entities_with_oracle(article):

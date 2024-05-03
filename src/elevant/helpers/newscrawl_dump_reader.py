@@ -1,8 +1,8 @@
 from typing import Iterator, Optional
 import json
 
-from src.elevant.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.elevant.models.article import Article
+from elevant.helpers.wikipedia_dump_reader import WikipediaDumpReader
+from elevant.models.article import Article
 
 
 class NewscrawlDumpReader(WikipediaDumpReader):

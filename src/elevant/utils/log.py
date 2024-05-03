@@ -1,7 +1,7 @@
 import logging
 import os
 
-from src.elevant import settings
+from elevant import settings
 from datetime import datetime
 
 

@@ -29,12 +29,12 @@ from enum import Enum
 
 sys.path.append(".")
 
-from src.elevant.utils import log
-from src.elevant.evaluation.benchmark import get_available_benchmarks
-from src.elevant.evaluation.benchmark_iterator import get_benchmark_iterator
-from src.elevant.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.models.article import Article, article_from_json
+from elevant.utils import log
+from elevant.evaluation.benchmark import get_available_benchmarks
+from elevant.evaluation.benchmark_iterator import get_benchmark_iterator
+from elevant.helpers.wikipedia_dump_reader import WikipediaDumpReader
+from elevant.models.entity_database import EntityDatabase
+from elevant.models.article import Article, article_from_json
 
 
 class Annotation(Enum):

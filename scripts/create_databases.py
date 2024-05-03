@@ -9,7 +9,7 @@ from enum import Enum
 
 sys.path.append(".")
 
-from src.elevant.utils import log
+from elevant.utils import log
 
 
 WIKI_URL_PREFIX = "https://en.wikipedia.org/wiki/"

@@ -5,18 +5,18 @@ import pygtrie
 import spacy
 from spacy.tokens import Doc
 
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.models.entity_mention import EntityMention
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.ner.maximum_matching_ner import MaximumMatchingNER
-from src.elevant.settings import NER_IGNORE_TAGS
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.utils.dates import is_date
-from src.elevant import settings
-from src.elevant.utils.offset_converter import OffsetConverter
-import src.elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
-import src.elevant.utils.custom_sentencizer  # import is needed so Python finds the custom component
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.models.entity_mention import EntityMention
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.ner.maximum_matching_ner import MaximumMatchingNER
+from elevant.settings import NER_IGNORE_TAGS
+from elevant.models.entity_database import EntityDatabase
+from elevant.utils.dates import is_date
+from elevant import settings
+from elevant.utils.offset_converter import OffsetConverter
+import elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
+import elevant.utils.custom_sentencizer  # import is needed so Python finds the custom component
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

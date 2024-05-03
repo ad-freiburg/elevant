@@ -5,9 +5,9 @@ import stanza
 from stanza.server import CoreNLPClient
 from spacy.tokens import Doc
 
-from src.elevant.linkers.abstract_coref_linker import AbstractCorefLinker
-from src.elevant.models.coref_cluster import CorefCluster
-from src.elevant.models.article import Article
+from elevant.linkers.abstract_coref_linker import AbstractCorefLinker
+from elevant.models.coref_cluster import CorefCluster
+from elevant.models.article import Article
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

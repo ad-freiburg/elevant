@@ -2,13 +2,13 @@ from typing import Dict, Tuple, Set, Optional, Any
 
 from spacy.tokens import Doc
 
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.helpers.entity_linker_loader import EntityLinkerLoader
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.settings import NER_IGNORE_TAGS
-from src.elevant.utils.dates import is_date
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.helpers.entity_linker_loader import EntityLinkerLoader
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.settings import NER_IGNORE_TAGS
+from elevant.utils.dates import is_date
 
-import src.elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
+import elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 
 class SpacyLinker(AbstractEntityLinker):
     def __init__(self, config: Dict[str, Any]):

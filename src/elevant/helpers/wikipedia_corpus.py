@@ -1,7 +1,7 @@
 from typing import Iterator
-from src.elevant.models.article import Article
-from src.elevant.helpers.wikipedia_dump_reader import WikipediaDumpReader
-from src.elevant import settings
+from elevant.models.article import Article
+from elevant.helpers.wikipedia_dump_reader import WikipediaDumpReader
+from elevant import settings
 
 
 class WikipediaCorpus:

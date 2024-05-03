@@ -1,5 +1,5 @@
-from src.elevant.linkers.linking_system import LinkingSystem
-from src.elevant import settings
+from elevant.linkers.linking_system import LinkingSystem
+from elevant import settings
 import json
 
 with open(settings.TMP_FORKSERVER_CONFIG_FILE, "r", encoding="utf8") as file:

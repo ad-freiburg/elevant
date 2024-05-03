@@ -6,11 +6,11 @@ from urllib.parse import quote
 
 sys.path.append(".")
 
-from src.elevant import settings
-from src.elevant.utils import log
-from src.elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
-from src.elevant.linkers.linking_system import LinkingSystem
-from src.elevant.models.article import Article, article_from_json
+from elevant import settings
+from elevant.utils import log
+from elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
+from elevant.linkers.linking_system import LinkingSystem
+from elevant.models.article import Article, article_from_json
 
 app = Flask(__name__)
 

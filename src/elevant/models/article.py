@@ -3,9 +3,9 @@ from typing import List, Dict, Tuple, Optional
 import json
 import numpy as np
 
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel, groundtruth_label_from_dict
-from src.elevant.models.entity_mention import EntityMention, entity_mention_from_dict
-from src.elevant.models.entity_prediction import EntityPrediction
+from elevant.evaluation.groundtruth_label import GroundtruthLabel, groundtruth_label_from_dict
+from elevant.models.entity_mention import EntityMention, entity_mention_from_dict
+from elevant.models.entity_prediction import EntityPrediction
 
 ABSTRACT_INDICATOR = "ABSTRACT"
 

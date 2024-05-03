@@ -1,7 +1,7 @@
 from spacy.tokens import Span, Doc
 from spacy.language import Language
 
-from src.elevant.models.entity_database import EntityDatabase
+from elevant.models.entity_database import EntityDatabase
 
 
 @Language.factory("ner_postprocessor")

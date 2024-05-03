@@ -20,14 +20,14 @@ import time
 from datetime import datetime
 from tqdm import tqdm
 
-from src.elevant import settings
-from src.elevant.utils import log
-from src.elevant.utils.colors import Colors
-from src.elevant.evaluation.benchmark import get_available_benchmarks
-from src.elevant.evaluation.benchmark_iterator import get_benchmark_iterator
-from src.elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
-from src.elevant.linkers.linking_system import LinkingSystem
-from src.elevant.linkers.oracle_linker import link_entities_with_oracle
+from elevant import settings
+from elevant.utils import log
+from elevant.utils.colors import Colors
+from elevant.evaluation.benchmark import get_available_benchmarks
+from elevant.evaluation.benchmark_iterator import get_benchmark_iterator
+from elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
+from elevant.linkers.linking_system import LinkingSystem
+from elevant.linkers.oracle_linker import link_entities_with_oracle
 
 
 def convert_to_filename(string: str):

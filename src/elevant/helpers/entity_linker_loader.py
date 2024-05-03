@@ -3,7 +3,7 @@ from typing import Optional
 import spacy
 import logging
 
-from src.elevant import settings
+from elevant import settings
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

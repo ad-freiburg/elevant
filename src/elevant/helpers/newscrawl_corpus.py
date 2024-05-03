@@ -1,9 +1,9 @@
 from typing import Iterator
 
-from src.elevant.helpers.newscrawl_dump_reader import NewscrawlDumpReader
-from src.elevant.helpers.wikipedia_corpus import WikipediaCorpus
-from src.elevant.models.article import Article
-from src.elevant import settings
+from elevant.helpers.newscrawl_dump_reader import NewscrawlDumpReader
+from elevant.helpers.wikipedia_corpus import WikipediaCorpus
+from elevant.models.article import Article
+from elevant import settings
 
 
 class NewscrawlCorpus(WikipediaCorpus):

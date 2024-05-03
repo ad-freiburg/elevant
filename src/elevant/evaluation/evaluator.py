@@ -1,13 +1,13 @@
 import logging
 from typing import Optional, Dict, Tuple, List
 
-from src.elevant import settings
-from src.elevant.evaluation.case import Case, ErrorLabel, EvaluationMode
-from src.elevant.evaluation.case_generator import CaseGenerator
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.helpers.entity_database_reader import EntityDatabaseReader
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.evaluation.errors import label_errors
+from elevant import settings
+from elevant.evaluation.case import Case, ErrorLabel, EvaluationMode
+from elevant.evaluation.case_generator import CaseGenerator
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.helpers.entity_database_reader import EntityDatabaseReader
+from elevant.models.entity_database import EntityDatabase
+from elevant.evaluation.errors import label_errors
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

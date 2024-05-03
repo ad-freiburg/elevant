@@ -1,6 +1,6 @@
 from typing import Optional
 
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
 
 
 class WikidataEntity:

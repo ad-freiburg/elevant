@@ -3,9 +3,9 @@ import sys
 
 sys.path.append(".")
 
-from src.elevant import settings
-from src.elevant.utils import log
-from src.elevant.helpers.wikipedia_corpus import WikipediaCorpus
+from elevant import settings
+from elevant.utils import log
+from elevant.helpers.wikipedia_corpus import WikipediaCorpus
 
 
 def main():

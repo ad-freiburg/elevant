@@ -1,12 +1,12 @@
 from collections import defaultdict
 from typing import Tuple, List, Set, Dict
 
-from src.elevant.evaluation.case import Case, EvaluationType, EvaluationMode
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.models.entity_mention import EntityMention
-from src.elevant.models.wikidata_entity import WikidataEntity
-from src.elevant.models.article import Article
+from elevant.evaluation.case import Case, EvaluationType, EvaluationMode
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.models.entity_database import EntityDatabase
+from elevant.models.entity_mention import EntityMention
+from elevant.models.wikidata_entity import WikidataEntity
+from elevant.models.article import Article
 
 
 def word_boundary(span: Tuple[int, int], text: str) -> Tuple[int, int]:

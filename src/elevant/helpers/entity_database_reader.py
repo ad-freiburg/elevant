@@ -4,9 +4,9 @@ import pickle
 import logging
 import dbm
 
-from src.elevant import settings
-from src.elevant.models.database import Database
-from src.elevant.models.gender import Gender
+from elevant import settings
+from elevant.models.database import Database
+from elevant.models.gender import Gender
 
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])

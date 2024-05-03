@@ -3,14 +3,14 @@ from typing import Dict, Tuple, Optional, Set, List, Any
 import spacy
 from spacy.tokens import Doc
 
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant import settings
-from src.elevant.settings import NER_IGNORE_TAGS
-from src.elevant.ner.maximum_matching_ner import MaximumMatchingNER
-from src.elevant.utils.dates import is_date
-import src.elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.models.entity_database import EntityDatabase
+from elevant import settings
+from elevant.settings import NER_IGNORE_TAGS
+from elevant.ner.maximum_matching_ner import MaximumMatchingNER
+from elevant.utils.dates import is_date
+import elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 
 class BaselineLinker(AbstractEntityLinker):
     def __init__(self,

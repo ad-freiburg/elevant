@@ -1,7 +1,7 @@
 import spacy
 
-from src.elevant.models.article import Paragraph
-from src.elevant.models.entity_mention import EntityMention
+from elevant.models.article import Paragraph
+from elevant.models.entity_mention import EntityMention
 
 
 class SpacyNamedEntityRecognizer:

@@ -4,10 +4,10 @@ from spacy.kb import KnowledgeBase
 
 sys.path.append(".")
 
-from src.elevant import settings
-from src.elevant.utils import log
-from src.elevant.helpers.entity_database_reader import EntityDatabaseReader
-from src.elevant.helpers.label_generator import LabelGenerator
+from elevant import settings
+from elevant.utils import log
+from elevant.helpers.entity_database_reader import EntityDatabaseReader
+from elevant.helpers.label_generator import LabelGenerator
 
 
 def train():

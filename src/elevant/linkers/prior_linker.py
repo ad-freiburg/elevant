@@ -4,12 +4,12 @@ from typing import Optional, Dict, Tuple, Iterator, Any
 import spacy
 from spacy.tokens import Doc
 
-from src.elevant.helpers.entity_database_reader import EntityDatabaseReader
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant import settings
-from src.elevant.utils.offset_converter import OffsetConverter
+from elevant.helpers.entity_database_reader import EntityDatabaseReader
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.models.entity_database import EntityDatabase
+from elevant.models.entity_prediction import EntityPrediction
+from elevant import settings
+from elevant.utils.offset_converter import OffsetConverter
 import logging
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])

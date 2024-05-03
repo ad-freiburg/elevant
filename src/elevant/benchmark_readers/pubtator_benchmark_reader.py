@@ -1,12 +1,12 @@
 from typing import Iterator
 
-from src.elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.models.article import Article
+from elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.models.article import Article
 
 import logging
 
-from src.elevant.utils.nested_groundtruth_handler import NestedGroundtruthHandler
+from elevant.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

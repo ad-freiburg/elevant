@@ -6,11 +6,11 @@ import tarfile
 import requests
 import urllib.request
 
-from src.elevant import settings
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant import settings
+from elevant.models.entity_database import EntityDatabase
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 from REL.mention_detection import MentionDetection
 from REL.utils import process_results

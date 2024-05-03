@@ -2,10 +2,10 @@ from typing import Optional, Tuple, List
 
 import abc
 from spacy.tokens import Doc
-from src.elevant.utils.pronoun_finder import PronounFinder
-from src.elevant.models.article import Article
-from src.elevant.models.entity_mention import EntityMention
-from src.elevant.evaluation.mention_type import is_coreference
+from elevant.utils.pronoun_finder import PronounFinder
+from elevant.models.article import Article
+from elevant.models.entity_mention import EntityMention
+from elevant.evaluation.mention_type import is_coreference
 
 
 class AbstractCorefLinker(abc.ABC):

@@ -2,9 +2,9 @@ import logging
 import spacy
 from spacy.kb import KnowledgeBase
 
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.helpers.word_vectors import VectorLoader
-from src.elevant import settings
+from elevant.models.entity_database import EntityDatabase
+from elevant.helpers.word_vectors import VectorLoader
+from elevant import settings
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

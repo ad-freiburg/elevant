@@ -6,9 +6,9 @@ from typing import Iterator, List, Optional
 from pynif import NIFCollection
 from urllib.parse import quote, unquote
 
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.models.entity_mention import EntityMention
-from src.elevant.models.article import Article
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.models.entity_mention import EntityMention
+from elevant.models.article import Article
 
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])

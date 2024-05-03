@@ -4,7 +4,7 @@ import os
 import spacy
 import pickle
 
-from src.elevant import settings
+from elevant import settings
 
 
 class VectorGenerator:

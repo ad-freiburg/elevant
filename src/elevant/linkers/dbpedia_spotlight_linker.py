@@ -6,10 +6,10 @@ import logging
 from pynif import NIFCollection
 from spacy.tokens.doc import Doc
 
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.models.entity_database import EntityDatabase
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

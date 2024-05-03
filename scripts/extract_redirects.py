@@ -6,8 +6,8 @@ import sys
 
 sys.path.append(".")
 
-from src.elevant import settings
-from src.elevant.utils import log
+from elevant import settings
+from elevant.utils import log
 
 
 TITLE_START = "<title>"

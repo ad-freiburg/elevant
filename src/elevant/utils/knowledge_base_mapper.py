@@ -5,7 +5,7 @@ from urllib.parse import unquote
 import re
 import logging
 
-from src.elevant.models.entity_database import EntityDatabase
+from elevant.models.entity_database import EntityDatabase
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

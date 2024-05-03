@@ -1,7 +1,7 @@
 import abc
 from typing import Iterator
 
-from src.elevant.models.article import Article
+from elevant.models.article import Article
 
 
 class AbstractBenchmarkReader(abc.ABC):

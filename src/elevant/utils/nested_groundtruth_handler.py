@@ -1,6 +1,6 @@
 from typing import List
 
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
 
 
 class NestedGroundtruthHandler:

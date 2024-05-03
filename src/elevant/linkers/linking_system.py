@@ -2,10 +2,10 @@ import json
 import os
 from typing import Optional, Tuple, Dict, Set, Any
 
-from src.elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
-from src.elevant.models.article import Article
-from src.elevant.models.entity_database import EntityDatabase, MappingName
-from src.elevant import settings
+from elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
+from elevant.models.article import Article
+from elevant.models.entity_database import EntityDatabase, MappingName
+from elevant import settings
 
 import logging
 
@@ -93,26 +93,26 @@ class LinkingSystem:
         linker_exists = True
 
         if linker_type == Linkers.SPACY.value:
-            from src.elevant.linkers.spacy_linker import SpacyLinker
+            from elevant.linkers.spacy_linker import SpacyLinker
             self.linker = SpacyLinker(self.linker_config)
         elif linker_type == PredictionFormats.AMBIVERSE.value:
-            from src.elevant.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
+            from elevant.prediction_readers.ambiverse_prediction_reader import AmbiversePredictionReader
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.prediction_reader = AmbiversePredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.TAGME.value:
-            from src.elevant.linkers.tagme_linker import TagMeLinker
+            from elevant.linkers.tagme_linker import TagMeLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = TagMeLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.SIMPLE_JSONL.value:
-            from src.elevant.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
+            from elevant.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
             if not self.custom_kb:
                 self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                             MappingName.REDIRECTS})
             self.prediction_reader = SimpleJsonlPredictionReader(prediction_file, self.entity_db, self.custom_kb)
         elif linker_type == Linkers.BASELINE.value:
-            from src.elevant.linkers.baseline_linker import BaselineLinker
+            from elevant.linkers.baseline_linker import BaselineLinker
             if self.linker_config["strategy"] == "wikidata":
                 self.load_missing_mappings({MappingName.WIKIDATA_ALIASES,
                                             MappingName.FAMILY_NAME_ALIASES,
@@ -127,7 +127,7 @@ class LinkingSystem:
                                             MappingName.WIKIDATA_ALIASES})
             self.linker = BaselineLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
-            from src.elevant.linkers.popular_entities_linker import PopularEntitiesLinker
+            from elevant.linkers.popular_entities_linker import PopularEntitiesLinker
             self.load_missing_mappings({MappingName.FAMILY_NAME_ALIASES,
                                         MappingName.WIKIDATA_ALIASES,
                                         MappingName.LANGUAGES,
@@ -137,13 +137,13 @@ class LinkingSystem:
             self.linker = PopularEntitiesLinker(self.entity_db, self.linker_config)
             self.globally = True
         elif linker_type == PredictionFormats.WIKIFIER.value:
-            from src.elevant.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
+            from elevant.prediction_readers.wikifier_prediction_reader import WikifierPredictionReader
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS,
                                         MappingName.WIKIPEDIA_ID_WIKIPEDIA_TITLE})
             self.prediction_reader = WikifierPredictionReader(prediction_file, self.entity_db)
         elif linker_type == Linkers.POS_PRIOR.value:
-            from src.elevant.linkers.prior_linker import PriorLinker
+            from elevant.linkers.prior_linker import PriorLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS,
                                         MappingName.LINK_FREQUENCIES,
@@ -151,39 +151,39 @@ class LinkingSystem:
                                         MappingName.ENTITY_ID_TO_FAMILY_NAME})
             self.linker = PriorLinker(self.entity_db, self.linker_config)
         elif linker_type == PredictionFormats.NIF.value:
-            from src.elevant.prediction_readers.nif_prediction_reader import NifPredictionReader
+            from elevant.prediction_readers.nif_prediction_reader import NifPredictionReader
             if not self.custom_kb:
                 self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                             MappingName.REDIRECTS})
             self.prediction_reader = NifPredictionReader(prediction_file, self.entity_db, self.custom_kb)
         elif linker_type == PredictionFormats.EPGEL.value:
-            from src.elevant.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
+            from elevant.prediction_readers.epgel_prediction_reader import EPGELPredictionReader
             self.prediction_reader = EPGELPredictionReader(prediction_file)
         elif linker_type == Linkers.DBPEDIA_SPOTLIGHT.value:
-            from src.elevant.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
+            from elevant.linkers.dbpedia_spotlight_linker import DbpediaSpotlightLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = DbpediaSpotlightLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.REFINED.value:
-            from src.elevant.linkers.refined_linker import RefinedLinker
+            from elevant.linkers.refined_linker import RefinedLinker
             self.linker = RefinedLinker(self.linker_config)
         elif linker_type == Linkers.REL.value:
-            from src.elevant.linkers.rel_linker import RelLinker
+            from elevant.linkers.rel_linker import RelLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = RelLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.WAT.value:
-            from src.elevant.linkers.wat_linker import WatLinker
+            from elevant.linkers.wat_linker import WatLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = WatLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.GPT.value:
-            from src.elevant.linkers.gpt_linker import GPTLinker
+            from elevant.linkers.gpt_linker import GPTLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = GPTLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.BABELFY.value:
-            from src.elevant.linkers.babelfy_linker import BabelfyLinker
+            from elevant.linkers.babelfy_linker import BabelfyLinker
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = BabelfyLinker(self.entity_db, self.linker_config)
@@ -207,19 +207,19 @@ class LinkingSystem:
         #     from elevant.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
         #     self.coref_linker = NeuralcorefCorefLinker()
         if linker_type == CoreferenceLinkers.ENTITY.value:
-            from src.elevant.linkers.entity_coref_linker import EntityCorefLinker
+            from elevant.linkers.entity_coref_linker import EntityCorefLinker
             self.load_missing_mappings({MappingName.GENDER,
                                         MappingName.COREFERENCE_TYPES,
                                         MappingName.ENTITY_ID_TO_ALIAS})
             self.coref_linker = EntityCorefLinker(self.entity_db)
         elif linker_type == CoreferenceLinkers.STANFORD.value:
-            from src.elevant.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
+            from elevant.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
             self.coref_linker = StanfordCoreNLPCorefLinker()
         # elif linker_type == CoreferenceLinkers.XRENNER.value:
         #     from elevant.linkers.xrenner_coref_linker import XrennerCorefLinker
         #     self.coref_linker = XrennerCorefLinker()
         elif linker_type == CoreferenceLinkers.FASTCOREF.value:
-            from src.elevant.linkers.fastcoref_coref_linker import FastcorefCorefLinker
+            from elevant.linkers.fastcoref_coref_linker import FastcorefCorefLinker
             self.coref_linker = FastcorefCorefLinker()
         else:
             linker_exists = False

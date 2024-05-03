@@ -9,9 +9,9 @@ from xrenner.modules.get_models import check_models
 from spacy.tokens import Doc
 from spacy_conll import init_parser
 
-from src.elevant.linkers.abstract_coref_linker import AbstractCorefLinker
-from src.elevant.models.coref_cluster import CorefCluster
-from src.elevant.models.article import Article
+from elevant.linkers.abstract_coref_linker import AbstractCorefLinker
+from elevant.models.coref_cluster import CorefCluster
+from elevant.models.article import Article
 
 
 warnings.filterwarnings("ignore", category=VisibleDeprecationWarning)

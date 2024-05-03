@@ -1,10 +1,10 @@
 from typing import Iterator, Tuple
 
-from src.elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.helpers.wikipedia_corpus import WikipediaCorpus
-from src.elevant.models.article import Article
-from src.elevant.models.entity_database import EntityDatabase
+from elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmarkReader
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.helpers.wikipedia_corpus import WikipediaCorpus
+from elevant.models.article import Article
+from elevant.models.entity_database import EntityDatabase
 
 
 def expand_span(text: str, span: Tuple[int, int]) -> Tuple[int, int]:

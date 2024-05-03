@@ -21,10 +21,10 @@ from typing import List, Tuple, Optional, Set
 
 sys.path.append(".")
 
-from src.elevant.utils import log
-from src.elevant import settings
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.models.article import article_from_json
+from elevant.utils import log
+from elevant import settings
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.models.article import article_from_json
 
 
 START_TAG = "<START>"

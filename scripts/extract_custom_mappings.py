@@ -5,8 +5,8 @@ from rdflib import Graph
 
 sys.path.append(".")
 
-from src.elevant import settings
-from src.elevant.utils import log
+from elevant import settings
+from elevant.utils import log
 
 
 def main(args):

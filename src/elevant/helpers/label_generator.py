@@ -5,8 +5,8 @@ from spacy.kb import KnowledgeBase
 from spacy.language import Doc
 from spacy.pipeline import Sentencizer
 
-from src.elevant import settings
-from src.elevant.helpers.wikipedia_corpus import WikipediaCorpus
+from elevant import settings
+from elevant.helpers.wikipedia_corpus import WikipediaCorpus
 
 
 class LabelGenerator:

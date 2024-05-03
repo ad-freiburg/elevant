@@ -3,11 +3,11 @@ from typing import Dict, Set, Tuple, Iterator, Optional, List, Any
 
 import logging
 
-from src.elevant import settings
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.models.database import Database
-from src.elevant.models.gender import Gender
-from src.elevant.helpers.entity_database_reader import EntityDatabaseReader
+from elevant import settings
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.models.database import Database
+from elevant.models.gender import Gender
+from elevant.helpers.entity_database_reader import EntityDatabaseReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

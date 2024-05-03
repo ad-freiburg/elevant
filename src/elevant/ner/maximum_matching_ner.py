@@ -4,10 +4,10 @@ from typing import List, Tuple, Optional, Dict
 import spacy
 from spacy.tokens.doc import Doc
 
-from src.elevant.models.entity_database import EntityDatabase, MappingName
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.utils.dates import is_date
+from elevant.models.entity_database import EntityDatabase, MappingName
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.utils.dates import is_date
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

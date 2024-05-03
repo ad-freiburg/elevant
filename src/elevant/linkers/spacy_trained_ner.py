@@ -2,9 +2,9 @@ from typing import Dict, Any, Optional, Tuple
 
 import spacy
 
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.models.entity_prediction import EntityPrediction
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.models.entity_database import EntityDatabase
+from elevant.models.entity_prediction import EntityPrediction
 
 class SpacyTrainedNER(AbstractEntityLinker):
     def __init__(self, entity_db: EntityDatabase, config: Dict[str, Any]):

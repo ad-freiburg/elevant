@@ -3,9 +3,9 @@ import os
 
 sys.path.append(".")
 
-from src.elevant import settings
-from src.elevant.utils import log
-from src.elevant.helpers.knowledge_base_creator import KnowledgeBaseCreator
+from elevant import settings
+from elevant.utils import log
+from elevant.helpers.knowledge_base_creator import KnowledgeBaseCreator
 
 
 def main():

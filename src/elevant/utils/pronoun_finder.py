@@ -1,7 +1,7 @@
 from typing import Set, Tuple
 from spacy.tokens import Doc
 
-from src.elevant.models.gender import Gender
+from elevant.models.gender import Gender
 
 
 class PronounFinder:

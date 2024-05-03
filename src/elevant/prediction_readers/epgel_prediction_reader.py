@@ -2,8 +2,8 @@ from typing import Dict, Tuple, Iterator, List
 import json
 import logging
 
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

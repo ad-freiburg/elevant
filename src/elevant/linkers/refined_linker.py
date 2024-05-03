@@ -1,8 +1,8 @@
 import logging
 from typing import Dict, Tuple, Optional, Any
 
-from src.elevant.models.entity_prediction import EntityPrediction
-from src.elevant.linkers.abstract_entity_linker import AbstractEntityLinker
+from elevant.models.entity_prediction import EntityPrediction
+from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
 from refined.inference.processor import Refined
 
 

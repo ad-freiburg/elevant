@@ -3,9 +3,9 @@ from typing import Optional, Tuple, Set, Dict, List
 from enum import Enum
 import json
 
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.models.wikidata_entity import WikidataEntity
-from src.elevant.evaluation.mention_type import get_mention_type
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.models.wikidata_entity import WikidataEntity
+from elevant.evaluation.mention_type import get_mention_type
 
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])

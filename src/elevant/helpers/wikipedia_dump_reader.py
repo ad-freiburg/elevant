@@ -6,8 +6,8 @@ import json
 import re
 from urllib.parse import unquote
 
-from src.elevant.models.article import Article, ABSTRACT_INDICATOR
-from src.elevant import settings
+from elevant.models.article import Article, ABSTRACT_INDICATOR
+from elevant import settings
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

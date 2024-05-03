@@ -6,17 +6,17 @@ import spacy
 import re
 from collections import defaultdict
 
-import src.elevant.utils.custom_sentencizer  # import is needed so Python finds the custom component
-from src.elevant.linkers.abstract_coref_linker import AbstractCorefLinker
-from src.elevant.models.coref_cluster import CorefCluster
-from src.elevant.utils.dependency_conll_extractor import DependencyConllExtractor
-from src.elevant.models.dependency_graph import EnhancedDependencyGraph
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.models.gender import Gender
-from src.elevant.utils.offset_converter import OffsetConverter
-from src.elevant.utils.pronoun_finder import PronounFinder
-from src.elevant.models.article import Article
-from src.elevant import settings
+import elevant.utils.custom_sentencizer  # import is needed so Python finds the custom component
+from elevant.linkers.abstract_coref_linker import AbstractCorefLinker
+from elevant.models.coref_cluster import CorefCluster
+from elevant.utils.dependency_conll_extractor import DependencyConllExtractor
+from elevant.models.dependency_graph import EnhancedDependencyGraph
+from elevant.models.entity_database import EntityDatabase
+from elevant.models.gender import Gender
+from elevant.utils.offset_converter import OffsetConverter
+from elevant.utils.pronoun_finder import PronounFinder
+from elevant.models.article import Article
+from elevant import settings
 
 
 QUOTATION_MARKS = ('"', '“')

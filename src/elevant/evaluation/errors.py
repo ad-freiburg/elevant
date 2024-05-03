@@ -1,12 +1,12 @@
 from typing import List, Tuple, Set
 
-from src.elevant import settings
-from src.elevant.evaluation.case import Case, ErrorLabel, EvaluationMode
-from src.elevant.evaluation.groundtruth_label import GroundtruthLabel
-from src.elevant.evaluation.mention_type import MentionType, is_named_entity
-from src.elevant.models.entity_database import EntityDatabase
-from src.elevant.models.wikidata_entity import WikidataEntity
-from src.elevant.models.article import Article
+from elevant import settings
+from elevant.evaluation.case import Case, ErrorLabel, EvaluationMode
+from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.evaluation.mention_type import MentionType, is_named_entity
+from elevant.models.entity_database import EntityDatabase
+from elevant.models.wikidata_entity import WikidataEntity
+from elevant.models.article import Article
 
 
 def label_errors(article: Article,

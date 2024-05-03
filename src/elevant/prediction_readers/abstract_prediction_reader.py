@@ -3,8 +3,8 @@ from typing import Dict, Tuple, Iterator, List, Optional
 import os
 import logging
 
-from src.elevant.models.article import Article
-from src.elevant.models.entity_prediction import EntityPrediction
+from elevant.models.article import Article
+from elevant.models.entity_prediction import EntityPrediction
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 

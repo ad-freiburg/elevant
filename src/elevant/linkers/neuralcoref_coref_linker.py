@@ -4,10 +4,10 @@ import spacy
 import neuralcoref
 from spacy.tokens import Doc
 from spacy.language import Language
-from src.elevant import settings
-from src.elevant.linkers.abstract_coref_linker import AbstractCorefLinker
-from src.elevant.models.coref_cluster import CorefCluster
-from src.elevant.models.article import Article
+from elevant import settings
+from elevant.linkers.abstract_coref_linker import AbstractCorefLinker
+from elevant.models.coref_cluster import CorefCluster
+from elevant.models.article import Article
 
 
 class NeuralcorefCorefLinker(AbstractCorefLinker):

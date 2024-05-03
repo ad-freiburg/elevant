@@ -2,17 +2,17 @@ import logging
 import random
 from typing import Optional, List
 
-from src.elevant import settings
-from src.elevant.benchmark_readers.aida_conll_benchmark_reader import AidaConllBenchmarkReader
-from src.elevant.benchmark_readers.nif_benchmark_reader import NifBenchmarkReader
-from src.elevant.benchmark_readers.oke_benchmark_reader import OkeBenchmarkReader
-from src.elevant.benchmark_readers.our_jsonl_benchmark_reader import OurJsonlBenchmarkReader
-from src.elevant.benchmark_readers.simple_jsonl_benchmark_reader import SimpleJsonlBenchmarkReader
-from src.elevant.benchmark_readers.tagme_benchmark_reader import TagmeBenchmarkReader
-from src.elevant.benchmark_readers.tsv_benchmark_reader import TsvBenchmarkReader
-from src.elevant.benchmark_readers.xml_benchmark_reader import XMLBenchmarkReader
-from src.elevant.evaluation.benchmark import BenchmarkFormat, Benchmark
-from src.elevant.models.entity_database import EntityDatabase
+from elevant import settings
+from elevant.benchmark_readers.aida_conll_benchmark_reader import AidaConllBenchmarkReader
+from elevant.benchmark_readers.nif_benchmark_reader import NifBenchmarkReader
+from elevant.benchmark_readers.oke_benchmark_reader import OkeBenchmarkReader
+from elevant.benchmark_readers.our_jsonl_benchmark_reader import OurJsonlBenchmarkReader
+from elevant.benchmark_readers.simple_jsonl_benchmark_reader import SimpleJsonlBenchmarkReader
+from elevant.benchmark_readers.tagme_benchmark_reader import TagmeBenchmarkReader
+from elevant.benchmark_readers.tsv_benchmark_reader import TsvBenchmarkReader
+from elevant.benchmark_readers.xml_benchmark_reader import XMLBenchmarkReader
+from elevant.evaluation.benchmark import BenchmarkFormat, Benchmark
+from elevant.models.entity_database import EntityDatabase
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
