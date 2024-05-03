@@ -1,0 +1,26 @@
+[project]
+name = "elevant"
+version = "0.1.0"
+authors = [
+	{ name="Natalie Prange", email="prange@cs.uni-freiburg.de" },
+	{ name="Matthias Hertel", email="hertelm@cs.uni-freiburg.de" }
+]
+maintainers = [ { name="Natalie Prange", email="prange@cs.uni-freiburg.de" } ]
+description = "Entity linking evaluation and analysis tool"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+keywords = ["nlp", "entity-linking", "evaluation", "analysis"]
+classifiers = [
+	"Programming Language :: Python :: 3"
+]
+
+[project.scripts]
+
+[project.urls]
+Homepage = "https://github.com/ad-freiburg/elevant/"
+Issues = "https://github.com/ad-freiburg/elevant/issues"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
