@@ -74,15 +74,15 @@ def get_labeled_entity_text(article, text, offset, entity_db):
         return text, []
 
     label_entities = set()
-    for span, entity_id in sorted(article.labels, reverse=True):
-        begin, end = span
+    for gt_label in sorted(article.labels, reverse=True):
+        begin, end = gt_label.span
         begin -= offset
         end -= offset
         entity_text_snippet = text[begin:end]
-        entity_name = entity_db.get_entity_name(entity_id)
-        entity_string = "[%s:%s|%s]" % (entity_id, entity_name, entity_text_snippet)
+        entity_name = entity_db.get_entity_name(gt_label.entity_id)
+        entity_string = "[%s:%s|%s]" % (gt_label.entity_id, entity_name, entity_text_snippet)
         text = text[:begin] + entity_string + text[end:]
-        label_entities.add(entity_id)
+        label_entities.add(gt_label.entity_id)
     return text, list(label_entities)
 
 
