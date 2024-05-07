@@ -43,17 +43,16 @@ class LinkingSystem:
         self._initialize_coref_linker(coref_linker)
 
     def _initialize_entity_db(self, linker_name: str, coref_linker: str, min_score: int):
-        # Linkers for which not to load entities into the entity database
+        # Linkers for which to load entities into the entity database, including their types and names.
         # The Wikipedia2Wikidata mapping that might be loaded in _initialize_linker()
         # remains unaffected by this.
-        no_db_linkers = (Linkers.TAGME.value, Linkers.DBPEDIA_SPOTLIGHT.value, Linkers.NONE.value,
-                         Linkers.REFINED.value, Linkers.REL.value, Linkers.WAT.value, Linkers.SPACY.value,
-                         Linkers.BABELFY.value, Linkers.GPT.value)
+        db_linkers = (Linkers.BASELINE.value, Linkers.POPULAR_ENTITIES.value, Linkers.POS_PRIOR.value)
+        db_coref_linkers = (CoreferenceLinkers.ENTITY.value,)
 
         self.entity_db = EntityDatabase()
 
         # When a prediction_file is given linker_name is None
-        if coref_linker or (linker_name is not None and linker_name not in no_db_linkers):
+        if coref_linker in db_coref_linkers or linker_name in db_linkers:
             self.entity_db.load_all_entities_in_wikipedia(minimum_sitelink_count=min_score)
             self.entity_db.load_entity_types(self.type_mapping_file)
             self.entity_db.load_entity_names()
