@@ -37,6 +37,9 @@ class MaximumMatchingNER(AbstractEntityLinker):
         return False
 
     def __init__(self, entity_db: EntityDatabase):
+        logger.warning("Due to some restructuring of the entity database, the MaximumMatchingNER"
+                       "currently takes a very long time for loading and should therefore not be"
+                       "used without modifications.")
         logger.info("Loading necessary mappings for NER ...")
         if not entity_db.loaded_info.get(MappingName.FAMILY_NAME_ALIASES):
             entity_db.load_family_name_aliases()
@@ -61,7 +64,9 @@ class MaximumMatchingNER(AbstractEntityLinker):
 
         logger.info("Retrieving alias frequencies ...")
         self.alias_frequencies = {}
-        for alias in entity_db.aliases:
+        # TODO: Aliases used to be stored in one central dictionary, but now they are stored in different dictionaries
+        #       and databases. But this approach is super slow right now:
+        for alias in list(entity_db.family_name_aliases.keys()) + list(entity_db.alias_to_entities_db.keys()) + list(entity_db.name_to_entities_db.keys()):
             ignore_alias = False
             if len(alias) == 0:
                 continue
