@@ -173,14 +173,69 @@ As an alternative to converting your predictions into one of the formats mention
      predict Wikipedia entities and therefore have to convert them to Wikidata entities. The mappings are loaded into
      `self.entity_db`. You can then get a Wikidata QID from a Wikipedia title by calling
 
-        qid = self.entity_db.link2id(wikipedia_title)
+        entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db)
 
 You can then convert your linking results into our JSONL format by running
 
     python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat my_format -pname <linker_name> -b <benchmark_name>
 
+## Integrating an Entity Linker
+To integrate a new entity linker into ELEVANT, such that it can be used out of the box with the
+`link_benchmark_entities.py` script as any other linker, you need to follow the steps outlined in this section.
+**Note: Make sure you perform the following steps outside of the docker container, otherwise your changes will be lost
+when exiting the container.**:
 
-## Link Multiple Benchmarks with Multiple Linkers
+1) First, you need to create a new config file in the `configs` directory. The config file should contain the linker
+ name, an experiment description and configurable parameters, such as confidence thresholds, model paths, API keys, etc.
+ The config file should be named `<linker_name>.config.json` where `<linker_name>` is the name of the linker.
+ See the existing config files in the `configs` directory for examples.
+
+2) Implement a new entity linker in `src/linkers/` that inherits from
+ `src.linkers.abstract_entity_linker.AbstractEntityLinker`. Your linker class must implement the `__init__()`,
+ `predict()` and `has_entity()` method.
+
+     In the `__init__()` method you should load config values from the linker's config file and initialize the linker.
+     Typically, if your system predicts Wikipedia or DBpedia entity references, the method should take an EntityDatabase
+     oject as argument. It should also take a config dictionary as argument (`config: Dict[str, Any]`) from which to load
+     the linker's config parameters.
+
+     The `predict()` method takes an article text, a spaCy document and a boolean indicating whether only capitalized
+     mentions should be linked. Within that method, your linker should predict entities for the mentions in the text and
+     convert them to `elevant.models.entity_prediction.EntityPrediction` objects. If your linker does not return information
+     on which candidates were considererd for a mention, the candidates attribute should consist only of the predicted
+     entity. If your linker returns Wikipedia or DBpedia entity references, use the
+     `elevant.utils.knowledge_base_mapper.KnowledgeBaseMapper` to map the references to Wikidata.
+     The `predict()` method should return a dictionary, mapping mention spans (a tuple consisting of start character
+     and end character) to their `EntityPrediction` objects.
+
+     The `has_entity()` method takes an entity reference and returns whether the entity reference is known to the linker.
+     This is not crucial for the functionality of ELEVANT and can be implemented to simply return True.
+
+     See for example the [TagMe linker](../src/elevant/linkers/tagme_linker.py) or the
+     [ReFinED linker](../src/elevant/linkers/refined_linker.py).
+
+3) Add your entity linker name to the `elevant.linkers.linkers.Linkers` enum, e.g. `LINKER_NAME = "linker_name"`.
+
+4) In `elevant/linkers/linking_system.py`, add an `elif` case in the `_initialize_linker` method in which you
+ load necessary mappings (if any) and initialize your linker. This could look something like this:
+
+        elif linker_type == Linkers.LINKER_NAME.value:
+            from elevant.linkers.linker_name import LinkerName
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = LinkerName(self.entity_db, self.linker_config)
+
+     If your linker predicts Wikipedia or DBpedia entity references, you need to load the mappings `WIKIPEDIA_WIKIDATA` and
+     `REDIRECTS` into `self.entity_db` using the `load_missing_mappings()` method. You can then get a Wikidata QID from a
+        Wikipedia title by calling
+
+        entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db)
+
+After following these steps, you can use your linker just like any other included linker by running
+
+    python3 link_benchmark_entities.py <experiment_name> -l linker_name -b benchmark_name
+
+## Linking Multiple Benchmarks with Multiple Linkers
 You can provide multiple benchmark names to link all of them at once with the specified linker. E.g.
 
     python3 link_benchmark_entities.py baseline -l baseline -b kore50 msnbc spotlight
@@ -198,7 +253,7 @@ To link all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable us
 
 You can examine or adjust each system's exact linking arguments in the Makefile's `link_benchmark` target if needed.
 
-## Convert Linking Results of Multiple Systems for Multiple Benchmarks
+## Converting Linking Results of Multiple Systems for Multiple Benchmarks
 You can use the Makefile to convert the linking results of multiple systems for multiple benchmarks with one command.
 
 To convert the results for all benchmarks specified in the Makefile's `BENCHMARK_NAMES` variable for all systems
