@@ -42,7 +42,7 @@ def get_benchmark_iterator(benchmark_name: str,
             entity_db.load_wikipedia_to_wikidata_db()
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
-            benchmark_iterator = AidaConllBenchmarkReader(entity_db, benchmark_files[0])
+            benchmark_iterator = AidaConllBenchmarkReader(entity_db, benchmark_files[0], benchmark_name)
         elif benchmark_format == BenchmarkFormat.SIMPLE_JSONL.value:
             entity_db = EntityDatabase()
             if not custom_kb:
@@ -92,14 +92,6 @@ def get_benchmark_iterator(benchmark_name: str,
     elif from_json_file or benchmark_name in [Benchmark.WIKI_FAIR.value, Benchmark.NEWS_FAIR.value]:
         benchmark_filename = settings.BENCHMARK_DIR + benchmark_name + ".benchmark.jsonl"
         benchmark_iterator = OurJsonlBenchmarkReader(benchmark_filename)
-    elif benchmark_name in [Benchmark.AIDA_CONLL.value, Benchmark.AIDA_CONLL_TRAIN.value,
-                            Benchmark.AIDA_CONLL_DEV.value, Benchmark.AIDA_CONLL_TEST.value]:
-        entity_db = EntityDatabase()
-        logger.info("Load mappings for benchmark reader...")
-        entity_db.load_wikipedia_to_wikidata_db()
-        entity_db.load_redirects()
-        logger.info("-> Mappings loaded.")
-        benchmark_iterator = AidaConllBenchmarkReader(entity_db, settings.AIDA_CONLL_BENCHMARK_FILE, benchmark_name)
     else:
         raise ValueError("%s is not a known benchmark." % benchmark_name)
     return benchmark_iterator
