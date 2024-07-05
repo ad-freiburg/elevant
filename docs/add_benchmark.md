@@ -257,21 +257,21 @@ As an alternative to converting your benchmark into one of the formats mentioned
  This requires the following steps. **Note: Make sure you perform the following steps outside of the docker container,
  otherwise your changes will be lost when exiting the container.**:
 
-1) Implement a benchmark reader in `src/benchmark_readers/`, e.g. `MyFormatBenchmarkReader`, that inherits from
- `src.benchmark_readers.abstract_benchmark_reader.AbstractBenchmarkReader` and implement the abstract method
- `article_iterator`. This method should yield an iterator over `src.models.article.Article` objects where each
+1) Implement a benchmark reader in `src/elevant/benchmark_readers/`, e.g. `MyFormatBenchmarkReader`, that inherits from
+ `src.elevant.benchmark_readers.abstract_benchmark_reader.AbstractBenchmarkReader` and implement the abstract method
+ `article_iterator`. This method should yield an iterator over `src.elevant.models.article.Article` objects where each
  `Article` object represents a benchmark article with at the very least some unique (within the benchmark) article ID,
  article title, article text and groundtruth labels. You can use the
- `src.benchmark_readers.simple_jsonl_benchmark_reader.SimpleJsonlBenchmarkReader` as a template for how to write a
- benchmark reader. Use the `src.utils.knowledge_base_mapper.KnowledgeBaseMapper`'s `get_wikidata_qid` method to
+ `src.elevant.benchmark_readers.simple_jsonl_benchmark_reader.SimpleJsonlBenchmarkReader` as a template for how to write a
+ benchmark reader. Use the `src.elevant.utils.knowledge_base_mapper.KnowledgeBaseMapper`'s `get_wikidata_qid` method to
  convert Wikipedia or DBpedia benchmark entities to Wikidata. Use the
- `src.utils.nested_groundtruth_handler.NestedGroundtruthHandler`'s `assign_parent_and_child_ids` method if your
+ `src.elevant.utils.nested_groundtruth_handler.NestedGroundtruthHandler`'s `assign_parent_and_child_ids` method if your
  benchmark may contain nested groundtruth labels.
 
-2) Add your custom benchmark reader name to the `src.evaluation.benchmark.BenchmarkFormat` enum, e.g.
+2) Add your custom benchmark reader name to the `src.elevant.evaluation.benchmark.BenchmarkFormat` enum, e.g.
  `MY_FORMAT = "my_format"`.
 
-3) Add an elif-branch in the `src.evaluation.benchmark_iterator.get_benchmark_iterator` function under the
+3) Add an elif-branch in the `src.elevant.evaluation.benchmark_iterator.get_benchmark_iterator` function under the
  `if benchmark_file` branch , e.g.
 
         elif benchmark_format == BenchmarkFormat.MY_FORMAT.value:
@@ -284,7 +284,7 @@ As an alternative to converting your benchmark into one of the formats mentioned
 
     where `custom_args` are any custom arguments your benchmark reader's `__init__` method might take. You can omit
     this if your benchmark reader takes no custom arguments. Make sure to import `MyFormatBenchmarkReader` in
-    `src.evaluation.benchmark_iterator`.
+    `src.elevant.evaluation.benchmark_iterator`.
 
 You can now add benchmarks in your format by running
 

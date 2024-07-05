@@ -26,7 +26,7 @@ We distinguish between three classes of linkers in Elevant:
 3. For linkers where an entire code base is needed which can be run without bigger problems out of the box and which
  yields output in a format that can easily be mapped to Elevant's internal format, it is enough to write a prediction
  reader that converts the linker's output into Elevant's internal format. Such prediction reader's are located in
- `src/prediction_readers/`. The following linkers are examples for this class:
+ `src/elevant/prediction_readers/`. The following linkers are examples for this class:
     - Ambiverse
 
 

@@ -146,8 +146,8 @@ As an alternative to converting your predictions into one of the formats mention
  This requires three steps. **Note: Make sure you perform the following steps outside of the docker container,
  otherwise your changes will be lost when exiting the container.**:
 
-1) Implement a prediction reader in `src/prediction_readers/` that inherits from
- `src.prediction_readers.abstract_prediction_reader.AbstractPredictionReader`. You must either implement the
+1) Implement a prediction reader in `src/elevant/prediction_readers/` that inherits from
+ `src.elevant.prediction_readers.abstract_prediction_reader.AbstractPredictionReader`. You must either implement the
  `predictions_iterator()` method or the `get_predictions_with_text_from_file()` method.
 
     Implement `predictions_iterator()` if you are sure that the order in which the predictions are read corresponds
@@ -159,10 +159,11 @@ As an alternative to converting your predictions into one of the formats mention
      texts. Set `predictions_iterator_implemented = False` when calling `super().__init__()`. See
      [here](../src/elevant/prediction_readers/nif_prediction_reader.py) for an example.
 
-2) Add your custom prediction reader name to the `src.linkers.linkers.PredictionFormats` enum, e.g.
+2) Add your custom prediction reader name to the `src.elevant.linkers.linkers.PredictionFormats` enum, e.g.
  `MY_FORMAT = "my_format"`.
 
-3) In `src.linkers.linking_system.LinkingSystem._initialize_linker` add an `elif` case in which you load necessary
+3) In `src.elevant.linkers.linking_system.LinkingSystem._initialize_linker` add an `elif` case in which you load 
+   necessary
  mappings (if any) and initialize the `LinkingSystem`'s `prediction_reader`. This could look something like this:
 
         elif linker_type == Linkers.MY_FORMAT.value:
@@ -190,8 +191,8 @@ when exiting the container.**:
  The config file should be named `<linker_name>.config.json` where `<linker_name>` is the name of the linker.
  See the existing config files in the `configs` directory for examples.
 
-2) Implement a new entity linker in `src/linkers/` that inherits from
- `src.linkers.abstract_entity_linker.AbstractEntityLinker`. Your linker class must implement the `__init__()`,
+2) Implement a new entity linker in `src/elevant/linkers/` that inherits from
+ `src.elevant.linkers.abstract_entity_linker.AbstractEntityLinker`. Your linker class must implement the `__init__()`,
  `predict()` and `has_entity()` method.
 
      In the `__init__()` method you should load config values from the linker's config file and initialize the linker.

@@ -6,7 +6,7 @@ To run our system without using docker, follow the *RUN* commands in the [Docker
 
 Then set the `DATA_DIR` variable in the Makefile to the directory in which you want to store the ELEVANT data files.
 
-In `src/settings.py` add your data directory to the `_DATA_DIRECTORIES` list.
+In `src/elevant/settings.py` add your data directory to the `_DATA_DIRECTORIES` list.
 
 Finally, run
 

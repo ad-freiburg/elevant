@@ -2,8 +2,8 @@
 
 We use our own JSONL format with one JSON object per line to represent articles and their properties such as
  entity mentions predicted by an entity linker or ground truth labels. Internally, each JSON object in such a JSONL
- file is converted to an object of class `src.models.article.Article` using the function 
- `src.models.article.article_from_json()`. 
+ file is converted to an object of class `src.elevant.models.article.Article` using the function 
+ `src.elevant.models.article.article_from_json()`. 
 
 Our JSONL format supports the following keys:
 - `id`: The article ID
