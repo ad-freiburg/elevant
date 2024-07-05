@@ -219,7 +219,7 @@ window.evaluation_results = [];
 
 window.benchmark_filenames = []
 window.benchmark_articles = {};
-window.benchmarks_metadata = {};
+window.benchmark_metadata = {};
 
 window.evaluation_cases = {};
 window.articles_data = {};
@@ -429,7 +429,7 @@ function read_benchmark_articles() {
             $.when.apply($, metadata_filenames.map(function (filename) {
                 let benchmark = filename.replace(METADATA_EXTENSION, "");
                 return $.getJSON("benchmarks/" + filename, function (metadata) {
-                    window.benchmarks_metadata[benchmark] = metadata;
+                    window.benchmark_metadata[benchmark] = metadata;
                 });
             }))
         );
@@ -1142,8 +1142,8 @@ function add_benchmark_tooltips() {
     /*
      * Add tooltips to the benchmark column of the table.
      */
-    for (let benchmark in benchmarks_metadata) {
-        let metadata = window.benchmarks_metadata[benchmark];
+    for (let benchmark in window.benchmark_metadata) {
+        let metadata = window.benchmark_metadata[benchmark];
         if (metadata) {
             let tooltiptext = "";
             if (metadata.description) tooltiptext += "<p><i>" + metadata.description + "</i></p>";
@@ -2353,11 +2353,24 @@ function copy_table() {
      */
     // Get selected properties
     const format = $('input[name=copy_as]:checked').val();
-    const include_experiment = $("#checkbox_include_experiment").is(":checked");
-    const include_benchmark = $("#checkbox_include_benchmark").is(":checked");
+
+    const $checkbox_include_experiment = $("#checkbox_include_experiment");
+    const $checkbox_include_benchmark = $("#checkbox_include_benchmark");
+    let include_experiment;
+    let include_benchmark;
+    let benchmark_table;;
+    if ($checkbox_include_experiment.length && $checkbox_include_benchmark.length) {
+        include_experiment = $checkbox_include_experiment.is(":checked");
+        include_benchmark = $checkbox_include_benchmark.is(":checked");
+        benchmark_table = false;
+    } else {
+        include_experiment = false;
+        include_benchmark = true;
+        benchmark_table = true;
+    }
 
     // Get the table header contents and count columns
-    const table_contents = get_table_contents(include_benchmark, include_experiment);
+    const table_contents = get_table_contents(include_benchmark, include_experiment, benchmark_table);
     const num_cols = table_contents[1].length;
 
     // Get table text in the specified format
@@ -2383,7 +2396,7 @@ function copy_table() {
     setTimeout(function() { $copy_table_text_div.hide(); }, show_duration_seconds * 1000);
 }
 
-function get_table_contents(include_benchmark, include_experiment) {
+function get_table_contents(include_benchmark, include_experiment, benchmark_table) {
     /*
      * Get the contents of the currently displayed table in an array.
      */
@@ -2428,7 +2441,7 @@ function get_table_contents(include_benchmark, include_experiment) {
             let col_idx = 0;
             const num_header_cols = include_benchmark + include_experiment;
             $(this).find("td").each(function () {
-                if ((!include_experiment && col_idx === 0) || (!include_benchmark && col_idx === 1)) {
+                if ((!include_experiment && col_idx === 0 && !benchmark_table) || (!include_benchmark && col_idx === 1)) {
                     col_idx += 1;
                     return;
                 }
@@ -2554,13 +2567,21 @@ function graph_mode_on() {
     $evaluation_table_wrapper.css({"overflow-y": "hidden"});
 
     // Add appropriate classes to selectable columns
-    const $selectable_th = $table_header_clone.find("table tr:nth-child(2) th:not(:eq(0),:eq(1))");
+    const $selectable_th = get_graph_selectable_th($table_header_clone);
     $selectable_th.addClass("graph_selectable_col");
     $selectable_th.on("mouseenter", function() { $(this).addClass("graph_selectable_col-hovered"); });
     $selectable_th.on("mouseleave", function() { $(this).removeClass("graph_selectable_col-hovered"); });
 
     // Trigger open graph modal on click
-    $selectable_th.on("click", function() { show_graph(this); })
+    $selectable_th.on("click", function() { on_graph_selectable_click(this); })
+}
+
+function get_graph_selectable_th(table_header_clone) {
+    return table_header_clone.find("table tr:nth-child(2) th:not(:eq(0),:eq(1))");
+}
+
+function on_graph_selectable_click(el) {
+    show_graph(el);
 }
 
 function graph_mode_off() {
@@ -2593,7 +2614,7 @@ function create_graph(y_column) {
 
     let x_column = 1;
     let line_column = 0;
-    let table_contents = get_table_contents(true, true)
+    let table_contents = get_table_contents(true, true, false)
 
     // Get the unique x-values
     let x_values = $.map(table_contents, function(el) {
@@ -3162,7 +3183,7 @@ function get_displayed_benchmark_name(exp_id) {
      * Get the benchmark name that should be displayed in the benchmark table column from the experiment ID.
      */
     let benchmark = get_benchmark_from_experiment_id(exp_id);
-    let metadata_benchmark_name = (benchmark in window.benchmarks_metadata) ? window.benchmarks_metadata[benchmark].name : null;
+    let metadata_benchmark_name = (benchmark in window.benchmark_metadata) ? window.benchmark_metadata[benchmark].name : null;
     return (metadata_benchmark_name) ? metadata_benchmark_name : benchmark;
 }
 
