@@ -5,12 +5,14 @@ from elevant.utils.pronoun_finder import PronounFinder
 
 class MentionType(Enum):
     ENTITY_NAMED = "ENTITY_NAMED"
-    ENTITY_OTHER = "ENTITY_OTHER"
+    ENTITY_NON_NAMED = "ENTITY_NON_NAMED"
+    ENTITY_UNKNOWN = "ENTITY_UNKNOWN"
     COREF_NOMINAL = "COREF_NOMINAL"
     COREF_PRONOMINAL = "COREF_PRONOMINAL"
 
     def is_coreference(self):
-        return self != MentionType.ENTITY_NAMED and self != MentionType.ENTITY_OTHER
+        return (self != MentionType.ENTITY_NAMED and self != MentionType.ENTITY_NON_NAMED
+                and self != MentionType.ENTITY_UNKNOWN)
 
 
 _COREF_PREFIXES = ("the ", "that ", "this ", "that ", "these ", "those ")
@@ -33,19 +35,26 @@ def is_nominal(mention: str) -> bool:
             return True
     return False
 
-
 def is_named_entity(entity_name: str) -> bool:
+    return get_entity_mention_type(entity_name) == MentionType.ENTITY_NAMED
+
+def is_non_named_entity(entity_name: str) -> bool:
+    return get_entity_mention_type(entity_name) == MentionType.ENTITY_NON_NAMED
+
+def get_entity_mention_type(entity_name: str, entity_id: str = None) -> MentionType:
     """
     Return true if the entity is of mention type "named" according to our definition:
     The entity name contains alphabetic characters and the first alphabetic
     character of the entity name is an uppercase character.
     """
-    if entity_name != "Unknown":
-        alpha_chars = [char for char in entity_name if char.isalpha()]
-        # Check if first alphabetic character exists and is uppercase
-        if len(alpha_chars) > 0 and alpha_chars[0].isupper():
-            return True
-    return False
+    if (not entity_id and entity_name == "Unknown") or entity_id.startswith("Unknown"):
+        return MentionType.ENTITY_UNKNOWN
+
+    alpha_chars = [char for char in entity_name if char.isalpha()]
+    # Check if first alphabetic character exists and is uppercase
+    if len(alpha_chars) > 0 and alpha_chars[0].isupper():
+        return MentionType.ENTITY_NAMED
+    return MentionType.ENTITY_NON_NAMED
 
 
 def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType:
@@ -54,7 +63,7 @@ def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType
         # explicitly marked as coreference or not coreference, use this information.
         gt_is_coref = true_entity.is_coref()
         if gt_is_coref is False:
-            return MentionType.ENTITY_NAMED if is_named_entity(true_entity.name) else MentionType.ENTITY_OTHER
+            return get_entity_mention_type(true_entity.name, true_entity.entity_id)
         return MentionType.COREF_PRONOMINAL if PronounFinder.is_pronoun(mention) else MentionType.COREF_NOMINAL
     # Otherwise infer it from the mention text.
     if PronounFinder.is_pronoun(mention):
@@ -63,7 +72,5 @@ def get_mention_type(mention: str, true_entity, predicted_entity) -> MentionType
         return MentionType.COREF_NOMINAL
     else:
         entity_name = true_entity.name if true_entity else predicted_entity.name
-        if is_named_entity(entity_name):
-            return MentionType.ENTITY_NAMED
-        else:
-            return MentionType.ENTITY_OTHER
+        entity_id = true_entity.entity_id if true_entity else predicted_entity.entity_id
+        return get_entity_mention_type(entity_name, entity_id)

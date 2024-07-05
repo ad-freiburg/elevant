@@ -3,10 +3,12 @@ from typing import List, Tuple, Set
 from elevant import settings
 from elevant.evaluation.case import Case, ErrorLabel, EvaluationMode
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
-from elevant.evaluation.mention_type import MentionType, is_named_entity
+from elevant.evaluation.mention_type import MentionType, is_non_named_entity
 from elevant.models.entity_database import EntityDatabase
 from elevant.models.wikidata_entity import WikidataEntity
 from elevant.models.article import Article
+
+from elevant.evaluation.benchmark_case import BenchmarkCaseLabel
 
 
 def label_errors(article: Article,
@@ -57,7 +59,7 @@ def label_undetected_errors(cases: List[Case], eval_mode: EvaluationMode):
     for case in cases:
         if not case.is_coreference() and case.is_ner_fn(eval_mode):
             case.add_error_label(ErrorLabel.NER_FN, eval_mode)
-            if not is_named_entity(case.text):
+            if is_non_named_entity(case.text):
                 case.add_error_label(ErrorLabel.NER_FN_LOWERCASED, eval_mode)
             elif is_partially_included_error(case, false_positive_spans):
                 case.add_error_label(ErrorLabel.NER_FN_PARTIALLY_INCLUDED, eval_mode)
@@ -128,7 +130,7 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: Evalu
             if (case.is_ner_tp(eval_mode) or case.is_ner_fp(eval_mode)) and \
                     ErrorLabel.NER_FP_WRONG_SPAN not in case.error_labels[eval_mode]:
                 case.add_error_label(ErrorLabel.AVOIDED_NER_FP_WRONG_SPAN, eval_mode)
-            if not is_named_entity(case.text):
+            if is_non_named_entity(case.text):
                 # Label NER TP lowercased cases
                 if case.is_ner_tp(eval_mode):
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_LOWERCASED, eval_mode)
@@ -142,11 +144,22 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: Evalu
                         and ErrorLabel.NER_FN_PARTIALLY_INCLUDED not in case.error_labels[eval_mode]:
                     # Label cases where a partially included error could potentially have happened but did not
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_PARTIALLY_INCLUDED, eval_mode)
-            if is_named_entity(case.text) and (case.is_ner_tp(eval_mode) or case.is_ner_fn(eval_mode)):
+            if not is_non_named_entity(case.text) and (case.is_ner_tp(eval_mode) or case.is_ner_fn(eval_mode)):
                 if ErrorLabel.NER_FN_PARTIAL_OVERLAP not in case.error_labels[eval_mode]:
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_PARTIAL_OVERLAP, eval_mode)
                 if ErrorLabel.NER_FN_OTHER not in case.error_labels[eval_mode]:
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_OTHER, eval_mode)
+
+
+def get_benchmark_case_labels(case: Case, entity_db: EntityDatabase):
+    if is_demonym(case, entity_db):
+        return BenchmarkCaseLabel.DEMONYM
+    elif is_metonymy(case, entity_db):
+        return BenchmarkCaseLabel.METONYM
+    elif is_partial_name(case):
+        return BenchmarkCaseLabel.PARTIAL_NAME
+    elif is_rare_case(case, entity_db):
+        return BenchmarkCaseLabel.RARE
 
 
 def get_most_popular_candidate(entity_db: EntityDatabase, alias: str) -> Set[str]:
