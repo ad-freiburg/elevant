@@ -145,8 +145,6 @@ if __name__ == "__main__":
                         help="Only link coreferences that are pronouns.")
     parser.add_argument("-min", "--minimum_score", type=int, default=0,
                         help="Minimum entity score to include entity in database")
-    parser.add_argument("-small", "--small_database", action="store_true",
-                        help="Load a small version of the database")
     parser.add_argument("--uppercase", action="store_true",
                         help="Set to remove all predictions on snippets which do not contain an uppercase character.")
     parser.add_argument("--type_mapping", type=str, default=settings.QID_TO_WHITELIST_TYPES_DB,
