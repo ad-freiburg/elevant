@@ -124,20 +124,20 @@ See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information o
  linking result files into our format, and instructions for how to link multiple benchmarks using multiple linkers
  with a single command.
 
-See [Included Linkers](docs/included_linkers.md) for a list of linkers that can be used out of the box with ELEVANT.
+See [Included Linkers](docs/linkers) for a list of linkers that can be used out of the box with ELEVANT.
  These are for example *ReFinED*, OpenAI's *GPT* (you'll need an OpenAI API key for that), *REL*, *TagMe* (you'll
  need an access token for that which can be obtained easily and free of cost) and *DBpediaSpotlight*.
 
 ### Evaluate Linking Results
 
-To evaluate a linker's predictions use the script `evaluate_linking_results.py`:
+To evaluate a linker's predictions use the script `evaluate.py`:
 
-    python3 evaluate_linking_results.py <path_to_linking_result_file>
+    python3 evaluate.py <path_to_linking_result_file>
 
 This will print precision, recall and F1 scores and create two new files where the `.linked_articles.jsonl` file
  extension is replaced by `.eval_cases.jsonl` and `.eval_results.json` respectively. For example
 
-    python3 evaluate_linking_results.py evaluation-results/baseline/baseline.kore50.linked_articles.jsonl
+    python3 evaluate.py evaluation-results/baseline/baseline.kore50.linked_articles.jsonl
 
 will create the files `evaluation-results/baseline/baseline.kore50.eval_cases.jsonl` and
 `evaluation-results/baseline/baseline.kore50.eval_results.json`. The `eval_cases` file contains information about

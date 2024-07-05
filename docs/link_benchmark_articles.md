@@ -17,7 +17,7 @@ Additionally, this will create a file
  webapp. The description can be specified using the `-desc` argument. Per default, the description from the linker's
  config file is used. You can also simply adjust the description and experiment name in the metadata file at any time.
 
-For a list of entity linkers included in ELEVANT, see [Included Linkers](included_linkers.md).
+For a list of entity linkers included in ELEVANT, see [Included Linkers](linkers).
 
 ## Use Existing Linking Results
 If you already have linking results for a certain benchmark that you want to evaluate with ELEVANT, you can use the

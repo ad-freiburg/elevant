@@ -65,9 +65,9 @@ Instead of following the instructions in [Get the Data](../README.md#get-the-dat
     See [Link Benchmark Articles](link_benchmark_articles.md) for more detailed information on adding linking results
      to ELEVANT and the linking results formats.
 
-5) To evaluate the linking results, run the `evaluate_linking_results.py` script with the option `-c`, e.g.
+5) To evaluate the linking results, run the `evaluate.py` script with the option `-c`, e.g.
 
-       python3 evaluate_linking_results.py <linking_result_file> -c
+       python3 evaluate.py <linking_result_file> -c
    where `<linking_result_file>` is the file generated in the previous step. See 
    [Evaluate Linking Results](evaluate_linking_results.md) for more detailed information.
 

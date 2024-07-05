@@ -134,8 +134,8 @@ evaluate_linking_results:
 	@echo
 	for BENCHMARK in $(BENCHMARK_NAMES); do \
 		echo; \
-		echo -e "$${DIM}python3 evaluate_linking_results.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}$${RESET}"; \
-		python3 evaluate_linking_results.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
+		echo -e "$${DIM}python3 evaluate.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}$${RESET}"; \
+		python3 evaluate.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
 	done
 
 # Only clone or build qlever if no qlever.master docker image exists

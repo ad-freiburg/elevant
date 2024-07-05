@@ -46,7 +46,7 @@ In order for the newly configured types to take effect, you need to execute 2 mo
     Alternatively you can manually run the evaluation script for a certain linking results file with the
     `-b <benchmark_name>` option:
  
-       python3 evaluate_linking_results.py <linking_results_file> -b <benchmark_name>
+       python3 evaluate.py <linking_results_file> -b <benchmark_name>
 
     where `<benchmark_name>` is the name of the benchmark over which the linking results were generated. Note however,
     that the webapp requires all displayed evaluation results to have been run with the same entity type configuration.
