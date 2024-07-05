@@ -78,8 +78,8 @@ link_benchmarks:
 	    SYSTEM=spacy; \
 	    RESULT_NAME=$${SYSTEM}.wikipedia; \
 	  fi; \
-	  echo -e "$${DIM}python3 link_benchmark_entities.py $${RESULT_NAME} -l $${SYSTEM} -b ${BENCHMARK_NAMES} -dir ${EVALUATION_RESULTS_DIR} $${ARGUMENTS}$${RESET}"; \
-	  python3 link_benchmark_entities.py $${RESULT_NAME} -l $${SYSTEM} -b ${BENCHMARK_NAMES} -dir ${EVALUATION_RESULTS_DIR} $${ARGUMENTS}; \
+	  echo -e "$${DIM}python3 link_benchmark.py $${RESULT_NAME} -l $${SYSTEM} -b ${BENCHMARK_NAMES} -dir ${EVALUATION_RESULTS_DIR} $${ARGUMENTS}$${RESET}"; \
+	  python3 link_benchmark.py $${RESULT_NAME} -l $${SYSTEM} -b ${BENCHMARK_NAMES} -dir ${EVALUATION_RESULTS_DIR} $${ARGUMENTS}; \
 	done
 	@echo
 
@@ -116,7 +116,7 @@ convert_benchmark_predictions:
 	    echo -e "$${DIM}No rule for predictions from $${PREDICTION} found in Makefile.$${RESET}"; \
 	    continue; \
 	  fi; \
-	  python3 link_benchmark_entities.py $${RESULT_NAME} -pfile $${PFILE} -pformat $${PFORMAT} -pname "$${PNAME}" -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
+	  python3 link_benchmark.py $${RESULT_NAME} -pfile $${PFILE} -pformat $${PFORMAT} -pname "$${PNAME}" -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
 	done
 
 get_oracle_predictions:

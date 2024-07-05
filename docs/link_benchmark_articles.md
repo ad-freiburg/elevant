@@ -1,7 +1,7 @@
 # Link Benchmark Articles
-To link the articles of a benchmark with a single linker configuration, use the script `link_benchmark_entities.py`:
+To link the articles of a benchmark with a single linker configuration, use the script `link_benchmark.py`:
 
-    python3 link_benchmark_entities.py <experiment_name> -l <linker_name> -b <benchmark_name>
+    python3 link_benchmark.py <experiment_name> -l <linker_name> -b <benchmark_name>
 
 The linking results will be written to
  `evaluation-results/<linker_name>/<adjusted_experiment_name>.<benchmark_name>.linked_articles.jsonl` where
@@ -21,7 +21,7 @@ For a list of entity linkers included in ELEVANT, see [Included Linkers](linkers
 
 ## Use Existing Linking Results
 If you already have linking results for a certain benchmark that you want to evaluate with ELEVANT, you can use the
- `link_benchmark_entities.py` script to convert your linking results into the JSONL format used by us. This works if
+ `link_benchmark.py` script to convert your linking results into the JSONL format used by us. This works if
  the text of the benchmark you linked corresponds to the text of one of the benchmarks in the `benchmarks` directory
  and if your linking results are in one of the following formats:
 
@@ -36,7 +36,7 @@ If you don't want to use any of the supported formats you can write your own pre
 
 The script call to convert linking results into our format is
 
-    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat <linking_results_format> -pname <linker_name> -b <benchmark_name>
+    python3 link_benchmark.py <experiment_name> -pfile <path_to_linking_results> -pformat <linking_results_format> -pname <linker_name> -b <benchmark_name>
 
 The converted linking results will be written to
  `evaluation-results/<adjusted_linker_name>/<adjusted_experiment_name>.<benchmark_name>.linked_articles.jsonl` where
@@ -48,7 +48,7 @@ The converted linking results will be written to
 If you have linking results for a certain benchmark in NIF format, use `-pformat nif` in the script call described
  above, i.e.
 
-    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat nif -pname <linker_name> -b <benchmark_name>
+    python3 link_benchmark.py <experiment_name> -pfile <path_to_linking_results> -pformat nif -pname <linker_name> -b <benchmark_name>
 
 Your linking results file should look something like this:
 
@@ -80,7 +80,7 @@ The NIF prediction reader is implemented [here](../src/elevant/prediction_reader
 If you have linking results for a certain benchmark in a very simple JSONL format as described below, use
  `-pformat simple-jsonl` in the script call described above, i.e.
 
-    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat simple-jsonl -pname <linker_name> -b <benchmark_name>
+    python3 link_benchmark.py <experiment_name> -pfile <path_to_linking_results> -pformat simple-jsonl -pname <linker_name> -b <benchmark_name>
 
 The file `<path_to_linking_results>` should contain one line per benchmark article. The order of the predictions
  should correspond to the article order of the benchmark in the `benchmarks` directory. The linking results file
@@ -104,7 +104,7 @@ The simple JSONL prediction reader is implemented [here](../src/elevant/predicti
 If you have linking results for a certain benchmark in the Ambiverse output format, use `-pformat ambiverse` in the
  script call described above, i.e.
 
-    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat ambiverse -pname <linker_name> -b <benchmark_name>
+    python3 link_benchmark.py <experiment_name> -pfile <path_to_linking_results> -pformat ambiverse -pname <linker_name> -b <benchmark_name>
 
 `<path_to_linking_results>` should be the path to a directory that contain files with linking results for one benchmark
  article per file. When sorting the files by file name, the order should correspond to the article order of the
@@ -142,7 +142,7 @@ The Ambiverse prediction reader is implemented [here](../src/elevant/prediction_
 
 ### Writing a Custom Prediction Reader
 As an alternative to converting your predictions into one of the formats mentioned above, you can write your own
- prediction reader, such that you can use your prediction files with the `link_benchmark_entities.py` script directly.
+ prediction reader, such that you can use your prediction files with the `link_benchmark.py` script directly.
  This requires three steps. **Note: Make sure you perform the following steps outside of the docker container,
  otherwise your changes will be lost when exiting the container.**:
 
@@ -178,11 +178,11 @@ As an alternative to converting your predictions into one of the formats mention
 
 You can then convert your linking results into our JSONL format by running
 
-    python3 link_benchmark_entities.py <experiment_name> -pfile <path_to_linking_results> -pformat my_format -pname <linker_name> -b <benchmark_name>
+    python3 link_benchmark.py <experiment_name> -pfile <path_to_linking_results> -pformat my_format -pname <linker_name> -b <benchmark_name>
 
 ## Integrating an Entity Linker
 To integrate a new entity linker into ELEVANT, such that it can be used out of the box with the
-`link_benchmark_entities.py` script as any other linker, you need to follow the steps outlined in this section.
+`link_benchmark.py` script as any other linker, you need to follow the steps outlined in this section.
 **Note: Make sure you perform the following steps outside of the docker container, otherwise your changes will be lost
 when exiting the container.**:
 
@@ -234,15 +234,15 @@ when exiting the container.**:
 
 After following these steps, you can use your linker just like any other included linker by running
 
-    python3 link_benchmark_entities.py <experiment_name> -l linker_name -b benchmark_name
+    python3 link_benchmark.py <experiment_name> -l linker_name -b benchmark_name
 
 ## Linking Multiple Benchmarks with Multiple Linkers
 You can provide multiple benchmark names to link all of them at once with the specified linker. E.g.
 
-    python3 link_benchmark_entities.py baseline -l baseline -b kore50 msnbc spotlight
+    python3 link_benchmark.py baseline -l baseline -b kore50 msnbc spotlight
 
 will link the KORE50, MSNBC and DBpedia Spotlight benchmarks using the baseline entity linker. This saves a lot of time
- in comparison to calling `link_benchmark_entities.py` separately for each benchmark, since a lot of the time is
+ in comparison to calling `link_benchmark.py` separately for each benchmark, since a lot of the time is
  needed to load entity information which only has to be done once per call.
 
 You can use the Makefile to link multiple benchmarks using multiple linkers with one command.
@@ -264,5 +264,5 @@ To convert the results for all benchmarks specified in the Makefile's `BENCHMARK
 
 You can examine or adjust each system's linking results path and other linking arguments in the Makefile's
  `convert_benchmark_predictions` target. Note that the linking results for the systems under `PREDICTIONS` need to be
- created first and stored at a path that can then be passed to `link_benchmark_entities.py` as linker argument.
+ created first and stored at a path that can then be passed to `link_benchmark.py` as linker argument.
  See the READMEs in the `neural-el` or `wikifier` directories for more information.

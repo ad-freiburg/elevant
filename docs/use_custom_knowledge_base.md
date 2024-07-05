@@ -57,10 +57,10 @@ Instead of following the instructions in [Get the Data](../README.md#get-the-dat
     See [Add A Benchmark](add_benchmark.md) for more detailed information on adding a benchmark and the benchmark
      formats.
 
-4) To add linking results for such a benchmark to ELEVANT, run the `python3 link_benchmark_entities.py` script with the
+4) To add linking results for such a benchmark to ELEVANT, run the `python3 link_benchmark.py` script with the
  option `-c`. The supported linking results formats for custom KB linking results are `nif` and `simple-jsonl`. E.g.
  
-       python3 link_benchmark_entities.py <experiment_name> -pfile <linking_results_file> -pformat <nif|simple-jsonl> -b <benchmark_name> -c
+       python3 link_benchmark.py <experiment_name> -pfile <linking_results_file> -pformat <nif|simple-jsonl> -b <benchmark_name> -c
 
     See [Link Benchmark Articles](link_benchmark_articles.md) for more detailed information on adding linking results
      to ELEVANT and the linking results formats.

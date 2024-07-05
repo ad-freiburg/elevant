@@ -1,6 +1,6 @@
 """
 Evaluates entity linking.
-This takes a jsonl file produced by link_benchmark_entities.py with one linked
+This takes a jsonl file produced by link_benchmark.py with one linked
 article and its ground truth labels per line.
 The resulting evaluation cases are written to an output file in jsonl format
 with one case per line.

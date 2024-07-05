@@ -86,7 +86,7 @@ This converts the `<benchmark_file>` into our JSONL format (if it is not in this
  truth labels with their Wikidata label and Wikidata types and writes the result to the file
  `benchmarks/<benchmark_name>.benchmark.jsonl`.
 
-The benchmark can now be linked with a linker of your choice using the `link_benchmark_entities.py` script with the
+The benchmark can now be linked with a linker of your choice using the `link_benchmark.py` script with the
  parameter `-b <benchmark_name>`. See section [Add an Experiment](#add-an-experiment) for details on how to link a
  benchmark and the supported formats.
 
@@ -102,9 +102,9 @@ You can add an experiment, i.e. a row in the table for a particular benchmark, i
  articles and 2) evaluate the linking results. Both steps are explained in the following two sections.
 
 ### Link Benchmark Articles
-To link the articles of a benchmark with a single linker configuration, use the script `link_benchmark_entities.py`:
+To link the articles of a benchmark with a single linker configuration, use the script `link_benchmark.py`:
 
-    python3 link_benchmark_entities.py <experiment_name> -l <linker_name> -b <benchmark_name>
+    python3 link_benchmark.py <experiment_name> -l <linker_name> -b <benchmark_name>
 
 The linking results will be written to
  `evaluation-results/<linker_name>/<adjusted_experiment_name>.<benchmark_name>.linked_articles.jsonl` where
@@ -112,7 +112,7 @@ The linking results will be written to
  `_`.
 For example
 
-    python3 link_benchmark_entities.py Baseline -l baseline -b kore50
+    python3 link_benchmark.py Baseline -l baseline -b kore50
 
 will create the file `evaluation-results/baseline/baseline.kore50.linked_articles.jsonl`. The result file contains
  one article as JSON object per line. Each JSON object contains benchmark article information such as the article

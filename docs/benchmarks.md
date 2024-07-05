@@ -5,7 +5,7 @@ This document gives an overview of the benchmarks that are included in ELEVANT. 
 
 ## Included Benchmarks
 
-The following benchmarks are included in ELEVANT and can be used out of the box with the `link_benchmark_entities.py`
+The following benchmarks are included in ELEVANT and can be used out of the box with the `link_benchmark.py`
  script with the provided benchmark name.
 
 ### Wiki-Fair
