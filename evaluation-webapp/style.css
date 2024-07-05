@@ -19,8 +19,11 @@
     --annotation-fp-color-dark: rgb(69,25,21);
     --annotation-unknown-color: rgb(138,220,241);
     --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
+    --annotation-unknown-color-dark: rgb(41,66,72);
     --annotation-optional-color: rgb(211,211,211);
     --annotation-optional-color-lowlight: rgba(211,211,211,0.3);
+    --annotation-optional-color-dark: rgb(63,63,63);
+
     --annotation-selected-color: #ffd966;
     --annotation-border-size: 5px;
 }
@@ -343,7 +346,9 @@ Moreover, the selected border color is not shown, only the background color.
 }
 
 #table_header_clone .graph_selectable_col-hovered {
-    background-color: var(--cell-hover-color);
+    /* Use cell selected color for hovering here, since table headers are darker, so the
+    darker color should be used for hovering here and the brighter color for selecting */
+    background-color: var(--cell-selected-color);
 }
 
 #graph_modal_dialog {
@@ -563,10 +568,10 @@ Moreover, the selected border color is not shown, only the background color.
 }
 
 .annotation.gt.selected {
-    border-bottom-color: var(--annotation-selected-color);
+    border-bottom-color: var(--annotation-selected-color) !important;
 }
 .annotation.pred.selected {
-    background-color: var(--annotation-selected-color);
+    background-color: var(--annotation-selected-color) !important;
 }
 
 /* ----------------------------------------- */
