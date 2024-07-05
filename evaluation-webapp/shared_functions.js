@@ -1940,6 +1940,8 @@ function get_entity_link(entity_id) {
         // Add Wikidata web prefix only if entity ID is a QID (could also be a custom ontology ID)
         const wikidata_url = "https://www.wikidata.org/wiki/" + entity_id;
         return "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + entity_id + "</a>";
+    } else if (["UNKNOWN", "DATETIME", "QUANTITY"].includes(entity_id) || entity_id.startsWith("Unknown")) {
+        return entity_id;
     } else {
         return "<a href=\"" + entity_id + "\" target=\"_blank\">" + entity_id + "</a>";
     }
