@@ -90,7 +90,6 @@ SPACY_MODEL_DIRECTORY = LINKER_FILES + "spacy/models/"
 AIDA_CONLL_BENCHMARK_FILE = DATA_DIRECTORY + "benchmarks/aida/AIDA-YAGO2-dataset.tsv"
 
 BENCHMARK_DIR = "benchmarks/"
-WIKI_EX_BENCHMARK_FILE = BENCHMARK_DIR + "wiki-ex.benchmark.jsonl"
 
 # Other files and paths
 EVALUATION_RESULTS_DIR = "evaluation-results/"
