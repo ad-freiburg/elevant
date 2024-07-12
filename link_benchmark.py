@@ -50,8 +50,9 @@ def main(args):
                                        args.minimum_score,
                                        args.type_mapping,
                                        args.custom_kb)
+    benchmarks = get_available_benchmarks() if "ALL" in args.benchmark else args.benchmark
 
-    for benchmark in args.benchmark:
+    for benchmark in benchmarks:
         benchmark_iterator = get_benchmark_iterator(benchmark)
 
         prediction_name_dir = convert_to_filename(args.prediction_name)
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     parser.add_argument("-pname", "--prediction_name", default="Unknown Linker",
                         help="Name of the system that produced the predictions.")
 
-    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), required=True, nargs='+',
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks() + ["ALL"], required=True, nargs='+',
                         help="Benchmark(s) over which to evaluate the linker.")
     parser.add_argument("-dir", "--evaluation_dir", default=settings.EVALUATION_RESULTS_DIR,
                         help="Directory to which the evaluation result files are written.")
@@ -161,7 +162,7 @@ if __name__ == "__main__":
     if cmdl_args.prediction_file and cmdl_args.prediction_format is None:
         parser.error("--prediction_file requires --prediction_format.")
 
-    if len(cmdl_args.benchmark) > 1 and cmdl_args.prediction_file:
+    if ("ALL" in cmdl_args.benchmark or len(cmdl_args.benchmark) > 1) and cmdl_args.prediction_file:
         # Since otherwise one would have to provide multiple pfiles as well and those would
         # have to be provided in the exact order of the benchmarks. User errors could easily happen.
         # Also, the structure of linking system would have to be changed, since it currently takes a
