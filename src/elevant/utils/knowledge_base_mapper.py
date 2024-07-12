@@ -64,9 +64,9 @@ class KnowledgeBaseMapper:
         if not entity_reference:
             return UnknownEntity.NIL.value
 
-        if entity_reference == "NIL":
+        if entity_reference in ("NIL", "<NIL>", "<unk_wid>", "<unk>", "<UNK>"):
             # In the Derczynski dataset, NIL is used as entity reference to indicate NIL entities
-            logger.info("\"NIL\" entity reference is interpreted as NIL entity.")
+            logger.info(f"\"{entity_reference}\" entity reference is interpreted as NIL entity.")
             return UnknownEntity.NIL.value
 
         # The last part of a URI is the entity name / identifier.
