@@ -7,7 +7,7 @@ from elevant.models.entity_database import EntityDatabase
 
 import logging
 
-from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 from elevant.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -50,19 +50,17 @@ class TagmeBenchmarkReader(AbstractBenchmarkReader):
                         wikipedia_title = self.entity_db.get_wikipedia_title_by_wikipedia_id(wikipedia_id)
                         if not wikipedia_title:
                             logger.info("No Wikipedia title found for Wikipedia ID %d" % wikipedia_id)
-                            entity_id = None
+                            entity_id = UnknownEntity.NO_MAPPING.value
                             no_wikipedia_title_count += 1
                         else:
                             entity_id = KnowledgeBaseMapper.get_wikidata_qid(wikipedia_title, self.entity_db,
                                                                              verbose=False)
-                        if not entity_id:
+                        if KnowledgeBaseMapper.is_unknown_entity(entity_id):
                             no_mapping_count += 1
-                            entity_id = "Unknown"
-                            entity_name = "UnknownNoMapping"
-                        else:
-                            # The name for the GT label is Unknown for now, but is added when creating a benchmark in
-                            # our format
-                            entity_name = "Unknown"
+
+                        # The name for the GT label is Unknown for now, but is added when creating a benchmark in
+                        # our format
+                        entity_name = "Unknown"
 
                         labels.append(GroundtruthLabel(label_id_counter, span, entity_id, entity_name))
                         label_dict[label_id_counter] = mention_text

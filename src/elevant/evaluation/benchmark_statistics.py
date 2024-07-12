@@ -12,6 +12,7 @@ from elevant.evaluation.case import Case
 from elevant.evaluation.errors import get_benchmark_case_labels
 from elevant.evaluation.benchmark_case import BenchmarkCaseLabel
 from elevant.models.entity_database import EntityDatabase
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 
 
 class BenchmarkStatistics:
@@ -119,8 +120,16 @@ class BenchmarkStatistics:
             benchmark_case.add_tag(tag)
 
         # Compute unknown label statistics
-        if gt_label.entity_id.startswith("Unknown"):
+        if KnowledgeBaseMapper.is_unknown_entity(gt_label.entity_id):
             tag = BenchmarkCaseLabel.UNKNOWN
+            self.tags[tag] += 1
+            benchmark_case.add_tag(tag)
+        if gt_label.entity_id == UnknownEntity.NIL.value:
+            tag = BenchmarkCaseLabel.UNKNOWN_NIL
+            self.tags[tag] += 1
+            benchmark_case.add_tag(tag)
+        elif gt_label.entity_id == UnknownEntity.NO_MAPPING.value:
+            tag = BenchmarkCaseLabel.UNKNOWN_NO_MAPPING
             self.tags[tag] += 1
             benchmark_case.add_tag(tag)
 

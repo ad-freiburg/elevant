@@ -5,6 +5,7 @@ from elevant.models.entity_prediction import EntityPrediction
 from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
 from refined.inference.processor import Refined
 
+from elevant.utils.knowledge_base_mapper import UnknownEntity
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -34,6 +35,8 @@ class RefinedLinker(AbstractEntityLinker):
             if uppercase and snippet.islower():
                 continue
             candidates = {c for c, score in ann.candidate_entities}
+            if entity_id is None:
+                entity_id = UnknownEntity.NIL.value
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         return predictions
 

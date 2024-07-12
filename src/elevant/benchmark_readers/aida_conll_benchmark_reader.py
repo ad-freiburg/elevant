@@ -7,7 +7,7 @@ from elevant.evaluation.benchmark import Benchmark
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.entity_database import EntityDatabase
 from elevant.models.article import Article
-from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 from elevant.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -70,22 +70,19 @@ class AidaConllBenchmarkReader(AbstractBenchmarkReader):
                         if iob_tag == "B" and entity_name != "null":  # null seems to indicate a cont. of the prev label
                             # Token is the start of a GT label
                             if entity_name == "--NME--":
-                                entity_id = "Unknown"
-                                entity_name = "Unknown"
+                                entity_id = UnknownEntity.NIL.value
                             else:
                                 # Get entity name and ID for current label
                                 entity_uri = lst[4]
                                 entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db,
                                                                                  verbose=False)
-                                if not entity_id:
+                                if KnowledgeBaseMapper.is_unknown_entity(entity_id):
                                     # For AIDA-CONLL, 43 labels can not be mapped to any Wikidata ID.
                                     self.no_mapping_count += 1
-                                    entity_id = "Unknown"
-                                    entity_name = "UnknownNoMapping"
-                                else:
-                                    # The name for the GT label is Unknown for now, but is added when creating a
-                                    # benchmark in our format
-                                    entity_name = "Unknown"
+
+                            # The name for the GT label is Unknown for now, but is added when creating a
+                            # benchmark in our format
+                            entity_name = "Unknown"
 
                             if self.curr_entity_id:
                                 # Add GT label directly preceding the current one

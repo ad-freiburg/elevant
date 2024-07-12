@@ -39,9 +39,6 @@ class EntityMention:
         self.entity_id = entity_id
         self.linked_by = linked_by
 
-    def is_linked(self) -> bool:
-        return self.entity_id is not None
-
     def overlaps(self, span: Tuple[int, int]) -> bool:
         return self.span[0] < span[1] and self.span[1] > span[0]
 

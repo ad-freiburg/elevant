@@ -26,6 +26,7 @@ import re
 from typing import Optional
 from enum import Enum
 
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 sys.path.append(".")
 
@@ -92,7 +93,7 @@ def get_ner_text(article, text, offset):
 
     for label in sorted(article.labels, reverse=True):
         if label.parent is None and not label.is_optional():
-            if label.entity_id.startswith("Unknown"):  # and False:
+            if KnowledgeBaseMapper.is_unknown_entity(label.entity_id):  # and False:
                 continue
             begin, end = label.span
             begin -= offset
@@ -115,7 +116,7 @@ def get_linked_entity_text(article, text, offset, entity_db):
         end -= offset
         entity_text_snippet = text[begin:end]
         # Do not print entities that were recognized but not linked
-        if entity_mention.is_linked():
+        if not KnowledgeBaseMapper.is_unknown_entity(entity_mention.entity_id):
             entity_id = entity_mention.entity_id
             entity_name = entity_db.get_entity_name(entity_id)
             entity_string = "[%s:%s|%s]" % (entity_id, entity_name, entity_text_snippet)

@@ -11,6 +11,8 @@ from elevant.settings import NER_IGNORE_TAGS
 from elevant.ner.maximum_matching_ner import MaximumMatchingNER
 from elevant.utils.dates import is_date
 import elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
+from elevant.utils.knowledge_base_mapper import UnknownEntity
+
 
 class BaselineLinker(AbstractEntityLinker):
     def __init__(self,
@@ -85,5 +87,7 @@ class BaselineLinker(AbstractEntityLinker):
                 predicted_entity_id = self.select_entity(snippet, candidates)
             else:
                 raise NotImplementedError("AliasEntityLinker: Strategy %s not implemented." % str(self.strategy))
+            if predicted_entity_id is None:
+                predicted_entity_id = UnknownEntity.NIL.value
             predictions[span] = EntityPrediction(span, predicted_entity_id, candidates)
         return predictions

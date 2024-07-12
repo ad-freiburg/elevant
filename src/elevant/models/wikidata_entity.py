@@ -14,6 +14,3 @@ class WikidataEntity:
 
     def __lt__(self, other) -> bool:
         return self.entity_id < other.entity_id
-
-    def is_nil(self) -> bool:
-        return self.entity_id is None

@@ -4,6 +4,8 @@ import argparse
 from pynif import NIFCollection
 from urllib.parse import quote
 
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+
 sys.path.append(".")
 
 from elevant import settings
@@ -36,7 +38,7 @@ def nif_api():
             linking_system.link_entities(article, args.uppercase, args.only_pronouns, None)
         if article.entity_mentions:
             for em in sorted(article.entity_mentions.values()):
-                if em.entity_id is None:
+                if KnowledgeBaseMapper.is_unknown_entity(em.entity_id):
                     entity_uri = 'http://example.org/unknown/some_entity'
                 else:
                     if args.wikidata_annotations:

@@ -5,7 +5,7 @@ from pynif import NIFCollection
 
 from elevant.models.entity_database import EntityDatabase
 from elevant.models.entity_prediction import EntityPrediction
-from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 from elevant.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -40,7 +40,7 @@ class NifPredictionReader(AbstractPredictionReader):
                 for phrase in sorted(context.phrases, key=lambda p: p.beginIndex):
                     entity_uri = phrase.taIdentRef
                     if self.custom_kb:
-                        entity_id = entity_uri
+                        entity_id = entity_uri if entity_uri else UnknownEntity.NIL.value
                     else:
                         entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
                     span = phrase.beginIndex, phrase.endIndex

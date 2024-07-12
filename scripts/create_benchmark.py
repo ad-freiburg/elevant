@@ -19,10 +19,11 @@ import re
 import sys
 from typing import List, Tuple, Optional, Set
 
+from elevant.utils.knowledge_base_mapper import UnknownEntity
+
 sys.path.append(".")
 
 from elevant.utils import log
-from elevant import settings
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.article import article_from_json
 
@@ -84,7 +85,8 @@ def get_labels(labeled_text: str) -> List[Tuple[Tuple[int, int], str]]:
     return labels
 
 
-def get_nested_labels(labeled_text: str, no_coref_variant: bool = False) -> List[GroundtruthLabel]:
+def get_nested_labels(labeled_text: str, no_coref_variant: bool = False, no_coref_tags: bool = False)\
+        -> List[GroundtruthLabel]:
     """
     Labels can be nested.
     """
@@ -144,10 +146,13 @@ def get_nested_labels(labeled_text: str, no_coref_variant: bool = False) -> List
             label_type = labels[-1] if not labels[-1].startswith("Unknown") \
                 and not re.match(r"Q[0-9]+", labels[-1]) else GroundtruthLabel.OTHER
             entity_name = "Unknown"
+            if labels[-1].startswith("Unknown"):
+                labels[-1] = UnknownEntity.NIL.value
+            coref_tag = None if no_coref_tags else coref_tags[-1]
             groundtruth_label = GroundtruthLabel(label_id, (start_pos[-1], start_pos[-1] + end_pos), labels[-1],
                                                  entity_name, parent=parent, children=children,
                                                  optional=optional_tags[-1], type=label_type, desc=desc_tags[-1],
-                                                 coref=coref_tags[-1])
+                                                 coref=coref_tag)
             article_labels.append(groundtruth_label)
             if (no_coref_variant and coref_tags[-1]) or (no_coref_variant is False and no_coref_alt_tags[-1]):
                 # The label needs to be deleted eventually if the label is a coreference and the benchmark is
@@ -253,7 +258,7 @@ def main(args):
                 if not args.skip and i + skip_count in skip_articles:
                     skip_count += 1
                 article = article_from_json(json)
-                labels = get_nested_labels(labels_texts[i + skip_count], args.no_coref_variant)
+                labels = get_nested_labels(labels_texts[i + skip_count], no_coref_variant=args.no_coref_variant, no_coref_tags=args.no_coref_tags)
                 article.labels = labels
 
                 # Make sure label spans are within the article text boundaries
@@ -311,6 +316,10 @@ if __name__ == "__main__":
                              "Only needed if the benchmark is extended."
                              "(E.g. benchmarks/noshow/benchmark_articles.all.bold.jsonl. This can't simply be used as"
                              "article_jsonl_file, since the article texts slightly differ from the benchmark version)")
+
+    parser.add_argument("--no_coref_tags", action="store_true",
+                        help="Set if the benchmark does not contain explicit coref tags (e.g. for Wiki-Fair and "
+                             "News-Fair v1.0).")
 
     parser.add_argument("--no_coref_variant", action="store_true",
                         help="Create a benchmark variant without coreference ground truth labels.")

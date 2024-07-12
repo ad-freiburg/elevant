@@ -19,6 +19,7 @@ from elevant.evaluation.benchmark import get_available_benchmarks
 from elevant.evaluation.benchmark_iterator import get_benchmark_iterator
 from elevant.models.article import article_from_json
 from elevant.evaluation.evaluator import Evaluator
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 
 def main(args):
@@ -95,7 +96,7 @@ def main(args):
                         types = gt_label.get_types()
                         for typ in types:
                             if typ in label_whitelist_types or gt_label.parent is not None \
-                                    or gt_label.entity_id.startswith("Unknown"):
+                                    or KnowledgeBaseMapper.is_unknown_entity(gt_label.entity_id):
                                 filtered_labels.append(gt_label)
                                 added_label_ids.add(gt_label.id)
                                 break

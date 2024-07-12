@@ -19,9 +19,13 @@ window.ANNOTATION_CLASS_UNKNOWN = "unknown";
 window.ANNOTATION_CLASS_OPTIONAL = "optional";
 window.ANNOTATION_CLASS_UNEVALUATED = "unevaluated";
 
+UNKNOWN_ENTITY_NIL = "<NIL>";
+UNKNOWN_ENTITY_NO_MAPPING = "<NO_MAPPING>"
+
 window.MISSING_LABEL_TEXT = "[MISSING LABEL]";
-window.NIL_PREDICTION_TEXT = "[NIL]";
-window.NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", "Unknown"];
+window.NIL_TEXT = "[Unknown: NIL]";
+window.NO_MAPPING_TEXT = "[Unknown: No Mapping to Wikidata found]";
+window.NO_LABEL_ENTITY_IDS = ["QUANTITY", "DATETIME", UNKNOWN_ENTITY_NIL, UNKNOWN_ENTITY_NO_MAPPING];
 
 window.IGNORE_HEADERS = ["true_positives", "false_positives", "false_negatives", "ground_truth"];
 window.PERCENTAGE_HEADERS = ["precision", "recall", "f1"];
@@ -1594,21 +1598,21 @@ function get_annotations(article_index, experiment_id, benchmark, column_idx, ex
                     gt_annotation.class = ANNOTATION_CLASS_FN;
                 } else if (mention.optional) {
                     gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
-                } else if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
+                } else if ("true_entity" in mention && is_unknown_entity(mention.true_entity.entity_id)) {
                     gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 }
             } else if (linking_eval_types.includes("FN")) {
                 gt_annotation.class = ANNOTATION_CLASS_FN;
-                if ("predicted_entity" in mention && mention.predicted_entity.entity_id == null) {
+                if ("predicted_entity" in mention && is_unknown_entity(mention.predicted_entity.entity_id)) {
                     pred_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 }
             } else {
                 if (mention.optional) {
                     gt_annotation.class = ANNOTATION_CLASS_OPTIONAL;
-                } else if ("true_entity" in mention && mention.true_entity.entity_id.startsWith("Unknown")) {
+                } else if ("true_entity" in mention && is_unknown_entity(mention.true_entity.entity_id)) {
                     gt_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 }
-                if ("predicted_entity" in mention && mention.predicted_entity.entity_id == null) {
+                if ("predicted_entity" in mention && is_unknown_entity(mention.predicted_entity.entity_id)) {
                     pred_annotation.class = ANNOTATION_CLASS_UNKNOWN;
                 } else if ("predicted_entity" in mention) {
                     pred_annotation.class = ANNOTATION_CLASS_UNEVALUATED;
@@ -1786,7 +1790,11 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
     if (annotation.class === ANNOTATION_CLASS_TP && annotation.pred_entity_id) {
         const entity_link = get_entity_link(annotation.pred_entity_id);
         let entity_name;
-        if (annotation.pred_entity_name != null) {
+        if (UNKNOWN_ENTITY_NIL === annotation.pred_entity_id) {
+            entity_name = window.NIL_TEXT;
+        } else if (UNKNOWN_ENTITY_NO_MAPPING === annotation.pred_entity_id) {
+            entity_name = window.NO_MAPPING_TEXT;
+        } else if (annotation.pred_entity_name != null) {
             entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
             entity_name = entity_name + " (" + entity_link + ")";
         } else {
@@ -1797,27 +1805,29 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
         tooltip_classes += " below";
     } else {
         if ("pred_entity_id" in annotation) {
-            if (annotation.pred_entity_id) {
+            tooltip_header_text += "Prediction: ";
+            if (UNKNOWN_ENTITY_NIL === annotation.pred_entity_id) {
+                tooltip_header_text += window.NIL_TEXT;
+            } else if (UNKNOWN_ENTITY_NO_MAPPING === annotation.pred_entity_id) {
+                tooltip_header_text += window.NO_MAPPING_TEXT;
+            } else {
                 let entity_name = (["Unknown", "null"].includes(annotation.pred_entity_name)) ? MISSING_LABEL_TEXT : annotation.pred_entity_name;
                 const entity_link = get_entity_link(annotation.pred_entity_id);
-                tooltip_header_text += "Prediction: " + entity_name + " (" + entity_link + ")";
-            } else {
-                // NIL prediction
-                tooltip_header_text += "Prediction: " + NIL_PREDICTION_TEXT;
+                tooltip_header_text += entity_name + " (" + entity_link + ")";
             }
         }
         if (annotation.gt_entity_id ) {
             if (tooltip_header_text) { tooltip_header_text += "<br>"; }
-            if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id) || annotation.gt_entity_id.startsWith("Unknown")) {
+            if (NO_LABEL_ENTITY_IDS.includes(annotation.gt_entity_id)) {
                 // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
-                // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN #xy]" or "[UNKNOWN]"
-                let entity_name = annotation.gt_entity_id;
-                if (annotation.gt_entity_id === "Unknown") {
-                    entity_name = "UNKNOWN";
-                } else if (annotation.gt_entity_id.startsWith("Unknown")) {
-                    entity_name = "UNKNOWN #" + annotation.gt_entity_id.replace("Unknown", "");
+                // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN]"
+                let entity_name = "[" + annotation.gt_entity_id + "]";
+                if (annotation.gt_entity_id === UNKNOWN_ENTITY_NIL) {
+                    entity_name = window.NIL_TEXT;
+                } else if (annotation.gt_entity_id === UNKNOWN_ENTITY_NO_MAPPING) {
+                    entity_name = window.NO_MAPPING_TEXT;
                 }
-                tooltip_header_text += "Groundtruth: [" + entity_name + "]";
+                tooltip_header_text += "Groundtruth: " + entity_name;
             } else {
                 let entity_name = (annotation.gt_entity_name === "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
                 const entity_link = get_entity_link(annotation.gt_entity_id);
@@ -1940,7 +1950,7 @@ function get_entity_link(entity_id) {
         // Add Wikidata web prefix only if entity ID is a QID (could also be a custom ontology ID)
         const wikidata_url = "https://www.wikidata.org/wiki/" + entity_id;
         return "<a href=\"" + wikidata_url + "\" target=\"_blank\">" + entity_id + "</a>";
-    } else if (["UNKNOWN", "DATETIME", "QUANTITY"].includes(entity_id) || entity_id.startsWith("Unknown")) {
+    } else if (["DATETIME", "QUANTITY"].includes(entity_id) || is_unknown_entity(entity_id)) {
         return entity_id;
     } else {
         return "<a href=\"" + entity_id + "\" target=\"_blank\">" + entity_id + "</a>";
@@ -3203,4 +3213,8 @@ function escape_regex(string) {
      * See https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711
      */
     return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+function is_unknown_entity(entity_id) {
+    return entity_id == UNKNOWN_ENTITY_NIL || entity_id == UNKNOWN_ENTITY_NO_MAPPING;
 }

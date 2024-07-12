@@ -5,6 +5,7 @@ from elevant import settings
 from elevant.evaluation.case import Case, ErrorLabel, EvaluationMode
 from elevant.evaluation.case_generator import CaseGenerator
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
+from elevant.evaluation.mention_type import MentionType
 from elevant.helpers.entity_database_reader import EntityDatabaseReader
 from elevant.models.entity_database import EntityDatabase
 from elevant.evaluation.errors import label_errors
@@ -68,7 +69,8 @@ def get_type_ids(types: List[str]) -> List[str]:
     return type_ids
 
 
-EVALUATION_CATEGORIES = ("all", "ner", "entity", "coref") + (mention_type.value.lower() for mention_type in MentionType)
+EVALUATION_CATEGORIES = (("all", "ner", "entity", "coref") +
+                         tuple(mention_type.value.lower() for mention_type in MentionType))
 
 
 class Evaluator:
@@ -174,7 +176,7 @@ class Evaluator:
     def get_results_dict(self):
         results_dict = {}
         for mode in EvaluationMode:
-            entity_mention_types = [mention_type.value.lower() for mention_type in MentionType if mention_type.startswith("ENTITY_")]
+            entity_mention_types = [mention_type.value.lower() for mention_type in MentionType if mention_type.value.startswith("ENTITY_")]
             self.counts[mode]["entity"]["tp"] = sum([self.counts[mode][mention_type]["tp"] for mention_type in entity_mention_types])
             self.counts[mode]["entity"]["fp"] = sum([self.counts[mode][mention_type]["fp"] for mention_type in entity_mention_types])
             self.counts[mode]["entity"]["fn"] = sum([self.counts[mode][mention_type]["fn"] for mention_type in entity_mention_types])

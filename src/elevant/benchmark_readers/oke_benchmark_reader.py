@@ -10,7 +10,7 @@ from elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmar
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.entity_database import EntityDatabase
 from elevant.models.article import Article
-from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 from elevant.utils.nested_groundtruth_handler import NestedGroundtruthHandler
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -55,17 +55,16 @@ class OkeBenchmarkReader(AbstractBenchmarkReader):
             for phrase in sorted(context.phrases, key=lambda p: p.beginIndex):
                 span = phrase.beginIndex, phrase.endIndex
                 entity_uri = phrase.taIdentRef
-                entity_id = None
+                entity_id = UnknownEntity.NIL.value
                 if entity_uri in same_as_mapping:
                     entity_uri = same_as_mapping[entity_uri]
                     entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
-                if not entity_id:
+
+                if KnowledgeBaseMapper.is_unknown_entity(entity_id):
                     no_mapping_count += 1
-                    entity_id = "Unknown"
-                    entity_name = "UnknownNoMapping"
-                else:
-                    # The name for the GT label is Unknown for now, but is added when creating a benchmark in our format
-                    entity_name = "Unknown"
+
+                # The name for the GT label is Unknown for now, but is added when creating a benchmark in our format
+                entity_name = "Unknown"
 
                 labels.append(GroundtruthLabel(label_id_counter, span, entity_id, entity_name))
                 label_id_counter += 1

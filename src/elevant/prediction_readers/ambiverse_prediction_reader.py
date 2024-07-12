@@ -6,7 +6,7 @@ import logging
 from elevant.models.entity_database import EntityDatabase
 from elevant.models.entity_prediction import EntityPrediction
 from elevant.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
-from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -27,7 +27,7 @@ class AmbiversePredictionReader(AbstractPredictionReader):
 
         ambiverse_entity_id_mapping = {}
         if "entities" in result:
-            # Ambiverse predicted QIDs can contain mistakes, therefore use custom rules to map entites to Wikidata QIDs
+            # Ambiverse predicted QIDs can contain mistakes, therefore use custom rules to map entities to Wikidata QIDs
             # instead of using KnowledgeBaseMapping.get_wikidata_qid()
             for entity in result["entities"]:
                 entity_id = entity["id"].split("/")[-1]
@@ -36,15 +36,16 @@ class AmbiversePredictionReader(AbstractPredictionReader):
                     # The entity name is more trustworthy.
                     entity_id_from_name = KnowledgeBaseMapper.get_wikidata_qid(entity["name"], self.entity_db,
                                                                                verbose=False)
-                    ambiverse_entity_id_mapping[entity_id] = entity_id_from_name
+                    if not KnowledgeBaseMapper.is_unknown_entity(entity_id_from_name):
+                        ambiverse_entity_id_mapping[entity_id] = entity_id_from_name
 
         predictions = {}
         for match in result["matches"]:
             span_start = match["charOffset"]
             span_end = span_start + match["charLength"]
             span = (span_start, span_end)
-            entity_id = match["entity"]["id"].split("/")[-1] if match["entity"] else None
-            entity_id = entity_id if entity_id else None  # Change empty string to None
+            entity_id = match["entity"]["id"].split("/")[-1] if match["entity"] else UnknownEntity.NIL.value
+            entity_id = entity_id if entity_id else UnknownEntity.NIL.value  # Change empty string to NIL
             if entity_id in ambiverse_entity_id_mapping and ambiverse_entity_id_mapping[entity_id]:
                 if entity_id != ambiverse_entity_id_mapping[entity_id]:
                     logger.debug("Result QID does not match QID retrieved via result Wikipedia URL: %s vs %s" %

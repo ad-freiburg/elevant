@@ -7,6 +7,7 @@ from elevant.models.entity_database import EntityDatabase
 from elevant.models.entity_mention import EntityMention
 from elevant.models.wikidata_entity import WikidataEntity
 from elevant.models.article import Article
+from elevant.utils.knowledge_base_mapper import UnknownEntity, KnowledgeBaseMapper
 
 
 def word_boundary(span: Tuple[int, int], text: str) -> Tuple[int, int]:
@@ -235,10 +236,10 @@ class CaseGenerator:
         >>> article = Article(0, "", text, [])
         >>> cg.article = article
         >>> l1 = GroundtruthLabel(1, (0, 10), "Q1", "Q1", None, [2])
-        >>> l2 = GroundtruthLabel(2, (0, 2), "Unknown", "Unknown1", 1, None)
+        >>> l2 = GroundtruthLabel(2, (0, 2), UnknownEntity.NIL.value, "Unknown1", 1, None)
         >>> labels = [l1, l2]
         >>> cg.label_dict = {label.id: label for label in labels}
-        >>> p1 = EntityMention((0, 2), "Unknown", None)
+        >>> p1 = EntityMention((0, 2), "Unknown", UnknownEntity.NIL.value)
         >>> cg.all_predictions ={p1.span: p1}
         >>> result_list = []
         >>> cg.factor_dict = dict()
@@ -289,20 +290,17 @@ class CaseGenerator:
         # Get predicted entity id for label span
         if label.span in self.all_predictions:
             pred_entity_id = self.all_predictions[label.span].entity_id
-            if pred_entity_id is None:
-                # For an unknown GT label, the prediction is correct if it is None.
-                # Therefore, pretend the prediction is the same as the GT label
-                # Without this, pred_entity_id would be None (as if there was no matching prediction)
-                pred_entity_id = label.entity_id if label.entity_id.startswith("Unknown") else "Unknown"
         elif expanded_label_span in self.all_predictions:
             pred_entity_id = self.all_predictions[expanded_label_span].entity_id
         else:
             pred_entity_id = None
 
-        if pred_entity_id and label.entity_id == pred_entity_id:
+        if pred_entity_id and (label.entity_id == pred_entity_id or
+                               (KnowledgeBaseMapper.is_unknown_entity(label.entity_id) and
+                                KnowledgeBaseMapper.is_unknown_entity(pred_entity_id))):
             # Factor is certainly 1 if the mention was correctly detected and linked. All child labels have factor 0.
             # Return is only ok if child labels not occurring in the factor dictionary are assigned factor 0.
-            # Otherwise we need to go through all child labels.
+            # Otherwise, we need to go through all child labels.
             factor = 1
             if not determining_siblings:
                 self.factor_dict[label_id] = factor

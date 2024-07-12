@@ -7,8 +7,7 @@ from typing import Dict, Any, Optional, Tuple
 from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
 from elevant.models.entity_database import EntityDatabase
 from elevant.models.entity_prediction import EntityPrediction
-from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
-
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -152,7 +151,7 @@ class GPTLinker(AbstractEntityLinker):
                     # Try to recover if GPT marked the entity but did not annotate it with a label.
                     logger.warning(f"No entity name label found at \"{get_text_after(ann_pos, annotated_text)} ...\""
                                    f"Predicting NIL.")
-                    entity_id = None
+                    entity_id = UnknownEntity.NIL.value
                     ann_pos += 1
                 else:
                     name_start = ann_pos + 2

@@ -10,6 +10,7 @@ from elevant.evaluation.benchmark import BenchmarkFormat, Benchmark, get_availab
 from elevant.evaluation.benchmark_iterator import get_benchmark_iterator
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.entity_database import EntityDatabase
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 
 def main(args):
@@ -18,7 +19,8 @@ def main(args):
                 f"groundtruth labels with Wikidata label and type.")
 
     from_json_file = args.benchmark in get_available_benchmarks()
-    benchmark_iterator = get_benchmark_iterator(args.benchmark,
+    benchmark_arg = args.benchmark if args.benchmark else args.benchmark_name
+    benchmark_iterator = get_benchmark_iterator(benchmark_arg,
                                                 from_json_file=from_json_file,
                                                 benchmark_files=args.benchmark_file,
                                                 benchmark_format=args.benchmark_format,
@@ -35,7 +37,7 @@ def main(args):
     lines_to_write = ""
     for article in benchmark_iterator.iterate():
         for label in article.labels:
-            if label.entity_id.startswith("Unknown"):
+            if KnowledgeBaseMapper.is_unknown_entity(label.entity_id):
                 continue
             if label.type in (GroundtruthLabel.QUANTITY, GroundtruthLabel.DATETIME):
                 continue

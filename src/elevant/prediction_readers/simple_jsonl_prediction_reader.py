@@ -6,7 +6,7 @@ from elevant.models.entity_prediction import EntityPrediction
 import json
 import logging
 
-from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 from elevant.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
@@ -31,7 +31,7 @@ class SimpleJsonlPredictionReader(AbstractPredictionReader):
             # If the entity reference is not a URI and is not from Wikidata, references in the format "Q[0-9]+"
             # will be wrongly assumed to be Wikidata QIDs
             if self.custom_kb:
-                entity_id = entity_reference
+                entity_id = entity_reference if entity_reference else UnknownEntity.NIL.value
             else:
                 entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db, verbose=False)
             span = raw_prediction["start_char"], raw_prediction["end_char"]

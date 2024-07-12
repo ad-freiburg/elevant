@@ -14,6 +14,7 @@ from elevant.settings import NER_IGNORE_TAGS
 from elevant.models.entity_database import EntityDatabase
 from elevant.utils.dates import is_date
 from elevant import settings
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 from elevant.utils.offset_converter import OffsetConverter
 import elevant.ner.ner_postprocessing  # import is needed so Python finds the custom factory
 import elevant.utils.custom_sentencizer  # import is needed so Python finds the custom component
@@ -150,13 +151,15 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                     name_and_demonym_candidates.update(demonym_entities)
                 candidates = self.entity_db.get_candidates(snippet)
                 entity_id = self.select_entity(name_and_demonym_candidates, candidates)
+            if entity_id is None:
+                entity_id = UnknownEntity.NIL.value
             candidates.update(name_and_demonym_candidates)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
             prediction_cache[snippet] = (entity_id, candidates, is_language, is_person)
 
-            # Store entity mention text if no entity could be predicted and it is likely a human name
+            # Store entity mention text if no entity could be predicted, and it is likely a human name
             # to avoid linking parts of it later.
-            if entity_id is None and " " in snippet and is_person:
+            if KnowledgeBaseMapper.is_unknown_entity(entity_id) and " " in snippet and is_person:
                 first_name = snippet.split()[0]
                 last_name = snippet.split()[-1]
                 unknown_person_name_parts.add(first_name)
@@ -219,7 +222,9 @@ class PopularEntitiesLinker(AbstractEntityLinker):
                     self.entity_db.get_entity_types(entity_id) != [GroundtruthLabel.OTHER]:
                 # This is not the same as simply excluding these entities from the prefix trie.
                 # This way, entities are skipped if they exist, but don't have the correct type
-                # or required min score. Otherwise parts of the entity could be linked.
+                # or required min score. Otherwise, parts of the entity could be linked.
+                if entity_id is None:
+                    entity_id = UnknownEntity.NIL.value
                 lowercase_predictions[span] = EntityPrediction(span, entity_id, {entity_id})
             i = j + 1
         return lowercase_predictions

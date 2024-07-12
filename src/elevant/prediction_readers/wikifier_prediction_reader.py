@@ -7,6 +7,7 @@ from xml.etree import ElementTree
 from elevant.models.entity_database import EntityDatabase
 from elevant.models.entity_prediction import EntityPrediction
 from elevant.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseName, KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -66,8 +67,9 @@ class WikifierPredictionReader(AbstractPredictionReader):
             # Wikifier predicted entity IDs can contain mistakes, therefore use custom rules to map entites to
             # Wikidata QIDs instead of using KnowledgeBaseMappingl.get_wikidata_qid()
             wiki_title = self.get_correct_wikipedia_title(wiki_title, wiki_id)
-            entity_id = self.entity_db.link2id(wiki_title)
-            if not entity_id:
+            entity_id = KnowledgeBaseMapper.get_wikidata_qid(wiki_title, self.entity_db,
+                                                             kb_name=KnowledgeBaseName.WIKIPEDIA)
+            if KnowledgeBaseMapper.is_unknown_entity(entity_id):
                 logger.warning("No mapping to Wikidata found for label '%s'" % wiki_title)
                 count += 1
 
@@ -77,8 +79,9 @@ class WikifierPredictionReader(AbstractPredictionReader):
                 candidate_wiki_title = candidate_wiki_title.replace("_", " ")
                 candidate_wiki_id = int(entity_prediction.find('TopDisambiguation').find('WikiTitleID').text)
                 candidate_wiki_title = self.get_correct_wikipedia_title(candidate_wiki_title, candidate_wiki_id)
-                candidate_entity_id = self.entity_db.link2id(candidate_wiki_title)
-                if candidate_entity_id:
+                candidate_entity_id = KnowledgeBaseMapper.get_wikidata_qid(candidate_wiki_title, self.entity_db,
+                                                                           kb_name=KnowledgeBaseName.WIKIPEDIA)
+                if not KnowledgeBaseMapper.is_unknown_entity(candidate_entity_id):
                     candidates.add(candidate_entity_id)
 
             # Note that Wikifier produces overlapping spans

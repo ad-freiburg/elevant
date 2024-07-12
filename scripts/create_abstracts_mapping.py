@@ -1,6 +1,8 @@
 import argparse
 import sys
 
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseName, KnowledgeBaseMapper
+
 sys.path.append(".")
 
 from elevant import settings
@@ -22,8 +24,8 @@ def main(args):
     for i, article in enumerate(WikipediaCorpus.get_articles(args.input_file)):
         abstract_span = article.get_abstract_span()
         abstract = article.text[abstract_span[0]:abstract_span[1]].strip()
-        entity_id = entity_db.link2id(article.title)
-        if entity_id:
+        entity_id = KnowledgeBaseMapper.get_wikidata_qid(article.title, entity_db, kb_name=KnowledgeBaseName.WIKIPEDIA)
+        if not KnowledgeBaseMapper.is_unknown_entity(entity_id):
             if entity_id in entity_id_to_abstract:
                 # Occurs little more than 100 times with the 20211001 Wikipedia dump
                 # and the 20211021 redirects

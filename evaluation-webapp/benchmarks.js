@@ -928,16 +928,16 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
         }
         tooltip_header_text += entity_name;
     } else  if (annotation.class === ANNOTATION_CLASS_OPTIONAL || annotation.class === ANNOTATION_CLASS_UNKNOWN) {
-        if (NO_LABEL_ENTITY_IDS.includes(annotation.entity_id) || annotation.entity_id.startsWith("Unknown")) {
+        if (NO_LABEL_ENTITY_IDS.includes(annotation.entity_id)) {
             // For Datetimes, Quantities and Unknown GT entities don't display "Label (QID)"
-            // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN #xy]" or "[UNKNOWN]"
-            let entity_name = annotation.entity_id;
-            if (annotation.entity_id === "Unknown") {
-                entity_name = "UNKNOWN";
-            } else if (annotation.entity_id.startsWith("Unknown")) {
-                entity_name = "UNKNOWN #" + annotation.entity_id.replace("Unknown", "");
+            // instead display "[DATETIME]"/"[QUANTITY]" or "[UNKNOWN]"
+            let entity_name = "[" + annotation.entity_id + "]";
+            if (annotation.entity_id === UNKNOWN_ENTITY_NIL) {
+                entity_name = window.NIL_TEXT;
+            } else if (annotation.entity_id === UNKNOWN_ENTITY_NO_MAPPING) {
+                entity_name = window.NO_MAPPING_TEXT;
             }
-            tooltip_header_text += "Groundtruth: [" + entity_name + "]";
+            tooltip_header_text += "Groundtruth: " + entity_name;
         } else {
             let entity_name = (annotation.gt_entity_name === "Unknown") ? MISSING_LABEL_TEXT : annotation.gt_entity_name;
             const entity_link = get_entity_link(annotation.entity_id);

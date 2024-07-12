@@ -9,7 +9,7 @@ from urllib.parse import quote, unquote
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.entity_mention import EntityMention
 from elevant.models.article import Article
-
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -90,7 +90,7 @@ class NIFParser:
             if groundtruth:
                 for gt_label in article.labels:
                     entity_uri = wikidata_prefix + gt_label.entity_id \
-                        if gt_label.entity_id and not gt_label.entity_id.startswith("Unknown") else None
+                        if gt_label.entity_id and not KnowledgeBaseMapper.is_unknown_entity(gt_label.entity_id) else None
                     annotator = "groundtruth"
                     types = [wikidata_prefix + typ for typ in gt_label.get_types()]
                     context.add_phrase(
@@ -102,7 +102,7 @@ class NIFParser:
             elif article.entity_mentions:
                 for span, em in sorted(article.entity_mentions.items()):
                     entity_uri = wikidata_prefix + em.entity_id \
-                        if em.entity_id and not em.entity_id.startswith("Unknown") else None
+                        if em.entity_id and not KnowledgeBaseMapper.is_unknown_entity(em.entity_id) else None
                     annotator = em.linked_by
                     context.add_phrase(
                         beginIndex=span[0],

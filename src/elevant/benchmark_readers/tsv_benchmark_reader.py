@@ -63,14 +63,12 @@ class TsvBenchmarkReader(AbstractBenchmarkReader):
                     # Add a ground truth label
                     span = start_idx, end_idx
                     entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db, verbose=False)
-                    if not entity_id:
+                    if KnowledgeBaseMapper.is_unknown_entity(entity_id):
                         no_mapping_count += 1
-                        entity_id = "Unknown"
-                        entity_name = "UnknownNoMapping"
-                    else:
-                        # The name for the GT label is Unknown for now, but is added when creating a benchmark in our
-                        # format
-                        entity_name = "Unknown"
+
+                    # The name for the GT label is Unknown for now, but is added when creating a benchmark in our
+                    # format
+                    entity_name = "Unknown"
 
                     labels.append(GroundtruthLabel(label_id_counter, span, entity_id, entity_name))
                     label_id_counter += 1

@@ -5,6 +5,7 @@ from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.helpers.wikipedia_corpus import WikipediaCorpus
 from elevant.models.article import Article
 from elevant.models.entity_database import EntityDatabase
+from elevant.utils.knowledge_base_mapper import UnknownEntity, KnowledgeBaseName, KnowledgeBaseMapper
 
 
 def expand_span(text: str, span: Tuple[int, int]) -> Tuple[int, int]:
@@ -26,9 +27,8 @@ class WikipediaReader(AbstractBenchmarkReader):
             label_id_counter = 0
             for span, target in article.hyperlinks:
                 span = expand_span(article.text, span)
-                entity_id = self.entity_db.link2id(target)
-                if entity_id is None:
-                    entity_id = "Unknown"
+                entity_id = KnowledgeBaseMapper.get_wikidata_qid(target, self.entity_db,
+                                                                 kb_name=KnowledgeBaseName.WIKIPEDIA)
                 gt_label = GroundtruthLabel(label_id_counter, span, entity_id, "Unknown")
                 article.labels.append(gt_label)
                 label_id_counter += 1

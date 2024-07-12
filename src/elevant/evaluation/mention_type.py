@@ -1,5 +1,6 @@
 from enum import Enum
 
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 from elevant.utils.pronoun_finder import PronounFinder
 
 
@@ -35,11 +36,14 @@ def is_nominal(mention: str) -> bool:
             return True
     return False
 
+
 def is_named_entity(entity_name: str) -> bool:
     return get_entity_mention_type(entity_name) == MentionType.ENTITY_NAMED
 
+
 def is_non_named_entity(entity_name: str) -> bool:
     return get_entity_mention_type(entity_name) == MentionType.ENTITY_NON_NAMED
+
 
 def get_entity_mention_type(entity_name: str, entity_id: str = None) -> MentionType:
     """
@@ -47,7 +51,7 @@ def get_entity_mention_type(entity_name: str, entity_id: str = None) -> MentionT
     The entity name contains alphabetic characters and the first alphabetic
     character of the entity name is an uppercase character.
     """
-    if (not entity_id and entity_name == "Unknown") or entity_id.startswith("Unknown"):
+    if (not entity_id and entity_name == "Unknown") or KnowledgeBaseMapper.is_unknown_entity(entity_id):
         return MentionType.ENTITY_UNKNOWN
 
     alpha_chars = [char for char in entity_name if char.isalpha()]

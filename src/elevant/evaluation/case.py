@@ -6,7 +6,7 @@ import json
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.wikidata_entity import WikidataEntity
 from elevant.evaluation.mention_type import get_mention_type
-
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -150,7 +150,7 @@ class Case:
                 return [EvaluationType.FP]
             else:
                 # The case (not self.predicted_entity) should not happen
-                # but just to be save
+                # but just to be safe
                 return []
 
         if not self.has_prediction():
@@ -169,7 +169,7 @@ class Case:
                 return [EvaluationType.FN]
             else:
                 # The case (not self.true_entity) should not happen
-                # but just to be save
+                # but just to be safe
                 return []
 
         if self.is_optional():
@@ -217,7 +217,7 @@ class Case:
                     # unk / unk: IGN
                     return []
                 # unk / unk: REQ
-                return[EvaluationType.TP]
+                return [EvaluationType.TP]
 
     def _get_ner_eval_type(self, eval_mode: EvaluationMode) -> Optional[List[EvaluationType]]:
         if self.factor == 0:
@@ -252,7 +252,7 @@ class Case:
                 return [EvaluationType.FP]
             else:
                 # The case (not self.predicted_entity) should not happen
-                # but just to be save
+                # but just to be safe
                 return []
 
         if not self.has_prediction():
@@ -271,7 +271,7 @@ class Case:
                 return [EvaluationType.FN]
             else:
                 # The case (not self.true_entity) should not happen
-                # but just to be save
+                # but just to be safe
                 return []
 
         if self.is_optional():
@@ -306,7 +306,7 @@ class Case:
                     # unk / unk: IGN
                     return []
                 # unk / unk: REQ
-                return[EvaluationType.TP]
+                return [EvaluationType.TP]
 
     def is_linking_tp(self, eval_mode: EvaluationMode) -> bool:
         return EvaluationType.TP in self.linking_eval_types[eval_mode]
@@ -333,14 +333,15 @@ class Case:
         return self.predicted_entity is not None
 
     def ground_truth_is_known(self) -> bool:
-        return self.true_entity is not None and not self.true_entity.entity_id.startswith("Unknown") \
+        return self.true_entity is not None and not KnowledgeBaseMapper.is_unknown_entity(self.true_entity.entity_id) \
                and not self.true_entity.is_datetime() and not self.true_entity.is_quantity()
 
     def ground_truth_is_datetime_or_quantity(self):
         return self.true_entity and (self.true_entity.is_quantity() or self.true_entity.is_datetime())
 
     def prediction_is_known(self) -> bool:
-        return self.predicted_entity is not None and not self.predicted_entity.is_nil()
+        return (self.predicted_entity is not None and
+                not KnowledgeBaseMapper.is_unknown_entity(self.predicted_entity.entity_id))
 
     def has_relevant_ground_truth(self, eval_mode: EvaluationMode) -> bool:
         if eval_mode == EvaluationMode.IGNORED:

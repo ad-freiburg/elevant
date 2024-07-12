@@ -1,5 +1,6 @@
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.entity_prediction import EntityPrediction
+from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
 
 
 def link_entities_with_oracle(article):
@@ -10,8 +11,8 @@ def link_entities_with_oracle(article):
 
     def get_label(gt_label: GroundtruthLabel):
         entity_id = gt_label.entity_id
-        if entity_id.startswith("Unknown"):
-            entity_id = None
+        if KnowledgeBaseMapper.is_unknown_entity(entity_id):
+            entity_id = UnknownEntity.NIL.value
         return EntityPrediction(gt_label.span, entity_id, {entity_id})
 
     predicted_entities = dict()
