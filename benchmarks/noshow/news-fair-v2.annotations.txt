@@ -1825,7 +1825,7 @@ The United States must deliver weapons to Iraq more quickly, Defense Secretary R
 
 Speaking to [Q42909|reporters], [Q212979|Gates] said the issue also came up at [COREF:Q212979|his] meeting with [Q55717944|Chilean Defense Minister] [Q3186309|Jose Mario Goni] just prior to a [Q38926|news] conference.
 
-"This is an issue that we have to look into and see what we can do in the [Q30|United States] to be more responsive and be able to react more quickly to the requests of our friends," [Q212979|Gates] said. "Unfortunately the [Q842161|([Q842161|foreign military sales]) program] was set up in a way that was not intended to provide sort of emergency or short term supplies."<END>
+"This is an issue that we have to look into and see what we can do in [Q30|the [Q30|United States]] to be more responsive and be able to react more quickly to the requests of our friends," [Q212979|Gates] said. "Unfortunately the [Q842161|([Q842161|foreign military sales]) program] was set up in a way that was not intended to provide sort of emergency or short term supplies."<END>
 
 The Washington Post reported Thursday that Iraqi President Jalal Talabani said in an interview that Iraq ordered the Chinese weapons for its police force in part because the U.S. is not delivering the arms fast enough.
 
