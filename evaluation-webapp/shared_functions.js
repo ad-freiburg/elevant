@@ -97,8 +97,14 @@ window.HEADER_DESCRIPTIONS = {
         "fp": "<i>FP</i>: False positive named entities.",
         "fn": "<i>FN</i>: False negative named entities."
     },
-    "entity_other": {
+    "entity_non_named": {
         "": "Entity linking results for non-named entities, i.e. entities where the first alphabetic character is a lowercase letter.",
+        "tp": "<i>TP</i>: True positive non-named (i.e. lowercase) entities.",
+        "fp": "<i>FP</i>: False positive non-named (i.e. lowercase) entities.",
+        "fn": "<i>FN</i>: False negative non-named (i.e. lowercase) entities."
+    },
+    "entity_unknown": {
+        "": "Entity linking results for unknown entities.",
         "tp": "<i>TP</i>: True positive non-named (i.e. lowercase) entities.",
         "fp": "<i>FP</i>: False positive non-named (i.e. lowercase) entities.",
         "fn": "<i>FN</i>: False negative non-named (i.e. lowercase) entities."
@@ -182,10 +188,11 @@ window.ERROR_CATEGORY_CORRECT_TAGS = {
     "DISAMBIGUATION_MULTI_CANDIDATES_WRONG": "DISAMBIGUATION_MULTI_CANDIDATES_CORRECT"
 }
 
-window.MENTION_TYPE_HEADERS = {"entity": ["entity_named", "entity_other"],
+window.MENTION_TYPE_HEADERS = {"entity": ["entity_named", "entity_non_named", "entity_unknown"],
                         "coref": ["coref_nominal", "coref_pronominal"],
                         "entity_named": ["entity_named"],
-                        "entity_other": ["entity_other"],
+                        "entity_non_named": ["entity_non_named"],
+                        "entity_unknown": ["entity_unknown"],
                         "coref_nominal": ["coref_nominal"],
                         "coref_pronominal": ["coref_pronominal"]};
 
@@ -199,7 +206,8 @@ window.EVALUATION_CATEGORY_TITLES = {
         "all": {"checkbox_label": "All", "table_heading": "All"},
         "entity": {"checkbox_label": "Entity: All", "table_heading": "Entity: All"},
         "entity_named": {"checkbox_label": "Entity: Named", "table_heading": "Entity: Named"},
-        "entity_other": {"checkbox_label": "Entity: Other", "table_heading": "Entity: Other"},
+        "entity_non_named": {"checkbox_label": "Entity: Non-Named", "table_heading": "Entity: Non-Named"},
+        "entity_unknown": {"checkbox_label": "Entity: Unknown", "table_heading": "Entity: Unknown"},
         "coref": {"checkbox_label": "Coref: All", "table_heading": "Coref: All"},
         "coref_pronominal": {"checkbox_label": "Coref: Pronominal", "table_heading": "Coref: Pronominal"},
         "coref_nominal": {"checkbox_label": "Coref: Nominal", "table_heading": "Coref: Nominal"},
