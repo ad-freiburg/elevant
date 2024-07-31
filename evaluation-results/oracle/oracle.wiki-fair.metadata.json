@@ -1,1 +1,1 @@
-{"experiment_name": "Oracle", "experiment_description": "Oracle predictions (= ground truth labels) for comparison.", "linker_name": "Oracle", "timestamp": "2022/08/05", "linking_time": null}
+{"experiment_name": "Oracle", "experiment_description": null, "linker_name": "oracle", "timestamp": "2024/07/11 16:53", "linking_time": 0.019849061965942383}
