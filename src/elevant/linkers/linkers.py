@@ -30,3 +30,5 @@ class PredictionFormats(Enum):
     AMBIVERSE = "ambiverse"
     WIKIFIER = "wikifier"
     EPGEL = "epgel"
+    MATERIAL_EL = "material-el"
+    MATERIAL_EL_NO_IOB = "material-el-no-iob"

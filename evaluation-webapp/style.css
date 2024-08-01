@@ -454,7 +454,7 @@ Moreover, the selected border color is not shown, only the background color.
 
 .article_table td {
     vertical-align: top;
-    line-height: 220%;
+    line-height: 440%;
     padding: 3em 1em;
 }
 
@@ -583,12 +583,12 @@ Moreover, the selected border color is not shown, only the background color.
 }
 
 .annotation .tooltiptext {
-    visibility: hidden;
+    visibility: visible;
     text-align: left;
-    padding: 5px;
+    padding: 0px 4px;
     border-radius: 6px;
-    border: 3px solid lightgrey;
-    line-height: 120%;
+    border: 1px solid lightgrey;
+    line-height: 70%;
     background-color: white;
     white-space: nowrap;
 
@@ -599,7 +599,6 @@ Moreover, the selected border color is not shown, only the background color.
     position: absolute;
     left: 0;
     right: auto;
-    z-index: 20;
     bottom: 100%;
 }
 

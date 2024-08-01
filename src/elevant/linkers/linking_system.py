@@ -186,6 +186,12 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = BabelfyLinker(self.entity_db, self.linker_config)
+        elif linker_type == PredictionFormats.MATERIAL_EL.value:
+            from elevant.prediction_readers.material_el_prediction_reader import MaterialELPredictionReader
+            self.prediction_reader = MaterialELPredictionReader(prediction_file)
+        elif linker_type == PredictionFormats.MATERIAL_EL_NO_IOB.value:
+            from elevant.prediction_readers.material_el_prediction_reader import MaterialELPredictionReader
+            self.prediction_reader = MaterialELPredictionReader(prediction_file, has_iob_tags=False)
         else:
             linker_exists = False
 

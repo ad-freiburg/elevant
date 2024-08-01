@@ -4,6 +4,7 @@ from typing import Optional, List
 
 from elevant import settings
 from elevant.benchmark_readers.aida_conll_benchmark_reader import AidaConllBenchmarkReader
+from elevant.benchmark_readers.material_el_benchmark_reader import MaterialELBenchmarkReader
 from elevant.benchmark_readers.nif_benchmark_reader import NifBenchmarkReader
 from elevant.benchmark_readers.oke_benchmark_reader import OkeBenchmarkReader
 from elevant.benchmark_readers.our_jsonl_benchmark_reader import OurJsonlBenchmarkReader
@@ -13,6 +14,7 @@ from elevant.benchmark_readers.tsv_benchmark_reader import TsvBenchmarkReader
 from elevant.benchmark_readers.xml_benchmark_reader import XMLBenchmarkReader
 from elevant.evaluation.benchmark import BenchmarkFormat, Benchmark
 from elevant.models.entity_database import EntityDatabase
+
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -86,6 +88,8 @@ def get_benchmark_iterator(benchmark_name: str,
             entity_db.load_redirects()
             logger.info("-> Mappings loaded.")
             benchmark_iterator = OkeBenchmarkReader(entity_db, benchmark_files[0])
+        elif benchmark_format == BenchmarkFormat.MATERIAL_EL.value:
+            benchmark_iterator = MaterialELBenchmarkReader(benchmark_files[0])
         else:
             # Per default, assume OUR_JSONL format
             benchmark_iterator = OurJsonlBenchmarkReader(benchmark_files[0])

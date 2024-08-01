@@ -1845,7 +1845,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
             if (annotation.class === ANNOTATION_CLASS_UNKNOWN) tooltip_body_text += "Note: Entity not found in the knowledge base<br>";
             if (![ANNOTATION_CLASS_OPTIONAL, ANNOTATION_CLASS_UNKNOWN].includes(annotation.class) && annotation.gt_entity_type) {
                 const type_string = $.map(annotation.gt_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
-                tooltip_body_text += "Types: " + type_string + "<br>";
+                tooltip_body_text += annotation.gt_entity_name + "<br>";
             }
             tooltip_classes += " below";
         }
@@ -1857,10 +1857,9 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
         }
         tooltip_classes += " " + annotation.class;
     }
-    if (annotation.predicted_by) tooltip_body_text += "Predicted by " + annotation.predicted_by + "<br>";
     if (![ANNOTATION_CLASS_UNEVALUATED, ANNOTATION_CLASS_UNKNOWN].includes(annotation.class) && annotation.pred_entity_type) {
         const type_string = $.map(annotation.pred_entity_type.split("|"), function(qid){ return get_type_label(qid) }).join(", ");
-        tooltip_body_text += "Types: " + type_string + "<br>";
+        tooltip_body_text += annotation.pred_entity_name + "<br>";
     }
     if (annotation.parent_text) tooltip_body_text += "Alternative span: \"" + annotation.parent_text + "\"<br>";
     // Add error category tags
@@ -1934,14 +1933,9 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
     const annotation_id_class = " annotation_id_" + annotation.id;
     let replacement = "<span class=\"annotation " + annotation_kind + " " + annotation.class + lowlight + beginning + annotation_id_class + "\">";
     replacement += inner_annotation;
-    if (tooltip_header_text || tooltip_body_text) {
+    if (tooltip_body_text && annotation.beginning) {
         replacement += "<div class=\"" + tooltip_classes + "\">";
-        replacement += "<div class=\"header\">";
-        replacement += "<div class=\"left\">" + tooltip_header_text + "</div>";
-        replacement += "<div class=\"right\">" + tooltip_case_type_html + "</div>";
-        replacement += "</div>";
         replacement += "<div class=\"body\">" + tooltip_body_text + "</div>";
-        replacement += "<div class=\"footer\">" + tooltip_footer_html + "</div>";
         replacement += "</div>";
     }
     replacement += "</span>";
