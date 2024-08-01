@@ -1,1 +1,0 @@
-{"experiment_name": "ReFinED (AIDA)", "experiment_description": "Using the official ReFinED library, the AIDA (fine-tuned) model and only those entities that have a Wikipedia page (ca. 6M).", "linker_name": "ReFinED", "timestamp": "2024/07/11 16:45", "linking_time": 2.4882609844207764}
