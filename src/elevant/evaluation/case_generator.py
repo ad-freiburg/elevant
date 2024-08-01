@@ -23,6 +23,8 @@ def word_boundary(span: Tuple[int, int], text: str) -> Tuple[int, int]:
     >>> word_boundary((0, 6), "Soviet-backed government.")
     (0, 6)
     """
+    # This adjustment means span matching is 100% strict. If you want to allow for some fuzziness, you can remove this
+    return span
     extended_span = [span[0], span[1]]
     while extended_span[0] > 0 and (text[extended_span[0] - 1].isalnum() or text[extended_span[0] - 1] in "'\"_"):
         # Extend span to the left until it reaches a whitespace
