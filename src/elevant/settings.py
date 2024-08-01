@@ -74,6 +74,7 @@ HYPERLINK_TO_MOST_POPULAR_CANDIDATES_DB = DATA_DIRECTORY + "wikipedia_mappings/h
 CUSTOM_ENTITY_TO_NAME_FILE = DATA_DIRECTORY + "custom_mappings/entity_to_name.tsv"
 CUSTOM_ENTITY_TO_TYPES_FILE = DATA_DIRECTORY + "custom_mappings/entity_to_types.tsv"
 CUSTOM_WHITELIST_TYPES_FILE = DATA_DIRECTORY + "custom_mappings/whitelist_types.tsv"
+CUSTOM_TAGS_FILE = "small-data-files/new_tags.csv"
 
 # Spacy knowledge base files
 KB_FILE = DATA_DIRECTORY + "linker_files/spacy/knowledge_bases/wikidata/kb"

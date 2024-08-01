@@ -5,6 +5,7 @@ from typing import Iterator, Dict, Tuple
 from elevant.models.article import Article
 from elevant.models.entity_prediction import EntityPrediction
 from elevant.prediction_readers.abstract_prediction_reader import AbstractPredictionReader
+from elevant import settings
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -24,7 +25,7 @@ class MaterialELPredictionReader(AbstractPredictionReader):
 
         self.abbrev_uri_mapping = {}
         self.label_uri_mapping = {}
-        with open("new_tags.csv", "r", encoding="utf8") as file:
+        with open(settings.CUSTOM_TAGS_FILE, "r", encoding="utf8") as file:
             for line in file:
                 abbrev, label, uri = line.strip("\n").split("\t")
                 self.abbrev_uri_mapping[abbrev] = uri

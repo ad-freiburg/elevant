@@ -6,6 +6,7 @@ from elevant.benchmark_readers.abstract_benchmark_reader import AbstractBenchmar
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.models.article import Article
 from elevant.utils.nested_groundtruth_handler import NestedGroundtruthHandler
+from elevant import settings
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -22,7 +23,7 @@ class MaterialELBenchmarkReader(AbstractBenchmarkReader):
         self._reset_article_variables()
 
         self.abbrev_uri_mapping = {}
-        with open("new_tags.csv", "r", encoding="utf8") as file:
+        with open(settings.CUSTOM_TAGS_FILE, "r", encoding="utf8") as file:
             for line in file:
                 abbrev, label, uri = line.strip("\n").split("\t")
                 self.abbrev_uri_mapping[abbrev] = uri
