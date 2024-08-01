@@ -1,7 +1,7 @@
 {
   "hide_benchmarks": [],
-  "hide_mention_checkboxes": [],
-  "hide_error_checkboxes": [],
+  "hide_mention_checkboxes": ["entity", "entity_named", "entity_non_named", "entity_unknown", "coref", "coref_nominal", "coref_pronominal"],
+  "hide_error_checkboxes": ["other_errors", "wrong_coreference"],
   "hide_type_checkboxes": [],
   "obscure_aida_conll": false,
   "graph_font_size": 14,
