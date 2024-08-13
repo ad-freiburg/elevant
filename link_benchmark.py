@@ -28,14 +28,7 @@ from elevant.evaluation.benchmark_iterator import get_benchmark_iterator
 from elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
 from elevant.linkers.linking_system import LinkingSystem
 from elevant.linkers.oracle_linker import link_entities_with_oracle
-
-
-def convert_to_filename(string: str):
-    """
-    Return lowercased version of the given string with non-alphanumerical
-    characters replaced by underscore (except for "-").
-    """
-    return "".join(c if c.isalnum() or c == "-" else "_" for c in string.lower())
+from elevant.utils.utils import convert_to_filename
 
 
 def main(args):
@@ -49,7 +42,9 @@ def main(args):
                                        args.coreference_linker,
                                        args.minimum_score,
                                        args.type_mapping,
-                                       args.custom_kb)
+                                       args.custom_kb,
+                                       args.api_url)
+
     benchmarks = get_available_benchmarks() if "ALL" in args.benchmark else args.benchmark
 
     for benchmark in benchmarks:
@@ -123,6 +118,8 @@ if __name__ == "__main__":
                               help="Entity linker name.")
     linker_group.add_argument("-pfile", "--prediction_file",
                               help="Path to predictions file.")
+    linker_group.add_argument("-api", "--api_url", type=str,
+                              help="URL of the linker API that will be used to link entities.")
 
     parser.add_argument("--linker_config",
                         help="Configuration file for the specified linker."

@@ -2,7 +2,7 @@ import json
 import os
 from typing import Optional, Tuple, Dict, Set, Any
 
-from elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats
+from elevant.linkers.linkers import Linkers, CoreferenceLinkers, PredictionFormats, APILinkers
 from elevant.models.article import Article
 from elevant.models.entity_database import EntityDatabase, MappingName
 from elevant import settings
@@ -22,7 +22,8 @@ class LinkingSystem:
                  coref_linker: Optional[str] = None,
                  min_score: Optional[int] = 0,
                  type_mapping_file: Optional[str] = settings.QID_TO_WHITELIST_TYPES_DB,
-                 custom_kb: Optional[bool] = False):
+                 custom_kb: Optional[bool] = False,
+                 api_url: Optional[str] = None):
         self.linker = None
         self.prediction_reader = None
         self.prediction_name = prediction_name
@@ -34,12 +35,13 @@ class LinkingSystem:
         self.linker_config = self.read_linker_config(linker_name, config_path) if linker_name else {}
         self.custom_kb = custom_kb
 
-        if custom_kb and prediction_format not in {PredictionFormats.NIF.value, PredictionFormats.SIMPLE_JSONL.value}:
+        if (custom_kb and prediction_format and
+                prediction_format not in {PredictionFormats.NIF.value, PredictionFormats.SIMPLE_JSONL.value}):
             logger.warning(f"Using a custom knowledge base is not supported for linking result format "
                            f"{prediction_format}. Please choose a different format.")
 
         self._initialize_entity_db(linker_name, coref_linker, min_score)
-        self._initialize_linker(linker_name, prediction_file, prediction_format)
+        self._initialize_linker(linker_name, prediction_file, prediction_format, api_url)
         self._initialize_coref_linker(coref_linker)
 
     def _initialize_entity_db(self, linker_name: str, coref_linker: str, min_score: int):
@@ -79,11 +81,13 @@ class LinkingSystem:
     def get_linker_config(self) -> Dict[str, Any]:
         return self.linker_config
 
-    def _initialize_linker(self, linker_name: str, prediction_file: str, prediction_format: str):
+    def _initialize_linker(self, linker_name: str, prediction_file: str, prediction_format: str, api_url: str):
         if linker_name:
             logger.info("Initializing linker %s with config parameters %s ..." % (linker_name, self.linker_config))
             linker_type = linker_name
-
+        elif api_url:
+            logger.info("Initializing API linker with URL %s ..." % api_url)
+            linker_type = APILinkers.NIF_API.value
         else:
             logger.info("Initializing prediction reader for file %s in format %s ..." %
                         (prediction_file, prediction_format))
@@ -186,6 +190,11 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = BabelfyLinker(self.entity_db, self.linker_config)
+        elif linker_type == APILinkers.NIF_API.value:
+            from elevant.linkers.nif_api_linker import NifApiLinker
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = NifApiLinker(self.entity_db, api_url, self.prediction_name, self.custom_kb)
         else:
             linker_exists = False
 

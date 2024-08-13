@@ -24,6 +24,10 @@ class CoreferenceLinkers(Enum):
     # XRENNER = "xrenner"  # Xrenner has a dependency conflict with REL (flair)
 
 
+class APILinkers(Enum):
+    NIF_API = "nif-api"
+
+
 class PredictionFormats(Enum):
     NIF = "nif"
     SIMPLE_JSONL = "simple-jsonl"

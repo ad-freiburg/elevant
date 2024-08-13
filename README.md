@@ -120,9 +120,14 @@ will create the file `evaluation-results/baseline/baseline.kore50.linked_article
  `<experiment_name>` is the name that will be displayed in the first column of the evaluation results table in the
  web app.
 
-See [Link Benchmark Articles](docs/link_benchmark_articles.md) for information on how you can transform your existing
- linking result files into our format, and instructions for how to link multiple benchmarks using multiple linkers
- with a single command.
+Alternatively, you can use a NIF API as is used by GERBIL to link benchmark articles. For this, you need to provide
+ the URL of the NIF API endpoint as follows:
+
+    python3 link_benchmark.py <experiment_name> -api <api_url> -pname <linker_name> -b <benchmark_name>
+
+See [Link Benchmark Articles](docs/link_benchmark_articles.md) for more information on how to link benchmark articles, including information on how
+ you can transform your existing linking result files into our format, and instructions for how to link multiple
+ benchmarks using multiple linkers with a single command.
 
 See [Included Linkers](docs/linkers) for a list of linkers that can be used out of the box with ELEVANT.
  These are for example *ReFinED*, OpenAI's *GPT* (you'll need an OpenAI API key for that), *REL*, *TagMe* (you'll

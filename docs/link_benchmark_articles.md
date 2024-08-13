@@ -19,6 +19,23 @@ Additionally, this will create a file
 
 For a list of entity linkers included in ELEVANT, see [Included Linkers](linkers).
 
+## Use NIF API
+If you implemented a NIF API for your linker as is needed to evaluate a linker using GERBIL, you can use that same
+ NIF API to link benchmark articles with ELEVANT. To do so, use the `-api` option of the `link_benchmark.py` script:
+
+    python3 link_benchmark.py <experiment_name> -api <api_url> -pname <linker_name> -b <benchmark_name>
+
+Each benchmark article text will then be sent as NIF context in a separate HTTP POST request to your NIF API.
+The API should return the linking results in NIF format. See also the
+[GERBIL documentation](https://github.com/dice-group/gerbil/wiki/How-to-create-a-NIF-based-web-service)
+for more information on how to implement a NIF API.
+
+The linking results will be written to
+ `evaluation-results/<adjusted_linker_name>/<adjusted_experiment_name>.<benchmark_name>.linked_articles.jsonl` where
+ `<adjusted_name>` is `<name>` in lowercase and characters other than `[a-z0-9-]` replaced by `_`.
+ If the `-pname` option is omitted, `<adjusted_linker_name>` is `unknown_linker`.
+
+
 ## Use Existing Linking Results
 If you already have linking results for a certain benchmark that you want to evaluate with ELEVANT, you can use the
  `link_benchmark.py` script to convert your linking results into the JSONL format used by us. This works if
@@ -97,6 +114,8 @@ The file `<path_to_linking_results>` should contain one line per benchmark artic
  and predicted Wikipedia titles that match the regular expression `Q[0-9]+` will be interpreted as Wikidata QIDs.
 - `start_char` is the character offset of the start of the mention (including) within the article text
 - `end_char` is the character offset of the end of the mention (excluding) within the article text
+- Optionally, you can specify a field `candidates` for each prediction that contains a list of candidate entity
+  references that were considered for the mention.
 
 The simple JSONL prediction reader is implemented [here](../src/elevant/prediction_readers/simple_jsonl_prediction_reader.py).
 
@@ -244,6 +263,10 @@ You can provide multiple benchmark names to link all of them at once with the sp
 will link the KORE50, MSNBC and DBpedia Spotlight benchmarks using the baseline entity linker. This saves a lot of time
  in comparison to calling `link_benchmark.py` separately for each benchmark, since a lot of the time is
  needed to load entity information which only has to be done once per call.
+
+If you want to link all benchmarks contained in the `benchmarks` directory, you can use the `ALL` keyword. E.g.:
+
+    python3 link_benchmark.py baseline -l baseline -b ALL
 
 You can use the Makefile to link multiple benchmarks using multiple linkers with one command.
 
