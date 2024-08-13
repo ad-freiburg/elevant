@@ -35,7 +35,13 @@ class SimpleJsonlPredictionReader(AbstractPredictionReader):
             else:
                 entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_reference, self.entity_db, verbose=False)
             span = raw_prediction["start_char"], raw_prediction["end_char"]
-            candidates = {entity_id}  # The Simple JSON Format does not provide information about candidates
+            candidates = {entity_id}
+            if "candidates" in raw_prediction:
+                for cand in raw_prediction["candidates"]:
+                    cand_id = KnowledgeBaseMapper.get_wikidata_qid(cand, self.entity_db, verbose=False)
+                    # Do not add unknown entities to the candidates
+                    if not KnowledgeBaseMapper.is_unknown_entity(cand_id):
+                        candidates.add(cand_id)
             predictions[span] = EntityPrediction(span, entity_id, candidates)
         return predictions
 
