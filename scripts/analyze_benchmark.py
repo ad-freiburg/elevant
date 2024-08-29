@@ -28,7 +28,8 @@ def load_entity_database():
 def main(args):
     model = spacy.load("en_core_web_lg")
     entity_db = load_entity_database()
-    for i, benchmark in enumerate(args.benchmark):
+    benchmarks = get_available_benchmarks() if "ALL" in args.benchmark else args.benchmark
+    for i, benchmark in enumerate(benchmarks):
         stats = BenchmarkStatistics(entity_db, model)
         benchmark_cases = stats.analyze_benchmark(benchmark, args.only_root_labels)
         json_string = ""
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=__doc__)
 
-    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks(), nargs='+', required=True,
+    parser.add_argument("-b", "--benchmark", choices=get_available_benchmarks() + ["ALL"], nargs='+', required=True,
                         help="Benchmark(s) to analyze.")
     parser.add_argument("-o", "--output_file", type=str, nargs='+',
                         help="Output file for the benchmark statistics. If none is specified, this is "
