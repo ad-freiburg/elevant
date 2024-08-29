@@ -9,6 +9,7 @@ We distinguish between three classes of linkers in Elevant:
     - [TagMe](#tagme) (requires an access token that can easily be obtained)
     - [WAT](#wat) (requires an access token that can easily be obtained)
     - [DBPedia Spotlight](#dbpedia-spotlight)
+    - [Babelfy](#babelfy) (requires an access token that can easily be obtained)
     - [Spacy](#spacy) (needs to be trained before usage)
     - [Our baselines](#baseline)
     - [Oracle](#oracle) (i.e. predictions that correspond exactly to the ground truth labels)
