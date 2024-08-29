@@ -42,19 +42,25 @@ class BabelfyLinker(AbstractEntityLinker):
         r = requests.post(self.api_url, data=params, headers={'Accept-encoding': 'gzip'})
         predictions = {}
         data = json.loads(str(r.content, 'utf-8'))
-        for result in data:
-            dbpedia_url = result.get('DBpediaURL')
+        try:
+            for result in data:
+                dbpedia_url = result.get('DBpediaURL')
 
-            char_fragment = result.get('charFragment')
-            start = char_fragment.get('start')
-            end = char_fragment.get('end') + 1
+                char_fragment = result.get('charFragment')
+                start = char_fragment.get('start')
+                end = char_fragment.get('end') + 1
 
-            entity_id = KnowledgeBaseMapper.get_wikidata_qid(dbpedia_url, self.entity_db)
-            span = (start, end)
-            snippet = text[span[0]:span[1]]
-            if uppercase and snippet.islower():
-                continue
-            predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+                entity_id = KnowledgeBaseMapper.get_wikidata_qid(dbpedia_url, self.entity_db)
+                span = (start, end)
+                snippet = text[span[0]:span[1]]
+                if uppercase and snippet.islower():
+                    continue
+                predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+        except AttributeError as e:
+            # Print message from server and raise exception
+            print()
+            logger.error(data['message'])
+            raise e
 
         return predictions
 
