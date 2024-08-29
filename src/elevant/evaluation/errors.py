@@ -152,6 +152,11 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: Evalu
 
 
 def get_benchmark_case_labels(case: Case, entity_db: EntityDatabase):
+    if not case.ground_truth_is_known():
+        # Unknown ground truth cases should not be considered rare errors.
+        # Demonym is the only acceptable error label for unknown ground truth cases, but even that is
+        # weird since the problem is that something was linked and not that language/ethnicity/country got mixed up.
+        return
     if is_demonym(case, entity_db):
         return BenchmarkCaseLabel.DEMONYM
     elif is_metonymy(case, entity_db):
