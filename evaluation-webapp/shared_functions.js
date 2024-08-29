@@ -761,7 +761,11 @@ function add_evaluation_table_body(result_list) {
 
     // Sort result list by benchmark
     if (group_by === "benchmark") {
-        result_list.sort((a, b) => (get_benchmark_from_experiment_id(a[0]) > get_benchmark_from_experiment_id(b[0])) ? 1 : -1);
+        if ("benchmark_order" in window.config) {
+            result_list = config_sort(result_list, window.config["benchmark_order"]);
+        } else {
+            result_list.sort((a, b) => (get_benchmark_from_experiment_id(a[0]) > get_benchmark_from_experiment_id(b[0])) ? 1 : -1);
+        }
     } else {
         result_list.sort((a, b) => (get_experiment_name_from_experiment_id(a[0]) > get_experiment_name_from_experiment_id(b[0])) ? 1 : -1);
     }
@@ -799,6 +803,36 @@ function add_evaluation_table_body(result_list) {
 
     // Show / Hide rows according to filter-result input field
     filter_table_rows();
+}
+
+function config_sort(a, b) {
+    /*
+     * Sort elements in list a according to the order in list b and the remaining elements alphabetically.
+     */
+    // Sort elements in 'a' according to the order in 'b'
+    a.sort(function(x, y) {
+        const benchmark_name1 = get_benchmark_from_experiment_id(x[0]);
+        const benchmark_name2 = get_benchmark_from_experiment_id(y[0]);
+        // Check if both x and y are in list 'b'
+        const xIndex = b.indexOf(benchmark_name1);
+        const yIndex = b.indexOf(benchmark_name2);
+
+        if (xIndex !== -1 && yIndex !== -1) {
+            // Both x and y are in list 'b', sort them according to their order in 'b'
+            return xIndex - yIndex;
+        } else if (xIndex !== -1) {
+            // Only x is in list 'b', it should come before y
+            return -1;
+        } else if (yIndex !== -1) {
+            // Only y is in list 'b', it should come before x
+            return 1;
+        } else {
+            // Neither x nor y is in list 'b', sort them alphabetically
+            return benchmark_name1.localeCompare(benchmark_name2);
+        }
+    });
+
+    return a;
 }
 
 function get_table_row(experiment_id, json_obj) {
@@ -2669,8 +2703,8 @@ function create_graph(y_column) {
         let dict = {};
         dict["borderColor"] = colors[i];
         dict["pointBackgroundColor"] = colors[i];
-        dict["pointBorderWidth"] = 4;
-        dict["borderWidth"] = 4;
+        dict["pointBorderWidth"] = "graph_line_width" in window.config ? window.config["graph_line_width"] : 4;
+        dict["borderWidth"] = "graph_line_width" in window.config ? window.config["graph_line_width"] : 4;
         dict["fill"] = false;
         dict["lineTension"] = 0;
         dict["label"] = val;
