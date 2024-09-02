@@ -352,11 +352,11 @@ Moreover, the selected border color is not shown, only the background color.
 }
 
 #graph_modal_dialog {
-    width: 50%;
+    width: 80%;
 }
 
 #graph_canvas {
-    width: 90%;
+    width: 80%;
 }
 
 /* ----------------------------------------- */

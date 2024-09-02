@@ -2682,9 +2682,29 @@ function create_graph(y_column) {
         if (!el[line_column][2]) return el[line_column][0];
     });
     line_labels = line_labels.filter(is_unique);
-    // tmp = line_labels[3];
-    // line_labels[3] = line_labels[4];
-    // line_labels[4] = tmp;
+
+    // Sort legend labels according to the order specified in the config parameter 'graph_linker_order' if it exists
+    if ("graph_linker_order" in window.config) {
+        line_labels.sort(function(x, y) {
+            // Check if both x and y are in list 'b'
+            const xIndex = window.config["graph_linker_order"].indexOf(x);
+            const yIndex = window.config["graph_linker_order"].indexOf(y);
+
+            if (xIndex !== -1 && yIndex !== -1) {
+                // Both x and y are in list 'b', sort them according to their order in 'b'
+                return xIndex - yIndex;
+            } else if (xIndex !== -1) {
+                // Only x is in list 'b', it should come before y
+                return -1;
+            } else if (yIndex !== -1) {
+                // Only y is in list 'b', it should come before x
+                return 1;
+            } else {
+                // Neither x nor y is in list 'b', sort them alphabetically
+                return x.localeCompare(y);
+            }
+        });
+    }
 
     // Show a warning instead of the canvas if more lines are to be drawn than colors exist.
     // This is mostly to prevent the legend from overlapping with the graph and the graph looking all weird.
@@ -2708,10 +2728,6 @@ function create_graph(y_column) {
         dict["fill"] = false;
         dict["lineTension"] = 0;
         dict["label"] = val;
-        // if (val == "ReFinED (AIDA)") dict["label"] = "ReFinED";
-        // else if (val == "REL (2014)") dict["label"] = "REL";
-        // else if (val == "GENRE (YAGO)") dict["label"] = "GENRE";
-        // else dict["label"] = val;
 
         let x_index = 0;
         // Get y-values
@@ -2757,7 +2773,8 @@ function create_graph(y_column) {
                     // position: 'bottom',
                     display: true,
                     labels: {
-                        boxWidth: 10,
+                        boxWidth: Chart.defaults.font.size,
+                        padding: 20,
                         generateLabels: function(chart) {
                             let labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
                             for (let key in labels) {
@@ -2775,13 +2792,13 @@ function create_graph(y_column) {
                 x: {
                     ticks: {
                         autoSkip: false,
-                        // maxRotation: 90,
-                        // minRotation: 90
+                        maxRotation: 45,
+                        minRotation: 30
                     },
                     grid: {
-                        display: false,
-                        drawBorder: false,
-                        drawOnChartArea: false,
+                        display: true,
+                        drawBorder: true,
+                        drawOnChartArea: true,
                         drawTicks: true,
                     }
                 },
