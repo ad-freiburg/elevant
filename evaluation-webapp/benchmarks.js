@@ -624,8 +624,11 @@ function on_row_click(el) {
 
     // De-select previously selected row
     $("#evaluation_table_wrapper tbody tr").removeClass("selected");
+
+    // Select new row
     window.selected_row = el;
     window.selected_benchmark = new_benchmark;
+    $(el).addClass("selected");
 
     // Show the loading GIF
     $("#loading").addClass("show");
