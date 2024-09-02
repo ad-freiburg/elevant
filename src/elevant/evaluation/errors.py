@@ -86,7 +86,7 @@ def is_partial_name(case: Case) -> bool:
     """
     The ground truth entity name is a multi word, and the mention is contained in it.
     """
-    if not case.ground_truth_is_known():
+    if not case.ground_truth_has_known_entity_id():
         # Cases with unknown groundtruth are not considered as partial name errors
         return False
     name = case.true_entity.name
@@ -124,6 +124,8 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: Evalu
                     case.add_error_label(ErrorLabel.DISAMBIGUATION_PARTIAL_NAME_CORRECT, eval_mode)
                 elif is_rare_case(case, entity_db):
                     case.add_error_label(ErrorLabel.DISAMBIGUATION_RARE_CORRECT, eval_mode)
+                else:
+                    case.add_error_label(ErrorLabel.DISAMBIGUATION_OTHER_CORRECT, eval_mode)
             # Label potential NER FN error cases
             if case.is_ner_tp(eval_mode):
                 case.add_error_label(ErrorLabel.AVOIDED_NER_FN, eval_mode)
@@ -149,10 +151,14 @@ def label_correct(cases: List[Case], entity_db: EntityDatabase, eval_mode: Evalu
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_PARTIAL_OVERLAP, eval_mode)
                 if ErrorLabel.NER_FN_OTHER not in case.error_labels[eval_mode]:
                     case.add_error_label(ErrorLabel.AVOIDED_NER_FN_OTHER, eval_mode)
+            # Label avoided GT unknown cases
+            if (not is_non_named_entity(case.text) and case.has_ground_truth() and case.ground_truth_is_unknown_entity()
+                    and not case.is_ner_fp(eval_mode)):
+                case.add_error_label(ErrorLabel.AVOIDED_NER_FP_GROUNDTRUTH_UNKNOWN, eval_mode)
 
 
 def get_benchmark_case_labels(case: Case, entity_db: EntityDatabase):
-    if not case.ground_truth_is_known():
+    if not case.ground_truth_has_known_entity_id():
         # Unknown ground truth cases should not be considered rare errors.
         # Demonym is the only acceptable error label for unknown ground truth cases, but even that is
         # weird since the problem is that something was linked and not that language/ethnicity/country got mixed up.
@@ -183,7 +189,7 @@ def is_metonymy(case: Case, entity_db: EntityDatabase) -> bool:
     """
     The most popular candidate is a location, and the ground truth is neither a location, person nor ethnicity.
     """
-    if not case.ground_truth_is_known():
+    if not case.ground_truth_has_known_entity_id():
         # Cases with unknown groundtruth are not considered as metonymy errors
         return False
     true_types = entity_db.get_entity_types(case.true_entity.entity_id)
@@ -233,7 +239,7 @@ def label_disambiguation_errors(cases: List[Case], entity_db: EntityDatabase, ev
                     case.predicted_entity.entity_id in get_most_popular_candidate(entity_db, case.text):
                 case.add_error_label(ErrorLabel.DISAMBIGUATION_RARE_WRONG, eval_mode)
             else:
-                case.add_error_label(ErrorLabel.DISAMBIGUATION_WRONG_OTHER, eval_mode)
+                case.add_error_label(ErrorLabel.DISAMBIGUATION_OTHER_WRONG, eval_mode)
 
 
 def label_candidate_errors(cases: List[Case], eval_mode: EvaluationMode):
@@ -299,12 +305,12 @@ def label_false_detections(cases: List[Case],
                 if overlaps(case.span, gt_span):
                     overlap = True
                     break
-            contains_upper = contains_uppercase_word(case.text)
-            if not overlap and not contains_upper:
+            # contains_upper = contains_uppercase_word(case.text)
+            if not overlap and is_non_named_entity(case.text):
                 case.add_error_label(ErrorLabel.NER_FP_LOWERCASED, eval_mode)
-            elif contains_upper and \
+            elif not is_non_named_entity(case.text) and \
                     ((not overlap and not contains_unknowns) or (case.has_ground_truth() and
-                                                                 not case.ground_truth_is_known())):
+                                                                 case.ground_truth_is_unknown_entity())):
                 case.add_error_label(ErrorLabel.NER_FP_GROUNDTRUTH_UNKNOWN, eval_mode)
             else:
                 case.add_error_label(ErrorLabel.NER_FP_OTHER, eval_mode)

@@ -1,4 +1,5 @@
 import logging
+import spacy
 from typing import Optional, Dict, Tuple, List
 
 from elevant import settings
@@ -9,6 +10,7 @@ from elevant.evaluation.mention_type import MentionType
 from elevant.helpers.entity_database_reader import EntityDatabaseReader
 from elevant.models.entity_database import EntityDatabase
 from elevant.evaluation.errors import label_errors
+from elevant.utils.utils import compute_num_words, compute_lowercase_words, compute_no_lowercase_words
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
@@ -81,6 +83,7 @@ class Evaluator:
                  custom_kb: Optional[bool] = False):
         self.whitelist_types = EntityDatabaseReader.read_whitelist_types(whitelist_file, with_adjustments=True)
         self.entity_db = load_evaluation_entities(type_mapping_file, custom_kb)
+        self.model = spacy.load("en_core_web_lg")
         self.case_generator = CaseGenerator(self.entity_db)
         self.contains_unknowns = contains_unknowns
         self.has_candidates = False
@@ -90,6 +93,13 @@ class Evaluator:
         self.error_counts = None
         self.type_counts = None
         self.n_entity_lowercase = None
+
+        # Denominator counts for false positives
+        self.n_words = 0
+        self.n_lowercase_words = 0
+        self.n_no_lowercase_words = 0
+        self.text_stats_dict = {}
+
         self.reset_variables()
 
     def reset_variables(self):
@@ -106,6 +116,10 @@ class Evaluator:
             for type_id in self.whitelist_types:
                 self.type_counts[mode][type_id] = {"tp": 0, "fp": 0, "fn": 0}
 
+        self.n_words = 0
+        self.n_lowercase_words = 0
+        self.n_no_lowercase_words = 0
+
     def evaluate_article(self, article):
         cases = self.case_generator.get_evaluation_cases(article)
         for mode in EvaluationMode:
@@ -116,6 +130,20 @@ class Evaluator:
                 self.count_error_labels(case, mode)
                 if len(case.candidates) > 1:
                     self.has_candidates = True
+        # Update denominator counts for false positives.
+        # Use hash of text as key to avoid time-consuming recomputation of statistics.
+        if hash(article.text) not in self.text_stats_dict:
+            doc = self.model(article.text)
+            n_words = compute_num_words(doc)
+            n_lowercase_words = compute_lowercase_words(doc)
+            n_no_lowercase_words = compute_no_lowercase_words(doc)
+            fp_denominators = (n_words, n_lowercase_words, n_no_lowercase_words)
+            self.text_stats_dict[hash(article.text)] = fp_denominators
+        else:
+            fp_denominators = self.text_stats_dict[hash(article.text)]
+        self.n_words += fp_denominators[0]
+        self.n_lowercase_words += fp_denominators[1]
+        self.n_no_lowercase_words += fp_denominators[2]
         return cases
 
     def count_ner_case(self, case: Case, eval_mode: EvaluationMode):
@@ -222,10 +250,23 @@ class Evaluator:
             }
             results_dict[mode.value]["error_categories"]["ner_fp"] = {
                 # False detection
-                "all": self.error_counts[mode][ErrorLabel.NER_FP],
-                "lowercased": self.error_counts[mode][ErrorLabel.NER_FP_LOWERCASED],
-                "groundtruth_unknown": self.error_counts[mode][ErrorLabel.NER_FP_GROUNDTRUTH_UNKNOWN],
-                "other": self.error_counts[mode][ErrorLabel.NER_FP_OTHER],
+                "all": {
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FP],
+                    "total": self.n_words
+                },
+                "lowercased": {
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FP_LOWERCASED],
+                    "total": self.n_lowercase_words
+                },
+                "groundtruth_unknown": {
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FP_GROUNDTRUTH_UNKNOWN],
+                    "total": self.error_counts[mode][ErrorLabel.NER_FP_GROUNDTRUTH_UNKNOWN]
+                             + self.error_counts[mode][ErrorLabel.AVOIDED_NER_FP_GROUNDTRUTH_UNKNOWN]
+                },
+                "other": {
+                    "errors": self.error_counts[mode][ErrorLabel.NER_FP_OTHER],
+                    "total": self.n_no_lowercase_words
+               },
                 "wrong_span": {
                     "errors": self.error_counts[mode][ErrorLabel.NER_FP_WRONG_SPAN],
                     "total": self.error_counts[mode][ErrorLabel.NER_FP_WRONG_SPAN]
@@ -259,7 +300,11 @@ class Evaluator:
                     "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_RARE_CORRECT]
                              + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_RARE_WRONG]
                 },
-                "other": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_WRONG_OTHER],
+                "other": {
+                    "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_OTHER_WRONG],
+                    "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_OTHER_WRONG]
+                             + self.error_counts[mode][ErrorLabel.DISAMBIGUATION_OTHER_CORRECT]
+                },
                 "wrong_candidates": {
                     "errors": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_CANDIDATES_WRONG],
                     "total": self.error_counts[mode][ErrorLabel.DISAMBIGUATION_CANDIDATES_WRONG]

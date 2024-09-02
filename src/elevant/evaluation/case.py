@@ -45,7 +45,8 @@ class ErrorLabel(Enum):
     DISAMBIGUATION_PARTIAL_NAME_WRONG = "DISAMBIGUATION_PARTIAL_NAME_WRONG"
     DISAMBIGUATION_RARE_CORRECT = "DISAMBIGUATION_RARE_CORRECT"
     DISAMBIGUATION_RARE_WRONG = "DISAMBIGUATION_RARE_WRONG"
-    DISAMBIGUATION_WRONG_OTHER = "DISAMBIGUATION_WRONG_OTHER"
+    DISAMBIGUATION_OTHER_WRONG = "DISAMBIGUATION_OTHER_WRONG"
+    DISAMBIGUATION_OTHER_CORRECT = "DISAMBIGUATION_OTHER_CORRECT"
     # disambiguation candidates
     DISAMBIGUATION_CANDIDATES_WRONG = "DISAMBIGUATION_CANDIDATES_WRONG"
     DISAMBIGUATION_CANDIDATES_CORRECT = "DISAMBIGUATION_CANDIDATES_CORRECT"
@@ -57,6 +58,7 @@ class ErrorLabel(Enum):
     NER_FP_GROUNDTRUTH_UNKNOWN = "NER_FP_GROUNDTRUTH_UNKNOWN"
     NER_FP_OTHER = "NER_FP_OTHER"
     NER_FP_WRONG_SPAN = "NER_FP_WRONG_SPAN"
+    AVOIDED_NER_FP_GROUNDTRUTH_UNKNOWN = "AVOIDED_NER_FP_GROUNDTRUTH_UNKNOWN"
     AVOIDED_NER_FP_WRONG_SPAN = "AVOIDED_NER_FP_WRONG_SPAN"
     # other
     HYPERLINK_CORRECT = "HYPERLINK_CORRECT"
@@ -161,7 +163,7 @@ class Case:
                 # optunk / ---: IGN, REQ
                 return []
             elif self.has_ground_truth():
-                if eval_mode == EvaluationMode.IGNORED and not self.ground_truth_is_known():
+                if eval_mode == EvaluationMode.IGNORED and not self.ground_truth_has_known_entity_id():
                     # unk / ---: IGN
                     return []
                 # unk / ---: REQ
@@ -174,7 +176,7 @@ class Case:
 
         if self.is_optional():
             if self.prediction_is_known():
-                if (self.ground_truth_is_known() and self.true_entity.entity_id == self.predicted_entity.entity_id) or \
+                if (self.ground_truth_has_known_entity_id() and self.true_entity.entity_id == self.predicted_entity.entity_id) or \
                         self.is_true_quantity_or_datetime():
                     # optent / ent: IGN, REQ (true)
                     return []
@@ -183,7 +185,7 @@ class Case:
                     # optunk / ent: IGN, REQ
                     return [EvaluationType.FP]
             else:
-                if (self.ground_truth_is_known() or self.ground_truth_is_datetime_or_quantity()) and \
+                if (self.ground_truth_has_known_entity_id() or self.ground_truth_is_datetime_or_quantity()) and \
                         eval_mode == EvaluationMode.REQUIRED:
                     # optent / unk: REQ
                     return [EvaluationType.FP]
@@ -191,7 +193,7 @@ class Case:
                 # optunk / unk: IGN
                 # optunk / unk: REQ
                 return []
-        elif self.ground_truth_is_known():
+        elif self.ground_truth_has_known_entity_id():
             if self.prediction_is_known():
                 if self.true_entity.entity_id == self.predicted_entity.entity_id:
                     # ent / ent: IGN, REQ (true)
@@ -263,7 +265,7 @@ class Case:
                 # optunk / ---: IGN, REQ
                 return []
             elif self.has_ground_truth():
-                if eval_mode == EvaluationMode.IGNORED and not self.ground_truth_is_known():
+                if eval_mode == EvaluationMode.IGNORED and not self.ground_truth_has_known_entity_id():
                     # unk / ---: IGN
                     return []
                 # unk / ---: REQ
@@ -275,7 +277,7 @@ class Case:
                 return []
 
         if self.is_optional():
-            if not (self.ground_truth_is_known() or self.ground_truth_is_datetime_or_quantity()) and \
+            if not (self.ground_truth_has_known_entity_id() or self.ground_truth_is_datetime_or_quantity()) and \
                     self.prediction_is_known() and eval_mode == EvaluationMode.IGNORED:
                 # optunk / ent: IGN
                 return [EvaluationType.FP]
@@ -284,7 +286,7 @@ class Case:
             # optunk / ent: REQ
             # optunk / unk: IGN, REQ
             return []
-        elif self.ground_truth_is_known():
+        elif self.ground_truth_has_known_entity_id():
             if self.prediction_is_known():
                 # ent / ent: IGN, REQ
                 return [EvaluationType.TP]
@@ -332,9 +334,12 @@ class Case:
     def has_prediction(self) -> bool:
         return self.predicted_entity is not None
 
-    def ground_truth_is_known(self) -> bool:
+    def ground_truth_has_known_entity_id(self) -> bool:
         return self.true_entity is not None and not KnowledgeBaseMapper.is_unknown_entity(self.true_entity.entity_id) \
                and not self.true_entity.is_datetime() and not self.true_entity.is_quantity()
+
+    def ground_truth_is_unknown_entity(self) -> bool:
+        return self.true_entity is None or KnowledgeBaseMapper.is_unknown_entity(self.true_entity.entity_id)
 
     def ground_truth_is_datetime_or_quantity(self):
         return self.true_entity and (self.true_entity.is_quantity() or self.true_entity.is_datetime())
@@ -345,7 +350,7 @@ class Case:
 
     def has_relevant_ground_truth(self, eval_mode: EvaluationMode) -> bool:
         if eval_mode == EvaluationMode.IGNORED:
-            return self.ground_truth_is_known() and not self.is_optional()
+            return self.ground_truth_has_known_entity_id() and not self.is_optional()
         else:
             return self.true_entity is not None
 

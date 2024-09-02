@@ -45,10 +45,10 @@ window.HEADER_DESCRIPTIONS = {
     },
     "ner_fp": {
         "": "Errors involving false detections.",
-        "all": "A mention is predicted whose span is not linked in the ground truth.",
-        "lowercased": "The predicted mention is lowercased and does not overlap with a ground truth mention.",
-        "groundtruth_unknown": "The predicted mention is uppercased and the ground truth is an unknown entity.",
-        "other": "NER false positive that does not fall into any of the other categories.",
+        "all": "<p><i>Numerator:</i> A mention is predicted whose span is not linked in the ground truth.</p><p><i>Denominator:</i> All words in the benchmark.</p>",
+        "lowercased": "<p><i>Numerator:</i> A predicted mention is lowercased and does not overlap with a ground truth mention.</p><p><i>Denominator:</i> All lowercased words in the benchmark.</p>",
+        "groundtruth_unknown": "<p><i>Numerator:</i> A predicted mention is capitalized and the ground truth is an unknown entity.</p><p><i>Denominator:</i> Capitalized ground truth mentions of unknown entities.</p>",
+        "other": "<p><i>Numerator:</i> NER false positive that does not fall into any of the other categories.</p><p><i>Denominator:</i> All capitalized words in the benchmark.</p>",
         "wrong_span": "<p><i>Numerator:</i> The predicted mention overlaps with a ground truth mention of the same entity, but the spans do not match exactly.</p><p><i>Denominator</i>: All predicted mentions.</p>"
     },
     "wrong_disambiguation": {
@@ -58,7 +58,7 @@ window.HEADER_DESCRIPTIONS = {
         "metonymy": "<p><i>Numerator:</i> FP & FN and the most popular entity for the given mention text and the prediction are locations, the ground truth is not a location.</p><p><i>Denominator:</i> NER true positives where the most popular candidate is a location but the ground truth is not.</p>",
         "partial_name": "<p><i>Numerator:</i> FP & FN and the mention text is a part of the ground truth entity name.</p><p><i>Denominator:</i> NER true positives that are a part of the ground truth entity name.</p>",
         "rare": "<p><i>Numerator:</i> FP & FN and the most popular entity for the given mention text was predicted instead of the less popular ground truth entity.</p><p><i>Denominator:</i> NER true positives where the most popular candidate is not the correct entity.</p>",
-        "other": "Disambiguation error that does not fall into any of the other categories.",
+        "other": "<p><i>Numerator:</i> FP & FN that does not fall into any of the other categories.</p><p><i>Denominator:</i> NER true positives that do not fall into any of the other categories.</p>",
         "wrong_candidates": "<p><i>Numerator:</i> FP & FN and the ground truth entity is not in the candidate set returned by the linker for the mention.</p><p><i>Denominator:</i> All NER true positives.</p>",
         "multiple_candidates": "<p><i>Numerator:</i> FP & FN and the candidate set for the mention contains multiple candidate entities, one of which is the ground truth entity, and the linker chose a wrong entity.</p><p><i>Denominator:</i> NER true positives where the linker returned a candidate set with more than one entity and the ground truth is contained in the candidate set.</p>"
     },
@@ -150,7 +150,7 @@ window.ERROR_CATEGORY_MAPPING = {
         "partial_name": ["DISAMBIGUATION_PARTIAL_NAME_WRONG"],
         "metonymy": ["DISAMBIGUATION_METONYMY_WRONG"],
         "rare": ["DISAMBIGUATION_RARE_WRONG"],
-        "other": ["DISAMBIGUATION_WRONG_OTHER"],
+        "other": ["DISAMBIGUATION_OTHER_WRONG"],
         "wrong_candidates": ["DISAMBIGUATION_CANDIDATES_WRONG"],
         "multiple_candidates": ["DISAMBIGUATION_MULTI_CANDIDATES_WRONG"]
     },
@@ -184,8 +184,10 @@ window.ERROR_CATEGORY_CORRECT_TAGS = {
     "DISAMBIGUATION_PARTIAL_NAME_WRONG": "DISAMBIGUATION_PARTIAL_NAME_CORRECT",
     "DISAMBIGUATION_METONYMY_WRONG": "DISAMBIGUATION_METONYMY_CORRECT",
     "DISAMBIGUATION_RARE_WRONG": "DISAMBIGUATION_RARE_CORRECT",
+    "DISAMBIGUATION_OTHER_WRONG": "DISAMBIGUATION_OTHER_CORRECT",
     "DISAMBIGUATION_CANDIDATES_WRONG": "DISAMBIGUATION_CANDIDATES_CORRECT",
-    "DISAMBIGUATION_MULTI_CANDIDATES_WRONG": "DISAMBIGUATION_MULTI_CANDIDATES_CORRECT"
+    "DISAMBIGUATION_MULTI_CANDIDATES_WRONG": "DISAMBIGUATION_MULTI_CANDIDATES_CORRECT",
+    "HYPERLINK_WRONG": "HYPERLINK_CORRECT"
 }
 
 window.MENTION_TYPE_HEADERS = {"entity": ["entity_named", "entity_non_named", "entity_unknown"],
@@ -1064,6 +1066,7 @@ function on_cell_click(el) {
     // Make new selection
     const evaluation_categories = get_evaluation_category_string(el, true);
     const base_category = (evaluation_categories) ? evaluation_categories.split("|")[0] : null;
+    const category = (evaluation_categories) ? evaluation_categories.split("|")[1] : null;
     if (base_category === "error_categories") {
         // Mark just the clicked cell as selected
         $(el).addClass("selected");
@@ -1092,6 +1095,34 @@ function on_cell_click(el) {
     // Note that selected_rows is updated in on_row_click(), i.e. after on_cell_click() is called so no -1 necessary.
     let exp_index = (already_selected_row_clicked >= 0 || !is_compare_checked() || comparing_different_benchmarks(experiment_id)) ? 0 : window.selected_rows.length % MAX_SELECTED_APPROACHES;
     window.selected_cell_categories[exp_index] = evaluation_categories;
+
+    // If an NER FP error category is selected, show (and select) only the highlight mode "show errors".
+    // Avoided FP errors cannot be highlighted in the text, since they typically don't have a corresponding annotation.
+    if (category && category === "ner_fp") {
+        // Select "show errors" highlight mode
+        if (get_highlight_mode() !== "errors") {
+            // Deselect other radio buttons
+            $('input[name=highlight_mode]').each(function() {
+                $(this).prop("checked", false);
+            })
+            // Select error radio button
+            $("input[name=highlight_mode][value=errors]").prop("checked",true);
+            on_highlight_mode_change();
+        }
+        // Hide other highlight modes (both input and label)
+        $("#highlight_modes input").each(function() {
+            if ($(this).val() !== "errors") {
+                $(this).hide();
+                $("label[for='"+$(this).attr('id')+"']").hide();
+            }
+        });
+    } else {
+        // Make all highlight modes visible
+        $("#highlight_modes input").each(function() {
+            $(this).show();
+            $("label[for='"+$(this).attr('id')+"']").show();
+        });
+    }
 
     // Update current URL without refreshing the site
     const url = new URL(window.location);
@@ -1942,7 +1973,7 @@ function generate_annotation_html(snippet, annotation, selected_cell_category, h
             const correct_tag = window.ERROR_CATEGORY_CORRECT_TAGS[tag];
             if ((highlight_mode !== "avoided" && annotation.error_labels.includes(tag)) ||
                 (highlight_mode !== "errors" && annotation.error_labels.includes(correct_tag))) {
-                // Set lowlight_mention to false unless an NER FN category is selected and the annotation is a prediction
+                // Highlight mention unless an NER FN category is selected and the annotation is a prediction
                 // or an NER FP category is selected and the annotation is a ground truth.
                 lowlight_mention = (category === "ner_fn" && annotation.pred_entity_id) ||
                     (category === "ner_fp" && annotation.gt_entity_id);
