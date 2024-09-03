@@ -8,6 +8,7 @@ from elevant.evaluation.case_generator import CaseGenerator
 from elevant.evaluation.groundtruth_label import GroundtruthLabel
 from elevant.evaluation.mention_type import MentionType
 from elevant.helpers.entity_database_reader import EntityDatabaseReader
+from elevant.models.article import Article
 from elevant.models.entity_database import EntityDatabase
 from elevant.evaluation.errors import label_errors
 from elevant.utils.utils import compute_num_words, compute_lowercase_words, compute_no_lowercase_words
@@ -120,7 +121,7 @@ class Evaluator:
         self.n_lowercase_words = 0
         self.n_no_lowercase_words = 0
 
-    def evaluate_article(self, article):
+    def evaluate_article(self, article: Article) -> List[Case]:
         cases = self.case_generator.get_evaluation_cases(article)
         for mode in EvaluationMode:
             label_errors(article, cases, self.entity_db, mode, contains_unknowns=self.contains_unknowns)
@@ -132,15 +133,16 @@ class Evaluator:
                     self.has_candidates = True
         # Update denominator counts for false positives.
         # Use hash of text as key to avoid time-consuming recomputation of statistics.
-        if hash(article.text) not in self.text_stats_dict:
-            doc = self.model(article.text)
+        evaluated_text = article.text[article.evaluation_span[0]:article.evaluation_span[1]]
+        if hash(evaluated_text) not in self.text_stats_dict:
+            doc = self.model(evaluated_text)
             n_words = compute_num_words(doc)
             n_lowercase_words = compute_lowercase_words(doc)
             n_no_lowercase_words = compute_no_lowercase_words(doc)
             fp_denominators = (n_words, n_lowercase_words, n_no_lowercase_words)
-            self.text_stats_dict[hash(article.text)] = fp_denominators
+            self.text_stats_dict[hash(evaluated_text)] = fp_denominators
         else:
-            fp_denominators = self.text_stats_dict[hash(article.text)]
+            fp_denominators = self.text_stats_dict[hash(evaluated_text)]
         self.n_words += fp_denominators[0]
         self.n_lowercase_words += fp_denominators[1]
         self.n_no_lowercase_words += fp_denominators[2]
