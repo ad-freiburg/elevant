@@ -125,9 +125,7 @@ class LinkingSystem:
                     logger.info("Unknown strategy %s. Assuming strategy \"wikipedia\"" % self.linker_config["strategy"])
                 self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                             MappingName.REDIRECTS,
-                                            MappingName.HYPERLINK_TO_MOST_POPULAR_CANDIDATES,
-                                            MappingName.FAMILY_NAME_ALIASES,
-                                            MappingName.WIKIDATA_ALIASES})
+                                            MappingName.HYPERLINK_TO_MOST_POPULAR_CANDIDATES})
             self.linker = BaselineLinker(self.entity_db, self.linker_config)
         elif linker_type == Linkers.POPULAR_ENTITIES.value:
             from elevant.linkers.popular_entities_linker import PopularEntitiesLinker
