@@ -30,14 +30,21 @@ class DbpediaSpotlightLinker(AbstractEntityLinker):
         self.linker_identifier = config["linker_name"] if "linker_name" in config else "DBpedia Spotlight"
         self.ner_identifier = self.linker_identifier
         self.api_url = config["api_url"] if "api_url" in config else "https://api.dbpedia-spotlight.org/en/annotate"
-        self.confidence = config["confidence"] if "confidence" in config else 0.35
-        self.types = config["types"] if "types" in config else []
-        self.support = config["support"] if "support" in config else 0
+        self.confidence = config["confidence"] if "confidence" in config else None
+        self.types = config["types"] if "types" in config else None
+        self.support = config["support"] if "support" in config else None
 
     def predict(self, text: str,
                 doc: Optional[Doc] = None,
                 uppercase: Optional[bool] = False) -> Dict[Tuple[int, int], EntityPrediction]:
-        data = {"text": text, "confidence": self.confidence, "types": ",".join(self.types), "support": self.support}
+        data = {"text": text}
+        if self.confidence:
+            data["confidence"] = self.confidence
+        if self.support:
+            data["support"] = self.support
+        if self.types:
+            data["types"] = ",".join(self.types)
+
         r = requests.post(self.api_url, data=data, headers={'Accept': 'text/turtle'})
         result = r.content
 

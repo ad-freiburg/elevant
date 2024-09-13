@@ -20,7 +20,7 @@ class WatLinker(AbstractEntityLinker):
         self.linker_identifier = config["linker_name"] if "linker_name" in config else "WAT"
         self.ner_identifier = self.linker_identifier
         self.api_url = config["api_url"] if "api_url" in config else "https://wat.d4science.org/wat/tag/tag"
-        self.rho_threshold = config["rho_threshold"] if "rho_threshold" in config else 0.2
+        self.rho_threshold = config["rho_threshold"] if "rho_threshold" in config else None
         if "token" not in config or config["token"] in ("", "replace with your own access token"):
             logger.error("You need an access token in order to run the WAT Linker.\nSee "
                          "https://github.com/marcocor/tagme-python for instructions on how to get the token. "
@@ -37,18 +37,14 @@ class WatLinker(AbstractEntityLinker):
         # Main method, text annotation with WAT entity linking system
         payload = [("gcube-token", self.GCUBE_TOKEN),
                    ("text", text),
-                   ("lang", 'en'),
-                   ("tokenizer", "nlp4j"),
-                   ('debug', 9),
-                   ("method",
-                    "spotter:includeUserHint=true:includeNamedEntity=true:includeNounPhrase=true,prior:k=50,filter-valid,centroid:rescore=true,topk:k=5,voting:relatedness=lm,ranker:model=0046.model,confidence:model=pruner-wiki.linear")]
+                   ("lang", 'en')]
 
         response = requests.get(self.api_url, params=payload)
         annotations = [WatAnnotation(a) for a in response.json()['annotations']]
 
         predictions = {}
         for ann in annotations:
-            if ann.rho >= self.rho_threshold:
+            if not self.rho_threshold or ann.rho >= self.rho_threshold:
                 entity_id = KnowledgeBaseMapper.get_wikidata_qid(ann.wiki_title, self.entity_db)
                 span = (ann.start, ann.end)
                 snippet = text[span[0]:span[1]]
@@ -73,15 +69,8 @@ class WatAnnotation:
         self.start = d['start']
         # char offset (not included)
         self.end = d['end']
-
         # annotation accuracy
         self.rho = d['rho']
-        # spot-entity probability
-        self.prior_prob = d['explanation']['prior_explanation']['entity_mention_probability']
-
-        # annotated text
-        self.spot = d['spot']
-
         # Wikpedia entity info
         self.wiki_id = d['id']
         self.wiki_title = d['title']
