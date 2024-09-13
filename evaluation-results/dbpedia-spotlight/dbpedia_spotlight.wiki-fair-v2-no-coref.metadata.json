@@ -1,1 +1,1 @@
-{"experiment_name": "DBpedia Spotlight", "experiment_description": "Using the official DBpedia Spotlight API with a confidence threshold of 0.35 and support=0.", "linker_name": "DBpedia Spotlight", "timestamp": "2024/07/12 11:18", "linking_time": 23.444125413894653}
+{"experiment_name": "DBpedia Spotlight", "experiment_description": "Using the official DBpedia Spotlight API with no additional API parameters.", "linker_name": "DBpedia Spotlight", "timestamp": "2024/09/13 17:27", "linking_time": 18.56225347518921}

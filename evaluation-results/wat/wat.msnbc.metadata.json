@@ -1,1 +1,1 @@
-{"experiment_name": "WAT", "experiment_description": "Using the WAT API hosted by d4science and a rho threshold of 0.266.", "linker_name": "WAT", "timestamp": "2024/07/12 11:25", "linking_time": 17.26072883605957}
+{"experiment_name": "WAT", "experiment_description": "Using the WAT API hosted by d4science with no additional API parameters.", "linker_name": "WAT", "timestamp": "2024/09/13 16:21", "linking_time": 10.411879777908325}
