@@ -9,6 +9,8 @@ For the ELEVANT instance of the EMNLP 2023 paper
 ["A Fair and In-Depth Evaluation of Existing End-to-End Entity Linking Systems"](https://arxiv.org/abs/2305.14937)
  see https://elevant.cs.uni-freiburg.de/emnlp2023.
 
+We summarized the most important information and instructions in this README. For further information, please check our [Wiki](https://github.com/ad-freiburg/elevant/wiki)
+
 ## Docker Instructions
 Get the code, and build and start the docker container:
 
@@ -26,13 +28,13 @@ where `<data_directory>` is the directory in which the required data files will 
 
 
 Unless otherwise noted, all the following commands should be run inside the docker container. If you want to use the
- system without docker, follow the instructions in [Setup without Docker](docs/setup_without_docker.md) before
+ system without docker, follow the instructions in [Setup without Docker](https://github.com/ad-freiburg/elevant/wiki/Setup-Without-Docker) before
  continuing with the next section.
 
 ## Get the Data
 
 (Note: If you want to use a custom knowledge base instead of Wikidata/Wikipedia/DBpedia you can skip this
- step and instead follow the instructions in [Use a Custom Knowledge Base](docs/use_custom_knowledge_base.md).)
+ step and instead follow the instructions in [Using a Custom Knowledge Base](https://github.com/ad-freiburg/elevant/wiki/Using-A-Custom-Knowledge-Base).)
 
 For linking entities in text or evaluating the output of a linker, our system needs information about entities and
  mention texts, e.g. entity names, aliases, popularity scores, types, the frequency with which a mention is linked
@@ -46,14 +48,14 @@ To download the files, simply run
 
 This will automatically run `make download_wikidata_mappings`, `make download_wikipedia_mappings` and
  `make download_entity_types_mapping` which will download the compressed files, extract them and move them to the
- correct location. See [Mapping Files](docs/mapping_files.md) for a description of files downloaded in this steps.
+ correct location. See [Mapping Files](https://github.com/ad-freiburg/elevant/wiki/Mapping-Files) for a description of files downloaded in this steps.
 
 NOTE: This will overwrite existing Wikidata and Wikipedia mappings in your `<data_directory>` so make sure this is what 
  you want to do.
 
 If you rather want to build the mappings yourself, you can replace each *download* command (except `download_all`) by a
  *generate* command. See
- [Data Generation](docs/data_generation.md) for more details.
+ [Data Generation](https://github.com/ad-freiburg/elevant/wiki/Generating-Data) for more details.
 
 ## Start the Web App
 
@@ -69,12 +71,12 @@ The evaluation results table contains one row for each experiment. In ELEVANT, a
  the web app right away. The section [Add a Benchmark](#add-a-benchmark) explains how you can add more benchmarks
  and the section [Add an Experiment](#add-an-experiment) explains how you can add more experiments yourself.
 
-See [Evaluation Web App](docs/evaluation_webapp.md) for a detailed overview of the web app's features.
+See [Evaluation Web App](https://github.com/ad-freiburg/elevant/wiki/Web-App) for a detailed overview of the web app's features.
 
 ## Add a Benchmark
 
 You can easily add a benchmark if you have a benchmark file that is in the
- [JSONL format we use](docs/our_jsonl_format.md), in the common NLP Interchange Format (NIF), in the IOB-based format
+ [JSONL format ELEVANT uses internally](https://github.com/ad-freiburg/elevant/wiki/Internally-Used-JSONL-Format), in the common NLP Interchange Format (NIF), in the IOB-based format
  used by Hoffart et al. for their AIDA/CoNLL benchmark or in a very simple JSONL format. Benchmarks in other formats
  have to be converted into one of these formats first.
 
@@ -90,11 +92,11 @@ The benchmark can now be linked with a linker of your choice using the `link_ben
  parameter `-b <benchmark_name>`. See section [Add an Experiment](#add-an-experiment) for details on how to link a
  benchmark and the supported formats.
 
-See [Add A Benchmark](docs/add_benchmark.md) for more details on adding a benchmark including a description of the
+See [How To Add A Benchmark](https://github.com/ad-freiburg/elevant/wiki/How-To-Add-A-Benchmark) for more details on adding a benchmark including a description of the
  supported file formats.
 
 Many popular entity linking benchmarks are already included in ELEVANT and can be used with ELEVANT's scripts out of the
- box. See [Benchmarks](docs/benchmarks.md) for a list of these benchmarks.
+ box. See [Benchmarks](https://github.com/ad-freiburg/elevant/wiki/Benchmarks) for a list of these benchmarks.
 
 ## Add an Experiment
 
@@ -125,11 +127,11 @@ Alternatively, you can use a NIF API as is used by GERBIL to link benchmark arti
 
     python3 link_benchmark.py <experiment_name> -api <api_url> -pname <linker_name> -b <benchmark_name>
 
-See [Link Benchmark Articles](docs/link_benchmark_articles.md) for more information on how to link benchmark articles, including information on how
+See [Linking Benchmark Articles](https://github.com/ad-freiburg/elevant/wiki/How-To-Add-An-Experiment#linking-benchmark-articles) for more information on how to link benchmark articles, including information on how
  you can transform your existing linking result files into our format, and instructions for how to link multiple
  benchmarks using multiple linkers with a single command.
 
-See [Included Linkers](docs/linkers) for a list of linkers that can be used out of the box with ELEVANT.
+See [Linkers](https://github.com/ad-freiburg/elevant/wiki/Linkers) for a list of linkers that can be used out of the box with ELEVANT.
  These are for example *ReFinED*, OpenAI's *GPT* (you'll need an OpenAI API key for that), *REL*, *TagMe* (you'll
  need an access token for that which can be obtained easily and free of cost) and *DBpediaSpotlight*.
 
@@ -152,7 +154,7 @@ will create the files `evaluation-results/baseline/baseline.kore50.eval_cases.js
 In the web app, simply reload the page (you might have to disable caching) and the experiment will show up as a row in
  the evaluation results table for the corresponding benchmark.
 
-See [Evaluate Linking Results](docs/evaluate_linking_results.md) for instructions on how to evaluate multiple linking
+See [Evaluating Linking Results](https://github.com/ad-freiburg/elevant/wiki/How-To-Add-An-Experiment#evaluating-linking-results) for instructions on how to evaluate multiple linking
  results with a single command.
 
 
