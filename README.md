@@ -10,6 +10,7 @@ For the ELEVANT instance of the EMNLP 2023 paper
  see https://elevant.cs.uni-freiburg.de/emnlp2023.
 
 We summarized the most important information and instructions in this README. For further information, please check our [Wiki](https://github.com/ad-freiburg/elevant/wiki)
+For a quick setup guide without lengthy explanations see [Quick Start](https://github.com/ad-freiburg/elevant/wiki/A-Quick-Start).
 
 ## Docker Instructions
 Get the code, and build and start the docker container:
