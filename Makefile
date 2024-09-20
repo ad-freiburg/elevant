@@ -119,10 +119,6 @@ convert_benchmark_predictions:
 	  python3 link_benchmark.py $${RESULT_NAME} -pfile $${PFILE} -pformat $${PFORMAT} -pname "$${PNAME}" -b $${BENCHMARK} -dir $${EVALUATION_RESULTS_DIR}; \
 	done
 
-get_oracle_predictions:
-	for BENCHMARK in $(BENCHMARK_NAMES); do echo; \
-		python3 link_benchmark_articles.py "Oracle" -l oracle -b $${BENCHMARK}; \
-	done
 
 evaluate_linking_results:
 	@echo
