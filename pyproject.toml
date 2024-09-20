@@ -1,6 +1,6 @@
 [project]
 name = "elevant"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
 	{ name="Natalie Prange", email="prange@cs.uni-freiburg.de" },
 	{ name="Matthias Hertel", email="hertelm@cs.uni-freiburg.de" }
