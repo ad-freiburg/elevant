@@ -1,1 +1,1 @@
-{"experiment_name": "WAT", "experiment_description": "Using the WAT API hosted by d4science with no additional API parameters.", "linker_name": "WAT", "timestamp": "2024/09/13 16:34", "linking_time": 53.516669511795044}
+{"experiment_name": "WAT", "experiment_description": "Using the WAT API hosted by d4science with no additional API parameters and a confidence threshold of 0.2.", "linker_name": "WAT", "timestamp": "2024/09/26 10:27", "linking_time": 55.39962959289551}

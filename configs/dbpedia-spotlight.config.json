@@ -1,5 +1,7 @@
 {
+  "confidence": 0.6,
+  "support": 0,
   "linker_name": "DBpedia Spotlight",
   "api_url": "https://api.dbpedia-spotlight.org/en/annotate",
-  "experiment_description": "Using the official DBpedia Spotlight API with no additional API parameters."
+  "experiment_description": "Using a local DBpedia Spotlight API with a confidence threshold of 0.6 and a support of 0."
 }
