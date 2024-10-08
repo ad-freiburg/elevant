@@ -3,22 +3,24 @@ DOCKER_CMD = docker
 
 .PHONY: index
 
+DIR = $(if $(WIKIDATA_TYPES_PATH),$(WIKIDATA_TYPES_PATH)/wikidata-types,$(shell pwd))
 DB = wikidata-types
-API_WIKIDATA_TYPES = http://localhost:$(PORT)
-DOCKER_IMAGE = qlever.master
+API_WIKIDATA_TYPES = 172.17.0.1:$(PORT)
+DOCKER_IMAGE = adfreiburg/qlever:pr-1532
 DOCKER_CONTAINER = qlever.$(DB)
 MEMORY_FOR_QUERIES = 50GB
 CACHE_MAX_SIZE_GB = 30GB
 CACHE_MAX_SIZE_GB_SINGLE_ENTRY = 10GB
 CACHE_MAX_NUM_ENTRIES = 100
+TIMEOUT	= 300s
 PORT = 7016
 
 API_WIKIDATA = https://qlever.cs.uni-freiburg.de/api/wikidata
 CORRECTIONS_FILE = corrections.txt
 TYPES_FILE = types.tsv
 ENTITY_TYPES_FILE = entity-types.tsv
-# DATA_QUERY_NAMES = P279 P31
-DATA_QUERY_NAMES = P279 P31 LABEL SITELINKS
+DATA_QUERY_NAMES = P279 P31
+# DATA_QUERY_NAMES = P279 P31 LABEL SITELINKS
 
 BATCH_SIZE = 10000000
 MAX_RESULT_SIZE = $(shell echo "200 * $(BATCH_SIZE)" | bc)
@@ -80,7 +82,7 @@ all:
 config:
 	@for VAR in API_WIKIDATA API_WIKIDATA_TYPES \
 	  MEMORY_FOR_QUERIES CACHE_MAX_SIZE_GB \
-	  CACHE_MAX_SIZE_GB_SINGLE_ENTRY CACHE_MAX_NUM_ENTRIES \
+	  CACHE_MAX_SIZE_GB_SINGLE_ENTRY CACHE_MAX_NUM_ENTRIES TIMEOUT \
 	  ;do printf "%-30s = %s\n" "$$VAR" "$${!VAR}"; done
 	@echo
 	@for VAR in BATCH_SIZE MAX_RESULT_SIZE \
@@ -94,7 +96,8 @@ index:
 	@echo
 	@echo "[index] Build QLever index from $(DB).ttl"
 	@echo
-	time ( $(DOCKER_CMD) run -it --rm -v $(shell pwd):/pwd --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "IndexBuilderMain -f /pwd/$(DB).ttl -i /pwd/index/$(DB) -s /pwd/qlever.settings.json"; rm -f $(DB)*tmp* )
+	@echo "PATH: $(WIKIDATA_TYPES_PATH)"
+	time ( $(DOCKER_CMD) run -it --rm -v $(DIR):/pwd --entrypoint bash --name qlever.$(DB)-index $(DOCKER_IMAGE) -c "IndexBuilderMain -f /pwd/$(DB).ttl -i /pwd/index/$(DB) -s /pwd/qlever.settings.json"; rm -f $(DB)*tmp* )
 	@echo
 
 start:
@@ -102,7 +105,7 @@ start:
 	@echo "[start] Starting QLever backend (and removing previous container if there is one)"
 	@echo
 	-$(DOCKER_CMD) rm -f qlever.$(DB)
-	$(DOCKER_CMD) run -d --restart=unless-stopped -v $(shell pwd)/index:/index -p $(PORT):7001 -e INDEX_PREFIX=$(DB) -e MEMORY_FOR_QUERIES=$(MEMORY_FOR_QUERIES) -e CACHE_MAX_SIZE_GB=${CACHE_MAX_SIZE_GB} -e CACHE_MAX_SIZE_GB_SINGLE_ENTRY=${CACHE_MAX_SIZE_GB_SINGLE_ENTRY} -e CACHE_MAX_NUM_ENTRIES=${CACHE_MAX_NUM_ENTRIES} --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE)
+	$(DOCKER_CMD) run -d --restart=unless-stopped -u $(id -u):$(id -g)  -v $(DIR)/index:/index -p $(PORT):7019 -w /index --init --entrypoint bash --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE) -c 'ServerMain -i $(DB) -j 8 -p 7019 -m $(MEMORY_FOR_QUERIES) -c ${CACHE_MAX_SIZE_GB} -e ${CACHE_MAX_SIZE_GB_SINGLE_ENTRY} -k ${CACHE_MAX_NUM_ENTRIES} -s ${TIMEOUT}'
 	@echo
 
 stop:

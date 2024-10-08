@@ -2,7 +2,10 @@ FROM ubuntu:20.04
 MAINTAINER Natalie Prange prange@cs.uni-freiburg.de
 WORKDIR /home/
 RUN apt-get update
-RUN apt-get install -y python3 python3-pip git wget vim curl python3-gdbm
+RUN apt-get install -y python3 python3-pip git wget vim curl python3-gdbm bc
+# Install docker so that sibling docker containers can be started within the container.
+# This is only needed for the entity type generation and can be removed if `make download_all` is used.
+RUN curl -sSL https://get.docker.com/ | sh > /dev/null
 COPY requirements.txt requirements.txt
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m spacy download en_core_web_lg
@@ -12,7 +15,6 @@ COPY scripts scripts
 COPY evaluation-webapp evaluation-webapp
 RUN mkdir third-party
 COPY third-party/wiki_extractor third-party/wiki_extractor
-COPY wikidata-types wikidata-types
 COPY small-data-files small-data-files
 COPY configs configs
 COPY Makefile .

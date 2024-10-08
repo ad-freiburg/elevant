@@ -39,8 +39,6 @@ NUM_LINKER_PROCESSES = 10
 # Variables for the Evaluation Web App
 WEB_APP_PORT = 8000
 
-DOCKER_CMD = docker
-
 
 config:
 	@echo
@@ -134,20 +132,14 @@ evaluate_linking_results:
 		python3 evaluate.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
 	done
 
-# Only clone or build qlever if no qlever.master docker image exists
 generate_entity_types_mapping:
-	@if [[ "${DOCKER_CMD}" == "wharfer"  ]] || [[ "$$(docker images -q qlever.master 2> /dev/null)" == "" ]]; then \
-	  if [[ -d qlever ]]; then \
-	    cd qlever; git pull --recurse-submodules; cd ..; \
-	  else \
-	    git clone --recursive https://github.com/ad-freiburg/qlever; \
-	  fi; \
-	  ${DOCKER_CMD} build -t qlever.master ./qlever; \
-	else \
-	  echo -e "$${BOLD}QLever docker image already exists. Using existing image.$${RESET}"; \
-	fi
-
-	cd wikidata-types; chmod 777 index; $(MAKE) -sB DOCKER_CMD=${DOCKER_CMD} WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
+	@echo
+	@echo "[generate_entity_types_mapping] Get data for given queries in batches."
+	@echo
+	docker pull adfreiburg/qlever:pr-1532
+	rm -f wikidata-types/types.tsv
+	ln -sr small-data-files/whitelist_types.tsv wikidata-types/types.tsv
+	cd wikidata-types; chmod 777 index; $(MAKE) -sB WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
@@ -201,6 +193,8 @@ link_wiki:
 	  python3 link_text.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular-entities -coref entity -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
+generate_all: generate_entity_types_mapping generate_wikidata_mappings generate_wikipedia_mappings
+
 generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	@echo
 	@echo "[generate_wikipedia_mappings] Build mappings from Wikipedia."
@@ -252,15 +246,15 @@ generate_databases:
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -f multiple_values_semicolon_separated
 
 cleanup:
-	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv
-	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv
-	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
-	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv
-	rm ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv
-	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_p279.tsv
-	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_p31.tsv
-	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_all_types.tsv
-	rm ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -f
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv -f
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv -f
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -f
+	rm ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_p279.tsv -f
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_p31.tsv -f
+	rm ${WIKIDATA_MAPPINGS_DIR}qid_to_all_types.tsv -f
+	rm ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl -f
 
 # Get results for $(QUERY), convert to tsv and append to $(OUTFILE)
 #
