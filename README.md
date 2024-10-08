@@ -18,7 +18,13 @@ Get the code, and build and start the docker container:
 
     git clone https://github.com/ad-freiburg/elevant.git .
     docker build -t elevant .
-    docker run -it -p 8000:8000 -v <data_directory>:/data -v $(pwd)/evaluation-results/:/home/evaluation-results -v $(pwd)/benchmarks/:/home/benchmarks elevant
+    docker run -it -p 8000:8000 \
+        -v <data_directory>:/data \
+        -v $(pwd)/evaluation-results/:/home/evaluation-results \
+        -v $(pwd)/benchmarks/:/home/benchmarks \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v $(pwd)/wikidata-types/:/home/wikidata-types \
+        -e WIKIDATA_TYPES_PATH=$(pwd) elevant
 
 where `<data_directory>` is the directory in which the required data files will be stored. What these data files are
  and how they are generated is explained in section [Get the Data](#get-the-data). Make sure you can read from and
@@ -26,17 +32,17 @@ where `<data_directory>` is the directory in which the required data files will 
  `<data_directory>`, `evaluation-results` and `benchmarks`), for example (if security is not an issue) by giving all
  users read and write permissions to the directories in question with:
 
-    chmod a+rw -R <data_directory> evaluation-results/ benchmarks/
+    chmod a+rw -R <data_directory> evaluation-results/ benchmarks/ wikidata-types/
 
 
-Unless otherwise noted, all the following commands should be run inside the docker container. If you want to use the
- system without docker, follow the instructions in [Setup without Docker](https://github.com/ad-freiburg/elevant/wiki/Setup-Without-Docker) before
- continuing with the next section.
+All the following commands should be run inside the docker container. If you want to use the  system without docker, 
+ follow the instructions in [Setup without Docker](https://github.com/ad-freiburg/elevant/wiki/Setup-Without-Docker) 
+before continuing with the next section.
 
 ## Get the Data
 
-(Note: If you want to use a custom knowledge base instead of Wikidata/Wikipedia/DBpedia you can skip this
- step and instead follow the instructions in [Using a Custom Knowledge Base](https://github.com/ad-freiburg/elevant/wiki/Using-A-Custom-Knowledge-Base).)
+Note: If you want to use a custom knowledge base instead of Wikidata/Wikipedia/DBpedia you can skip this
+ step and instead follow the instructions in [Using a Custom Knowledge Base](https://github.com/ad-freiburg/elevant/wiki/Using-A-Custom-Knowledge-Base).
 
 For linking entities in text or evaluating the output of a linker, our system needs information about entities and
  mention texts, e.g. entity names, aliases, popularity scores, types, the frequency with which a mention is linked
