@@ -5,6 +5,7 @@ logger = logging.getLogger("main." + __name__.split(".")[-1])
 
 
 _DATA_DIRECTORIES = [
+    "/local/data-ssd/entity-linking/",
     "/local/data/entity-linking/",
     "/data/"
 ]

@@ -13,7 +13,7 @@ class SpacyTrainedNER(AbstractEntityLinker):
         # Get config variables
         self.linker_identifier = "Spacy_trained_NER"
 
-        self.model = spacy.load("/local/data/prangen/src/spacy-ner-training/finetuned-model/model-last/")
+        self.model = spacy.load("/local/data-ssd/prangen/src/spacy-ner-training/finetuned-model/model-last/")
         # self.model.add_pipe("custom_sentencizer", before="parser")
         # self.model.add_pipe("ner_postprocessor", after="ner")
 
