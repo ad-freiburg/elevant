@@ -7,6 +7,7 @@ from elevant import settings
 from elevant.linkers.abstract_coref_linker import AbstractCorefLinker
 from elevant.models.coref_cluster import CorefCluster
 from elevant.models.article import Article
+from fastcoref import spacy_component
 
 
 class FastcorefCorefLinker(AbstractCorefLinker):
