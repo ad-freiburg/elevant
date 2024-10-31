@@ -21,7 +21,7 @@ _DATA_DIRECTORIES = [
 DATA_DIRECTORY = None
 for directory in _DATA_DIRECTORIES:
     if os.path.exists(directory):
-        DATA_DIRECTORY = directory
+        DATA_DIRECTORY = directory.rstrip("/") + "/"
         break
 if DATA_DIRECTORY is None:
     logger.error("Could not find the data directory.")
