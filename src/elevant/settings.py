@@ -1,12 +1,21 @@
 import logging
 import os
+import json
 
 logger = logging.getLogger("main." + __name__.split(".")[-1])
 
+# Read data directory from config file
+config_path = "configs/elevant.config.json"
+config_data_directory = None
+if os.path.exists(config_path):
+    logger.info(f"Loading ELEVANT config from {config_path}")
+    with open(config_path, "r", encoding="utf8") as file:
+        config = json.load(file)
+        config_data_directory = config.get("data_directory", None)
 
+# In the docker container, the data directory is mounted to /data/
 _DATA_DIRECTORIES = [
-    "/local/data-ssd/entity-linking/",
-    "/local/data/entity-linking/",
+    config_data_directory,
     "/data/"
 ]
 DATA_DIRECTORY = None

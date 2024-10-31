@@ -1,0 +1,3 @@
+{
+  "data_directory": "/path/to/data/directory (within the docker container, the path is automatically set to /data)"
+}
