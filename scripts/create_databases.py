@@ -1,7 +1,7 @@
 import argparse
 import pickle
 import time
-import dbm
+import lmdb
 import sys
 from typing import Optional
 from urllib.parse import unquote
@@ -132,25 +132,23 @@ def process(value: str, method: Optional[ValueProcessingMethod] = None) -> str:
     return value
 
 
-def read_from_dbm(filename):
-    logger.info(f"Reading from database file {filename} ...")
-    start = time.time()
-    db = dbm.open(filename, "r")
-    logger.info(f"Done. Took {time.time() - start} s")
-    return db
-
-
 def write_to_dbm(d, filename):
     logger.info(f"Writing database to file {filename} ...")
     start = time.time()
     count = 0
-    with dbm.open(filename, "nf") as db:
+    # Set max map size to 40 GB. There is allegedly no penalty for making this huge on 64 bit systems.
+    env = lmdb.open(filename, map_size=42949672960)
+    with env.begin(write=True) as db:
         # Store the dictionary data in the database
         for key, value in d.items():
-            db[key] = value
+            try:
+                db.put(key.encode("utf-8"), value.encode("utf-8"))
+            except lmdb.BadValsizeError:
+                logger.error(f"Failed to write key \"{key}\" with value \"{value}\".")
             count += 1
             if count % 100000 == 0:
                 logger.info(f"Wrote {count} items of {len(d)}.")
+    env.close()
     logger.info(f"Done. Took {time.time() - start} s")
 
 

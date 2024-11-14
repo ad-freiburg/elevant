@@ -2,7 +2,7 @@ from typing import List, Iterator, Tuple, Dict, Set, Optional
 
 import pickle
 import logging
-import dbm
+import lmdb
 
 from elevant import settings
 from elevant.models.database import Database
@@ -222,8 +222,7 @@ class EntityDatabaseReader:
 
     @staticmethod
     def read_from_dbm(db_file: str, value_type: Optional[type] = str, separator: Optional[str] = ",") -> Database:
-        dbm_db = dbm.open(db_file, "r")
-        db = Database(dbm_db, value_type, separator)
+        db = Database(db_file, value_type, separator)
         return db
 
     @staticmethod
