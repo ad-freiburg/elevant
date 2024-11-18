@@ -10,3 +10,4 @@ refined @ git+https://github.com/amazon-science/ReFinED@V1
 radboud-el==0.0.1
 pygtrie==2.5.0
 fastcoref==2.1.6
+lmdb==1.4.0
