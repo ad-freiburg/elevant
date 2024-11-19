@@ -108,6 +108,11 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = TagMeLinker(self.entity_db, self.linker_config)
+        elif linker_type == PredictionFormats.WEXEA.value:
+            from elevant.prediction_readers.wexea_prediction_reader import WexeaPredictionReader
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.prediction_reader = WexeaPredictionReader(prediction_file, self.entity_db)
         elif linker_type == PredictionFormats.SIMPLE_JSONL.value:
             from elevant.prediction_readers.simple_jsonl_prediction_reader import SimpleJsonlPredictionReader
             if not self.custom_kb:

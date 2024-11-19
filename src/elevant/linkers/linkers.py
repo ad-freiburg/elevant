@@ -34,3 +34,4 @@ class PredictionFormats(Enum):
     AMBIVERSE = "ambiverse"
     WIKIFIER = "wikifier"
     EPGEL = "epgel"
+    WEXEA = "wexea"

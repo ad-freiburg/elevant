@@ -10,7 +10,7 @@ To write articles in a format that is suitable as Ambiverse (AIDA) input use opt
 --output_dir <path>
 
 To write articles in a format that is suitable as WEXEA input use options
---output_dir <path> --title_in_filename --print_hyperlinks --print_entity_list
+--output_dir <path> --title_in_filename --print_hyperlinks
 
 To write articles in a format that is suitable as Neural EL (Gupta) input use options
 --output_file <path> --one_article_per_line
@@ -156,7 +156,10 @@ def get_hyperlink_text(article, text, offset):
         begin -= offset
         end -= offset
         entity_text_snippet = text[begin:end]
-        entity_string = "[[%s|%s]]" % (target, entity_text_snippet)
+        if entity_text_snippet == target:
+            entity_string = "[[%s]]" % target
+        else:
+            entity_string = "[[%s|%s]]" % (target, entity_text_snippet)
         text = text[:begin] + entity_string + text[end:]
         targets.add(target)
     return text, list(targets)
