@@ -27,21 +27,18 @@ if DATA_DIRECTORY is None:
     logger.error("Could not find the data directory.")
     exit(1)
 
-# Base files
-WIKIPEDIA_DUMP_PATH = DATA_DIRECTORY + "wikipedia_dump_files/"
-EXTRACTED_WIKIPEDIA_DUMP_NAME = "enwiki-latest-extracted.jsonl"
-EXTRACTED_WIKIPEDIA_DUMP_FILE = WIKIPEDIA_DUMP_PATH + EXTRACTED_WIKIPEDIA_DUMP_NAME
-
+# Wikipedia dump files
+WIKIPEDIA_ARTICLES_PATH = DATA_DIRECTORY + "wikipedia_articles/"
+EXTRACTED_WIKIPEDIA_ARTICLES = WIKIPEDIA_ARTICLES_PATH + "wikipedia.articles.jsonl"
 
 # Article files
-WIKIPEDIA_TRAINING_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/training.jsonl"
-WIKIPEDIA_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/development.jsonl"
-WIKIPEDIA_TEST_ARTICLES = DATA_DIRECTORY + "articles/wikipedia/test.jsonl"
+WIKIPEDIA_TRAINING_ARTICLES = DATA_DIRECTORY + "article_splits/wikipedia/training.jsonl"
+WIKIPEDIA_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "article_splits/wikipedia/development.jsonl"
+WIKIPEDIA_TEST_ARTICLES = DATA_DIRECTORY + "article_splits/wikipedia/test.jsonl"
 DEV_AND_TEST_ARTICLE_IDS = "small-data-files/dev_and_test_article_ids.pkl"
 
-NEWSCRAWL_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/development.jsonl"
-NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "articles/newscrawl/test.jsonl"
-
+NEWSCRAWL_DEVELOPMENT_ARTICLES = DATA_DIRECTORY + "article_splits/newscrawl/development.jsonl"
+NEWSCRAWL_TEST_ARTICLES = DATA_DIRECTORY + "article_splits/newscrawl/test.jsonl"
 
 # Wikidata mappings
 QID_TO_ABSTRACTS_FILE = DATA_DIRECTORY + "wikipedia_mappings/qid_to_wikipedia_abstract.tsv"

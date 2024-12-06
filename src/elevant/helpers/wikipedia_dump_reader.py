@@ -174,7 +174,7 @@ class WikipediaDumpReader:
         :param yield_none: whether to yield None as last element
         :return: iterator over JSON strings representing articles
         """
-        for line in open(settings.EXTRACTED_WIKIPEDIA_DUMP_FILE):
+        for line in open(settings.EXTRACTED_WIKIPEDIA_ARTICLES):
             yield line
         if yield_none:
             yield None
