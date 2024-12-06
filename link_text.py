@@ -150,13 +150,12 @@ if __name__ == "__main__":
     parser.add_argument("--type_mapping", type=str, default=settings.QID_TO_WHITELIST_TYPES_DB,
                         help="For pure prior linker: Map predicted entities to types using the given mapping.")
     parser.add_argument("-m", "--multiprocessing", type=int, default=1,
-                        help="Number of processes to use. Default is 1, i.e. no multiprocessing. "
-                             "Note that RAM usage doubles when using multiprocessing.")
+                        help="Number of processes to use. Default is 1, i.e. no multiprocessing.")
 
     args = parser.parse_args()
 
     # Don't write the log output to a file as the logger does usually.
-    # Otherwise a FileNotFoundError is thrown.
+    # Otherwise, a FileNotFoundError is thrown.
     logger = log.setup_logger(sys.argv[0], write_to_file=False)
     logger.debug(' '.join(sys.argv))
 
