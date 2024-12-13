@@ -49,7 +49,7 @@ class LinkingSystem:
         # The Wikipedia2Wikidata mapping that might be loaded in _initialize_linker()
         # remains unaffected by this.
         db_linkers = (Linkers.BASELINE.value, Linkers.POPULAR_ENTITIES.value, Linkers.POS_PRIOR.value)
-        db_coref_linkers = (CoreferenceLinkers.ENTITY.value,)
+        db_coref_linkers = (CoreferenceLinkers.KB_COREF.value,)
 
         self.entity_db = EntityDatabase()
 
@@ -217,12 +217,12 @@ class LinkingSystem:
         # if linker_type == CoreferenceLinkers.NEURALCOREF.value:
         #     from elevant.linkers.neuralcoref_coref_linker import NeuralcorefCorefLinker
         #     self.coref_linker = NeuralcorefCorefLinker()
-        if linker_type == CoreferenceLinkers.ENTITY.value:
-            from elevant.linkers.entity_coref_linker import EntityCorefLinker
+        if linker_type == CoreferenceLinkers.KB_COREF.value:
+            from elevant.linkers.kb_coref_linker import KBCorefLinker
             self.load_missing_mappings({MappingName.GENDER,
                                         MappingName.COREFERENCE_TYPES,
                                         MappingName.ENTITY_ID_TO_ALIAS})
-            self.coref_linker = EntityCorefLinker(self.entity_db)
+            self.coref_linker = KBCorefLinker(self.entity_db)
         elif linker_type == CoreferenceLinkers.STANFORD.value:
             from elevant.linkers.stanford_corenlp_coref_linker import StanfordCoreNLPCorefLinker
             self.coref_linker = StanfordCoreNLPCorefLinker()

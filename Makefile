@@ -194,7 +194,7 @@ split_wiki:
 link_wiki:
 	@[ -d ${RESULTS_DIR} ] || mkdir ${RESULTS_DIR}
 	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "$${RED}Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it if you want to link another dump. Dump not linked.$${RESET}"; echo; else \
-	  python3 link_text.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular-entities -coref entity -m ${NUM_LINKER_PROCESSES}; \
+	  python3 link_text.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular-entities -coref kb-coref -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
 generate_all: generate_entity_types_mapping generate_wikidata_mappings generate_wikipedia_mappings

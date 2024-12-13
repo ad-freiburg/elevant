@@ -131,7 +131,7 @@ def get_containing_direct_speech(offset: int, direct_speeches: List[DirectSpeech
             return ds
 
 
-class EntityCorefLinker(AbstractCorefLinker):
+class KBCorefLinker(AbstractCorefLinker):
     MAX_NUM_SENTS = -1
     COREF_PREFIXES = ("the", "that", "this")
 

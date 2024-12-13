@@ -19,7 +19,7 @@ class Linkers(Enum):
 class CoreferenceLinkers(Enum):
     # NEURALCOREF = "neuralcoref"  # Neuralcoref is outdated, see ELEVANT Github issue #5
     FASTCOREF = "fastcoref"
-    ENTITY = "entity"
+    KB_COREF = "kb-coref"
     STANFORD = "stanford"
     # XRENNER = "xrenner"  # Xrenner has a dependency conflict with REL (flair)
 
