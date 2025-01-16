@@ -102,9 +102,10 @@ class RelLinker(AbstractEntityLinker):
             entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_name, self.entity_db)
             span = (ann[0], ann[0] + ann[1])
             snippet = text[span[0]:span[1]]
+            score = ann[5]
             if uppercase and snippet.islower():
                 continue
-            predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+            predictions[span] = EntityPrediction(span, entity_id, {entity_id}, score=score)
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:

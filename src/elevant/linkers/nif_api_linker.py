@@ -62,8 +62,9 @@ class NifApiLinker(AbstractEntityLinker):
                     entity_id = entity_uri if entity_uri else UnknownEntity.NIL.value
                 else:
                     entity_id = KnowledgeBaseMapper.get_wikidata_qid(entity_uri, self.entity_db, verbose=True)
+                score = phrase.score if hasattr(phrase, "score") else None
                 span = phrase.beginIndex, phrase.endIndex
-                predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+                predictions[span] = EntityPrediction(span, entity_id, {entity_id}, score)
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:

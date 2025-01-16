@@ -94,6 +94,7 @@ class Evaluator:
         self.error_counts = None
         self.type_counts = None
         self.n_entity_lowercase = None
+        self.linking_counts = {"tp": 0, "fp": 0, "fn": 0}
 
         # Denominator counts for false positives
         self.n_words = 0
@@ -103,11 +104,27 @@ class Evaluator:
 
         self.reset_variables()
 
+    def count_linking_cases(self, article):
+        cases = self.case_generator.get_evaluation_cases(article)
+        for case in cases:
+            # Disregard child labels for TP and FN
+            # Parent could be 0 so check explicitly if parent is None.
+            if case.is_linking_tp(EvaluationMode.IGNORED) and case.true_entity.parent is None:
+                self.linking_counts["tp"] += 1
+            if case.is_linking_fn(EvaluationMode.IGNORED) and case.true_entity.parent is None:
+                self.linking_counts["fn"] += 1
+            if case.is_linking_fp(EvaluationMode.IGNORED) and case.factor != 0:
+                self.linking_counts["fp"] += 1
+
+    def get_linking_f1_score(self):
+        return create_f1_dict(self.linking_counts["tp"], self.linking_counts["fp"], self.linking_counts["fn"])["f1"]
+
     def reset_variables(self):
         self.has_candidates = False
         self.counts = {}
         self.error_counts = {}
         self.type_counts = {}
+        self.linking_counts = {"tp": 0, "fp": 0, "fn": 0}
         for mode in EvaluationMode:
             self.counts[mode] = {}
             for key in EVALUATION_CATEGORIES:
@@ -352,13 +369,10 @@ class Evaluator:
         return results_dict
 
     def print_results(self):
-        print("*** EVALUATION (results shown for mode \"Ignored\" (= InKB)) ***")
-        for cat in self.counts[EvaluationMode.IGNORED]:
-            print()
-            print("= %s =" % cat)
-            f1_dict = create_f1_dict(self.counts[EvaluationMode.IGNORED][cat]["tp"],
-                                     self.counts[EvaluationMode.IGNORED][cat]["fp"],
-                                     self.counts[EvaluationMode.IGNORED][cat]["fn"])
-            print("precision:\t%.2f%%" % (f1_dict["precision"] * 100))
-            print("recall:\t\t%.2f%%" % (f1_dict["recall"] * 100))
-            print("f1:\t\t%.2f%%" % (f1_dict["f1"] * 100))
+        print("*** Linking F1 scores for mode \"Ignored\" (= InKB)) ***")
+        f1_dict = create_f1_dict(self.counts[EvaluationMode.IGNORED]["all"]["tp"],
+                                 self.counts[EvaluationMode.IGNORED]["all"]["fp"],
+                                 self.counts[EvaluationMode.IGNORED]["all"]["fn"])
+        print("precision:\t%.2f%%" % (f1_dict["precision"] * 100))
+        print("recall:\t\t%.2f%%" % (f1_dict["recall"] * 100))
+        print("f1:\t\t%.2f%%" % (f1_dict["f1"] * 100))

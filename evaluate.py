@@ -11,8 +11,10 @@ import argparse
 import sys
 import json
 import re
+from copy import deepcopy
 
 from elevant import settings
+from elevant.evaluation.case import EvaluationMode
 from elevant.utils import log
 from elevant.utils.colors import Colors
 from elevant.evaluation.benchmark import get_available_benchmarks
@@ -20,6 +22,58 @@ from elevant.evaluation.benchmark_iterator import get_benchmark_iterator
 from elevant.models.article import article_from_json
 from elevant.evaluation.evaluator import Evaluator
 from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper
+
+
+def filter_mentions_by_score(article, threshold):
+    new_article = deepcopy(article)
+    filtered_entity_mentions = {}
+    for span, em in new_article.entity_mentions.items():
+        if em.score >= threshold:
+            filtered_entity_mentions[span] = em
+    new_article.entity_mentions = filtered_entity_mentions
+    return new_article
+
+def evaluate_article(article, evaluator, label_whitelist_types, prediction_whitelist_types, args):
+    if args.type_mapping:
+        # Map benchmark label entities to types in the mapping
+        for gt_label in article.labels:
+            types = evaluator.entity_db.get_entity_types(gt_label.entity_id)
+            gt_label.type = types.join("|")
+
+    # If the filter_labels_with_whitelist argument is set, ignore groundtruth labels that
+    # do not have a type that is included in the whitelist
+    if args.filter_labels_with_whitelist:
+        filtered_labels = []
+        added_label_ids = set()
+        for gt_label in article.labels:
+            # Only consider parent labels. Child types can not be counted, since otherwise we
+            # would end up with fractional TP/FN
+            # Add all children of a parent as well. This works because article.labels are sorted -
+            # parents always come before children
+            if gt_label.parent is None or gt_label.parent in added_label_ids:
+                types = gt_label.get_types()
+                for typ in types:
+                    if typ in label_whitelist_types or gt_label.parent is not None \
+                            or KnowledgeBaseMapper.is_unknown_entity(gt_label.entity_id):
+                        filtered_labels.append(gt_label)
+                        added_label_ids.add(gt_label.id)
+                        break
+        article.labels = filtered_labels
+
+    # If the filter_predictions_with_whitelist argument is set, ignore predictions that do
+    # not have a type that is included in the whitelist
+    if args.filter_predictions_with_whitelist:
+        filtered_entity_mentions = {}
+        for span, em in article.entity_mentions.items():
+            types = evaluator.entity_db.get_entity_types(em.entity_id)
+            for typ in types:
+                if typ in prediction_whitelist_types:
+                    filtered_entity_mentions[span] = em
+                    break
+        article.entity_mentions = filtered_entity_mentions
+
+    cases = evaluator.evaluate_article(article)
+    return cases
 
 
 def main(args):
@@ -69,52 +123,41 @@ def main(args):
 
         logger.info(f"Evaluating linking results from {Colors.BLUE}{input_file_name}{Colors.END}")
         input_file = open(input_file_name, 'r', encoding='utf8')
-        for line in input_file:
-            article = article_from_json(line)
+
+        articles = [article_from_json(line) for line in input_file]
+
+        if args.optimal_confidence:
+            possible_thresholds = set(em.score for article in articles for em in article.entity_mentions.values() if em.score is not None)
+            max_score = 0
+            max_threshold = 0
+            print(f"Found {len(possible_thresholds)} different possible thresholds.")
+            for i, threshold in enumerate(possible_thresholds):
+                print(f"Checking threshold number {i + 1} of {len(possible_thresholds)}. Current best threshold: {max_threshold}", end="\r")
+                for article in articles:
+                    if benchmark_iterator:
+                        benchmark_article = next(benchmark_iterator)
+                        article.labels = benchmark_article.labels
+                        article.text = benchmark_article.text
+
+                    new_article = filter_mentions_by_score(article, threshold)
+
+                    evaluator.count_linking_cases(new_article)
+                f1_score = evaluator.get_linking_f1_score()
+                evaluator.reset_variables()
+                if f1_score > max_score:
+                    max_score = f1_score
+                    max_threshold = threshold
+
+        for article in articles:
             if benchmark_iterator:
                 benchmark_article = next(benchmark_iterator)
                 article.labels = benchmark_article.labels
                 article.text = benchmark_article.text
 
-            if args.type_mapping:
-                # Map benchmark label entities to types in the mapping
-                for gt_label in article.labels:
-                    types = evaluator.entity_db.get_entity_types(gt_label.entity_id)
-                    gt_label.type = types.join("|")
+            if args.optimal_confidence:
+                article = filter_mentions_by_score(article, max_threshold)
 
-            # If the filter_labels_with_whitelist argument is set, ignore groundtruth labels that
-            # do not have a type that is included in the whitelist
-            if args.filter_labels_with_whitelist:
-                filtered_labels = []
-                added_label_ids = set()
-                for gt_label in article.labels:
-                    # Only consider parent labels. Child types can not be counted, since otherwise we
-                    # would end up with fractional TP/FN
-                    # Add all children of a parent as well. This works because article.labels are sorted -
-                    # parents always come before children
-                    if gt_label.parent is None or gt_label.parent in added_label_ids:
-                        types = gt_label.get_types()
-                        for typ in types:
-                            if typ in label_whitelist_types or gt_label.parent is not None \
-                                    or KnowledgeBaseMapper.is_unknown_entity(gt_label.entity_id):
-                                filtered_labels.append(gt_label)
-                                added_label_ids.add(gt_label.id)
-                                break
-                article.labels = filtered_labels
-
-            # If the filter_predictions_with_whitelist argument is set, ignore predictions that do
-            # not have a type that is included in the whitelist
-            if args.filter_predictions_with_whitelist:
-                filtered_entity_mentions = {}
-                for span, em in article.entity_mentions.items():
-                    types = evaluator.entity_db.get_entity_types(em.entity_id)
-                    for typ in types:
-                        if typ in prediction_whitelist_types:
-                            filtered_entity_mentions[span] = em
-                            break
-                article.entity_mentions = filtered_entity_mentions
-
-            cases = evaluator.evaluate_article(article)
+            cases = evaluate_article(article, evaluator, label_whitelist_types, prediction_whitelist_types, args)
 
             case_list = [case.to_dict() for case in cases]
             output_file.write(json.dumps(case_list) + "\n")
@@ -175,6 +218,8 @@ if __name__ == "__main__":
                         help="Ignore predicted links that do not have a type from the provided type whitelist.")
     parser.add_argument("-c", "--custom_kb", action="store_true",
                         help="Use custom entity to name and entity to type mappings (instead of Wikidata mappings).")
+    parser.add_argument("--optimal_confidence", action="store_true",
+                        help="Filter predictions using an optimal confidence threshold per benchmark.")
 
     logger = log.setup_logger(sys.argv[0])
     logger.debug(' '.join(sys.argv))

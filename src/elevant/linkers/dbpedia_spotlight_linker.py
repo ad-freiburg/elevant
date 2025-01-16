@@ -47,7 +47,6 @@ class DbpediaSpotlightLinker(AbstractEntityLinker):
 
         r = requests.post(self.api_url, data=data, headers={'Accept': 'text/turtle'})
         result = r.content
-
         nif_doc = NIFCollection.loads(result)
         predictions = {}
         for context in nif_doc.contexts:  # There should be just one context for a single benchmark article
@@ -58,7 +57,8 @@ class DbpediaSpotlightLinker(AbstractEntityLinker):
                 snippet = text[span[0]:span[1]]
                 if uppercase and snippet.islower():
                     continue
-                predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+                score = phrase.score if hasattr(phrase, "score") else None
+                predictions[span] = EntityPrediction(span, entity_id, {entity_id}, score=score)
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:

@@ -98,7 +98,8 @@ class Article:
                                                recognized_by=recognized_by,
                                                entity_id=prediction.entity_id,
                                                linked_by=linked_by,
-                                               candidates=prediction.candidates)
+                                               candidates=prediction.candidates,
+                                               score=prediction.score)
                 new_entity_mentions.append(entity_mention)
         self.add_entity_mentions(new_entity_mentions)
 

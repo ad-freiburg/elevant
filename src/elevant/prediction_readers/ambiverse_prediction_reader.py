@@ -51,7 +51,8 @@ class AmbiversePredictionReader(AbstractPredictionReader):
                     logger.debug("Result QID does not match QID retrieved via result Wikipedia URL: %s vs %s" %
                                  (entity_id, ambiverse_entity_id_mapping[entity_id]))
                 entity_id = ambiverse_entity_id_mapping[entity_id]
-            predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+            score = match["entity"]["confidence"] if match["entity"] else 1.0
+            predictions[span] = EntityPrediction(span, entity_id, {entity_id}, score=score)
 
         return predictions
 

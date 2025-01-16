@@ -51,7 +51,7 @@ class WatLinker(AbstractEntityLinker):
                 if uppercase and snippet.islower():
                     continue
 
-                predictions[span] = EntityPrediction(span, entity_id, {entity_id})
+                predictions[span] = EntityPrediction(span, entity_id, {entity_id}, score=ann.rho)
 
         return predictions
 

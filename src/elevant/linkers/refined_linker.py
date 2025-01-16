@@ -37,7 +37,7 @@ class RefinedLinker(AbstractEntityLinker):
             candidates = {c for c, score in ann.candidate_entities}
             if entity_id is None:
                 entity_id = UnknownEntity.NIL.value
-            predictions[span] = EntityPrediction(span, entity_id, candidates)
+            predictions[span] = EntityPrediction(span, entity_id, candidates, score=ann.entity_linking_model_confidence_score)
         return predictions
 
     def has_entity(self, entity_id: str) -> bool:

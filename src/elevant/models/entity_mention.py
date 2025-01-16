@@ -9,7 +9,8 @@ class EntityMention:
                  linked_by: Optional[str] = None,
                  candidates: Optional[Set[str]] = None,
                  referenced_span: Optional[Tuple[int, int]] = None,
-                 contained: Optional[bool] = None):
+                 contained: Optional[bool] = None,
+                 score: Optional[float] = None):
         self.span = span
         self.recognized_by = recognized_by
         self.entity_id = entity_id
@@ -17,6 +18,7 @@ class EntityMention:
         self.referenced_span = referenced_span
         self.candidates = candidates if candidates is not None else set()
         self.contained = contained
+        self.score = score
 
     def to_dict(self, evaluation_format: Optional[bool] = True) -> Dict:
         d = {"span": self.span}
@@ -33,11 +35,9 @@ class EntityMention:
                 d["candidates"] = sorted(self.candidates)
             if self.contained is not None:
                 d["contained"] = self.contained
+            if self.score is not None:
+                d["score"] = self.score
         return d
-
-    def link(self, entity_id: str, linked_by: str):
-        self.entity_id = entity_id
-        self.linked_by = linked_by
 
     def overlaps(self, span: Tuple[int, int]) -> bool:
         return self.span[0] < span[1] and self.span[1] > span[0]
@@ -59,4 +59,5 @@ def entity_mention_from_dict(data: Dict) -> EntityMention:
                          linked_by=data["linked_by"] if "linked_by" in data else None,
                          referenced_span=data["referenced_span"] if "referenced_span" in data else None,
                          candidates=set([ent_id for ent_id in data["candidates"]]) if "candidates" in data else None,
-                         contained=data["contained"] if "contained" in data else None)
+                         contained=data["contained"] if "contained" in data else None,
+                         score=data["score"] if "score" in data else None)
