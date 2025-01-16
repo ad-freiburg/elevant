@@ -30,6 +30,52 @@ window.internal_benchmark_filter = "";
 window.url_param_benchmark = null;
 window.url_param_show_values_as = null;
 
+window.HEADER_DESCRIPTIONS = {
+    "text_statistics": {
+        "": "Statistics about the benchmark texts. Only text within the evaluation span is considered (e.g., on Wiki-Fair, only the text within the three annotated paragraphs in each article is considered).",
+        "words": "Number of words in the benchmark text (i.e., number of tokens as detected by spaCy that are not punctuation or whitespaces).",
+        "sents": "Number of sentences in the benchmark text.",
+        "articles": "Number of articles in the benchmark.",
+        "labels": "Number of ground truth labels in the benchmark."
+    },
+    "mention_types": {
+        "": "Statistics about the mention types of the ground truth labels.",
+        "entity_named": "Amount of named entity ground truth mentions.",
+        "entity_non_named": "Amount of non-named entity ground truth mentions.",
+        "entity_unknown": "Amount of unknown ground truth mentions.",
+        "coref_nominal": "Amount of nominal coreference mentions.",
+        "coref_pronominal": "Amount of pronominal coreference mentions."
+    },
+    "types": {
+        "": "Statistics about the entity types of the ground truth labels."
+    },
+    "multi_word_statistics": {
+        "": "Statistics about the number of words in the ground truth mentions.",
+        "1 word": "Amount of ground truth mentions that consist of one word.",
+        "2 words": "Amount of ground truth mentions that consist of two words.",
+        "3 words": "Amount of ground truth mentions that consist of three words.",
+        "4 words": "Amount of ground truth mentions that consist of four words.",
+        ">= 5 words": "Amount of ground truth mentions that consist of five or more words."
+    },
+    "tags": {
+        "": "Other statistics about the ground truth labels.",
+        "capitalized": "Amount of ground truth mentions that start with an uppercase letter.",
+        "lowercased": "Amount of ground truth mentions that start with a lowercased letter.",
+        "non_alpha": "Amount of ground truth mentions that start with a non-alphabetic character.",
+        "lowercased_non_named": "Amount of non-named entity ground truth mentions that start with a lowercased letter.",
+        "demonym": "Amount of ground truth mentions where the mention text is contained in a list of demonyms.",
+        "metonym": "Amount of ground truth mentions where the ground truth entity is not a location but the most popular candidate entity is.",
+        "rare": "Amount of ground truth mentions where the ground truth entity is not the most popular candidate entity.",
+        "partial_name": "Amount of ground truth mentions where the mention text is only a part of the ground truth entity's name.",
+        "unknown": "Amount of ground truth mentions where the ground truth entity is unknown.",
+        "unknown_nil": "Amount of ground truth mentions that are unknown because the ground truth entity was not provided in the benchmark or explicitly marked as NIL.",
+        "unknown_no_mapping": "Amount of ground truth mentions that are unknown because ELEVANT could not map the annotated entity to a Wikidata entity.",
+        "optional": "Amount of ground truth mentions that are marked as optional to annotate.",
+        "root": "Amount of ground truth mentions that are the root of a mention, i.e. is the outermost mention of potentially nested (alternative) mentions.",
+        "child": "Amount of ground truth mentions that are a child of a mention, i.e. is the innermost mention of potentially nested (alternative) mentions."
+    }
+}
+
 
 $("document").ready(function() {
     // JQuery selector variables
@@ -417,11 +463,11 @@ function add_statistics_category_checkboxes(json_obj) {
         $("#statistics_categories").append(checkbox_html);
 
         // Add tooltip for checkbox
-        // tippy("#checkbox_span_" + class_name, {
-        //     content: get_th_tooltip_text(subkey, ""),
-        //     allowHTML: true,
-        //     theme: 'light-border',
-        // });
+        tippy("#checkbox_span_" + class_name, {
+            content: get_th_tooltip_text(class_name, ""),
+            allowHTML: true,
+            theme: 'light-border',
+        });
     });
 }
 
@@ -471,21 +517,21 @@ function add_benchmark_table_header(json_obj) {
     $('#evaluation_table_wrapper table thead').html(first_row + second_row);
 
     // Add table header tooltips
-    // $("#evaluation_table_wrapper th").each(function() {
-    //     const evaluation_categories = get_evaluation_category_string(this, false).split("|");
-    //     const category = (evaluation_categories.length >= 2) ? evaluation_categories[1] : "";
-    //     const subcategory = (evaluation_categories.length >= 3) ? evaluation_categories[2] : "";
-    //     const tooltiptext = get_th_tooltip_text(category, subcategory);
-    //     if (tooltiptext) {
-    //         tippy(this, {
-    //             content: tooltiptext,
-    //             allowHTML: true,
-    //             interactive: (tooltiptext.includes("</a>")),
-    //             appendTo: document.body,
-    //             theme: 'light-border',
-    //         });
-    //     }
-    // });
+    $("#evaluation_table_wrapper th").each(function() {
+        const evaluation_categories = get_evaluation_category_string(this, false).split("|");
+        const category = (evaluation_categories.length >= 1) ? evaluation_categories[0] : "";
+        const subcategory = (evaluation_categories.length >= 2) ? evaluation_categories[1] : "";
+        const tooltiptext = get_th_tooltip_text(category, subcategory);
+        if (tooltiptext) {
+            tippy(this, {
+                content: tooltiptext,
+                allowHTML: true,
+                interactive: (tooltiptext.includes("</a>")),
+                appendTo: document.body,
+                theme: 'light-border',
+            });
+        }
+    });
 }
 
 function add_benchmark_table_body(benchmark_statistics) {
@@ -1238,6 +1284,35 @@ function create_graph(y_columns) {
 /**********************************************************************************************************************
  Functions for MINI UTILS
  *********************************************************************************************************************/
+
+function get_th_tooltip_text(key, subkey) {
+    /*
+     * Get the tooltip text (including html) for the table header cell specified by the
+     * given evaluation results key and subkey.
+     */
+    if (!key) return "";
+    if (key.toLowerCase() in HEADER_DESCRIPTIONS) {
+        key = key.toLowerCase();
+        if (!subkey) {
+            // Get tooltip texts for multi-column headers
+            return HEADER_DESCRIPTIONS[key][""];
+        }
+
+        if (key === "types") {
+            // Get tooltip text for specific types
+            const type = (subkey in window.whitelist_types) ? window.whitelist_types[subkey] : "Other";
+            return "Amount of ground truth entities of type \"" + type + "\".";
+        }
+
+        subkey = subkey.toLowerCase();
+        if (subkey in HEADER_DESCRIPTIONS[key]) {
+            // Get tooltip text for remaining header columns
+            let tooltip_text = HEADER_DESCRIPTIONS[key][subkey];
+            return tooltip_text;
+        }
+    }
+    return "";
+}
 
 function get_evaluation_category_tags(evaluation_category_string) {
     /*
