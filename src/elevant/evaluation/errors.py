@@ -24,7 +24,7 @@ def label_errors(article: Article,
     label_multi_candidates(cases, eval_mode)
     label_hyperlink_errors(article, cases, eval_mode)
     label_span_errors(cases, eval_mode)
-    label_coreference_errors(cases, article.text, eval_mode)
+    label_coreference_errors(cases, eval_mode)
     label_correct(cases, entity_db, eval_mode)
 
 
@@ -326,18 +326,13 @@ def label_hyperlink_errors(article: Article, cases: List[Case], eval_mode: Evalu
                 case.add_error_label(ErrorLabel.HYPERLINK_WRONG, eval_mode)
 
 
-NONENTITY_PRONOUNS = {"it", "this", "that", "its"}
-
-
-def label_coreference_errors(cases: List[Case], text, eval_mode):
+def label_coreference_errors(cases: List[Case], eval_mode):
     for i, case in enumerate(cases):
-        if case.is_ner_fp(eval_mode):
-            # Coreference NER FP
-            snippet = text[case.span[0]:case.span[1]]
-            if len(snippet) > 1 and snippet[0].lower() + snippet[1:] in NONENTITY_PRONOUNS:
+        if case.is_coreference():
+            if case.is_ner_fp(eval_mode):
+                # Coreference NER FP
                 case.add_error_label(ErrorLabel.COREFERENCE_FALSE_DETECTION, eval_mode)
-        elif case.is_coreference():
-            if case.is_ner_fn(eval_mode):
+            elif case.is_ner_fn(eval_mode):
                 # Coreference NER FN
                 case.add_error_label(ErrorLabel.COREFERENCE_UNDETECTED, eval_mode)
             elif case.is_linking_fn(eval_mode) and case.is_linking_fp(eval_mode):
