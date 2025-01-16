@@ -27,6 +27,7 @@ class BenchmarkFormat(Enum):
     TAGME = "tagme"
     TSV = "tsv"
     OKE = "oke"
+    PUBTATOR = "pubtator"
 
 
 def get_available_benchmarks():
