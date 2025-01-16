@@ -39,7 +39,7 @@ window.HEADER_DESCRIPTIONS = {
         "": "Errors involving undetected mentions.",
         "all": "<p><i>Numerator:</i> A ground truth mention span is not linked to an entity.</p><p><i>Denominator:</i> All ground truth entity mentions.</p>",
         "lowercased": "<p><i>Numerator:</i> Undetected lowercased ground truth mention.</p><p><i>Denominator:</i> All lowercased ground truth mentions.</p>",
-        "partially_included": "<p><i>Numerator:</i> A part of the ground truth mention is linked to an entity.</p><p><i>Denominator:</i> All ground truth mentions consisting of multiple words.</p>",
+        "partially_included": "<p><i>Numerator:</i> A part of the ground truth mention is linked to an entity.</p><p><i>Denominator:</i> All non-lowercased ground truth mentions consisting of multiple words.</p>",
         "partial_overlap": "<p><i>Numerator:</i> Undetected mention that overlaps with a predicted mention.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>",
         "other": "<p><i>Numerator:</i> Undetected mention that does not fall into any of the other categories.</p><p><i>Denominator:</i> All ground truth mentions that are not lowercased.</p>"
     },
