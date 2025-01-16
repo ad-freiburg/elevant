@@ -4,6 +4,9 @@
   "hide_error_checkboxes": [],
   "hide_type_checkboxes": [],
   "obscure_aida_conll": false,
-  "graph_font_size": 14,
-  "graph_colors": ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "fuchsia", "turquoise", "indigo"]
+  "graph_font_size": 28,
+  "graph_line_width": 6,
+  "graph_colors": ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "fuchsia", "turquoise", "indigo"],
+  "graph_linker_order": ["ReFinED (AIDA)", "REL (2014)", "SpEL (large)", "GENRE (YAGO)", "Ambiverse", "WAT", "DBpedia Spotlight", "Baseline"],
+  "benchmark_order": ["aida-conll-test", "spotlight", "derczynski", "kore50", "msnbc-updated", "oke-2015-eval", "oke-2016-eval", "reuters-128", "rss-500", "news-fair-v2-no-coref", "wiki-fair-v2-no-coref"]
 }

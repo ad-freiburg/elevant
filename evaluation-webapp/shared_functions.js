@@ -2759,6 +2759,11 @@ function create_graph(y_column) {
         dict["fill"] = false;
         dict["lineTension"] = 0;
         dict["label"] = val;
+        if (val === "ReFinED (AIDA)") dict["label"] = "ReFinED";
+        else if (val === "REL (2014)") dict["label"] = "REL";
+        else if (val === "GENRE (YAGO)") dict["label"] = "GENRE";
+        else if (val === "SpEL (large)") dict["label"] = "SpEL";
+        else dict["label"] = val;
 
         let x_index = 0;
         // Get y-values

@@ -3,10 +3,10 @@ window.ANNOTATION_CLASS_UNKNOWN = "unknown";
 window.ANNOTATION_CLASS_OPTIONAL = "optional";
 
 window.BENCHMARK_EXTENSION = ".benchmark.jsonl";
-window.BENCHMARK_STATISTICS_EXTENSION = ".benchmark_statistics.jsonl";
+window.BENCHMARK_STATISTICS_EXTENSION = ".benchmark_statistics_unique_type.jsonl";
 window.METADATA_EXTENSION = ".metadata.json";
 
-window.whitelist_types = {};
+window.whitelist_types = {"None": "None", "Other": "Other", "Datetime": "Datetime", "Quantity": "Quantity",};
 
 window.evaluation_result_files = {};
 window.evaluation_results = [];
@@ -562,13 +562,16 @@ function get_cell_content(key, subkey, json_obj, value) {
     /*
      * Get the content for each cell in the table.
      */
-    const total_labels = json_obj["text_statistics"]["labels"];
+    var total_labels = json_obj["text_statistics"]["labels"];
     let onclick_str = " onclick='on_cell_click(this)'";
     let class_name = get_class_name(key);
     if (value == null)
         value = (subkey in json_obj[key]) ? json_obj[key][subkey] : 0;
     // If the show percentages radio button is selected, display percentages instead of total values.
     // Text statistics are always displayed as total values.
+    if (is_show_percentages() && key === "types") {
+        total_labels = json_obj["text_statistics"]["labels"] - json_obj["tags"]["unknown"]
+    }
     if (is_show_percentages() && key !== "text_statistics") {
         let processed_value = "<div class='" + class_name + " tooltip'>";
         let percentage = get_percentage(value, total_labels);

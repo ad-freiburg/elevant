@@ -13,6 +13,7 @@ from elevant.evaluation.errors import get_benchmark_case_labels
 from elevant.evaluation.benchmark_case import BenchmarkCaseLabel
 from elevant.models.entity_database import EntityDatabase
 from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
+from elevant.utils.utils import compute_num_words
 
 
 class BenchmarkStatistics:
@@ -48,20 +49,18 @@ class BenchmarkStatistics:
                 article_gt_cases.append(groundtruth_case)
                 self.text_statistics["labels"] += 1
             benchmark_cases.append(article_gt_cases)
-        return benchmark_cases
 
-    def compute_num_words(self, doc):
-        num_words = 0
-        for tok in doc:
-            if not tok.is_punct and not tok.is_space:
-                num_words += 1
-        return num_words
+        # Return error if sum of values in self.types is not equal to self.text_statistics["labels"]
+        if sum(self.types.values()) != self.text_statistics["labels"] - self.tags[BenchmarkCaseLabel.UNKNOWN]:
+            print("VALUES DON'T SUM UP TO 100%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print(sum(self.types.values()), self.text_statistics["labels"], self.tags[BenchmarkCaseLabel.UNKNOWN])
+        return benchmark_cases
 
     def analyze_text(self, article):
         # Analyze text statistics only within evaluated span
         evaluated_text = article.text[article.evaluation_span[0]:article.evaluation_span[1]]
         doc = self.model(evaluated_text)
-        self.text_statistics["words"] += self.compute_num_words(doc)
+        self.text_statistics["words"] += compute_num_words(doc)
         self.text_statistics["sents"] += len([sent for sent in doc.sents])
 
     def analyze_label(self, gt_label: GroundtruthLabel, mention_text: str):
@@ -73,11 +72,14 @@ class BenchmarkStatistics:
         benchmark_case.set_mention_type(mention_type)
 
         # Compute type statistics
+        """
         for type in gt_label.get_types():
             if type not in self.types:
                 self.types[type] = 0
             self.types[type] += 1
         benchmark_case.set_types(gt_label.get_types())
+        """
+        self.get_single_types(gt_label, benchmark_case)
 
         # Compute multi-word statistics
         num_words = len(mention_text.split(" "))
@@ -143,6 +145,62 @@ class BenchmarkStatistics:
             self.tags[tag] += 1
             benchmark_case.add_tag(tag)
 
+        return benchmark_case
+
+    def get_single_types(self, gt_label, benchmark_case):
+        if KnowledgeBaseMapper.is_unknown_entity(gt_label.entity_id):
+            return benchmark_case.set_types(["Unknown"])
+        types = gt_label.get_types()
+        while len(types) > 1:
+            if "Q27096213" in types:
+                # geographic location >> organization, position, ...
+                types = ["Q27096213"]
+            elif "Q215627" in types:
+                # person >> creative work, ...
+                types = ["Q215627"]
+            elif "Q16521" in types:
+                # taxon >> product, anatomical structure, ...
+                types = ["Q16521"]
+            elif "Q17537576" in types and "Q2424752" in types:
+                # creative work > product
+                types.remove("Q2424752")
+            elif "Q43229" in types and "Q2424752" in types:
+                # organization > product
+                types.remove("Q2424752")
+            elif "Q17537576" in types:
+                # creative work << all
+                types.remove("Q17537576")
+            elif "Q43229" in types:
+                # organization << all
+                types.remove("Q43229")
+            elif "Q4164871" in types:
+                # position << all
+                types.remove("Q4164871")
+            elif "Q2424752" in types:
+                # product << all
+                types.remove("Q2424752")
+            elif "Q618779" in types:
+                # award << all
+                types.remove("Q618779")
+            else:
+                type_names = [self.entity_db.get_entity_name(t) for t in types]
+                print(f"Type combination for {self.entity_db.get_entity_name(gt_label.entity_id)}: {type_names}")
+                del types[-1]
+        if len(types) == 0 or types[0] == GroundtruthLabel.OTHER:
+            types = ["None"]
+        type = types[0]
+        if type == GroundtruthLabel.QUANTITY:
+            type = "Quantity"
+        if type == GroundtruthLabel.DATETIME:
+            type = "Datetime"
+        if type in ["Q95074", "Q3895768", "Q17376908", "Q43460564", "Q9174", "Q7257", "Q21070598", "Q12136", "Q4392985",
+                    "Q373899", "Q22222786", "Q33829", "Q1075", "Q179661", "Q169872", "Q4936952", "Q349", "Q729",
+                    "Q4164871", "Q618779", "Q11862829", "Q16521"]:
+            type = "Other"
+        if type not in self.types:
+            self.types[type] = 0
+        self.types[type] += 1
+        benchmark_case.set_types([type])
         return benchmark_case
 
     def to_dict(self):
