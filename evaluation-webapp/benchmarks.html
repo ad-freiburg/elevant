@@ -15,11 +15,17 @@
     <script type="text/javascript" src="libs/chart/chart.min.js"></script>  <!-- https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js -->
     <script type="text/javascript" src="shared_functions.js"></script>
     <script type="text/javascript" src="benchmarks.js"></script>
-    <title>Entity Linking Benchmark Analysis</title>
+    <title>ELEVANT: Entity Linking Evaluation and Analysis Tool</title>
 </head>
 <body>
     <header>
-        <h1>Entity Linking Benchmark Analysis</h1>
+        <h1>ELEVANT: Entity Linking Evaluation and Analysis Tool</h1>
+        <h2>Benchmark Analysis</h2>
+        <div class="link"><b><a href="/">Switch to Linker Analysis</a></b></div>
+        <div class="documentation">A complete documentation can be found on <b><a href="https://github.com/ad-freiburg/elevant/">GitHub</a></b>.</div>
+        <div class="documentation">Also check out our <b><a href="https://youtu.be/gBpT3DSW-Zk">demo video</a></b>.</div>
+        <div class="documentation">The paper introducing ELEVANT can be found <b><a href="https://aclanthology.org/2022.emnlp-demos.8.pdf">here</a></b>
+            and a paper using ELEVANT for an in-depth evaluation can be found <b><a href="https://ad-publications.cs.uni-freiburg.de/EMNLP_entity_linking_evaluation_BHP_2023.pdf">here</a></b>.</div>
     </header>
 
     <div id="overlay" onclick="graph_mode_off()"></div>
@@ -118,7 +124,7 @@
         </div>
         <div>
             <button class="btn btn-default" onclick="show_copy_table_modal()">Copy table</button>
-            <button class="btn btn-default" onclick="graph_mode_on()">Create graph from table</button>
+            <!-- <button class="btn btn-default" onclick="graph_mode_on()">Create graph from table</button> -->
         </div>
     </div>
 

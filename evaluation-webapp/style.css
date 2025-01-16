@@ -39,7 +39,7 @@ header {
     padding: 5pt;
 }
 
-header h1 {
+header h1, h2 {
     margin: 0;
     padding: 5pt;
     text-align: center;
@@ -56,6 +56,16 @@ html, body {
 }
 .documentation a {
     color: white;
+}
+
+.link {
+    color: var(--cell-color);
+    padding: 5pt;
+    text-align: center;
+}
+
+.link a {
+    color: var(--cell-color);
 }
 
 .content_box {
