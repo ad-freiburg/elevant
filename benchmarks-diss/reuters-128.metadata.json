@@ -1,0 +1,1 @@
+{"name": "Reuters-128", "description": "128 short economic news articles from the Reuters-21578 corpus. An entity linking system (FOX, Ngomo et al., 2011) was used to recognize a first set of named entity. Domain experts then manually corrected the mistakes and added URIs. The benchmark was published in 2014.", "timestamp": "2024/07/11 15:28"}

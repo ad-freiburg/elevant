@@ -1,0 +1,9 @@
+{
+  "hide_benchmarks": [],
+  "hide_mention_checkboxes": [],
+  "hide_error_checkboxes": [],
+  "hide_type_checkboxes": [],
+  "obscure_aida_conll": false,
+  "graph_font_size": 14,
+  "graph_colors": ["gold", "crimson", "royalblue", "orange", "yellowgreen", "purple", "teal", "fuchsia", "turquoise", "indigo"]
+}

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<link rel="stylesheet" type="text/css" href="libs/tablesorter/css/theme.default.min.css">  <!-- https://mottie.github.io/tablesorter/dist/css/theme.default.min.css -->
+		<link rel="stylesheet" type="text/css" href="libs/tippy/css/light-border.css"/>  <!-- https://unpkg.com/tippy.js@6/themes/light-border.css -->
+		<script type="text/javascript" src="libs/popper/popper.min.js"></script>  <!-- https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js -->
+		<script type="text/javascript" src="libs/tippy/js/tippy-bundle.umd.js"></script>  <!-- https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js -->
+		<script type="text/javascript" src="libs/jquery/jquery.min.js"></script>  <!-- https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js -->
+		<script type="text/javascript" src="libs/bootstrap/js/bootstrap.js"></script>
+		<script type="text/javascript" src="libs/tablesorter/js/jquery.tablesorter.min.js"></script>  <!--  https://mottie.github.io/tablesorter/dist/js/jquery.tablesorter.min.js-->
+		<script type="text/javascript" src="libs/tablesorter/js/widgets/widget-stickyHeaders.min.js"></script>  <!-- https://mottie.github.io/tablesorter/dist/js/widgets/widget-stickyHeaders.min.js -->
+		<script type="text/javascript" src="libs/chart/chart.min.js"></script>  <!-- https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js -->
+		<script type="text/javascript" src="shared_functions.js"></script>
+		<script type="text/javascript" src="elevant.js"></script>
+		<title>ELEVANT: Entity Linking Evaluation and Analysis Tool</title>
+	</head>
+	
+	<body>
+		<header>
+			<h1>ELEVANT: Entity Linking Evaluation and Analysis Tool</h1>
+			 <h2>Linker Analysis</h2>
+			<div class="link"><b><a href="benchmarks.html">Switch to Benchmark Analysis</a></b></div>
+			<div class="documentation">A complete documentation can be found on <b><a href="https://github.com/ad-freiburg/elevant/">GitHub</a></b>.</div>
+			<div class="documentation">Also check out our <b><a href="https://youtu.be/gBpT3DSW-Zk">demo video</a></b>.</div>
+			<div class="documentation">The paper introducing ELEVANT can be found <b><a href="https://aclanthology.org/2022.emnlp-demos.8.pdf">here</a></b>
+				and a paper using ELEVANT for an in-depth evaluation can be found <b><a href="https://ad-publications.cs.uni-freiburg.de/EMNLP_entity_linking_evaluation_BHP_2023.pdf">here</a></b>.</div>
+		</header>
+
+		<div id="overlay" onclick="graph_mode_off()"></div>
+		<div id="overlay_footer">
+			<p id="graph_mode_note">Select a column from the evaluation results table to generate a graph from its values.</p>
+			<button class="btn btn-default" onclick="graph_mode_off()">Cancel</button>
+		</div>
+
+		<!-- Example Benchmark Modal -->
+		<div class="modal" id="example_benchmark_modal" tabindex="-1" role="dialog">
+			<div id="example_benchmark_modal_dialog" class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span>&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<table id="example_prediction_overview" class="article_table">
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="error_explanation"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Copy Table Modal -->
+		<div class="modal" id="copy_table_modal" tabindex="-1" role="dialog">
+			<div id="copy_table_modal_dialog" class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<span class="modal-title"><b>Copy evaluation results table</b></span>
+						<button type="button" class="close" data-dismiss="modal">
+							<span>&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<h4 class="with_note">Settings</h4>
+						<div><input type="checkbox" id="checkbox_include_experiment" checked><label for="checkbox_include_experiment">Include system column</label></div>
+						<div><input type="checkbox" id="checkbox_include_benchmark"><label for="checkbox_include_benchmark">Include benchmark column</label></div>
+						<h4 class="with_note">Format</h4>
+						<div id="copy_as" class="checkboxes">
+							<span><input type="radio" id="radio_copy_as_tsv" name="copy_as" value="TSV" checked><label for="radio_copy_as_tsv">TSV</label></span>
+							<span><input type="radio" id="radio_copy_as_latex" name="copy_as" value="LATEX"><label for="radio_copy_as_latex">LaTeX</label></span>
+						</div>
+						<div id="copy_table_text">
+							<p><b>The code for the evaluation results table was copied to your CLIPBOARD.</b></p>
+							<textarea></textarea>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" onclick="copy_table()">Copy</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Graph Modal -->
+		<div class="modal" id="graph_modal" tabindex="-1" role="dialog">
+			<div id="graph_modal_dialog" class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<span class="modal-title"></span>
+						<button type="button" class="close" data-dismiss="modal">
+							<span>&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<canvas id="graph_canvas"></canvas>
+						<p class="warning"></p>
+					</div>
+					<div class="modal-footer">
+						<button id="download_graph" type="button" class="btn btn-primary" onclick="download_graph_image()">Download PNG</button>
+						<button id="download_graph_tsv" type="button" class="btn btn-primary" onclick="download_graph_tsv()">Download TSV</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="evaluation_overview" class="content_box">
+			<h3 class="with_note">Evaluation results</h3>
+
+			<h4 class="with_note">Evaluation mode</h4>
+			<div id="evaluation_modes" class="checkboxes"></div>
+
+			<h4 class="with_note">Result categories</h4>
+			<div id="checkbox_table_wrapper">
+				<p class="note">Select a checkbox to see evaluation results for that category. Hover over a checkbox label for an explanation of the category.</p>
+				<table id="checkbox_table">
+					<tbody>
+						<tr><td><i>Mention types:</i></td><td><div id="mention_type_checkboxes" class="checkboxes"></div></td></tr>
+						<tr><td><i>Error categories:</i></td><td><div id="error_category_checkboxes" class="checkboxes"></div></td></tr>
+						<tr><td><i>Entity types:</i></td><td><div id="entity_type_checkboxes" class="checkboxes"></div></td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<h4 class="with_note">Group table rows</h4>
+			<div id="group_by" class="checkboxes">
+				<span><input type="radio" id="radio_group_by_experiment" name="group_by" value="experiment" onchange="on_group_by_change(this)"><label for="radio_group_by_experiment">By system</label></span>
+				<span><input type="radio" id="radio_group_by_benchmark" name="group_by" value="benchmark" onchange="on_group_by_change(this)" checked><label for="radio_group_by_benchmark">By benchmark</label></span>
+			</div>
+
+			<h4 class="with_note">Filter table rows</h4>
+			<span class="checkbox_menu">
+				<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Select Systems <span class="caret"></span></button>
+				<ul id="experiment_select" class="dropdown-menu allow-focus">
+					<li>
+						<input type='text' id="experiment-filter" placeholder="Filter with regular expression">
+					</li>
+					<li >
+						<button class="btn btn-default" type="button" onclick="toggle_dropdown_multi_select(this)">Select / Deselect All</button>
+				  </li>
+				</ul>
+			</span>
+
+			<span class="checkbox_menu">
+				<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Select Benchmarks <span class="caret"></span></button>
+				<ul id="benchmark_select" class="dropdown-menu allow-focus">
+					<li>
+						<input type='text' id="benchmark-filter" placeholder="Filter with regular expression">
+					</li>
+					<li >
+						<button class="btn btn-default" type="button" onclick="toggle_dropdown_multi_select(this)">Select / Deselect All</button>
+				  </li>
+				</ul>
+			</span>
+
+			<span data-tippy-content="Show experiments whose name contains the word 'deprecated'.">
+				<input type="checkbox" id="checkbox_deprecated" onchange="toggle_show_deprecated()"><label for="checkbox_deprecated">Show deprecated</label>
+			</span>
+
+			<div id="table_loading"></div>
+
+			<div id="top_scrollbar_wrapper">
+				<div id="top_scrollbar"></div>
+			</div>
+
+			<div id="evaluation_table_wrapper">
+				<table>
+					<thead></thead>
+					<tbody></tbody>
+				</table>
+			</div>
+			<div>
+				<button class="btn btn-default" onclick="show_copy_table_modal()">Copy table</button>
+				<button class="btn btn-default" onclick="graph_mode_on()">Create graph from table</button>
+			</div>
+		</div>
+
+		<div id="article-results" class="content_box">
+			<h3 class="with_note">Linking results</h3>
+			<p class="note">Select a cell in the evaluation results table above to see the linking results of the selected experiment here.</p>
+
+			<div>
+				<span data-tippy-content="Compare linking results of two systems side by side. Select two experiments in the table above to compare them.">
+					<input type="checkbox" id="checkbox_compare" onchange="toggle_compare()">
+					<label for="checkbox_compare">Compare two systems</label>
+				</span>
+			</div>
+
+			<div id="loading"></div>
+
+			<div id="over-table-row">
+				<span id="select_article">
+					Select article: <select id="article_select" class="btn btn-default dropdown-toggle" onchange="on_article_select()"></select>
+					<span id="article_link"></span>
+				</span>
+
+				<div id="annotation_explanation">
+					<button class="btn btn-default">Annotation explanations</button>
+					<div class="tooltiptext">
+						<table>
+							<tbody>
+								<tr>
+									<td colspan="2"><i><span class="annotation gt optional">Underlined text</span> corresponds to a groundtruth mention,
+										<span class="annotation pred unevaluated">highlighted text</span> to a predicted mention.<br>
+										If a groundtruth mention and a predicted mention overlap, these annotations overlap, too.</i></td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt tp"><span class="annotation pred tp">Mention Text</span></span></td>
+									<td><b>True positive:</b> Predicted mention span and entity match a groundtruth mention span and entity</td>
+								</tr>
+								<tr>
+									<td><span class="annotation pred fp">Mention Text</span></td>
+									<td><b>False positive:</b> Predicted mention either does not match a groundtruth mention span or the predicted entity does not match the groundtruth entity</td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt fn">Mention Text</span></td>
+									<td><b>False negative:</b> Groundtruth mention either does not match a predicted mention span or the predicted entity does not match the groundtruth entity</td>
+								</tr>
+								<tr>
+									<td><span class="annotation pred unknown">Mention Text</span></td>
+									<td>Unknown predicted entity that could not be mapped to an entity in the knowledge base (= unknown) and is unevaluated</td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt unknown">Mention Text</span></td>
+									<td>Groundtruth entity that could not be mapped to an entity in the knowledge base (= unknown) and is unevaluated</td>
+								</tr>
+								<tr>
+									<td><span class="annotation pred unevaluated">Mention Text</span></td>
+									<td>Prediction is unevaluated either because it matches an optional groundtruth mention span and entity or because it is outside of the evaluation span</td>
+								</tr>
+								<tr>
+									<td><span class="annotation gt optional">Mention Text</span></td>
+									<td>Optional groundtruth mention</td>
+								</tr>
+								<tr>
+									<td><u>Some Text</u></td>
+									<td>Hyperlink in the groundtruth text</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<table id="prediction_overview" class="article_table">
+				<thead>
+					<tr>
+						<th colspan="2">
+							<div id="highlight_modes" class="checkboxes">
+								<span data-tippy-content="<p><i>Highlight all mentions of the selected category.</i></p><p>For error categories, these are the mentions that make up the denominators of the selected category, for precision/recall/F1 columns, these are all TP, FN and FP of the selected category.</p>">
+									<input type="radio" id="radio_highlight_mode_all" name="highlight_mode" value="all" onchange="on_highlight_mode_change(this)" checked><label for="radio_highlight_mode_all">Show all</label>
+								</span>
+								<span data-tippy-content="<p><i>Highlight all error mentions that fall into the selected category.</i></p><p>For error categories, these are the mentions that make up the numerator of the selected category, for precision/recall/F1 columns, these are all FN and FP of the selected category.</p>">
+									<input type="radio" id="radio_highlight_mode_errors" name="highlight_mode" value="errors" onchange="on_highlight_mode_change(this)"><label for="radio_highlight_mode_errors">Show errors</label>
+								</span>
+								<span data-tippy-content="<p><i>Highlight all mentions that constitute avoided errors of the selected category.</i></p><p>For error categories, these are the denominators minus the errors, for precision/recall/F1 columns, these are all TP of the selected category.</p>">
+									<input type="radio" id="radio_highlight_mode_avoided" name="highlight_mode" value="avoided" onchange="on_highlight_mode_change(this)"><label for="radio_highlight_mode_avoided">Show avoided errors</label>
+								</span>
+							</div>
+						</th>
+					</tr>
+					<tr>
+						<th></th><th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td></td><td></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
