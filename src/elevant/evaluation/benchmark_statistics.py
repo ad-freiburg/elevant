@@ -13,6 +13,7 @@ from elevant.evaluation.errors import get_benchmark_case_labels
 from elevant.evaluation.benchmark_case import BenchmarkCaseLabel
 from elevant.models.entity_database import EntityDatabase
 from elevant.utils.knowledge_base_mapper import KnowledgeBaseMapper, UnknownEntity
+from elevant.utils.utils import compute_num_words
 
 
 class BenchmarkStatistics:
@@ -50,18 +51,11 @@ class BenchmarkStatistics:
             benchmark_cases.append(article_gt_cases)
         return benchmark_cases
 
-    def compute_num_words(self, doc):
-        num_words = 0
-        for tok in doc:
-            if not tok.is_punct and not tok.is_space:
-                num_words += 1
-        return num_words
-
     def analyze_text(self, article):
         # Analyze text statistics only within evaluated span
         evaluated_text = article.text[article.evaluation_span[0]:article.evaluation_span[1]]
         doc = self.model(evaluated_text)
-        self.text_statistics["words"] += self.compute_num_words(doc)
+        self.text_statistics["words"] += compute_num_words(doc)
         self.text_statistics["sents"] += len([sent for sent in doc.sents])
 
     def analyze_label(self, gt_label: GroundtruthLabel, mention_text: str):
