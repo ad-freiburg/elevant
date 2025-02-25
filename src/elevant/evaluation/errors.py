@@ -163,6 +163,11 @@ def get_benchmark_case_labels(case: Case, entity_db: EntityDatabase):
         # Demonym is the only acceptable error label for unknown ground truth cases, but even that is
         # weird since the problem is that something was linked and not that language/ethnicity/country got mixed up.
         return
+    if case.is_coreference():
+        # Coreference cases are not considered for the categorization into disambiguation errors, and are instead
+        # categorized into fine-grained coreference error categories.
+        # None of our disambiguation error categories make sense for coreferences
+        return
     if is_demonym(case, entity_db):
         return BenchmarkCaseLabel.DEMONYM
     elif is_metonymy(case, entity_db):
