@@ -1,0 +1,1283 @@
+:root {
+    --uni-blue: #004A99;
+    --uni-blue-tint-3: #ccdaea;
+    --uni-blue-tint-2: #dbe5f0;
+    --uni-blue-tint-1: #e5ecf4;
+    --uni-blue-tint-0: #eff3f8;
+    --row-hover-color: var(--uni-blue-tint-2);
+    --row-selected-color: var(--uni-blue-tint-3);
+    --cell-header-color: #7e93aa;
+    --cell-first-column-color: #a3b5c9;
+    --cell-color: var(--uni-blue-tint-0);
+    --cell-hover-color: #becbd9;
+    --cell-selected-color: #a3b5c9;
+    --annotation-tp-color: rgb(125,206,160);
+    --annotation-tp-color-lowlight: rgba(125,206,160,0.3);
+    --annotation-tp-color-dark: rgb(21,55,35);
+    --annotation-fp-color: rgb(241,148,138);
+    --annotation-fp-color-lowlight: rgba(241,148,138,0.3);
+    --annotation-fp-color-dark: rgb(69,25,21);
+    --annotation-unknown-color: rgb(138,220,241);
+    --annotation-unknown-color-lowlight: rgba(138,220,241,0.3);
+    --annotation-unknown-color-dark: rgb(41,66,72);
+    --annotation-optional-color: rgb(211,211,211);
+    --annotation-optional-color-lowlight: rgba(211,211,211,0.3);
+    --annotation-optional-color-dark: rgb(63,63,63);
+
+    --annotation-selected-color: #ffd966;
+    --annotation-border-size: 5px;
+}
+
+html, input, select {
+    font-family: Helvetica, sans-serif;
+}
+
+header {
+    background-color: var(--uni-blue);
+    color: white;
+    margin: 0;
+    padding: 5pt;
+}
+
+header h1, h2 {
+    margin: 0;
+    padding: 5pt;
+    text-align: center;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #eeeeee;
+}
+
+.documentation {
+    text-align: center;
+}
+.documentation a {
+    color: white;
+}
+
+.link {
+    color: var(--cell-color);
+    padding: 5pt;
+    text-align: center;
+}
+
+.link a {
+    color: var(--cell-color);
+}
+
+.content_box {
+    margin: 1em 3em 2em;
+    padding: 1em 2em;
+    background-color: #f8f8f8;
+    border: 1px solid #cccccc;
+}
+
+td, th {
+    padding: 3px;
+}
+
+a {
+    color: black;
+}
+
+/* Class for warnings */
+.warning {
+    color: red;
+}
+
+.nonbold {
+    font-weight: 300;
+}
+
+.with_note {
+    margin-bottom: 2px;
+    padding-bottom: 0;
+}
+
+.note {
+    font-size: 80%;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#checkbox_compare {
+    margin-top: 2em;
+}
+
+/* Class for tooltips in the evaluation results box */
+#evaluation_overview .tooltiptext {
+    visibility: hidden;
+    background-color: white;
+    text-align: left;
+    padding: 5px;
+    border-radius: 6px;
+    border: 2px solid lightgrey;
+    line-height: 120%;
+    max-width: 20em;
+    min-width: 10em;
+    font-size: 80%;
+    white-space: normal;
+    z-index: 30;
+
+    /* Tooltip position */
+    position: absolute;
+    left: 0;
+    right: auto;
+    bottom: 100%;
+}
+
+.tooltip,
+.annotation {
+    position: relative;
+}
+
+#top_scrollbar_wrapper {
+    width: 100%;
+    overflow-x: auto;
+    height: 20px;
+    margin: 0;
+}
+
+#top_scrollbar {
+    height: 20px;
+}
+
+/* ----------------------------------------- */
+/* Begin checkboxes for showing / hiding table columns */
+#checkbox_table {
+    margin-top: 0.5em;
+}
+
+#checkbox_table td:first-child {
+    white-space: nowrap;
+    vertical-align: top;
+    padding-right: 1em;
+}
+
+.checkboxes {
+    padding: 0;
+    margin: 0 0 1em;
+}
+
+.checkboxes span {
+    white-space: nowrap;
+}
+
+.checkboxes label {
+    padding-right: 1em;
+    padding-left: 2px;
+}
+
+/* ----------------------------------------- */
+/* Begin radio buttons for selecting the evaluation mode */
+
+#evaluation_modes span {
+    white-space: nowrap;
+}
+
+/* ----------------------------------------- */
+/* Begin evaluation results table  */
+
+/* Make evaluation table scrollable */
+#evaluation_table_wrapper {
+    max-width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: inline-block;
+    padding: 0;
+    position: relative;
+    margin: 0 0 1em;
+}
+
+/* The goal is to visually set different tbodys apart.
+Using a border for tbody only works if the table has border-collapse: collapse set,
+but this leads to problems with sticky table components (e.g. the non-sticky part shines through the gaps).
+Moreover, the selected border color is not shown, only the background color.
+#evaluation_table_wrapper tbody { border: 10px solid white; }
+*/
+#evaluation_table_wrapper tbody:not(.all_hidden)::after
+{
+    content: '';
+    display: block;
+    height: 10px;
+}
+
+/* Make the first column of the evaluation table sticky when scrolling */
+#evaluation_table_wrapper table th:nth-child(1),
+#evaluation_table_wrapper table thead tr:nth-child(2) th:nth-child(2),
+#evaluation_table_wrapper table td:nth-child(1),
+#evaluation_table_wrapper table td:nth-child(2)
+{
+    position: -webkit-sticky;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    border-right: 1px solid white;
+}
+
+#evaluation_table_wrapper table {
+    font-size: 95%;
+}
+
+#evaluation_table_wrapper td,
+#evaluation_table_wrapper th {
+    cursor: default;
+    border: 1px solid white;
+    border-radius: 4px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+#evaluation_table_wrapper thead tr:nth-child(1) {
+    text-align: center;
+}
+#evaluation_table_wrapper thead tr:nth-child(2) {
+    cursor: pointer;
+}
+#evaluation_table_wrapper th {
+    background-color: var(--cell-header-color);
+}
+#evaluation_table_wrapper td {
+    width: 5em;
+    background-color: var(--cell-color);
+}
+#evaluation_table_wrapper tbody tr {
+    text-align: right;
+    cursor: pointer;
+}
+#evaluation_table_wrapper td:nth-child(1),
+#evaluation_table_wrapper td:nth-child(2)
+{
+    text-align: left;
+    white-space: nowrap;
+    background: var(--cell-first-column-color);
+}
+
+/* Handle display of hovered and clicked rows and cells */
+#evaluation_table_wrapper tbody tr:hover td {
+    background-color: var(--row-hover-color);
+}
+#evaluation_table_wrapper tbody tr.selected td {
+    background-color: var(--row-selected-color);
+}
+#evaluation_table_wrapper tbody tr td.hovered {
+    background-color: var(--cell-hover-color);
+}
+#evaluation_table_wrapper tbody tr td.selected {
+    background-color: var(--cell-selected-color);
+}
+
+#table_loading {
+    background: transparent url('spinner_50px.gif') center no-repeat;
+    height: 50px;
+    width: 50px;
+    left: 50%;
+    margin: auto;
+    display: none;
+}
+#table_loading.show {
+    display: block;
+}
+
+/* ----------------------------------------- */
+/* Begin table tooltips */
+
+/* Tooltip text */
+#evaluation_table_wrapper .tooltip .tooltiptext {
+    /* Position of the tooltip. Left and top are set dynamically because due to
+    overflow != visible in the containing div the position of the tooltips must
+    be fixed instead of absolute so they are not cut off */
+    position: fixed;
+    right: auto;
+    bottom: auto;
+    width: 5em;
+    min-width: 5em;
+    font-size: 1em;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+#evaluation_table_wrapper .tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+/* ----------------------------------------- */
+/* Begin copy table */
+
+/* Copy-notification paragraph and text area with LaTeX code for table (not shown by default) */
+#copy_table_text {
+    display: none;
+}
+#copy_table_text p {
+    color: var(--cell-header-color);
+}
+#copy_table_text textarea {
+    display: none;
+}
+
+
+/* ----------------------------------------- */
+/* Begin graphs */
+
+#graph_mode_note {
+    color: white;
+    font-weight: bold;
+}
+
+#overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: none;
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.7); /* Black background with opacity */
+    z-index: 100;
+}
+
+#overlay_footer {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    z-index: 102;
+    text-align: center;
+}
+
+#table_header_clone th {
+    background: var(--cell-header-color);
+}
+
+#table_header_clone .graph_selectable_col {
+    cursor: pointer;
+}
+
+#table_header_clone .graph_selectable_col-hovered {
+    /* Use cell selected color for hovering here, since table headers are darker, so the
+    darker color should be used for hovering here and the brighter color for selecting */
+    background-color: var(--cell-selected-color);
+}
+
+#graph_modal_dialog {
+    width: 80%;
+}
+
+#graph_canvas {
+    width: 80%;
+}
+
+/* ----------------------------------------- */
+/* Begin article results */
+
+#article_results {
+    padding-top: 2em;
+}
+
+#loading {
+    background: transparent url('spinner_50px.gif') center no-repeat;
+    height: 50px;
+    width: 50px;
+    left: 50%;
+    margin: auto;
+    visibility: hidden;
+}
+
+#loading.show {
+    visibility: visible;
+}
+
+#over-table-row {
+    display: flex;
+    /* Allow wrapping if necessary so the annotation explanation button does not overlap with the right window edge */
+    flex-wrap: wrap;
+    justify-content: space-between; /* Put left child at the left end and right child at the right end */
+}
+
+#select_article {
+    visibility: hidden;
+    display: inline;
+    padding: 5px 0;
+    margin: 0;
+}
+
+#article_link {
+    margin-left: 1em;
+}
+
+/* ----------------------------------------- */
+/* Begin annotation explanation */
+
+#annotation_explanation {
+    position: relative;
+}
+
+#annotation_explanation .tooltiptext {
+    visibility: hidden;
+    background-color: white;
+    text-align: left;
+    padding: 5px;
+    border-radius: 6px;
+    border: 2px solid lightgrey;
+    line-height: 140%;
+    min-width: 40em;
+
+    /* Position of the tooltip text */
+    position: absolute;
+    z-index: 20;
+    bottom: 100%;
+    right: 0;
+}
+
+#annotation_explanation:hover .tooltiptext {
+    visibility: visible;
+}
+
+#annotation_explanation .tooltiptext table,
+#annotation_explanation .tooltiptext table td {
+    border: none;
+    padding: 0.5em;
+}
+
+#annotation_explanation .tooltiptext table td:nth-child(1) {
+    white-space: nowrap;
+}
+
+#annotation_explanation .tooltiptext table tr:nth-child(1) td {
+    line-height: 160%;
+}
+
+/* ----------------------------------------- */
+/* Begin prediction overview */
+
+/* Area containing the results per article */
+.article_table {
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: separate;
+    overflow: hidden;
+    padding-top: 4em;
+    padding-bottom: 4em;
+}
+
+.article_table td {
+    vertical-align: top;
+    line-height: 220%;
+    padding: 3em 1em;
+}
+
+.article_table td,
+.article_table th {
+    border: 1px solid var(--cell-first-column-color);
+}
+
+.article_table th {
+    background: var(--cell-first-column-color);
+}
+
+.article_table hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 2em 0;
+    padding: 0;
+}
+
+
+/* Table header row for the highlight-mode checkboxes. This should be in the table, because otherwise,
+   due to the large necessary table padding, it would be too far away from the table */
+#prediction_overview tr:nth-child(1) th {
+    border: none;
+    background: none;
+    font-weight: normal;
+    text-align: end;
+}
+
+#prediction_overview {
+    display: none;
+}
+
+#prediction_overview td,
+#prediction_overview th {
+    width: 50%;
+}
+
+/* Make the table headers move down when scrolling so they are always visible */
+#prediction_overview th {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#prediction_overview [class*="compare_"] {
+    display: none;
+}
+
+/* ----------------------------------------- */
+/* Begin annotations */
+
+.annotation {
+    /* Make sure the background extends only up to the border start.
+    Otherwise, if the border color is opaque and it overlaps with the background color, the border color is changed */
+    background-clip: content-box;
+    -webkit-background-clip: content-box;
+    padding-bottom: 2px;
+}
+/* Set annotation colors according to annotation type */
+.annotation.pred.tp {
+    background-color: var(--annotation-tp-color);
+}
+.annotation.gt.tp {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-tp-color);
+}
+.annotation.gt.tp.lowlight {
+    border-bottom-color: var(--annotation-tp-color-lowlight);
+}
+.annotation.pred.tp.lowlight {
+    background-color: var(--annotation-tp-color-lowlight);
+}
+.annotation.fp {
+    background-color: var(--annotation-fp-color);
+}
+.annotation.fp.lowlight {
+    background-color: var(--annotation-fp-color-lowlight);
+}
+.annotation.pred.unknown {
+    background-color: var(--annotation-unknown-color);
+}
+.annotation.pred.unknown.lowlight {
+    background-color: var(--annotation-unknown-color-lowlight);
+}
+.annotation.fn {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-fp-color);
+}
+.annotation.fn.lowlight {
+    border-bottom-color: var(--annotation-fp-color-lowlight);
+}
+.annotation.gt.unknown {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-unknown-color);
+}
+.annotation.gt.unknown.lowlight {
+    border-bottom-color: var(--annotation-unknown-color-lowlight);
+}
+.annotation.gt.optional {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-optional-color);
+}
+.annotation.gt.optional.lowlight {
+    border-bottom-color: var(--annotation-optional-color-lowlight);
+}
+.annotation.pred.unevaluated {
+    background-color: var(--annotation-optional-color);
+}
+.annotation.pred.unevaluated.lowlight {
+    background-color: var(--annotation-optional-color-lowlight);
+}
+
+.annotation.gt.selected {
+    border-bottom-color: var(--annotation-selected-color) !important;
+}
+.annotation.pred.selected {
+    background-color: var(--annotation-selected-color) !important;
+}
+
+/* ----------------------------------------- */
+/* Begin annotation tooltips */
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.article_table .annotation:hover .tooltiptext {
+    visibility: visible;
+}
+
+.annotation .tooltiptext {
+    visibility: hidden;
+    text-align: left;
+    padding: 5px;
+    border-radius: 6px;
+    border: 3px solid lightgrey;
+    line-height: 120%;
+    background-color: white;
+    white-space: nowrap;
+
+    /* Position of the tooltip text.
+    Don't set position absolute yet because tooltips for annotations at the right table edge would stretch
+    the inner window. Using display: none to prevent this does not work, because once display is set to a
+    non-none value, some mentions before punctuation somehow get slightly wider on mouseover. */
+    position: absolute;
+    left: 0;
+    right: auto;
+    z-index: 20;
+    bottom: 100%;
+}
+
+/* Show some tooltips below the mention to avoid overlap */
+.annotation .tooltiptext.below {
+    /* Set top edge of element (height of the parent element plus border width) below top edge of parent */
+    top: calc(100% + var(--annotation-border-size));
+    bottom: auto;
+}
+
+/* Set Tooltip border color according to case type */
+.annotation .tooltiptext.tp {
+    border-color: var(--annotation-tp-color);
+}
+.annotation .tooltiptext.fn,
+.annotation .tooltiptext.fp {
+    border-color: var(--annotation-fp-color);
+}
+
+.annotation .tooltiptext .header {
+    display: flex;
+    justify-content: space-between; /* Put left child at the left end and right child at the right end */
+    position: relative;
+}
+.annotation .tooltiptext .header .right {
+    margin-left: 1em;
+}
+.annotation .tooltiptext .body {
+    position: relative;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: 80%;
+}
+.annotation .tooltiptext .footer {
+    position: relative;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    white-space: normal;
+}
+
+.annotation .tooltiptext .error_category_tag {
+    display: inline-block;  /* To allow setting a margin */
+    border-radius: 10px;
+    font-size: 80%;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 2px;
+    white-space: nowrap;  /* Do not allow a line break within a tag */
+}
+.annotation .tooltiptext.fp .error_category_tag,
+.annotation .tooltiptext.fn .error_category_tag {
+    color: var(--annotation-fp-color-dark);
+    background-color: var(--annotation-fp-color);
+}
+.annotation .tooltiptext.tp .error_category_tag {
+    color: var(--annotation-tp-color-dark);
+    background-color: var(--annotation-tp-color);
+}
+
+.annotation .tooltiptext .case_type_box {
+    display: inline;
+    border-radius: 30%;
+    background-color: lightgrey;
+    color: white;
+    margin-left: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+/* Set case type box color */
+.annotation .tooltiptext .case_type_box.tp {
+    background-color: var(--annotation-tp-color);
+}
+.annotation .tooltiptext .case_type_box.fp,
+.annotation .tooltiptext .case_type_box.fn {
+    background-color: var(--annotation-fp-color);
+}
+
+/* ----------------------------------------- */
+/* Begin example benchmark modal */
+
+#example_benchmark_modal_dialog {
+    width: 70%
+}
+
+#example_prediction_overview {
+    padding: 5% 10% 2% 10%;
+}
+
+#error_explanation {
+    padding: 0 10%;
+    text-align: center;
+    font-style: italic;
+}
+
+/* ----------------------------------------- */
+/* Begin dropdown multi-select menu */
+
+.checkbox_menu {
+    position: relative;
+    margin-right: 1em;
+}
+
+.checkbox_menu li label {
+    display: block;
+    padding: 3px 10px;
+    clear: both;
+    font-weight: normal;
+    line-height: 1.42857143;
+    color: #333;
+    white-space: nowrap;
+    margin:0;
+    transition: background-color .4s ease;
+}
+.checkbox_menu li input[type=checkbox] {
+    margin: 0 5px;
+    top: 2px;
+    position: relative;
+}
+
+.checkbox_menu li label:hover,
+.checkbox_menu li label:focus {
+    background-color: #f5f5f5;
+}
+.checkbox_menu li button {
+    width: 100%;
+}
+.checkbox_menu li input[type=text] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 3px 10px;
+    color: #333;
+    white-space: nowrap;
+    margin:0 0;
+    border: 1px solid #ccc;
+}
+
+/* ----------------------------------------- */
+/* Begin bootstrap style buttons
+
+Code is an excerpt of bootstrap.css.
+A bootstrap.css file is not included because even when customizing bootstrap
+such that it only includes css for buttons here
+https://getbootstrap.com/docs/3.4/customize/#less
+the WebApp design is destroyed, in particular the table.
+*/
+
+input,
+button,
+select,
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.btn {
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: normal;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    background-image: none;
+    border: 1px solid transparent;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.btn:hover{
+    color: #333333;
+    text-decoration: none;
+}
+.btn:active,
+.btn.active {
+    background-image: none;
+    outline: 0;
+    -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+.btn-default {
+    color: #333333;
+    background-color: #ffffff;
+    border-color: #cccccc;
+}
+.btn-default:hover {
+    color: #333333;
+    background-color: #e6e6e6;
+    border-color: #adadad;
+}
+.btn-default:active,
+.btn-default.active,
+.open > .dropdown-toggle.btn-default {
+    color: #333333;
+    background-color: #e6e6e6;
+    background-image: none;
+    border-color: #adadad;
+}
+.btn-default:active:hover,
+.btn-default.active:hover,
+.open > .dropdown-toggle.btn-default:hover{
+    color: #333333;
+    background-color: #d4d4d4;
+    border-color: #8c8c8c;
+}
+
+.btn-default .badge {
+    color: #ffffff;
+    background-color: #333333;
+}
+
+.btn-primary {
+    color: #ffffff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.btn-primary:focus,
+.btn-primary.focus {
+    color: #ffffff;
+    background-color: #286090;
+    border-color: #122b40;
+}
+.btn-primary:hover {
+    color: #ffffff;
+    background-color: #286090;
+    border-color: #204d74;
+}
+.btn-primary:active,
+.btn-primary.active,
+.open > .dropdown-toggle.btn-primary {
+    color: #ffffff;
+    background-color: #286090;
+    background-image: none;
+    border-color: #204d74;
+}
+.btn-primary:active:hover,
+.btn-primary.active:hover,
+.open > .dropdown-toggle.btn-primary:hover,
+.btn-primary:active:focus,
+.btn-primary.active:focus,
+.open > .dropdown-toggle.btn-primary:focus,
+.btn-primary:active.focus,
+.btn-primary.active.focus,
+.open > .dropdown-toggle.btn-primary.focus {
+    color: #ffffff;
+    background-color: #204d74;
+    border-color: #122b40;
+}
+.btn-primary.disabled:hover,
+.btn-primary[disabled]:hover,
+fieldset[disabled] .btn-primary:hover,
+.btn-primary.disabled:focus,
+.btn-primary[disabled]:focus,
+fieldset[disabled] .btn-primary:focus,
+.btn-primary.disabled.focus,
+.btn-primary[disabled].focus,
+fieldset[disabled] .btn-primary.focus {
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+.btn-primary .badge {
+    color: #337ab7;
+    background-color: #ffffff;
+}
+
+/* ----------------------------------------- */
+/* Begin bootstrap style modal
+
+Code is an excerpt of bootstrap.css.
+A bootstrap.css file is not included because even when customizing bootstrap
+such that it only includes css for modals and the close button here
+https://getbootstrap.com/docs/3.4/customize/#less
+the WebApp design is destroyed, in particular the table.
+*/
+
+.close {
+  float: right;
+  font-size: 21px;
+  font-weight: bold;
+  line-height: 1;
+  color: #000000;
+  text-shadow: 0 1px 0 #ffffff;
+  filter: alpha(opacity=20);
+  opacity: 0.2;
+}
+.close:hover,
+.close:focus {
+  color: #000000;
+  text-decoration: none;
+  cursor: pointer;
+  filter: alpha(opacity=50);
+  opacity: 0.5;
+}
+button.close {
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.modal-open {
+  overflow: hidden;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1050;
+  display: none;
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
+  outline: 0;
+}
+.modal.fade .modal-dialog {
+  -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
+  -o-transform: translate(0, -25%);
+  transform: translate(0, -25%);
+  -webkit-transition: -webkit-transform 0.3s ease-out;
+  -o-transition: -o-transform 0.3s ease-out;
+  transition: transform 0.3s ease-out;
+}
+.modal.in .modal-dialog {
+  -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+.modal-open .modal {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 10px;
+}
+.modal-content {
+  position: relative;
+  background-color: #ffffff;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+  outline: 0;
+}
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1040;
+  background-color: #000000;
+}
+.modal-backdrop.fade {
+  filter: alpha(opacity=0);
+  opacity: 0;
+}
+.modal-backdrop.in {
+  filter: alpha(opacity=50);
+  opacity: 0.5;
+}
+.modal-header {
+  padding: 15px;
+  border-bottom: 1px solid #e5e5e5;
+}
+.modal-header .close {
+  margin-top: -2px;
+}
+.modal-title {
+  margin: 0;
+  line-height: 1.42857143;
+}
+.modal-body {
+  position: relative;
+  padding: 15px;
+}
+.modal-footer {
+  padding: 15px;
+  text-align: right;
+  border-top: 1px solid #e5e5e5;
+}
+.modal-footer .btn + .btn {
+  margin-bottom: 0;
+  margin-left: 5px;
+}
+.modal-footer .btn-group .btn + .btn {
+  margin-left: -1px;
+}
+.modal-footer .btn-block + .btn-block {
+  margin-left: 0;
+}
+.modal-scrollbar-measure {
+  position: absolute;
+  top: -9999px;
+  width: 50px;
+  height: 50px;
+  overflow: scroll;
+}
+@media (min-width: 768px) {
+  .modal-dialog {
+    width: 600px;
+    margin: 30px auto;
+  }
+  .modal-content {
+    -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  }
+  .modal-sm {
+    width: 300px;
+  }
+}
+@media (min-width: 992px) {
+  .modal-lg {
+    width: 900px;
+  }
+}
+.clearfix:before,
+.clearfix:after,
+.modal-header:before,
+.modal-header:after,
+.modal-footer:before,
+.modal-footer:after {
+  display: table;
+  content: " ";
+}
+.clearfix:after,
+.modal-header:after,
+.modal-footer:after {
+  clear: both;
+}
+.center-block {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+}
+.pull-right {
+  float: right !important;
+}
+.pull-left {
+  float: left !important;
+}
+.modal .hide {
+  display: none !important;
+}
+.modal .show {
+  display: block !important;
+}
+.modal .invisible {
+  visibility: hidden;
+}
+.modal .text-hide {
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+.modal .hidden {
+  display: none !important;
+}
+.modal .affix {
+  position: fixed;
+}
+
+/* ----------------------------------------- */
+/* Begin bootstrap style dropdowns
+
+Code is an excerpt of bootstrap.css.
+A bootstrap.css file is not included because even when customizing bootstrap
+such that it only includes css for modals and the close button here
+https://getbootstrap.com/docs/3.4/customize/#less
+the WebApp design is destroyed, in particular the table.
+*/
+.caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 2px;
+    vertical-align: middle;
+    border-top: 4px dashed;
+    border-top: 4px solid \9;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+}
+.dropup,
+.dropdown {
+    position: relative;
+}
+.dropdown-toggle:focus {
+    outline: 0;
+}
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    display: none;
+    float: left;
+    min-width: 160px;
+    padding: 5px 0;
+    margin: 2px 0 0;
+    font-size: 14px;
+    text-align: left;
+    list-style: none;
+    background-color: #ffffff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #cccccc;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+}
+.dropdown-menu.pull-right {
+    right: 0;
+    left: auto;
+}
+.dropdown-menu .divider {
+    height: 1px;
+    margin: 9px 0;
+    overflow: hidden;
+    background-color: #e5e5e5;
+}
+.dropdown-menu > li > a {
+    display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: 400;
+    line-height: 1.42857143;
+    color: #333333;
+    white-space: nowrap;
+}
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+    color: #262626;
+    text-decoration: none;
+    background-color: #f5f5f5;
+}
+.dropdown-menu > .active > a,
+.dropdown-menu > .active > a:hover,
+.dropdown-menu > .active > a:focus {
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #337ab7;
+    outline: 0;
+}
+.dropdown-menu > .disabled > a,
+.dropdown-menu > .disabled > a:hover,
+.dropdown-menu > .disabled > a:focus {
+    color: #777777;
+}
+.dropdown-menu > .disabled > a:hover,
+.dropdown-menu > .disabled > a:focus {
+    text-decoration: none;
+    cursor: not-allowed;
+    background-color: transparent;
+    background-image: none;
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+.open > .dropdown-menu {
+    display: block;
+}
+.open > a {
+    outline: 0;
+}
+.dropdown-menu-right {
+    right: 0;
+    left: auto;
+}
+.dropdown-menu-left {
+    right: auto;
+    left: 0;
+}
+.dropdown-header {
+    display: block;
+    padding: 3px 20px;
+    font-size: 12px;
+    line-height: 1.42857143;
+    color: #777777;
+    white-space: nowrap;
+}
+.dropdown-backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 990;
+}
+.pull-right > .dropdown-menu {
+    right: 0;
+    left: auto;
+}
+.dropup .caret,
+.navbar-fixed-bottom .dropdown .caret {
+    content: "";
+    border-top: 0;
+    border-bottom: 4px dashed;
+    border-bottom: 4px solid \9;
+}
+.dropup .dropdown-menu,
+.navbar-fixed-bottom .dropdown .dropdown-menu {
+    top: auto;
+    bottom: 100%;
+    margin-bottom: 2px;
+}
+@media (min-width: 768px) {
+    .navbar-right .dropdown-menu {
+        right: 0;
+        left: auto;
+    }
+    .navbar-right .dropdown-menu-left {
+        right: auto;
+        left: 0;
+    }
+}
+.clearfix:before,
+.clearfix:after {
+    display: table;
+    content: " ";
+}
+.clearfix:after {
+    clear: both;
+}
+.center-block {
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+}
+.pull-right {
+    float: right !important;
+}
+.pull-left {
+    float: left !important;
+}
+.hide {
+    display: none !important;
+}
+.show {
+    display: block !important;
+}
+.invisible {
+    visibility: hidden;
+}
+.text-hide {
+    font: 0/0 a;
+    color: transparent;
+    text-shadow: none;
+    background-color: transparent;
+    border: 0;
+}
+.hidden {
+    display: none !important;
+}
+.affix {
+    position: fixed;
+}

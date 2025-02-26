@@ -19,6 +19,14 @@ COPY small-data-files small-data-files
 COPY configs configs
 COPY Makefile .
 COPY *.py ./
+COPY evaluation-results-emnlp2023 evaluation-results-emnlp2023
+COPY evaluation-results-arxiv2023 evaluation-results-arxiv2023
+COPY evaluation-results-diss evaluation-results-diss
+COPY evaluation-results-diss-wiki evaluation-results-diss-wiki
+COPY benchmarks-emnlp2023 benchmarks-emnlp2023
+COPY benchmarks-arxiv2023 benchmarks-arxiv2023
+COPY benchmarks-diss benchmarks-diss
+COPY benchmarks-diss-wiki benchmarks-diss-wiki
 # Set DATA_DIR variable in Makefile to /data/ within the container
 RUN sed -i 's|^DATA_DIR =.*|DATA_DIR = /data/|' Makefile
 # Enable Makefile target autocompletion
@@ -26,11 +34,11 @@ RUN echo "complete -W \"\`grep -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' ?akefile | sed 's
 # Add Elevant's src directory to the PYTHONPATH
 ENV PYTHONPATH="${PYTHONPATH}:src"
 # Files created in the docker container should be easily accessible from the outside
-CMD umask 000; /bin/bash;
+CMD umask 000; make start_webapp;
 
 
 # Build the container:
-# docker build -t elevant .
+# docker build -t elevant-stable .
 
 # Run the container:
-# docker run -it -p 8000:8000 -v <data_directory>:/data -v $(pwd)/evaluation-results/:/home/evaluation-results -v $(pwd)/benchmarks/:/home/benchmarks elevant
+# docker run -it -p 8003:8000 -d --restart always -v /local/data-ssd/entity-linking/:/data -v $(pwd)/evaluation-results/:/home/evaluation-results -v $(pwd)/benchmarks/:/home/benchmarks elevant-stable

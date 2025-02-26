@@ -1,0 +1,1 @@
+{"experiment_name": "ReFinED + F-Coref", "experiment_description": "Using the official ReFinED library, the model fine tuned on AIDA-CoNLL train and using the Wikidata entity set.", "linker_name": "ReFinED", "timestamp": "2024/11/05 14:53", "linking_time": 250.97529435157776}

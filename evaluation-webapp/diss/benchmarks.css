@@ -1,0 +1,52 @@
+/* Make the second column of the benchmarks table a non-header column */
+#evaluation_table_wrapper table td:nth-child(2),
+#evaluation_table_wrapper table thead tr:nth-child(2) th:nth-child(2)
+{
+    position: relative;
+    left: 0;
+    z-index: 0;
+    border-right: 1px solid white;
+}
+
+#evaluation_table_wrapper table td:nth-child(2) {
+    text-align: right;
+    white-space: normal;
+    background: var(--cell-color);
+}
+
+/* Adjust annotations and their tooltips */
+.annotation.gt {
+    border-bottom-width: 6px !important;
+}
+.annotation.gt.normal {
+    border-bottom: var(--annotation-border-size) solid var(--annotation-tp-color);
+}
+.annotation.gt.normal.lowlight {
+    border-bottom-color: var(--annotation-tp-color-lowlight);
+}
+.annotation .tooltiptext.normal {
+    border-color: var(--annotation-tp-color);
+}
+.annotation .tooltiptext.optional {
+    border-color: var(--annotation-optional-color);
+}
+.annotation .tooltiptext.unknown {
+    border-color: var(--annotation-unknown-color);
+}
+.annotation .tooltiptext.normal .error_category_tag {
+    color: var(--annotation-tp-color-dark);
+    background-color: var(--annotation-tp-color);
+}
+.annotation .tooltiptext.optional .error_category_tag {
+    color: var(--annotation-optional-color-dark);
+    background-color: var(--annotation-optional-color);
+}
+.annotation .tooltiptext.unknown .error_category_tag {
+    color: var(--annotation-unknown-color-dark);
+    background-color: var(--annotation-unknown-color);
+}
+
+/* Adjust graph */
+#table_header_clone .graph_selectable_col-selected {
+    background-color: var(--cell-hover-color);
+}

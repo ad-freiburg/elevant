@@ -1,0 +1,1 @@
+{"experiment_name": "HRL + Popular Entities + F-Coref", "experiment_description": "Only entities with a sitelink count >= 15 are considered.", "linker_name": "Popular Entities", "timestamp": "2024/10/30 12:53", "linking_time": 147.17940139770508}

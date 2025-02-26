@@ -1,0 +1,1 @@
+{"name": "RSS-500", "description": "500 random sentences from a set of RSS feeds including all major worldwide newspapers. In each sentence, exactly 2 entity references are marked as ground truth entities. The benchmark should therefore not be used to compute precision or F1 score unless ground truth mention spans are given.", "timestamp": "2024/07/11 15:29"}

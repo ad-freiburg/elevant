@@ -1,0 +1,1 @@
+{"experiment_name": "HRL + Popular Entities + Stanford", "experiment_description": "Only entities with a sitelink count >= 15 are considered.", "linker_name": "Popular Entities", "timestamp": "2024/10/30 13:48", "linking_time": 369.0322368144989}

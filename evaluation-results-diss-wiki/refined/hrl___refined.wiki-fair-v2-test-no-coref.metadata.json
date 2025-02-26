@@ -1,0 +1,1 @@
+{"experiment_name": "HRL + ReFinED", "experiment_description": "Using the official ReFinED library, the model fine tuned on AIDA-CoNLL train and using the Wikidata entity set.", "linker_name": "ReFinED", "timestamp": "2024/09/23 16:46", "linking_time": 28.483654022216797}

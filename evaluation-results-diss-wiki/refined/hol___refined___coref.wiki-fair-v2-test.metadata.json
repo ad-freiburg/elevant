@@ -1,0 +1,1 @@
+{"experiment_name": "HOL + ReFinED + KB-Coref", "experiment_description": "Using the official ReFinED package, the model fine tuned on AIDA-CoNLL train and using the Wikidata entity set.", "linker_name": "ReFinED", "timestamp": "2024/09/23 17:15", "linking_time": 29.11058497428894}
