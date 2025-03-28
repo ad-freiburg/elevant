@@ -143,8 +143,9 @@ generate_entity_types_mapping:
 	cd wikidata-types; chmod 777 index; $(MAKE) -sB WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	mv wikidata-types/entity-types.tsv ${WIKIDATA_MAPPINGS_DIR}
-	# Remove old dbm database file if it exists and is not a directory
-	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db ] && rm ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
+	# Remove old dbm database file if it exists and is not a directory. Make apparently returns an error if [ ... ]
+	# evaluates to false, therefore append || true
+	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
 
 download_all: download_wikidata_mappings download_wikipedia_mappings download_entity_types_mapping
@@ -206,10 +207,10 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
 	python3 scripts/extract_akronyms.py
 	python3 scripts/extract_redirects.py ${WIKI_DUMP}
-	[ -f ${WIKIPEDIA_MAPPINGS_DIR}redirects.db ] && rm ${WIKIPEDIA_MAPPINGS_DIR}redirects.db
+	[ -f ${WIKIPEDIA_MAPPINGS_DIR}redirects.db ] && rm -f ${WIKIPEDIA_MAPPINGS_DIR}redirects.db || true
 	python3 scripts/create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}redirects.pkl
 	python3 scripts/get_link_frequencies.py  # Needs redirects and qid_to_wikipedia_url.db
-	[ -f ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db ] && rm ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db
+	[ -f ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db ] && rm -f ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db || true
 	python3 scripts/create_databases.py ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_frequencies.pkl -o ${WIKIPEDIA_MAPPINGS_DIR}hyperlink_to_most_popular_candidates.db  --most_popular_candidates
 	python3 scripts/extract_title_synonyms.py
 	python3 scripts/count_unigrams.py
@@ -244,17 +245,17 @@ generate_databases:
 	@echo
 	@echo "[generate_databases] Build databases from large Wikidata mappings."
 	@echo
-	[ -f ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db ] && rm ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db]
+	[ -f ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -i -m name_from_url -o ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db
-	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.db ] && rm ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.db]
+	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_sitelinks.tsv
-	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_label.db ] && rm ${WIKIDATA_MAPPINGS_DIR}qid_to_label.db]
+	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_label.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}qid_to_label.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv
-	[ -f ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db ] && rm ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db]
+	[ -f ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_label.tsv -i -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}label_to_qids.db
-	[ -f ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db ] && rm ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db]
+	[ -f ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -i -f multiple_values_semicolon_separated -o ${WIKIDATA_MAPPINGS_DIR}alias_to_qids.db
-	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.db ] && rm ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.db]
+	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_aliases.tsv -f multiple_values_semicolon_separated
 
 cleanup:
