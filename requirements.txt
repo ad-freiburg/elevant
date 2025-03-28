@@ -1,13 +1,16 @@
-spacy==3.4.4
-stanza==1.1.1
+spacy==3.8.4
+stanza==1.10.1
 tagme==0.1.3
-spacy_conll==3.3.0
-nltk==3.6.7
-pynif==0.2.0
-protobuf==3.19.4
-numpy==1.24.2
+spacy_conll==4.0.1
+nltk==3.9.1
+pynif==0.3.1
+protobuf==6.30.2
+numpy==1.26.4
 refined @ git+https://github.com/amazon-science/ReFinED@V1
 radboud-el==0.0.1
 pygtrie==2.5.0
 fastcoref==2.1.6
-lmdb==1.4.0
+lmdb==1.6.2
+sentencepiece==0.2.0
+transformers==4.43.4
+gensim==4.3.3

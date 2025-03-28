@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 MAINTAINER Natalie Prange prange@cs.uni-freiburg.de
 WORKDIR /home/
 RUN apt-get update
@@ -7,9 +7,10 @@ RUN apt-get install -y python3 python3-pip git wget vim curl python3-gdbm bc
 # This is only needed for the entity type generation and can be removed if `make download_all` is used.
 RUN curl -sSL https://get.docker.com/ | sh > /dev/null
 COPY requirements.txt requirements.txt
-RUN python3 -m pip install -r requirements.txt
-RUN python3 -m spacy download en_core_web_lg
-RUN python3 -m spacy download en_core_web_sm
+# --break-system-packages is used to avoid the need for a virtual environment within the docker container
+RUN python3 -m pip install -r requirements.txt --break-system-packages
+RUN python3 -m spacy download en_core_web_lg --break-system-packages
+RUN python3 -m spacy download en_core_web_sm --break-system-packages
 COPY src src
 COPY scripts scripts
 COPY evaluation-webapp evaluation-webapp
