@@ -284,6 +284,8 @@ query:
 	@echo "$$PREFIXES $${${QUERY_VARIABLE}}"
 	@curl -Gs ${API} -H "Accept: text/tab-separated-values"\
 	    --data-urlencode "query=$$PREFIXES $${${QUERY_VARIABLE}} LIMIT 200000000" \
+	     > ${DATA_DIR}tmp.tsv
+	@cat ${DATA_DIR}tmp.tsv \
 	    | sed -r 's|<http://www\.wikidata\.org/entity/([Q][0-9]+)>|\1|g' \
 	    | sed -r '/^[^Q]/d' \
 	    | sed -r 's|"([^\t"]*)"@en|\1|g' \
@@ -294,6 +296,7 @@ query:
 	@wc -l ${OUTFILE} | cut -f 1 -d " "
 	@echo "First and last line:"
 	@head -1 ${OUTFILE} && tail -1 ${OUTFILE}
+	@rm -f ${DATA_DIR}tmp.tsv
 
 # Start the evaluation webapp.
 # If necessary create the symbolic links to the evaluation results and the benchmarks directory first.

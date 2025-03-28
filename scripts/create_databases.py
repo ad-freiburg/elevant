@@ -56,6 +56,10 @@ def read_from_tsv(filename, storage_format=StorageFormat.SINGLE_VAL, processing_
     with open(filename, "r", encoding="utf8") as f:
         for line in f:
             lst = line.strip("\n").split("\t")
+            if len(lst) < 2:
+                logger.warning(f"Skipping line that contains less than two values: \"{line}\". "
+                               f"This might be an indication that the data from {filename} is not complete.")
+                continue
             if storage_format == StorageFormat.SINGLE_VAL:
                 if inverse:
                     key = process(lst[1], processing_method)
