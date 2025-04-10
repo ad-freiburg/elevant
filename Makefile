@@ -7,21 +7,21 @@ RESET := \033[0m
 
 DATA_DIR = /local/data-ssd/entity-linking/
 
-WIKIPEDIA_ARTICLES_DIR = ${DATA_DIR}wikipedia_articles/
+WIKIPEDIA_ARTICLES_DIR = ${DATA_DIR}wikipedia-articles/
 WIKI_DUMP = ${WIKIPEDIA_ARTICLES_DIR}enwiki-latest-pages-articles-multistream.xml.bz2
 EXTRACTED_WIKI_DUMP = ${WIKIPEDIA_ARTICLES_DIR}wikipedia.articles.jsonl
 RESULTS_DIR = ${DATA_DIR}results/
 LINKED_WIKI_ARTICLES = ${RESULTS_DIR}wikipedia.articles.linked.jsonl
 
 # Variables for generating wikidata mappings
-WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata_mappings/
+WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata-mappings/
 WIKIDATA_SPARQL_ENDPOINT = https://qlever.cs.uni-freiburg.de/api/wikidata
 # Note that the query names are also used for generating the file name by
 # casting the query name to lowercase and appending .tsv
 DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_NAME QID_TO_SITELINKS QID_TO_ALIASES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 
 # Variables for generating wikipedia mappings
-WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia_mappings/
+WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia-mappings/
 
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation-results/
@@ -59,9 +59,9 @@ config:
 	@echo "and compute all necessary Wikipedia mappings."
 	@echo
 
-link_benchmarks:
+link-benchmarks:
 	@echo
-	@echo "[link_benchmarks] Link given benchmarks with given systems"
+	@echo "[link-benchmarks] Link given benchmarks with given systems"
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "LINKING_SYSTEMS = $(LINKING_SYSTEMS)"
@@ -82,18 +82,18 @@ link_benchmarks:
 	done
 	@echo
 
-convert_predictions:
+convert-predictions:
 	@echo
-	@echo "[link_benchmarks] Link given benchmarks with given systems"
+	@echo "[convert-predictions] Link given benchmarks with given systems"
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "PREDICTIONS FROM = $(PREDICTIONS)"
 	for BENCHMARK_NAME in $(BENCHMARK_NAMES); do echo; \
-	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} convert_benchmark_predictions; \
+	  $(MAKE) -sB BENCHMARK=$${BENCHMARK_NAME} convert-benchmark-predictions; \
 	done
 	@echo
 
-convert_benchmark_predictions:
+convert-benchmark-predictions:
 	for PREDICTION in $(PREDICTIONS); do \
 	  echo; \
 	  echo "BENCHMARK: $${BENCHMARK}"; \
@@ -119,9 +119,9 @@ convert_benchmark_predictions:
 	done
 
 
-evaluate_linking_results:
+evaluate-linking-results:
 	@echo
-	@echo "[evaluate_linking_results] Evaluate all linking results for all benchmarks"
+	@echo "[evaluate-linking-results] Evaluate all linking results for all benchmarks"
 	@echo
 	@echo "BENCHMARK_NAMES = $(BENCHMARK_NAMES)"
 	@echo "EVALUATION_RESULTS_DIR = $(EVALUATION_RESULTS_DIR)"
@@ -133,9 +133,9 @@ evaluate_linking_results:
 		python3 evaluate.py ${EVALUATION_RESULTS_DIR}*/${EVALUATE_LINKING_SYSTEM_PREFIX}*$${BENCHMARK}.linked_articles.jsonl -b $${BENCHMARK}; \
 	done
 
-generate_entity_types_mapping:
+generate-entity-types-mapping:
 	@echo
-	@echo "[generate_entity_types_mapping] Get data for given queries in batches."
+	@echo "[generate-entity-types-mapping] Get data for given queries in batches."
 	@echo
 	docker pull adfreiburg/qlever:pr-1532
 	rm -f wikidata-types/types.tsv
@@ -148,61 +148,61 @@ generate_entity_types_mapping:
 	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
 
-download_all: download_wikidata_mappings download_wikipedia_mappings download_entity_types_mapping
+download-all: download-wikidata-mappings download-wikipedia-mappings download-entity-types-mapping
 
-download_wikidata_mappings:
+download-wikidata-mappings:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/wikidata_mappings.tar.gz
 	tar -xvzf wikidata_mappings.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
 	rm wikidata_mappings.tar.gz
 
-download_wikipedia_mappings:
+download-wikipedia-mappings:
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
 	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/wikipedia_mappings.tar.gz
 	tar -xvzf wikipedia_mappings.tar.gz -C ${WIKIPEDIA_MAPPINGS_DIR}
 	rm wikipedia_mappings.tar.gz
 
-download_entity_types_mapping:
+download-entity-types-mapping:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
 	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/qid_to_whitelist_types.tar.gz
 	tar -xvzf qid_to_whitelist_types.tar.gz -C ${WIKIDATA_MAPPINGS_DIR}
 	rm qid_to_whitelist_types.tar.gz
 
-download_spacy_linking_files:
-	@[ -d ${DATA_DIR}linker_files ] || mkdir ${DATA_DIR}linker_files
+download-spacy-linking-files:
+	@[ -d ${DATA_DIR}linker-files ] || mkdir ${DATA_DIR}linker-files
 	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/spacy_linker_files.tar.gz
-	tar -xvzf spacy_linker_files.tar.gz -C ${DATA_DIR}linker_files
+	tar -xvzf spacy_linker_files.tar.gz -C ${DATA_DIR}linker-files
 	rm spacy_linker_files.tar.gz
 
 
 # Download Wikipedia dump only if it does not exist already at the specified location.
-download_wiki:
+download-wiki:
 	@[ -d ${WIKIPEDIA_ARTICLES_DIR} ] || mkdir ${WIKIPEDIA_ARTICLES_DIR}
 	@if ls ${WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Wikipedia dump already exists at ${WIKI_DUMP} . Delete or rename it if you want to download a new dump. Dump not downloaded.$${RESET}"; echo; else \
 	  wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles-multistream.xml.bz2 -O ${WIKI_DUMP}; \
 	fi
 
 # Extract Wikipedia dump only if it does not exist already at the specified location.
-extract_wiki:
+extract-wiki:
 	@if ls ${EXTRACTED_WIKI_DUMP} 1> /dev/null 2>&1; then echo -e "$${RED}Extracted Wikipedia dump already exists at ${EXTRACTED_WIKI_DUMP} . Delete or rename it if you want to extract another dump. Dump not extracted.$${RESET}"; echo; else \
-	  python3 third-party/wiki_extractor/WikiExtractor.py --sections --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
+	  python3 third-party/wiki-extractor/WikiExtractor.py --sections --links --bold --json --output_file ${EXTRACTED_WIKI_DUMP} ${WIKI_DUMP}; \
 	fi
 
-split_wiki:
+split-wiki:
 	python3 scripts/split_dataset.py
 
 # Link Wikipedia dump only if it does not exist already at the specified location.
-link_wiki:
+link-wiki:
 	@[ -d ${RESULTS_DIR} ] || mkdir ${RESULTS_DIR}
 	@if ls ${LINKED_WIKI_ARTICLES} 1> /dev/null 2>&1; then echo -e "$${RED}Linked Wikipedia dump already exists at ${LINKED_WIKI_ARTICLES} . Delete or rename it if you want to link another dump. Dump not linked.$${RESET}"; echo; else \
 	  python3 link_text.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular-entities -coref kb-coref -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
-generate_all: generate_entity_types_mapping generate_wikidata_mappings generate_wikipedia_mappings
+generate-all: generate-entity-types-mapping generate-wikidata-mappings generate-wikipedia-mappings
 
-generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
+generate-wikipedia-mappings: download-wiki extract-wiki split-wiki
 	@echo
-	@echo "[generate_wikipedia_mappings] Build mappings from Wikipedia."
+	@echo "[generate-wikipedia-mappings] Build mappings from Wikipedia."
 	@echo
 	@[ -d ${WIKIPEDIA_MAPPINGS_DIR} ] || mkdir ${WIKIPEDIA_MAPPINGS_DIR}
 	python3 scripts/extract_akronyms.py
@@ -217,12 +217,12 @@ generate_wikipedia_mappings: download_wiki extract_wiki split_wiki
 	python3 scripts/get_wikipedia_id_to_title_mapping.py
 	python3 scripts/create_abstracts_mapping.py  # Needs redirects and qid_to_wikipedia_url.db
 
-generate_wikidata_mappings: get_qlever_mappings generate_databases generate_coreference_type_mappings
+generate-wikidata-mappings: get-qlever-mappings generate-databases generate-coreference-type-mappings
 
 # Get data for queries from $(DATA_QUERY_VARABLES) via $(WIKIDATA_SPARQL_ENDPOINT) and write to tsv files.
-get_qlever_mappings:
+get-qlever-mappings:
 	@echo
-	@echo "[get_wikidata_mappings] Get data for given queries in batches."
+	@echo "[get-qlever-mappings] Get data for given queries in batches."
 	@echo
 	@echo "DATA_QUERY_NAMES = $(DATA_QUERY_NAMES)"
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
@@ -232,7 +232,7 @@ get_qlever_mappings:
 	  $(MAKE) -sB API=$${WIKIDATA_SPARQL_ENDPOINT} QUERY_VARIABLE=$${QUERY_NAME}_QUERY OUTFILE=$${WIKIDATA_MAPPINGS_DIR}$${LOWER_QUERY_NAME}.tsv query; done
 	@echo
 
-generate_coreference_type_mappings:
+generate-coreference-type-mappings:
 	@echo
 	@echo "Get mapping from QID to coreference types needed only for our own coref resolver."
 	@echo "Takes ca. 1h. If the coref resolver is not needed you can skip this step."
@@ -241,9 +241,9 @@ generate_coreference_type_mappings:
 	python3 scripts/create_coreference_types_mapping.py
 	@echo
 
-generate_databases:
+generate-databases:
 	@echo
-	@echo "[generate_databases] Build databases from large Wikidata mappings."
+	@echo "[generate-databases] Build databases from large Wikidata mappings."
 	@echo
 	[ -f ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}qid_to_wikipedia_url.tsv -i -m name_from_url -o ${WIKIDATA_MAPPINGS_DIR}wikipedia_name_to_qid.db
@@ -300,9 +300,9 @@ query:
 
 # Start the evaluation webapp.
 # If necessary create the symbolic links to the evaluation results and the benchmarks directory first.
-start_webapp:
+start-webapp:
 	@echo
-	@echo "[start_webapp] Start the web app."
+	@echo "[start-webapp] Start the web app."
 	@echo
 	@[ -L evaluation-webapp/evaluation-results ] || ln -sr ${EVALUATION_RESULTS_DIR} evaluation-webapp/evaluation-results
 	@[ -L evaluation-webapp/benchmarks ] || ln -sr benchmarks/ evaluation-webapp/benchmarks

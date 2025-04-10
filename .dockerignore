@@ -1,9 +1,8 @@
 articles
-linker_files
-spacy_knowledge_bases
-wikidata_mappings
-wikipedia_dump_files
-wikipedia_mappings
+linker-files
+wikidata-mappings
+wikipedia-articles
+wikipedia-mappings
 evaluation-results
 benchmarks
 wikidata-types/*

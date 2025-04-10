@@ -15,7 +15,7 @@ COPY src src
 COPY scripts scripts
 COPY evaluation-webapp evaluation-webapp
 RUN mkdir third-party
-COPY third-party/wiki_extractor third-party/wiki_extractor
+COPY third-party/wiki-extractor third-party/wiki-extractor
 COPY small-data-files small-data-files
 COPY configs configs
 COPY Makefile .
