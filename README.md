@@ -52,16 +52,16 @@ For linking entities in text or evaluating the output of a linker, our system ne
 
 To download the files from our servers, simply run
 
-    make download_all
+    make download-all
 
-This will automatically run `make download_wikidata_mappings`, `make download_wikipedia_mappings` and
- `make download_entity_types_mapping` which will download the compressed files, extract them and move them to the
+This will automatically run `make download-wikidata-mappings`, `make download-wikipedia-mappings` and
+ `make download-entity-types-mapping` which will download the compressed files, extract them and move them to the
  correct location. See [Mapping Files](https://github.com/ad-freiburg/elevant/wiki/Mapping-Files) for a description of files downloaded in these steps.
 
 NOTE: This will overwrite existing Wikidata and Wikipedia mappings in your `<data_directory>` so make sure this is what 
  you want to do.
 
-If you rather want to build the mappings yourself, you can run `make generate_all` to generate all required files, or
+If you rather want to build the mappings yourself, you can run `make generate-all` to generate all required files, or
  alternatively, replace only a specific *download* command by the corresponding *generate* command.
 See [Data Generation](https://github.com/ad-freiburg/elevant/wiki/Generating-Data) for more details.
 
@@ -69,7 +69,7 @@ See [Data Generation](https://github.com/ad-freiburg/elevant/wiki/Generating-Dat
 
 To start the evaluation web app, run
 
-    make start_webapp
+    make start-webapp
 
 You can then access the webapp at <http://0.0.0.0:8000/>.
 
