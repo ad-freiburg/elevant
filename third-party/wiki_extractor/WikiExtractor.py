@@ -2359,15 +2359,15 @@ wgUrlProtocols = [
 EXT_LINK_URL_CLASS = r'[^][<>"\x00-\x20\x7F\s]'
 ANCHOR_CLASS = r'[^][\x00-\x08\x0a-\x1F]'
 ExtLinkBracketedRegex = re.compile(
-    r'\[(((?i)' + '|'.join(wgUrlProtocols) + ')' + EXT_LINK_URL_CLASS + r'+)' +
+    r'(?i)\[((' + '|'.join(wgUrlProtocols) + ')' + EXT_LINK_URL_CLASS + r'+)' +
     r'\s*((?:' + ANCHOR_CLASS + r'|\[\[' + ANCHOR_CLASS + r'+\]\])' + r'*?)\]',
     re.S | re.U)
 # A simpler alternative:
 # ExtLinkBracketedRegex = re.compile(r'\[(.*?)\](?!])')
 
 EXT_IMAGE_REGEX = re.compile(
-    r"""^(http://|https://)([^][<>"\x00-\x20\x7F\s]+)
-    /([A-Za-z0-9_.,~%\-+&;#*?!=()@\x80-\xFF]+)\.((?i)gif|png|jpg|jpeg)$""",
+    r"""(?i)^(http://|https://)([^][<>"\x00-\x20\x7F\s]+)
+    /([A-Za-z0-9_.,~%\-+&;#*?!=()@\x80-\xFF]+)\.(gif|png|jpg|jpeg)$""",
     re.X | re.S | re.U)
 
 
