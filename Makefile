@@ -137,7 +137,7 @@ generate-entity-types-mapping:
 	@echo
 	@echo "[generate-entity-types-mapping] Get data for given queries in batches."
 	@echo
-	docker pull adfreiburg/qlever:pr-1532
+	docker pull adfreiburg/qlever
 	rm -f wikidata-types/types.tsv
 	ln -sr small-data-files/whitelist_types.tsv wikidata-types/types.tsv
 	cd wikidata-types; chmod 777 index; $(MAKE) -sB WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
