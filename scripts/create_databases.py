@@ -148,7 +148,7 @@ def write_to_dbm(d, filename):
             try:
                 db.put(key.encode("utf-8"), value.encode("utf-8"))
             except lmdb.BadValsizeError:
-                logger.error(f"\nFailed to write key \"{key}\" with value \"{value}\".")
+                logger.warning(f"\nFailed to write key \"{key}\" with value \"{value}\".")
             count += 1
             if count % 100000 == 0:
                 print(f"\rWrote {count} items of {len(d)}.", end="")
