@@ -147,6 +147,7 @@ generate-entity-types-mapping:
 	@echo
 	docker pull adfreiburg/qlever
 	rm -f wikidata-types/types.tsv
+	rm wikidata-types/index/* -rf  # Remove old Wikidata-Types index to be able to build a new one
 	ln -sr small-data-files/whitelist_types.tsv wikidata-types/types.tsv
 	cd wikidata-types; chmod 777 index; $(MAKE) -sB WIKIDATA_SPARQL_ENDPOINT=${WIKIDATA_SPARQL_ENDPOINT} -f Makefile; cd ..
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
