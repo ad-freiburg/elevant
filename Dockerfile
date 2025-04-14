@@ -20,8 +20,8 @@ COPY small-data-files small-data-files
 COPY configs configs
 COPY Makefile .
 COPY *.py ./
-# Set DATA_DIR variable in Makefile to /data/ within the container
-RUN sed -i 's|^DATA_DIR =.*|DATA_DIR = /data/|' Makefile
+# Set DATA_DIR variable in Makefile to /data within the container
+RUN sed -i 's|^DATA_DIR =.*|DATA_DIR = /data|' Makefile
 # Enable Makefile target autocompletion
 RUN echo "complete -W \"\`grep -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' ?akefile | sed 's/[^a-zA-Z0-9_.-]*$//'\`\" make" >> ~/.bashrc
 # Add Elevant's src directory to the PYTHONPATH

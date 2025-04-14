@@ -5,23 +5,23 @@ DIM := \033[2m
 RED := \033[31m
 RESET := \033[0m
 
-DATA_DIR = /local/data-ssd/entity-linking/
+DATA_DIR = /local/data-ssd/entity-linking
 
-WIKIPEDIA_ARTICLES_DIR = ${DATA_DIR}wikipedia-articles/
+WIKIPEDIA_ARTICLES_DIR = ${DATA_DIR}/wikipedia-articles/
 WIKI_DUMP = ${WIKIPEDIA_ARTICLES_DIR}enwiki-latest-pages-articles-multistream.xml.bz2
 EXTRACTED_WIKI_DUMP = ${WIKIPEDIA_ARTICLES_DIR}wikipedia.articles.jsonl
-RESULTS_DIR = ${DATA_DIR}results/
+RESULTS_DIR = ${DATA_DIR}/results/
 LINKED_WIKI_ARTICLES = ${RESULTS_DIR}wikipedia.articles.linked.jsonl
 
 # Variables for generating wikidata mappings
-WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}wikidata-mappings/
+WIKIDATA_MAPPINGS_DIR = ${DATA_DIR}/wikidata-mappings/
 WIKIDATA_SPARQL_ENDPOINT = https://qlever.cs.uni-freiburg.de/api/wikidata
 # Note that the query names are also used for generating the file name by
 # casting the query name to lowercase and appending .tsv
 DATA_QUERY_NAMES = QID_TO_DEMONYM QID_TO_LANGUAGE QUANTITY DATETIME QID_TO_LABEL QID_TO_GENDER QID_TO_NAME QID_TO_SITELINKS QID_TO_ALIASES QID_TO_WIKIPEDIA_URL QID_TO_P31 QID_TO_P279
 
 # Variables for generating wikipedia mappings
-WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}wikipedia-mappings/
+WIKIPEDIA_MAPPINGS_DIR = ${DATA_DIR}/wikipedia-mappings/
 
 # Variables for benchmark linking and evaluation
 EVALUATION_RESULTS_DIR = evaluation-results/
@@ -58,6 +58,14 @@ config:
 	@echo "training, development and test set, download all necessary Wikidata mappings"
 	@echo "and compute all necessary Wikipedia mappings."
 	@echo
+
+check-data-directory:
+	@if [ ! -d ${DATA_DIR} ]; then \
+		echo "The directory ${DATA_DIR} does not exist."; \
+		echo "Make sure you set the DATA_DIR variable correctly in the Makefile as well as the data_directory field in configs/elevant.config.json."; \
+		echo "Within docker this happens automatically."; \
+		false; \
+	fi
 
 link-benchmarks:
 	@echo
@@ -148,7 +156,7 @@ generate-entity-types-mapping:
 	[ -f ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db ] && rm -f ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db || true
 	python3 scripts/create_databases.py ${WIKIDATA_MAPPINGS_DIR}entity-types.tsv -f multiple_values -o ${WIKIDATA_MAPPINGS_DIR}qid_to_whitelist_types.db
 
-download-all: download-wikidata-mappings download-wikipedia-mappings download-entity-types-mapping
+download-all: check-data-directory download-wikidata-mappings download-wikipedia-mappings download-entity-types-mapping
 
 download-wikidata-mappings:
 	@[ -d ${WIKIDATA_MAPPINGS_DIR} ] || mkdir ${WIKIDATA_MAPPINGS_DIR}
@@ -169,9 +177,9 @@ download-entity-types-mapping:
 	rm qid_to_whitelist_types.tar.gz
 
 download-spacy-linking-files:
-	@[ -d ${DATA_DIR}linker-files ] || mkdir ${DATA_DIR}linker-files
+	@[ -d ${DATA_DIR}/linker-files ] || mkdir ${DATA_DIR}/linker-files
 	wget https://ad-research.cs.uni-freiburg.de/data/entity-linking/spacy_linker_files.tar.gz
-	tar -xvzf spacy_linker_files.tar.gz -C ${DATA_DIR}linker-files
+	tar -xvzf spacy_linker_files.tar.gz -C ${DATA_DIR}/linker-files
 	rm spacy_linker_files.tar.gz
 
 
@@ -198,7 +206,7 @@ link-wiki:
 	  python3 link_text.py ${EXTRACTED_WIKI_DUMP} ${LINKED_WIKI_ARTICLES} -l popular-entities -coref kb-coref -m ${NUM_LINKER_PROCESSES}; \
 	fi
 
-generate-all: generate-entity-types-mapping generate-wikidata-mappings generate-wikipedia-mappings
+generate-all: check-data-directory generate-entity-types-mapping generate-wikidata-mappings generate-wikipedia-mappings
 
 generate-wikipedia-mappings: download-wiki extract-wiki split-wiki
 	@echo
@@ -284,8 +292,8 @@ query:
 	@echo "$$PREFIXES $${${QUERY_VARIABLE}}"
 	@curl -Gs ${API} -H "Accept: text/tab-separated-values"\
 	    --data-urlencode "query=$$PREFIXES $${${QUERY_VARIABLE}} LIMIT 200000000" \
-	     > ${DATA_DIR}tmp.tsv
-	@cat ${DATA_DIR}tmp.tsv \
+	     > ${DATA_DIR}/tmp.tsv
+	@cat ${DATA_DIR}/tmp.tsv \
 	    | sed -r 's|<http://www\.wikidata\.org/entity/([Q][0-9]+)>|\1|g' \
 	    | sed -r '/^[^Q]/d' \
 	    | sed -r 's|"([^\t"]*)"@en|\1|g' \
@@ -296,7 +304,7 @@ query:
 	@wc -l ${OUTFILE} | cut -f 1 -d " "
 	@echo "First and last line:"
 	@head -1 ${OUTFILE} && tail -1 ${OUTFILE}
-	@rm -f ${DATA_DIR}tmp.tsv
+	@rm -f ${DATA_DIR}/tmp.tsv
 
 # Start the evaluation webapp.
 # If necessary create the symbolic links to the evaluation results and the benchmarks directory first.
