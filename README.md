@@ -6,14 +6,15 @@ To run the docker container you can also follow the instructions in the original
 
 Download: (only if not already downloaded)
 ```
-git clone https://github.com/ad-freiburg/elevant.git .
+git clone https://github.com/ad-freiburg/elevant.git
 ```
 
 Make the data directory (in the elevant directory where this readme is):
 
 ```
+cd elevant
 mkdir data
-chmod a+rw -R data/ evaluation-results/ benchmarks/
+chmod -R a+rw data/ evaluation-results/ benchmarks/
 ```
 
 Build:
@@ -29,6 +30,7 @@ docker run -it -p 8000:8000 \
     -v $(pwd)/data/:/data \
     -v $(pwd)/evaluation-results/:/home/evaluation-results \
     -v $(pwd)/benchmarks/:/home/benchmarks \
+    elevant
 ```
 
 Inside the running docker container:
@@ -63,9 +65,13 @@ Examples:
 
 ```
 python3 link_benchmark.py GRASP -l grasp -b msnbc-updated
+```
 
+```
 python3 link_benchmark.py GRASP -l grasp -b wiki-fair-v2-no-coref
+```
 
+```
 python3 link_benchmark.py GRASP -l grasp -b aida-conll-dev
 ```
 
@@ -79,9 +85,13 @@ Examples:
 
 ```
 python3 evaluate.py evaluation-results/grasp/grasp.msnbc-updated.linked_articles.jsonl
+```
 
+```
 python3 evaluate.py evaluation-results/grasp/grasp.wiki-fair-v2-no-coref.linked_articles.jsonl
+```
 
+```
 python3 evaluate.py evaluation-results/grasp/grasp.aida-conll-dev.linked_articles.jsonl
 ```
 
