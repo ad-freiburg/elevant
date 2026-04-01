@@ -6,7 +6,7 @@ To run the docker container you can also follow the instructions in the original
 
 Download: (only if not already downloaded)
 ```
-git clone https://github.com/ad-freiburg/elevant.git
+git clone https://github.com/mb504/elevant.git
 ```
 
 Make the data directory (in the elevant directory where this readme is):
@@ -35,7 +35,7 @@ docker run -it -p 8000:8000 \
 
 Inside the running docker container:
 
-Download Indices for linking and evalutation and viewing results (about 30GB and yes, they are necessary)
+Download Indices for linking and evalutation (about 30GB)
 
 ```
 make download-all
