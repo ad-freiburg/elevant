@@ -1,5 +1,93 @@
 # ELEVANT: Entity Linking Evaluation & Analysis Tool
 
+## Using the GRASP linker specifically and a Quick Start Guide
+
+To run the docker container you can also follow the instructions in the original readme but here's a short version that should be complete:
+
+Download: (only if not already downloaded)
+```
+git clone https://github.com/ad-freiburg/elevant.git .
+```
+
+Make the data directory (in the elevant directory where this readme is):
+
+```
+mkdir data
+chmod a+rw -R data/ evaluation-results/ benchmarks/
+```
+
+Build:
+
+```
+docker build -t elevant .
+```
+
+Run:
+
+```
+docker run -it -p 8000:8000 \
+    -v $(pwd)/data/:/data \
+    -v $(pwd)/evaluation-results/:/home/evaluation-results \
+    -v $(pwd)/benchmarks/:/home/benchmarks \
+```
+
+Inside the running docker container:
+
+Download Indices for linking and evalutation and viewing results (about 30GB and yes, they are necessary)
+
+```
+make download-all
+```
+
+Start the Webapp to visualize the results, it can be found at <http://0.0.0.0:8000/>:
+
+```
+make start-webapp
+```
+
+Using the Grasp linker:
+
+The Grasp Linker splits up the prediction requests it gets from ELEVANT and sends them to a GRASP server and gives back the results.
+
+For using the Grasp linker you can adjust the address of that server and the linkers general behavior by making changes to the configuration in `home/configs/grasp.config.json` in the running docker environment.
+
+Mount the config file into the environment by adding `-v $(pwd)/configs/grasp.config.json:/home/configs/grasp.config.json` to the docker run command to make the changes persistent.
+
+To link a Benchmark do: (BE CAREFULL: this overrides existing results that have the same experiment name, linker AND benchmark!)
+
+```
+python3 link_benchmark.py <name of the experiment> -l <linker> -b <benchmark> 
+```
+
+Examples:
+
+```
+python3 link_benchmark.py GRASP -l grasp -b msnbc-updated
+
+python3 link_benchmark.py GRASP -l grasp -b wiki-fair-v2-no-coref
+
+python3 link_benchmark.py GRASP -l grasp -b aida-conll-dev
+```
+
+Evalutating the benchmark results (this is necessary before viewing the results after linking):
+
+```
+python3 evaluate.py <path to the results>
+```
+
+Examples:
+
+```
+python3 evaluate.py evaluation-results/grasp/grasp.msnbc-updated.linked_articles.jsonl
+
+python3 evaluate.py evaluation-results/grasp/grasp.wiki-fair-v2-no-coref.linked_articles.jsonl
+
+python3 evaluate.py evaluation-results/grasp/grasp.aida-conll-dev.linked_articles.jsonl
+```
+
+
+## Original Readme from ELEVANT
+
 ELEVANT is a tool that helps you evaluate, analyse and compare entity linking systems in detail. You can explore a
  demo instance of the ELEVANT web app at https://elevant.cs.uni-freiburg.de/. If you are using ELEVANT for your
  research please cite our paper

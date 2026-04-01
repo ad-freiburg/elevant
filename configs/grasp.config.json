@@ -1,0 +1,15 @@
+{
+  "linker_name": "GRASP",
+  "experiment_description": "Using GRASP entity linking task",
+  "url": "http://host.docker.internal:6789/run",
+  "num_retries": 5,
+  "num_parallel": 3,
+  "seconds_between_retries": 30,
+  "overlap_between_windows": 48,
+  "num_allowed_timeouts": 0,
+  "split_at_punctuations": true,
+  "log_output_directory": "grasp_log",
+  "benchmark_name_for_logging": "wikifair-v2-no-coref",
+  "window_size": 400,
+  "resend_if_timeout_in_output": true
+}
