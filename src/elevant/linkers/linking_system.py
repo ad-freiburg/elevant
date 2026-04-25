@@ -198,6 +198,11 @@ class LinkingSystem:
             self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
                                         MappingName.REDIRECTS})
             self.linker = NifApiLinker(self.entity_db, api_url, self.prediction_name, self.custom_kb)
+        elif linker_type == Linkers.GRASP.value:
+            from elevant.linkers.grasp_linker import GraspLinker
+            self.load_missing_mappings({MappingName.WIKIPEDIA_WIKIDATA,
+                                        MappingName.REDIRECTS})
+            self.linker = GraspLinker(self.entity_db, self.linker_config)
         else:
             linker_exists = False
 

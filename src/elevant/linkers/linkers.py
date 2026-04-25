@@ -13,6 +13,7 @@ class Linkers(Enum):
     SPACY = "spacy"
     POPULAR_ENTITIES = "popular-entities"
     POS_PRIOR = "pos-prior"
+    GRASP = "grasp"
     NONE = "none"
 
 
