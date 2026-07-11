@@ -6,8 +6,12 @@ from elevant.models.entity_database import EntityDatabase
 from elevant.models.entity_prediction import EntityPrediction
 from elevant.linkers.abstract_entity_linker import AbstractEntityLinker
 
+
 # These are simple instructions that seem to work for KORE50 and AIDA-CoNLL
-named_instructions = "Link only named entities."
+named_instructions = """Link only named entities.
+Link metonyms with their intended meaning that is maybe only obvious from the context.
+If you cannot find an entity for the intended meaning, link it with the literal meaning."""
+
 
 # These are the shortened instructions for the Wiki-Fair and News-Fair benchmarks 
 # given in the paper excluding the sections on coreference, NIL, quantity, datetime
@@ -110,10 +114,7 @@ class GraspLinker(AbstractEntityLinker):
         for pred in predictions:
             s, e = pred["start_char"], pred["end_char"]
             ent = pred["entity_reference"]
-            if ent:
-                ent = ent[3:] if ent[0:3] == "wd:" else ent
-            else:
-                ent = "<NIL>"
+            ent = ent[3:] if ent[0:3] == "wd:" else ent
             result[(s, e)] = EntityPrediction((s, e), ent, {ent})
         return result
 
@@ -137,21 +138,20 @@ class GraspLinker(AbstractEntityLinker):
             method="POST",
             headers={"Content-Type": "application/json"}
         )
-        for retry in range(self.num_retries + 1):
+        #for retry in range(self.num_retries + 1):
+        retry = 0
+        while retry < self.num_retries:
             try:
                 with urlopen(rq) as response:
                     response = json.load(response)
+            # general errors sending the request
             except Exception as e:
                 print(
                     f"Error sending request for excerpt [{text['annotate_from']}: "
                     f"{text['annotate_up_to']}], "
-                    f"{self.num_retries - retry} retries left. Error: {e}"
                 )
                 time.sleep(self.seconds_between_retries)
                 continue
-
-            with open(self.log_path, "a") as logfile:
-                json.dump(response, logfile)
 
             # look for words 'SPARQL query timed out' in the results
             predictions = response.get("output", {}).get("predictions", [])
@@ -162,11 +162,27 @@ class GraspLinker(AbstractEntityLinker):
                     timeout_counter += str(message).count("SPARQL query timed out")
                 if timeout_counter > self.num_allowed_timeouts:
                     print(
-                        f"Too many timeouts ({timeout_counter}), resending excerpt "
-                        f"from {text['annotate_from']} to {text['annotate_up_to']}, "
-                        f"{self.num_retries - retry} retries left. "
+                        f"Too many timeouts ({timeout_counter}/{self.num_allowed_timeouts}), resending excerpt "
+                        f"[{text['annotate_from']}: {text['annotate_up_to']}], "
+                        f"{self.num_retries - retry} retries left."
                     )
+                    retry += 1
                     continue
+
+            # look for errors given by GRASP
+            err = response.get("error", None)
+            if err:
+                print(
+                    f"Error: {err} from GRASP. Resending excerpt "
+                    f"[{text['annotate_from']}: {text['annotate_up_to']}]."
+                )
+                time.sleep(self.seconds_between_retries)
+                continue
+
+            # only log if successfull
+            with open(self.log_path, "a") as logfile:
+                json.dump(response, logfile)
+                logfile.write("\n")
 
             print(f"Annotated excerpt [{text['annotate_from']}: {text['annotate_up_to']}]")
             return predictions
@@ -220,3 +236,4 @@ class GraspLinker(AbstractEntityLinker):
 
     def has_entity(self, entity_id: str) -> bool:
         return True
+
