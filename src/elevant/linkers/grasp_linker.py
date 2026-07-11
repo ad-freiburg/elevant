@@ -114,7 +114,10 @@ class GraspLinker(AbstractEntityLinker):
         for pred in predictions:
             s, e = pred["start_char"], pred["end_char"]
             ent = pred["entity_reference"]
-            ent = ent[3:] if ent[0:3] == "wd:" else ent
+            if ent:
+                ent = ent[3:] if ent[0:3] == "wd:" else ent
+            else:
+                ent = "<NIL>"
             result[(s, e)] = EntityPrediction((s, e), ent, {ent})
         return result
 
