@@ -417,7 +417,7 @@ function read_benchmark_articles() {
      */
     // Get the names of the benchmark files from the benchmarks directory
     let metadata_filenames = [];
-    return $.get("benchmarks", function(folder_data){
+    return $.get("benchmarks/", function(folder_data){
         $(folder_data).find("a").each(function() {
             let filename = $(this).attr("href");
             if (filename.endsWith(BENCHMARK_EXTENSION)) window.benchmark_filenames.push(filename);
@@ -454,7 +454,7 @@ function read_evaluation_results() {
     let folders = [];
     let results_urls = [];
     let metadata_urls = [];
-    return $.get(EVALUATION_RESULT_PATH, function(data) {
+    return $.get(EVALUATION_RESULT_PATH + "/", function(data) {
         // Get all folders from the evaluation results directory
         $(data).find("a").each(function() {
             let name = $(this).attr("href");
@@ -464,7 +464,7 @@ function read_evaluation_results() {
     }).then(function() {
         // Retrieve file path of .eval_results.json files for the selected benchmark in each folder
         return $.when.apply($, folders.map(function(folder) {
-            return $.get(EVALUATION_RESULT_PATH + "/" + folder, function(folder_data) {
+            return $.get(EVALUATION_RESULT_PATH + "/" + folder + "/", function(folder_data) {
                 $(folder_data).find("a").each(function() {
                     let filename = $(this).attr("href");
                     let url = EVALUATION_RESULT_PATH + "/" + folder + "/" + filename;
