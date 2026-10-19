@@ -112,8 +112,8 @@ class GraspLinker(AbstractEntityLinker):
         ) -> dict[tuple[int, int], EntityPrediction]:
         result = {}
         for pred in predictions:
-            s, e = pred["start_char"], pred["end_char"]
-            ent = pred["entity_reference"]
+            s, e = pred["start"], pred["end"]
+            ent = pred["entity"]
             if ent:
                 ent = ent[3:] if ent[0:3] == "wd:" else ent
             else:
@@ -129,7 +129,7 @@ class GraspLinker(AbstractEntityLinker):
             predictions: list[dict],
             cut_beyond: int,
         ) -> list[dict]:
-        result = [pred for pred in predictions if pred["start_char"] < cut_beyond]
+        result = [pred for pred in predictions if pred["start"] < cut_beyond]
         return result
 
 
@@ -150,14 +150,14 @@ class GraspLinker(AbstractEntityLinker):
             # general errors sending the request
             except Exception as e:
                 print(
-                    f"Error sending request for excerpt [{text['annotate_from']}: "
-                    f"{text['annotate_up_to']}], "
+                    f"Error sending request for excerpt [{text['annotate_start']}: "
+                    f"{text['annotate_end']}], "
                 )
                 time.sleep(self.seconds_between_retries)
                 continue
 
             # look for words 'SPARQL query timed out' in the results
-            predictions = response.get("output", {}).get("predictions", [])
+            predictions = response.get("output", {}).get("annotations", [])
             if self.resend_if_timeout and retry < self.num_retries:
                 timeout_counter = 0
                 messages = response.get("messages", [])
@@ -166,7 +166,7 @@ class GraspLinker(AbstractEntityLinker):
                 if timeout_counter > self.num_allowed_timeouts:
                     print(
                         f"Too many timeouts ({timeout_counter}/{self.num_allowed_timeouts}), resending excerpt "
-                        f"[{text['annotate_from']}: {text['annotate_up_to']}], "
+                        f"[{text['annotate_start']}: {text['annotate_end']}], "
                         f"{self.num_retries - retry} retries left."
                     )
                     retry += 1
@@ -177,7 +177,7 @@ class GraspLinker(AbstractEntityLinker):
             if err:
                 print(
                     f"Error: {err} from GRASP. Resending excerpt "
-                    f"[{text['annotate_from']}: {text['annotate_up_to']}]."
+                    f"[{text['annotate_start']}: {text['annotate_end']}]."
                 )
                 time.sleep(self.seconds_between_retries)
                 continue
@@ -187,7 +187,7 @@ class GraspLinker(AbstractEntityLinker):
                 json.dump(response, logfile)
                 logfile.write("\n")
 
-            print(f"Annotated excerpt [{text['annotate_from']}: {text['annotate_up_to']}]")
+            print(f"Annotated excerpt [{text['annotate_start']}: {text['annotate_end']}]")
             return predictions
         return {}
 
@@ -216,8 +216,8 @@ class GraspLinker(AbstractEntityLinker):
 
         texts = [{
             "data": text,
-            "annotate_from": i,
-            "annotate_up_to": j,
+            "annotate_start": i,
+            "annotate_end": j,
             "special_instructions": instructions,
         } for i, j in splits]
 
@@ -227,7 +227,7 @@ class GraspLinker(AbstractEntityLinker):
         for i in range(len(result_list) - 1):
             result_list[i] = self.cut_overlap(
                 result_list[i],
-                texts[i]["annotate_up_to"] - self.overlap
+                texts[i]["annotate_end"] - self.overlap
             )
 
         # convert to elevant predictions
