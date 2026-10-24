@@ -296,7 +296,7 @@ function read_benchmark_statistics() {
      */
     // Get the names of the benchmark files from the benchmarks directory
     let metadata_filenames = [];
-    return $.get("benchmarks", function(folder_data){
+    return $.get("benchmarks/", function(folder_data){
         $(folder_data).find("a").each(function() {
             let filename = $(this).attr("href");
             if (filename.endsWith(BENCHMARK_STATISTICS_EXTENSION)) window.benchmark_statistics_filenames.push(filename);
